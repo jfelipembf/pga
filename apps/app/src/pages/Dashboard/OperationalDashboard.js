@@ -14,7 +14,18 @@ import PageLoader from "../../components/Common/PageLoader"
 
 const OperationalDashboard = ({ setBreadcrumbItems }) => {
     document.title = "Dashboard Operacional | PGA"
-    const { reports, experimentals, tasks, birthdays, expirations, refreshTasks, markTaskAsCompleted, isLoading } = useOperationalDashboardLogic()
+    const {
+        reports,
+        experimentals,
+        tasks,
+        birthdays,
+        expirations,
+        refreshTasks,
+        markTaskAsCompleted,
+        markBirthdayAsCompleted,
+        markExpirationAsCompleted,
+        isLoading
+    } = useOperationalDashboardLogic()
 
     const breadcrumbItems = useMemo(() => [
         { title: "Dashboard", link: "#" },
@@ -44,6 +55,8 @@ const OperationalDashboard = ({ setBreadcrumbItems }) => {
                         expirations={expirations}
                         refreshTasks={refreshTasks}
                         markTaskAsCompleted={markTaskAsCompleted}
+                        markBirthdayAsCompleted={markBirthdayAsCompleted}
+                        markExpirationAsCompleted={markExpirationAsCompleted}
                     />
                 </Col>
             </Row>

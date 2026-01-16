@@ -3,7 +3,15 @@ import { Card, CardBody, Row, Col, Input, Button } from "reactstrap";
 import TaskModal from "./TaskModal";
 import { useToast } from "../../../components/Common/ToastProvider";
 
-const OperationalAlerts = ({ tasks = [], birthdays = [], expirations = [], refreshTasks, markTaskAsCompleted }) => {
+const OperationalAlerts = ({
+    tasks = [],
+    birthdays = [],
+    expirations = [],
+    refreshTasks,
+    markTaskAsCompleted,
+    markBirthdayAsCompleted,
+    markExpirationAsCompleted
+}) => {
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString('en-CA'));
     const toast = useToast();
@@ -15,10 +23,33 @@ const OperationalAlerts = ({ tasks = [], birthdays = [], expirations = [], refre
                 await markTaskAsCompleted(taskId);
             }
             toast.show({ title: "Sucesso", description: "Tarefa concluída!", color: "success" });
-            // refreshTasks is now secondary as state is updated optimistically
         } catch (error) {
             console.error("Erro ao concluir tarefa:", error);
             toast.show({ title: "Erro", description: "Não foi possível concluir a tarefa.", color: "danger" });
+        }
+    };
+
+    const handleBirthdayCheck = async (birthday) => {
+        try {
+            if (markBirthdayAsCompleted) {
+                await markBirthdayAsCompleted(birthday);
+            }
+            toast.show({ title: "Sucesso", description: "Aniversário marcado como resolvido!", color: "success" });
+        } catch (error) {
+            console.error("Erro ao concluir aniversário:", error);
+            toast.show({ title: "Erro", description: "Não foi possível concluir o alerta.", color: "danger" });
+        }
+    };
+
+    const handleExpirationCheck = async (expiration) => {
+        try {
+            if (markExpirationAsCompleted) {
+                await markExpirationAsCompleted(expiration);
+            }
+            toast.show({ title: "Sucesso", description: "Vencimento marcado como resolvido!", color: "success" });
+        } catch (error) {
+            console.error("Erro ao concluir vencimento:", error);
+            toast.show({ title: "Erro", description: "Não foi possível concluir o alerta.", color: "danger" });
         }
     };
 
@@ -72,6 +103,22 @@ const OperationalAlerts = ({ tasks = [], birthdays = [], expirations = [], refre
                                                     onChange={() => (item.status !== 'completed') ? handleTaskCheck(item.id) : null}
                                                     style={{ marginTop: "2px", cursor: "pointer" }}
                                                     disabled={item.status === 'completed'}
+                                                />
+                                            )}
+
+                                            {isBirthday && (
+                                                <Input
+                                                    type="checkbox"
+                                                    onChange={() => handleBirthdayCheck(item)}
+                                                    style={{ marginTop: "2px", cursor: "pointer" }}
+                                                />
+                                            )}
+
+                                            {isExpiration && (
+                                                <Input
+                                                    type="checkbox"
+                                                    onChange={() => handleExpirationCheck(item)}
+                                                    style={{ marginTop: "2px", cursor: "pointer" }}
                                                 />
                                             )}
 

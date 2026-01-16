@@ -13,7 +13,7 @@ const Header = () => {
                         className="img-fluid"
                         style={{
                             filter: 'brightness(0) invert(1)',
-                            height: '80px', // Increased from 55px
+                            height: '120px', // Increased from 80px
                             width: 'auto',
                             objectFit: 'contain'
                         }}

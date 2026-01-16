@@ -141,6 +141,7 @@ exports.checkExperimentalClassAutomations = require("./src/triggers/checkExperim
 
 // Tasks
 exports.completeTask = require("./src/tasks/tasks").completeTask;
+exports.completeOperationalAlert = require("./src/tasks/tasks").completeOperationalAlert;
 exports.createTask = require("./src/tasks/tasks").createTask;
 exports.checkExpiringContracts = require("./src/triggers/checkExpiringContracts");
 

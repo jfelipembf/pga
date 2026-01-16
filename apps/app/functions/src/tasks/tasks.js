@@ -161,3 +161,57 @@ exports.createTask = functions.region("us-central1").https.onCall(async (data, c
 
     return { id: docRef.id, ...payload };
 });
+/**
+ * Marca um alerta operacional (aniversário ou vencimento) como concluído.
+ */
+exports.completeOperationalAlert = functions.region("us-central1").https.onCall(async (data, context) => {
+    const { idTenant, idBranch, uid, token } = requireAuthContext(data, context);
+    const { alertId, type, description, targetName } = data;
+
+    if (!alertId || !type) {
+        throw new functions.https.HttpsError("invalid-argument", "alertId e type são obrigatórios.");
+    }
+
+    const completionRef = db
+        .collection("tenants")
+        .doc(idTenant)
+        .collection("branches")
+        .doc(idBranch)
+        .collection("alertCompletions")
+        .doc(alertId);
+
+    const now = admin.firestore.FieldValue.serverTimestamp();
+    const today = new Date().toISOString().split('T')[0];
+
+    await completionRef.set({
+        type,
+        alertId,
+        completedAt: now,
+        completedBy: uid,
+        completionDate: today, // Filter by today to keep list small
+        updatedAt: now
+    });
+
+    // Auditoria
+    try {
+        const staffName = token?.name || token?.email || uid;
+        const action = type === 'birthday' ? 'BIRTHDAY_HANDLED' : 'EXPIRATION_HANDLED';
+
+        await saveAuditLog({
+            idTenant, idBranch, uid,
+            userName: staffName,
+            action,
+            targetId: alertId,
+            description: `Concluiu ${type === 'birthday' ? 'aniversário' : 'vencimento'}: ${description || alertId}`,
+            metadata: {
+                description,
+                clientName: targetName,
+                type
+            }
+        });
+    } catch (auditError) {
+        console.error("Falha silenciosa na auditoria de conclusão de alerta:", auditError);
+    }
+
+    return { success: true };
+});

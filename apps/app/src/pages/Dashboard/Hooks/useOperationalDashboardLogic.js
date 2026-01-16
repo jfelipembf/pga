@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react"
 import { useLoading } from "../../../hooks/useLoading"
 import { getStaffDailyStats, getStaffMonthlyStats, getStaffMonthlyExperimentals, getBirthdaySummary, getExpirationSummary } from "../../../services/Summary/operational.service"
 import { getStaffTasks, completeTask } from "../../../services/Tasks/tasks.service"
+import { markAlertAsCompleted, getTodayCompletedAlerts } from "../../../services/Alerts/alerts.service"
 import { getAuthUser } from "../../../helpers/permission_helper"
 import { formatCurrency } from "../Utils/dashboardUtils"
 
@@ -17,6 +18,7 @@ export const useOperationalDashboardLogic = () => {
     const [tasks, setTasks] = useState([])
     const [birthdays, setBirthdays] = useState([]) // [NEW] Birthday State
     const [expirations, setExpirations] = useState([]) // [NEW] Expiration State
+    const [completedAlertIds, setCompletedAlertIds] = useState([]) // [NEW] Tracks completed birthdays/expirations for today
 
     const load = React.useCallback(async () => {
         const user = getAuthUser()
@@ -24,13 +26,14 @@ export const useOperationalDashboardLogic = () => {
 
         try {
             await withLoading('page', async () => {
-                const [dailyRes, monthlyRes, expListRes, tasksRes, bdayRes, expSummaryRes] = await Promise.allSettled([
+                const [dailyRes, monthlyRes, expListRes, tasksRes, bdayRes, expSummaryRes, completedRes] = await Promise.allSettled([
                     getStaffDailyStats(user.uid),
                     getStaffMonthlyStats(user.uid),
                     getStaffMonthlyExperimentals(user.uid), // Changed to Monthly
                     getStaffTasks(user.uid),
                     getBirthdaySummary(), // [NEW] Fetch Birthdays
-                    getExpirationSummary() // [NEW] Fetch Expirations
+                    getExpirationSummary(), // [NEW] Fetch Expirations
+                    getTodayCompletedAlerts() // [NEW] Fetch completions
                 ])
 
                 const daily = dailyRes.status === 'fulfilled' ? dailyRes.value : { totalCount: 0, totalAmount: 0 }
@@ -39,6 +42,7 @@ export const useOperationalDashboardLogic = () => {
                 const taskList = tasksRes.status === 'fulfilled' ? tasksRes.value : []
                 const bdayList = bdayRes.status === 'fulfilled' ? bdayRes.value : []
                 const expSummaryList = expSummaryRes.status === 'fulfilled' ? expSummaryRes.value : []
+                const completedIds = completedRes.status === 'fulfilled' ? completedRes.value : []
 
                 setStats({
                     todaySalesCount: daily.totalCount,
@@ -50,6 +54,7 @@ export const useOperationalDashboardLogic = () => {
                 setTasks(taskList)
                 setBirthdays(bdayList)
                 setExpirations(expSummaryList)
+                setCompletedAlertIds(completedIds)
             })
         } catch (e) {
             console.error("Failed to load operational stats", e)
@@ -78,6 +83,51 @@ export const useOperationalDashboardLogic = () => {
             throw e; // Let component handle error toast
         }
     }
+
+    const markBirthdayAsCompleted = async (birthday) => {
+        const alertId = `bday_${birthday.id}_${new Date().toISOString().split('T')[0]}`
+        setCompletedAlertIds(prev => [...prev, alertId])
+
+        try {
+            await markAlertAsCompleted({
+                alertId,
+                type: 'birthday',
+                description: `Aniversário de ${birthday.name}`,
+                targetName: birthday.name
+            })
+        } catch (e) {
+            console.error("Failed to complete birthday alert", e)
+            setCompletedAlertIds(prev => prev.filter(id => id !== alertId))
+            throw e
+        }
+    }
+
+    const markExpirationAsCompleted = async (expiration) => {
+        const alertId = `exp_${expiration.id}_${new Date().toISOString().split('T')[0]}`
+        setCompletedAlertIds(prev => [...prev, alertId])
+
+        try {
+            await markAlertAsCompleted({
+                alertId,
+                type: 'expiration',
+                description: `Vencimento de ${expiration.name} - ${expiration.contractTitle}`,
+                targetName: expiration.name
+            })
+        } catch (e) {
+            console.error("Failed to complete expiration alert", e)
+            setCompletedAlertIds(prev => prev.filter(id => id !== alertId))
+            throw e
+        }
+    }
+
+    // Filter out completed birthdays/expirations
+    const activeBirthdays = useMemo(() => {
+        return birthdays.filter(b => !completedAlertIds.includes(`bday_${b.id}_${new Date().toISOString().split('T')[0]}`))
+    }, [birthdays, completedAlertIds])
+
+    const activeExpirations = useMemo(() => {
+        return expirations.filter(e => !completedAlertIds.includes(`exp_${e.id}_${new Date().toISOString().split('T')[0]}`))
+    }, [expirations, completedAlertIds])
 
     const reports = useMemo(() => {
         return [
@@ -108,22 +158,24 @@ export const useOperationalDashboardLogic = () => {
             {
                 title: "Vencimentos",
                 iconClass: "clock-alert-outline",
-                total: expirations.length,
+                total: activeExpirations.length,
                 badgecolor: "danger",
                 average: "",
                 label: "Hoje"
             },
         ]
-    }, [stats, experimentals, expirations])
+    }, [stats, experimentals, activeExpirations])
 
     return {
         isLoading: isLoading('page'),
         reports,
         experimentals,
         tasks,
-        birthdays, // [NEW] Return birthdays
-        expirations, // [NEW] Return expirations
+        birthdays: activeBirthdays, // [NEW] Return filtered birthdays
+        expirations: activeExpirations, // [NEW] Return filtered expirations
         refreshTasks,
-        markTaskAsCompleted
+        markTaskAsCompleted,
+        markBirthdayAsCompleted,
+        markExpirationAsCompleted
     }
 }
