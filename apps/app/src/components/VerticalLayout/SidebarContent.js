@@ -235,7 +235,7 @@ const SidebarContent = props => {
             </div>
           </div>
 
-          <ul className="metismenu list-unstyled" id="side-menu">
+          <ul className="metismenu list-unstyled pb-5" id="side-menu" style={{ paddingBottom: "80px" }}>
             <li className="menu-title">{t("Menu")}</li>
             {filteredMenu.map(item => {
               if (item.id === 'help') {
