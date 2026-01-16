@@ -22,7 +22,7 @@ const Header = ({ title, breadcrumbItems }) => {
             <div className="navbar-brand-box">
               <div className="logo">
                 <span className="logo-lg">
-                  <img src={pgaLogo} alt="Swim" className="brand-logo" height="80" style={{ filter: "brightness(0) invert(1)" }} />
+                  <img src={pgaLogo} alt="Swim" className="brand-logo" height="50" style={{ filter: "brightness(0) invert(1)" }} />
                 </span>
               </div>
             </div>
