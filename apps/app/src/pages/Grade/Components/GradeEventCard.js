@@ -14,7 +14,8 @@ const GradeEventCard = ({ schedule, showOccupancyMask, onClick, isSelected }) =>
   const occupancyPct = getOccupancyPct(enrolledCount, maxCapacityRaw)
 
   const activityName = schedule?.activityName || schedule?.name || schedule?.idActivity || "Turma"
-  const employeeName = schedule?.employeeName || schedule?.instructorName || ""
+  const rawName = schedule?.employeeName || schedule?.instructorName || ""
+  const employeeName = rawName ? `Prof. ${rawName.split(" ")[0]}` : ""
   const areaName = schedule?.areaName || ""
 
   const color = getEventColor(schedule)
