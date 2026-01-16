@@ -1,0 +1,35 @@
+.conversion-funnel-card {
+    min-height: 460px;
+
+    .btn-soft-primary {
+        background-color: rgba(122, 111, 190, 0.15) !important;
+        color: #7a6fbe !important;
+        transition: all 0.3s ease;
+
+        &:hover {
+            background-color: #7a6fbe !important;
+            color: $white !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(122, 111, 190, 0.2);
+        }
+    }
+
+    .view-wrapper {
+        min-height: 330px;
+    }
+
+    .animate-fade-in {
+        animation: funnelAnimation 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+}
+
+@keyframes funnelAnimation {
+    0% {
+        opacity: 0;
+        transform: scale(0.97) translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}

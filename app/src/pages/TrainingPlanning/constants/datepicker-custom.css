@@ -1,0 +1,53 @@
+.training-calendar {
+    font-family: inherit;
+    border: none !important;
+    width: 100% !important;
+}
+
+.training-calendar .react-datepicker__month-container {
+    width: 100% !important;
+    float: none !important;
+}
+
+.training-calendar .react-datepicker__header {
+    background-color: transparent !important;
+    border-bottom: none !important;
+}
+
+.training-calendar .react-datepicker__day-name,
+.training-calendar .react-datepicker__day,
+.training-calendar .react-datepicker__time-name {
+    width: 2.5rem !important;
+    line-height: 2.5rem !important;
+    margin: 0.15rem !important;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 576px) {
+
+    .training-calendar .react-datepicker__day-name,
+    .training-calendar .react-datepicker__day,
+    .training-calendar .react-datepicker__time-name {
+        width: 2rem !important;
+        line-height: 2rem !important;
+        margin: 0.1rem !important;
+        font-size: 0.8rem;
+    }
+}
+
+.training-calendar .react-datepicker__current-month {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.training-calendar .react-datepicker__day--selected,
+.training-calendar .react-datepicker__day--keyboard-selected {
+    background-color: var(--bs-primary) !important;
+    border-radius: 50% !important;
+    color: white !important;
+}
+
+.training-calendar .react-datepicker__day:hover {
+    border-radius: 50% !important;
+    background-color: #f0f0f0;
+}

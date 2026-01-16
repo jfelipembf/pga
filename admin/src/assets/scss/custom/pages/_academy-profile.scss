@@ -1,0 +1,126 @@
+// Academy Profile Styles (Adapted from Client Profile)
+
+.academy-profile {
+    .academy-profile__hero {
+        position: relative;
+        border-radius: 0;
+        // overflow: hidden; /* Removed to allow dropdown to overlap */
+        background-size: cover;
+        background-position: center;
+        min-height: 220px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        border: 1px solid $card-border-color;
+        box-shadow: $card-box-shadow;
+    }
+
+    .academy-profile__content {
+        padding: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .academy-profile__avatar-wrapper {
+        position: relative;
+        width: 110px;
+        height: 110px;
+    }
+
+    .academy-profile__avatar {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        background-size: cover;
+        background-position: center;
+        background-color: #e9ecef;
+    }
+
+    .academy-profile__camera {
+        position: absolute;
+        bottom: -6px;
+        right: -6px;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: #000;
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    .academy-profile__tabs {
+        display: flex;
+        gap: 1rem;
+        padding: 0.9rem 1.5rem;
+        background: rgba(70, 107, 143, 0.65);
+        backdrop-filter: blur(4px);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        overflow-x: auto;
+    }
+
+    .academy-profile__tab {
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        padding: 0.35rem 0.5rem;
+        white-space: nowrap;
+        transition: color 0.2s ease, border-color 0.2s ease;
+
+        &:hover,
+        &:focus {
+            color: #d1e7ff;
+        }
+    }
+
+    .academy-profile__tab--active {
+        color: #fff;
+        border-bottom: 2px solid #fff;
+    }
+}
+
+// Keeping other styles if needed in future, renamed to academy- where applicable or generic
+.academy-contracts {
+    .academy-contracts__tabs {
+        display: inline-flex;
+        gap: 0.25rem;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 0.35rem 0.5rem;
+        background: rgba(70, 107, 143, 0.08);
+        border-radius: 6px;
+    }
+
+    .academy-contracts__tabs .academy-profile__tab {
+        color: $body-color;
+        border: none;
+        padding: 0.35rem 0.85rem;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+    .academy-contracts__tabs .academy-profile__tab--active {
+        color: #fff;
+        background: $primary;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .academy-contracts__details {
+        >div {
+            padding: 0.35rem 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+
+            &:last-child {
+                border-bottom: none;
+            }
+        }
+    }
+}
