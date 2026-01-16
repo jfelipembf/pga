@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react"
-import { useParams, useNavigate } from "react-router-dom"
+import { useParams } from "react-router-dom"
 import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "firebase/firestore"
 import { useFormik } from "formik"
 
@@ -13,7 +13,6 @@ import { initialValues, validationSchema } from "../Constants/initialValue"
 
 export const useClientRegister = () => {
     const { tenant: tenantSlug, branch: branchSlug } = useParams()
-    const navigate = useNavigate()
     const fileInputRef = useRef(null)
     const toast = useToast()
     const db = getFirestore()
