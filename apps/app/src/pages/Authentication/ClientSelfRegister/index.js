@@ -34,24 +34,22 @@ const ClientSelfRegister = () => {
         )
     }
 
-    return (
-        <div
-            className="account-pages my-5 pt-sm-5 position-relative"
-            style={{
-                backgroundImage: `url(${bg})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                minHeight: '100vh',
-                overflowX: 'hidden'
-            }}
-        >
-            <Container>
-                <Row className="justify-content-center">
-                    <Col md={8} lg={6} xl={5}>
-                        <Card className="overflow-hidden">
-                            {isSuccess ? (
-                                <CardBody className="pt-0">
-                                    <div className="p-2 text-center mt-5 mb-4">
+    if (isSuccess) {
+        return (
+            <div
+                className="d-flex justify-content-center align-items-center vh-100"
+                style={{
+                    backgroundImage: `url(${bg})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                }}
+            >
+                <Container>
+                    <Row className="justify-content-center">
+                        <Col md={8} lg={6} xl={5}>
+                            <Card className="overflow-hidden mb-0">
+                                <CardBody className="p-4">
+                                    <div className="p-2 text-center mt-3">
                                         <div className="mb-4">
                                             <img
                                                 src={happyBaby}
@@ -75,47 +73,66 @@ const ClientSelfRegister = () => {
                                         </div>
                                     </div>
                                 </CardBody>
-                            ) : (
-                                <>
-                                    <Header />
-                                    <CardBody className="pt-0">
-                                        <div className="p-2">
-                                            <Form className="form-horizontal" onSubmit={(e) => {
-                                                e.preventDefault()
-                                                validation.handleSubmit()
-                                                return false
-                                            }}>
+                            </Card>
+                        </Col>
+                    </Row>
+                </Container>
+            </div>
+        )
+    }
 
-                                                <PhotoUpload
-                                                    preview={photoState.preview}
-                                                    handlePhotoClick={handlers.handlePhotoClick}
-                                                    handlePhotoChange={handlers.handlePhotoChange}
-                                                    fileInputRef={photoState.fileInputRef}
-                                                />
+    return (
+        <div
+            className="account-pages my-5 pt-sm-5 position-relative"
+            style={{
+                backgroundImage: `url(${bg})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                minHeight: '100vh',
+                overflowX: 'hidden'
+            }}
+        >
+            <Container>
+                <Row className="justify-content-center">
+                    <Col md={8} lg={6} xl={5}>
+                        <Card className="overflow-hidden">
+                            <Header />
+                            <CardBody className="pt-0">
+                                <div className="p-2">
+                                    <Form className="form-horizontal" onSubmit={(e) => {
+                                        e.preventDefault()
+                                        validation.handleSubmit()
+                                        return false
+                                    }}>
 
-                                                <PersonalData validation={validation} />
+                                        <PhotoUpload
+                                            preview={photoState.preview}
+                                            handlePhotoClick={handlers.handlePhotoClick}
+                                            handlePhotoChange={handlers.handlePhotoChange}
+                                            fileInputRef={photoState.fileInputRef}
+                                        />
 
-                                                <AddressForm
-                                                    validation={validation}
-                                                    handleCepBlur={handlers.handleCepBlur}
-                                                />
+                                        <PersonalData validation={validation} />
 
-                                                <div className="mt-4 d-grid">
-                                                    <ButtonLoader
-                                                        color="primary"
-                                                        type="submit"
-                                                        className="waves-effect waves-light"
-                                                        loading={loading || uploadingPhoto}
-                                                    >
-                                                        Cadastrar Cliente
-                                                    </ButtonLoader>
-                                                </div>
+                                        <AddressForm
+                                            validation={validation}
+                                            handleCepBlur={handlers.handleCepBlur}
+                                        />
 
-                                            </Form>
+                                        <div className="mt-4 d-grid">
+                                            <ButtonLoader
+                                                color="primary"
+                                                type="submit"
+                                                className="waves-effect waves-light"
+                                                loading={loading || uploadingPhoto}
+                                            >
+                                                Cadastrar Cliente
+                                            </ButtonLoader>
                                         </div>
-                                    </CardBody>
-                                </>
-                            )}
+
+                                    </Form>
+                                </div>
+                            </CardBody>
                         </Card>
                     </Col>
                 </Row>
