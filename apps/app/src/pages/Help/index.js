@@ -80,7 +80,7 @@ const HelpPage = () => {
 
     const backLink = tenant && branch ? `/${tenant}/${branch}/help` : "/help";
 
-    document.title = "Central de Ajuda | Painel Swim"
+    document.title = "Central de Ajuda | PGA"
 
     // Custom Hero Style matching the reference with new palette #466a8f
     const heroStyle = {

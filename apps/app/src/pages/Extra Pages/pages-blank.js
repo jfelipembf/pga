@@ -6,7 +6,7 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const PagesBlank = (props) => {
-    document.title = "Starter Page | Painel Swim";
+    document.title = "Starter Page | PGA";
 
     const breadcrumbItems = [
         { title: "Lexa", link: "#" },

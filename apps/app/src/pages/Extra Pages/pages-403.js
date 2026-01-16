@@ -3,7 +3,7 @@ import { Container, Row, Col, Card, CardBody } from 'reactstrap';
 import { Link, useParams } from 'react-router-dom';
 
 const Pages403 = () => {
-    document.title = "403 Acesso Negado | Painel Swim";
+    document.title = "403 Acesso Negado | PGA";
     const { tenant, branch } = useParams();
     const dashboardLink = tenant && branch ? `/${tenant}/${branch}/dashboard/operational` : "/dashboard/operational";
 
@@ -33,7 +33,7 @@ const Pages403 = () => {
                                 </CardBody>
                             </Card>
                             <div className="mt-5 text-center">
-                                © {new Date().getFullYear()} Painel Swim
+                                © {new Date().getFullYear()} PGA
                             </div>
                         </Col>
                     </Row>

@@ -156,7 +156,7 @@ const Login = props => {
               </Link>
               <div className="mt-5 text-center">
                 <p>Não tem uma conta? <Link to="/register" className="text-primary"> Cadastre-se agora </Link></p>
-                © {new Date().getFullYear()} Painel Swim <span className="d-none d-sm-inline-block"> - Desenvolvido com <i className="mdi mdi-heart text-danger"></i> por Felipe Macedo.</span>
+                © {new Date().getFullYear()} PGA <span className="d-none d-sm-inline-block"> - Desenvolvido com <i className="mdi mdi-heart text-danger"></i> por Felipe Macedo.</span>
               </div>
             </Col>
           </Row>

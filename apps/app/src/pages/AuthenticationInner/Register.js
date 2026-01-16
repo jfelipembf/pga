@@ -9,7 +9,7 @@ import logoLightPng from "../../assets/images/logoIcon.png";
 import logoDark from "../../assets/images/logoIcon.png";
 
 const Register = () => {
-  document.title = "Register | Painel Swim";
+  document.title = "Register | PGA";
 
   return (
     <React.Fragment>
@@ -28,7 +28,7 @@ const Register = () => {
                   </h3>
                   <div className="p-3">
                     <h4 className="text-muted font-size-18 mb-1 text-center">Free Register</h4>
-                    <p className="text-muted text-center">Get your free Painel Swim account now.</p>
+                    <p className="text-muted text-center">Get your free PGA account now.</p>
                     <Form
                       className="form-horizontal mt-4"
                     >
@@ -72,7 +72,7 @@ const Register = () => {
 
                       <div className="mb-0 row">
                         <div className="col-12 mt-4">
-                          <p className="text-muted mb-0 font-size-14">By registering you agree to the Painel Swim <Link to="#" className="text-primary">Terms of Use</Link></p>
+                          <p className="text-muted mb-0 font-size-14">By registering you agree to the PGA <Link to="#" className="text-primary">Terms of Use</Link></p>
                         </div>
                       </div>
                     </Form>
@@ -88,7 +88,7 @@ const Register = () => {
                   </Link>{" "}
                 </p>
                 <p>
-                  © {new Date().getFullYear()} Painel Swim <span className="d-none d-sm-inline-block"> - Crafted with <i className="mdi mdi-heart text-danger"></i> by Themesbrand.</span>
+                  © {new Date().getFullYear()} PGA <span className="d-none d-sm-inline-block"> - Crafted with <i className="mdi mdi-heart text-danger"></i> by Themesbrand.</span>
                 </p>
               </div>
             </Col>

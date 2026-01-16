@@ -192,7 +192,7 @@ async function sendWelcomeMessage(idTenant, idBranch, staffData) {
         const url = `https://app.painelswim.com/${tenantSlug}/${branchSlug}/`;
 
 
-        const message = `Olá ${staffData.firstName}, seja bem vindo, ao painel swim para seu acesso use a URL abaixo. criamos uma senha provisoria para voce
+        const message = `Olá ${staffData.firstName}, seja bem vindo, ao PGA para seu acesso use a URL abaixo. criamos uma senha provisoria para voce
 
 email de acesso: ${staffData.email}
 senha provisoria: 123456

@@ -9,9 +9,9 @@ const Footer = () => {
         <Container fluid={true}>
           <Row>
             <Col sm={12} className="d-flex align-items-center gap-2">
-              <img src={pgaLogo} alt="Painel Swim" height="28" />
+              <img src={pgaLogo} alt="PGA" height="28" />
               <span className="text-muted">
-                © {new Date().getFullYear()} Painel Swim · Plataforma para academias de natação
+                © {new Date().getFullYear()} PGA · Plataforma para academias de natação
               </span>
             </Col>
           </Row>

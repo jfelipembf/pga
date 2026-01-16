@@ -12,7 +12,7 @@ import PageLoader from "../../components/Common/PageLoader"
 import { useDashboardLogic } from "./Hooks/useDashboardLogic"
 
 const Dashboard = ({ setBreadcrumbItems }) => {
-  document.title = "Dashboard | Painel Swim"
+  document.title = "Dashboard | PGA"
 
   useEffect(() => {
     const breadcrumbItems = [

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 
 const Pages500 = () => {
-    document.title = "500 Error Page | Painel Swim";
+    document.title = "500 Error Page | PGA";
 
     return (
         <React.Fragment>
@@ -26,7 +26,7 @@ const Pages500 = () => {
                                 </CardBody>
                             </Card>
                             <div className="mt-5 text-center">
-                                © {new Date().getFullYear()} Painel Swim <span className="d-none d-sm-inline-block"> - Crafted with <i className="mdi mdi-heart text-danger"></i> by Themesbrand.</span>
+                                © {new Date().getFullYear()} PGA <span className="d-none d-sm-inline-block"> - Crafted with <i className="mdi mdi-heart text-danger"></i> by Themesbrand.</span>
                             </div>
                         </Col>
                     </Row>

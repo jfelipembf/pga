@@ -139,7 +139,7 @@ exports.createTask = functions.region("us-central1").https.onCall(async (data, c
                     const phone = staffData.phone || staffData.whatsapp || staffData.mobile;
 
                     if (phone) {
-                        const message = `🔔 *Nova Tarefa Atribuída*\n\nOlá ${staffData.firstName || 'colaborador'},\n\nUma nova tarefa foi atribuída a você no Painel Swim:\n\n*Descrição:* ${description}${studentInfo}\n*Prazo:* ${dateFormatted}\n\nPor favor, verifique seu dashboard para mais detalhes.`;
+                        const message = `🔔 *Nova Tarefa Atribuída*\n\nOlá ${staffData.firstName || 'colaborador'},\n\nUma nova tarefa foi atribuída a você no PGA:\n\n*Descrição:* ${description}${studentInfo}\n*Prazo:* ${dateFormatted}\n\nPor favor, verifique seu dashboard para mais detalhes.`;
 
                         console.log(`Enviando WhatsApp para staff ${staffId} no número ${phone}`);
                         await sendWhatsAppMessageInternal(idTenant, idBranch, phone, message, "evolution_financial")

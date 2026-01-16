@@ -112,7 +112,7 @@ const ForgetPasswordPage = props => {
               </Card>
               <div className="mt-5 text-center">
                 <p>Lembrou? <Link to="/login" className="text-primary"> Entrar aqui </Link> </p>
-                © {new Date().getFullYear()} Painel Swim <span className="d-none d-sm-inline-block"> - Desenvolvido com <i className="mdi mdi-heart text-danger"></i> por Felipe Macedo.</span>
+                © {new Date().getFullYear()} PGA <span className="d-none d-sm-inline-block"> - Desenvolvido com <i className="mdi mdi-heart text-danger"></i> por Felipe Macedo.</span>
               </div>
             </Col>
           </Row>

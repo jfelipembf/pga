@@ -9,7 +9,7 @@ import logoLightPng from "../../assets/images/logoIcon.png";
 import logoDark from "../../assets/images/logoIcon.png";
 
 const LockScreen = () => {
-    document.title = "Lockscreen | Painel Swim";
+    document.title = "Lockscreen | PGA";
 
     return (
         <React.Fragment>
@@ -51,7 +51,7 @@ const LockScreen = () => {
                             </Card>
                             <div className="mt-5 text-center">
                                 <p>Not you ? return <Link to="/pages-login" className=" text-primary"> Sign In </Link> </p>
-                                <p>© 2021 Painel Swim. Crafted with <i className="mdi mdi-heart text-danger"></i> by Themesbrand</p>
+                                <p>© 2021 PGA. Crafted with <i className="mdi mdi-heart text-danger"></i> by Themesbrand</p>
                             </div>
                         </Col>
                     </Row>

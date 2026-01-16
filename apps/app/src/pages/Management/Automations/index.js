@@ -36,7 +36,7 @@ const AutomationsPage = ({ setBreadcrumbItems }) => {
         setBreadcrumbItems("Automações", breadcrumbs)
     }, [setBreadcrumbItems])
 
-    document.title = "Automações | Painel Swim"
+    document.title = "Automações | PGA"
 
     const selectedAutomation = automations.find(a => a.id === selectedId)
 

@@ -13,7 +13,7 @@ import { useOperationalDashboardLogic } from "./Hooks/useOperationalDashboardLog
 import PageLoader from "../../components/Common/PageLoader"
 
 const OperationalDashboard = ({ setBreadcrumbItems }) => {
-    document.title = "Dashboard Operacional | Painel Swim"
+    document.title = "Dashboard Operacional | PGA"
     const { reports, experimentals, tasks, birthdays, expirations, refreshTasks, markTaskAsCompleted, isLoading } = useOperationalDashboardLogic()
 
     const breadcrumbItems = useMemo(() => [
