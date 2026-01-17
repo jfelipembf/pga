@@ -1,5 +1,5 @@
 import React from "react"
-import { Card, CardBody, Row , Col} from "reactstrap"
+import { Card, CardBody, Row, Col } from "reactstrap"
 
 const Miniwidget = props => {
   return (
@@ -7,7 +7,7 @@ const Miniwidget = props => {
       <Row>
         {props.reports.map((report, key) => (
           <Col xl={3} sm={6} key={key}>
-            <Card className="mini-stat bg-primary">
+            <Card className="mini-stat bg-primary shadow-sm border-0">
               <CardBody className="card-body mini-stat-img">
                 <div className="mini-stat-icon">
                   <i className={"float-end mdi mdi-" + report.iconClass}></i>

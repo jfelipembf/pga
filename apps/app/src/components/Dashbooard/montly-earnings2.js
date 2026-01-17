@@ -142,7 +142,7 @@ class MonthlyEarnings extends Component {
       : monthlyComparison[monthlyComparison.length - 1] // fallback
     return (
       <React.Fragment>
-        <Card className="h-100 shadow-sm monthly-earnings-card">
+        <Card className="h-100 shadow-sm border-0 monthly-earnings-card">
           <CardBody>
             <h4 className="card-title mb-4">Faturamento Mensal</h4>
 

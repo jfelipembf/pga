@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react"
-import { Col, Container, Row, Nav, NavItem, NavLink } from "reactstrap"
+import { Col, Container, Row, Nav, NavItem, NavLink, Input } from "reactstrap"
 import classnames from "classnames"
 
 import ClassBar from "../Grade/Components/ClassBar"
@@ -22,6 +22,7 @@ const Evaluation = ({ setBreadcrumbItems }) => {
   const [selectedSchedule, setSelectedSchedule] = useState(null)
   const [activeTab, setActiveTab] = useState("avaliacao")
   const [activeTestEvent, setActiveTestEvent] = useState(null) // Renamed from selectedTestEvent to be clear it's global/active
+  const [selectedStaffId, setSelectedStaffId] = useState("")
   const { sessions, activities, areas, staff, isLoading } = useEvaluationData()
 
   useEffect(() => {
@@ -45,12 +46,31 @@ const Evaluation = ({ setBreadcrumbItems }) => {
     const todayISO = formatISODate(currentDate)
     const todayDayIndex = currentDate.getDay()
 
-    return schedules.filter(schedule => {
+    const dailySchedules = schedules.filter(schedule => {
       if (!schedule) return false
       if (!isWithinTurn("all", schedule.startTime)) return false
       return occursOnDate(schedule, todayISO, todayDayIndex)
     })
-  }, [schedules, currentDate])
+
+    return dailySchedules.filter(schedule => {
+      return !selectedStaffId || String(schedule.idStaff) === String(selectedStaffId)
+    })
+  }, [schedules, currentDate, selectedStaffId])
+
+  const instructors = useMemo(() => {
+    // Get unique instructors from the current day's classes
+    const todayISO = formatISODate(currentDate)
+    const todayDayIndex = currentDate.getDay()
+
+    const dailySchedules = schedules.filter(schedule => {
+      if (!schedule) return false
+      if (!isWithinTurn("all", schedule.startTime)) return false
+      return occursOnDate(schedule, todayISO, todayDayIndex)
+    })
+
+    const staffIdsOfToday = new Set(dailySchedules.map(s => s.idStaff).filter(Boolean))
+    return staff.filter(s => staffIdsOfToday.has(s.id))
+  }, [schedules, currentDate, staff])
 
   const handlePrevDay = () => {
     setCurrentDate(prev => {
@@ -103,6 +123,22 @@ const Evaluation = ({ setBreadcrumbItems }) => {
 
       <Row className="g-4">
         <Col xs="12" md="3" lg="3">
+          <div className="mb-3">
+            <Input
+              type="select"
+              value={selectedStaffId}
+              onChange={(e) => setSelectedStaffId(e.target.value)}
+              className="form-select border-0 shadow-sm"
+              style={{ backgroundColor: "#f8f9fa", fontWeight: "500" }}
+            >
+              <option value="">Todos os Professores</option>
+              {instructors.map(inst => (
+                <option key={inst.id} value={inst.id}>
+                  {inst.name || `${inst.firstName || ""} ${inst.lastName || ""}`.trim()}
+                </option>
+              ))}
+            </Input>
+          </div>
           <ClassBar
             date={currentDate}
             onPrevDay={handlePrevDay}

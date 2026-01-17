@@ -20,10 +20,10 @@ const ExperimentalTracker = ({ experimentals = [], isLoading = false }) => {
 
     return (
         <React.Fragment>
-            <Card style={{ height: "500px" }} className="shadow-sm border-0">
+            <Card style={{ minHeight: "500px" }} className="shadow-sm border-0 h-100">
                 <CardBody>
                     <div className="d-flex justify-content-between align-items-center mb-4">
-                        <h4 className="card-title mb-0">Minhas Experimentais</h4>
+                        <h4 className="card-title mb-0">Atendimento / Exp.</h4>
                         <div style={{ width: '130px' }}>
                             <Input
                                 type="date"
@@ -36,34 +36,31 @@ const ExperimentalTracker = ({ experimentals = [], isLoading = false }) => {
                         </div>
                     </div>
 
-                    <div className="custom-scroll" style={{ height: "410px", overflowY: "auto" }}>
+                    <div className="custom-scroll" style={{ maxHeight: "400px", minHeight: "200px", overflowY: "auto" }}>
                         {isLoading ? (
                             <div className="d-flex justify-content-center align-items-center h-100">
                                 <Spinner />
                             </div>
                         ) : filteredData.length === 0 ? (
                             <div className="text-center mt-5 text-muted">
-                                <i className="mdi mdi-calendar-blank h1 d-block"></i>
-                                <p>Nenhuma aula experimental agendada para {selectedDate === new Date().toLocaleDateString('en-CA') ? 'hoje' : 'esta data'}.</p>
+                                <p className="small">Nenhuma aula experimental agendada.</p>
                             </div>
                         ) : (
-                            <ol className="activity-feed mb-0 ps-2">
+                            <ol className="activity-feed mb-0 ps-3">
                                 {filteredData.map((item) => (
-                                    <li key={item.id} className="feed-item pb-4">
-                                        <div className="d-flex align-items-start gap-2">
-                                            <div className="flex-shrink-0 mt-1">
+                                    <li key={item.id} className="feed-item">
+                                        <div className="feed-item-list d-flex align-items-start gap-2">
+                                            <div className="flex-shrink-0">
                                                 <div className="avatar-xs">
-                                                    <span className="avatar-title rounded-circle bg-soft-primary text-primary fs-4">
+                                                    <span className="avatar-title rounded-circle bg-soft-primary text-primary">
                                                         <i className="mdi mdi-account-circle"></i>
                                                     </span>
                                                 </div>
                                             </div>
-                                            <div className="flex-grow-1 ms-2">
-                                                <div className="d-flex flex-column">
-                                                    <span className="date mb-0 text-primary fw-bold" style={{ fontSize: '11px' }}>{item.startTime || "--:--"}</span>
-                                                    <h6 className="mb-0 font-size-14 fw-bold text-dark">{item.clientName || "Cliente"}</h6>
-                                                    <p className="text-muted small mb-1">{item.activityName || item.className}</p>
-                                                    <div>
+                                            <div className="flex-grow-1" style={{ width: '100%' }}>
+                                                <div className="d-flex justify-content-between">
+                                                    <span className="date mb-1">{item.startTime || "--:--"}</span>
+                                                    <span>
                                                         <Badge
                                                             color={`soft-${getStatusColor(item.status)}`}
                                                             className={`text-${getStatusColor(item.status)} border`}
@@ -71,8 +68,12 @@ const ExperimentalTracker = ({ experimentals = [], isLoading = false }) => {
                                                         >
                                                             {item.status === 'active' ? 'Agendado' : item.status}
                                                         </Badge>
-                                                    </div>
+                                                    </span>
                                                 </div>
+                                                <span className="activity-text fw-bold d-block text-dark">
+                                                    {item.clientName || "Cliente"}
+                                                </span>
+                                                <p className="text-muted small mb-0">{item.activityName || item.className}</p>
                                             </div>
                                         </div>
                                     </li>
@@ -87,7 +88,8 @@ const ExperimentalTracker = ({ experimentals = [], isLoading = false }) => {
                 .activity-feed { list-style: none; }
                 .activity-feed .feed-item {
                     position: relative;
-                    padding-left: 30px;
+                    padding-bottom: 25px;
+                    padding-left: 20px;
                     border-left: 2px solid #eff2f7;
                 }
                 .activity-feed .feed-item:last-child { border-left: none; }
@@ -95,16 +97,23 @@ const ExperimentalTracker = ({ experimentals = [], isLoading = false }) => {
                     content: "";
                     display: block;
                     position: absolute;
-                    top: 15px;
+                    top: 4px;
                     left: -7px;
                     width: 12px;
                     height: 12px;
                     border-radius: 50%;
                     background: #fff;
-                    border: 2px solid #f1b44c;
+                    border: 2px solid #3b5de7;
                 }
-                .avatar-xs { height: 38px; width: 38px; }
-                .avatar-title { align-items: center; display: flex; height: 100%; justify-content: center; width: 100%; }
+                .activity-feed .feed-item .date {
+                    display: block;
+                    font-size: 11px;
+                    color: #adb5bd;
+                    text-transform: uppercase;
+                    font-weight: 600;
+                }
+                .avatar-xs { height: 32px; width: 32px; flex-shrink: 0; }
+                .avatar-title { align-items: center; display: flex; height: 100%; justify-content: center; width: 100%; font-size: 18px; }
                 .bg-soft-primary { background-color: rgba(59, 93, 231, 0.1); }
                 .custom-scroll::-webkit-scrollbar { width: 4px; }
                 .custom-scroll::-webkit-scrollbar-thumb { background: #eee; border-radius: 10px; }

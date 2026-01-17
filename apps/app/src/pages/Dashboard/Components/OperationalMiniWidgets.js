@@ -8,7 +8,7 @@ const OperationalMiniWidgets = ({ reports = [], isLoading = false }) => {
             <Row>
                 {[1, 2, 3, 4].map(i => (
                     <Col xl={3} sm={6} key={i}>
-                        <Card className="mini-stat bg-primary">
+                        <Card className="mini-stat bg-primary shadow-sm border-0">
                             <CardBody className="mini-stat-img text-center p-5">
                                 <Spinner />
                             </CardBody>
@@ -23,7 +23,7 @@ const OperationalMiniWidgets = ({ reports = [], isLoading = false }) => {
         <Row>
             {reports.map((report, key) => (
                 <Col xl={3} sm={6} key={key}>
-                    <Card className="mini-stat bg-primary">
+                    <Card className="mini-stat bg-primary shadow-sm border-0">
                         <CardBody className="mini-stat-img">
                             <div className="mini-stat-icon">
                                 <i className={"float-end mdi mdi-" + report.iconClass}></i>

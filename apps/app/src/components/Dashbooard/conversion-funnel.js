@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react"
-import { Card, CardBody, CardHeader, Row, Col, Button, Input } from "reactstrap"
+import { Card, CardBody, Row, Col, Button, Input } from "reactstrap"
 import ReactApexChart from "react-apexcharts"
 import { MONTHS_SHORT } from "../../constants/months"
 
@@ -85,7 +85,7 @@ const ConversionFunnel = ({ data, historicalData = [] }) => {
         isFunnel: true,
       },
     },
-    colors: ["#7a6fbe", "#28bbe3", "#ffbb44", "#28a745"],
+    colors: ["#466a8f", "#28bbe3", "#ffbb44", "#34c38f"],
     dataLabels: {
       enabled: true,
       formatter: (_val, opt) => {
@@ -143,7 +143,7 @@ const ConversionFunnel = ({ data, historicalData = [] }) => {
           type: "gradient",
           gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05, stops: [20, 100, 100] },
         },
-        colors: ["#7a6fbe"],
+        colors: ["#466a8f"],
         xaxis: { categories, axisBorder: { show: false }, axisTicks: { show: false } },
         yaxis: { labels: { formatter: (val) => `${val}%` }, min: 0, max: 100 },
         dataLabels: { enabled: false },
@@ -168,39 +168,39 @@ const ConversionFunnel = ({ data, historicalData = [] }) => {
   ]
 
   return (
-    <Card className="h-100 shadow-sm conversion-funnel-card">
-      <CardHeader className="bg-transparent border-bottom d-flex justify-content-between align-items-center py-2">
-        <h5 className="my-0 font-size-15 fw-bold text-dark">
-          {showHistory ? "Evolução da Conversão (%)" : "Funil de Vendas"}
-        </h5>
-        <div className="d-flex align-items-center gap-2">
-          {!showHistory && availableMonths.length > 0 && (
-            <Input
-              type="select"
-              bsSize="sm"
-              className="form-select-sm border-0 bg-light"
-              style={{ width: "110px", fontSize: "12px" }}
-              value={selectedMonthId}
-              onChange={(e) => setSelectedMonthId(e.target.value)}
-            >
-              <option value="">Mês Atual</option>
-              {availableMonths.map(m => (
-                <option key={m.id} value={m.id}>{m.label}</option>
-              ))}
-            </Input>
-          )}
-          <Button
-            color="primary"
-            size="sm"
-            className="btn-soft-primary border-0"
-            onClick={() => setShowHistory(!showHistory)}
-            style={{ width: "38px", height: "32px", padding: "0" }}
-          >
-            <i className={`mdi ${showHistory ? "mdi-filter-variant" : "mdi-chart-areaspline"} font-size-18`}></i>
-          </Button>
-        </div>
-      </CardHeader>
+    <Card className="h-100 shadow-sm border-0">
       <CardBody className="position-relative">
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h4 className="card-title my-0">
+            {showHistory ? "Evolução da Conversão (%)" : "Funil de Vendas"}
+          </h4>
+          <div className="d-flex align-items-center gap-2">
+            {!showHistory && availableMonths.length > 0 && (
+              <Input
+                type="select"
+                bsSize="sm"
+                className="form-select-sm border-0 bg-light"
+                style={{ width: "110px", fontSize: "12px" }}
+                value={selectedMonthId}
+                onChange={(e) => setSelectedMonthId(e.target.value)}
+              >
+                <option value="">Mês Atual</option>
+                {availableMonths.map(m => (
+                  <option key={m.id} value={m.id}>{m.label}</option>
+                ))}
+              </Input>
+            )}
+            <Button
+              color="primary"
+              size="sm"
+              className="btn-soft-primary border-0"
+              onClick={() => setShowHistory(!showHistory)}
+              style={{ width: "38px", height: "32px", padding: "0" }}
+            >
+              <i className={`mdi ${showHistory ? "mdi-filter-variant" : "mdi-chart-areaspline"} font-size-18`}></i>
+            </Button>
+          </div>
+        </div>
         <div className="view-wrapper">
           {showHistory ? (
             <div key="history-view" className="animate-fade-in">

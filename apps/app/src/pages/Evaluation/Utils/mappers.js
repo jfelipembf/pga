@@ -14,6 +14,7 @@ export const mapSessionsToEvaluationSchedules = (sessions, activities, areas, st
             return {
                 id,
                 idSession: sess.idSession || sess.id,
+                idStaff: sess.idStaff || null,
                 idClass: sess.idClass || null,
                 idActivity: sess.idActivity,
                 activityName: activity.name || sess.idActivity,
