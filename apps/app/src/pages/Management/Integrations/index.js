@@ -95,10 +95,7 @@ const IntegrationsPage = ({ setBreadcrumbItems }) => {
 
     const selectedItem = INTEGRATIONS_LIST.find(i => i.id === selectedIntegration)
 
-    // Full Page Loading (Initial)
-    if (isInitializing) {
-        return <PageLoader />
-    }
+
 
     return (
         <React.Fragment>

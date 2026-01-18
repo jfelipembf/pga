@@ -10,6 +10,8 @@ export const useAcquirersLogic = () => {
     const [selectedId, setSelectedId] = useState(null)
     const [formState, setFormState] = useState(createBlankAcquirer())
     const [initialized, setInitialized] = useState(false)
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+    const [itemToDelete, setItemToDelete] = useState(null)
     const { isLoading, withLoading } = useLoading()
     const toast = useToast()
 
@@ -55,8 +57,19 @@ export const useAcquirersLogic = () => {
         setFormState(draft)
     }
 
-    const handleDelete = async (id) => {
-        if (!window.confirm("Deseja realmente excluir esta adquirente?")) return
+    const requestDelete = id => {
+        setItemToDelete(id)
+        setIsDeleteModalOpen(true)
+    }
+
+    const cancelDelete = () => {
+        setItemToDelete(null)
+        setIsDeleteModalOpen(false)
+    }
+
+    const handleDelete = async () => {
+        const id = itemToDelete
+        if (!id) return
 
         try {
             await withLoading('delete', async () => {
@@ -72,6 +85,7 @@ export const useAcquirersLogic = () => {
                 })
 
                 toast.show({ title: "Adquirente excluída", color: "success" })
+                cancelDelete()
             })
         } catch (error) {
             console.error("Erro ao excluir adquirente:", error)
@@ -175,6 +189,9 @@ export const useAcquirersLogic = () => {
         selectedId,
         handleSelect,
         handleDelete,
+        requestDelete,
+        cancelDelete,
+        isDeleteModalOpen,
         handleNew,
         sideMenuItems,
         toggleActive,

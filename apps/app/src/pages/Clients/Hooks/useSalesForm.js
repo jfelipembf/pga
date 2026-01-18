@@ -13,6 +13,7 @@ export const useSalesForm = (itemsByTab) => {
         amount: "",
         authorization: "",
         acquirer: "",
+        idAcquirer: "",
         installments: 1,
         brand: "",
     })
@@ -70,6 +71,7 @@ export const useSalesForm = (itemsByTab) => {
             amount: "",
             authorization: "",
             acquirer: "",
+            idAcquirer: "",
             installments: 1,
             brand: "",
         })

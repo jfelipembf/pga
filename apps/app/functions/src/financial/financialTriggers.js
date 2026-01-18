@@ -24,53 +24,81 @@ exports.onFinancialTransactionWrite = functions
     const after = change.after.exists ? change.after.data() : null;
 
     const getValues = (data) => {
-      if (!data) return { revenue: 0, expense: 0, date: null };
+      if (!data) return { revenue: 0, expense: 0, grossRevenue: 0, fees: 0, date: null };
 
-      // Ignore pending transactions
-      if (data.status === 'pending') return { revenue: 0, expense: 0, date: null };
+      // Ignore pending or cancelled transactions
+      if (data.status === 'pending' || data.status === 'cancelled') return { revenue: 0, expense: 0, grossRevenue: 0, fees: 0, date: null };
 
-      const amount = Number(data.amount || 0);
-      const date = data.date || (data.createdAt?.toDate ? toISODate(data.createdAt.toDate()) : null);
+      const amount = parseFloat(data.amount) || 0;
+      const grossAmount = parseFloat(data.grossAmount || data.amount) || 0;
+      const feeAmount = parseFloat(data.feeAmount) || 0;
+
+      let date = data.date;
+      if (!date && data.createdAt && data.createdAt.toDate) {
+        date = toISODate(data.createdAt.toDate());
+      }
+      if (!date) date = toISODate(new Date());
 
       // Sale = receita positiva
-      if (data.type === "sale") return { revenue: amount, expense: 0, date };
-
-      // Expense = despesa  positiva
-      if (data.type === "expense") return { revenue: 0, expense: amount, date };
-
-      // receivablePayment = entrada de dinheiro (receita positiva)
-      // amount é negativo na transação, então invertemos
-      if (data.type === "receivablePayment") {
-        return { revenue: Math.abs(amount), expense: 0, date };
+      if (data.type === "sale") {
+        return { revenue: amount, expense: 0, grossRevenue: grossAmount, fees: feeAmount, date };
       }
 
-      return { revenue: 0, expense: 0, date };
+      // Expense = despesa positiva
+      if (data.type === "expense") {
+        return { revenue: 0, expense: amount, grossRevenue: 0, fees: 0, date };
+      }
+
+      // receivablePayment = entrada de dinheiro (receita positiva)
+      if (data.type === "receivablePayment") {
+        return {
+          revenue: Math.abs(amount),
+          expense: 0,
+          grossRevenue: Math.abs(grossAmount),
+          fees: Math.abs(feeAmount),
+          date
+        };
+      }
+
+      return { revenue: 0, expense: 0, grossRevenue: 0, fees: 0, date };
     };
 
     const valBefore = getValues(before);
     const valAfter = getValues(after);
 
+
+
     // Se mudou de dia
     if (before && after && valBefore.date !== valAfter.date) {
       // Subtrai do antigo
+
       await updateSummaries({
         idTenant, idBranch, dateStr: valBefore.date,
         revenueDelta: -valBefore.revenue,
-        expenseDelta: -valBefore.expense
+        expenseDelta: -valBefore.expense,
+        grossRevenueDelta: -valBefore.grossRevenue,
+        feesDelta: -valBefore.fees
       });
       // Adiciona no novo
+
       await updateSummaries({
         idTenant, idBranch, dateStr: valAfter.date,
         revenueDelta: valAfter.revenue,
-        expenseDelta: valAfter.expense
+        expenseDelta: valAfter.expense,
+        grossRevenueDelta: valAfter.grossRevenue,
+        feesDelta: valAfter.fees
       });
     } else {
       // Mesmo dia ou criação/deleção
+
       const date = valAfter.date || valBefore.date;
+
       await updateSummaries({
         idTenant, idBranch, dateStr: date,
         revenueDelta: valAfter.revenue - valBefore.revenue,
-        expenseDelta: valAfter.expense - valBefore.expense
+        expenseDelta: valAfter.expense - valBefore.expense,
+        grossRevenueDelta: valAfter.grossRevenue - valBefore.grossRevenue,
+        feesDelta: valAfter.fees - valBefore.fees
       });
     }
   });
@@ -91,22 +119,33 @@ exports.onSaleWrite = functions
     const getVal = (data) => {
       if (!data) return { amount: 0, date: null };
       // Usamos o valor líquido da venda (net) para as estatísticas de vendas
-      const amount = Number(data.totals?.net || 0);
-      const date = data.saleDate || (data.createdAt?.toDate ? toISODate(data.createdAt.toDate()) : null);
+      let amount = parseFloat(data.totals?.net) || 0;
+      if (amount === 0 && data.amount) amount = parseFloat(data.amount) || 0;
+
+      let date = data.saleDate;
+      if (!date && data.createdAt && data.createdAt.toDate) {
+        date = toISODate(data.createdAt.toDate());
+      }
+      if (!date) date = toISODate(new Date());
+
       return { amount, date };
     };
 
     const valBefore = getVal(before);
     const valAfter = getVal(after);
 
+
+
     if (before && after && valBefore.date !== valAfter.date) {
       await updateSummaries({ idTenant, idBranch, dateStr: valBefore.date, salesDelta: -valBefore.amount });
       await updateSummaries({ idTenant, idBranch, dateStr: valAfter.date, salesDelta: valAfter.amount });
     } else {
       const date = valAfter.date || valBefore.date;
+      const salesDelta = valAfter.amount - valBefore.amount;
+
       await updateSummaries({
         idTenant, idBranch, dateStr: date,
-        salesDelta: valAfter.amount - valBefore.amount
+        salesDelta: salesDelta
       });
     }
   });

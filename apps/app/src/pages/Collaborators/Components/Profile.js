@@ -5,6 +5,7 @@ import { useSearchParams } from "react-router-dom"
 
 import CollaboratorProfileForm from "./CollaboratorProfileForm"
 import CollaboratorClasses from "./CollaboratorClasses"
+import StatusBadge from "../../../components/Common/StatusBadge"
 import { setBreadcrumbItems } from "../../../store/actions"
 import directoryBg from "../../../assets/images/directory-bg.jpg"
 import PageLoader from "../../../components/Common/PageLoader"
@@ -146,8 +147,8 @@ const CollaboratorProfile = ({ setBreadcrumbItems }) => {
   const profile = {
     name: `${formData.firstName} ${formData.lastName}`,
     id: formData.id || "N/A",
-    status: formData.status === "active" ? "Ativo" : "Inativo",
-    statusColor: formData.status === "active" ? "success" : "secondary",
+    status: formData.status,
+    statusColor: "secondary", // StatusBadge handles color internally now
     photo: formData.photo || PLACEHOLDER_AVATAR,
     cover: directoryBg,
   }
@@ -193,9 +194,7 @@ const CollaboratorProfile = ({ setBreadcrumbItems }) => {
               <h3 className="mb-1 text-truncate">{profile.name}</h3>
               <div className="d-flex align-items-center gap-2 flex-wrap">
                 {/* <span className="fw-semibold">ID: {profile.id}</span> */}
-                <Badge color={profile.statusColor} pill className="px-3 py-2">
-                  {profile.status}
-                </Badge>
+                <StatusBadge status={profile.status} type="common" className="px-3 py-2" />
               </div>
             </div>
           </div>

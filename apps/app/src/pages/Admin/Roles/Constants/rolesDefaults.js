@@ -143,6 +143,12 @@ export const PERMISSIONS = [
     description: "Visualizar histórico de ações administrativas e automações.",
     category: "GERENCIAL",
   },
+  {
+    id: "dashboards_financial_view",
+    label: "Dashboard financeiro",
+    description: "Visão detalhada de faturamento, taxas e recebíveis.",
+    category: "DASHBOARD",
+  },
 ]
 
 const ALL_TRUE_PERMISSIONS = PERMISSIONS.reduce((acc, permission) => {
@@ -195,6 +201,7 @@ export const DEFAULT_ROLES = [
       management_automations: true,
       management_audit_log: true,
       sales_purchase: true,
+      dashboards_financial_view: true,
     },
   },
   {

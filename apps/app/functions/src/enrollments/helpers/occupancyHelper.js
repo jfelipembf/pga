@@ -1,4 +1,5 @@
 const admin = require("firebase-admin");
+const functions = require("firebase-functions/v1");
 const db = admin.firestore();
 const { FieldValue } = require("firebase-admin/firestore");
 const { toISODate, addDays } = require("../../helpers/date");
@@ -48,27 +49,45 @@ const bumpFutureSessionsByClass = async ({
         .doc(idBranch)
         .collection("sessions");
 
+
+
     const snap = await sessionsCol
-        .where("idClass", "==", idClass)
+        .where("idClass", "==", String(idClass)) // ID da turma é sempre String (gerado pelo Firestore/UUID)
         .where("sessionDate", ">=", startIso)
         .where("sessionDate", "<=", endIso)
         .get();
 
-    if (snap.empty) return 0;
 
-    const batch = db.batch();
+
+    if (snap.empty) {
+        functions.logger.warn(`[bumpFutureSessionsByClass] No sessions found to update.`);
+        return 0;
+    }
+
+    const CHUNK_SIZE = 450;
+    const chunks = [];
+
+    // Split docs into chunks
+    for (let i = 0; i < snap.docs.length; i += CHUNK_SIZE) {
+        chunks.push(snap.docs.slice(i, i + CHUNK_SIZE));
+    }
+
+
+
     let ops = 0;
 
-    snap.docs.forEach((d) => {
-        batch.set(d.ref, {
-            enrolledCount: FieldValue.increment(delta),
-            updatedAt: FieldValue.serverTimestamp(),
-        }, { merge: true });
-        ops += 1;
-    });
+    // Process each chunk
+    for (const chunk of chunks) {
+        const batch = db.batch();
+        chunk.forEach((d) => {
+            batch.set(d.ref, {
+                enrolledCount: FieldValue.increment(delta),
+                updatedAt: FieldValue.serverTimestamp(),
+            }, { merge: true });
+        });
 
-    if (ops > 0) {
         await batch.commit();
+        ops += chunk.length;
     }
 
     return ops;
@@ -78,20 +97,25 @@ const normalizeStart = (enrollment, isUpdate = false) => {
     const s = enrollment?.startDate || enrollment?.start || null;
     const today = toISODate(new Date());
 
-    // Se for uma atualização (cancelamento), usamos 'today' como início
-    // para não afetar sessões passadas.
     if (isUpdate) return today;
 
+    // Se enrollment tiver data de início, respeita ela (convertendo para ISO)
+    // toISODate lida com String, Date e Timestamp.
     if (!s) return today;
-    return String(s) < today ? today : String(s);
+    const isoS = toISODate(s);
+    return isoS || today;
 };
 
 const normalizeEnd = (enrollment) => {
     const e = enrollment?.endDate || enrollment?.end || null;
     const start = normalizeStart(enrollment);
-    const maxWindowEnd = addDays(start, 27); // 4 semanas (28 dias contando o start)
+    const maxWindowEnd = toISODate(addDays(start, 730)); // 2 anos
+
     if (!e) return maxWindowEnd;
-    return String(e) > maxWindowEnd ? maxWindowEnd : String(e);
+    const isoE = toISODate(e);
+    if (!isoE) return maxWindowEnd;
+
+    return isoE > maxWindowEnd ? maxWindowEnd : isoE;
 };
 
 /**
@@ -101,6 +125,8 @@ const handleEnrollmentBump = async ({ enrollment, delta, isUpdate = false }) => 
     const idTenant = enrollment?.idTenant ? String(enrollment.idTenant) : null;
     const idBranch = enrollment?.idBranch ? String(enrollment.idBranch) : null;
     const type = enrollment?.type || null;
+
+
 
     if (!idTenant || !idBranch) return 0;
 

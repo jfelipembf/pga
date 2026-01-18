@@ -11,7 +11,9 @@ import { listAcquirers } from "../../../services/Acquirers"
 import { BRAND_OPTIONS } from "../../Financial/Acquirers/Constants/acquirersDefaults"
 
 import { formatCurrency, renderMethod, calculateFinancialSummary } from "../Utils/financialUtils"
+import TransactionDetailsModal from "./TransactionDetailsModal"
 
+// Modal de detalhes da transação
 const ClientFinancial = ({ financial = [], idClient, clientName, onRefresh }) => {
   const [selected, setSelected] = useState(null)
   const [paymentModal, setPaymentModal] = useState(false)
@@ -222,59 +224,12 @@ const ClientFinancial = ({ financial = [], idClient, clientName, onRefresh }) =>
         </div>
       </CardBody>
 
-      <Modal isOpen={!!selected} toggle={() => setSelected(null)} centered size="md">
-        <ModalHeader toggle={() => setSelected(null)}>Detalhes da transação</ModalHeader>
-        <ModalBody>
-          {selected ? (
-            <div className="d-grid gap-2">
-              <div className="d-flex justify-content-between">
-                <span className="text-muted">ID</span>
-                <span className="fw-semibold">{selected.idTransaction || selected.id}</span>
-              </div>
-              <div className="d-flex justify-content-between">
-                <span className="text-muted">Data</span>
-                <span>{formatDate(selected.date)}</span>
-              </div>
-              <div className="d-flex justify-content-between">
-                <span className="text-muted">Tipo</span>
-                <span>{selected.type}</span>
-              </div>
-              <div className="d-flex justify-content-between">
-                <span className="text-muted">Descrição</span>
-                <span className="text-end">{selected.description}</span>
-              </div>
-              <div className="d-flex justify-content-between">
-                <span className="text-muted">Quantidade</span>
-                <span>{selected.quantity || 1}</span>
-              </div>
-              <div className="d-flex justify-content-between">
-                <span className="text-muted">Pagamento</span>
-                <span className="text-end">{renderMethod(selected.method)}</span>
-              </div>
-              <div className="d-flex justify-content-between">
-                <span className="text-muted">Valor Total</span>
-                <span className="fw-semibold">{formatCurrency(selected.amount)}</span>
-              </div>
-              <div className="d-flex justify-content-between">
-                <span className="text-muted">Valor Pago</span>
-                <span className="fw-semibold text-success">{formatCurrency(selected.paid || 0)}</span>
-              </div>
-              <div className="d-flex justify-content-between">
-                <span className="text-muted">Saldo Devedor</span>
-                <span className={`fw - semibold ${Number(selected.pending || 0) > 0 ? "text-danger" : "text-success"} `}>
-                  {formatCurrency(selected.pending || 0)}
-                </span>
-              </div>
-              <div className="d-flex justify-content-between">
-                <span className="text-muted">Status</span>
-                <Badge color={getStatusColor(selected.status)} pill>
-                  {getStatusLabel(selected.status, "sale")}
-                </Badge>
-              </div>
-            </div>
-          ) : null}
-        </ModalBody>
-      </Modal>
+      <TransactionDetailsModal
+        isOpen={!!selected}
+        toggle={() => setSelected(null)}
+        transaction={selected}
+        allTransactions={financial}
+      />
 
       {/* Payment Modal */}
       <Modal isOpen={paymentModal} toggle={() => setPaymentModal(false)} centered size="md">

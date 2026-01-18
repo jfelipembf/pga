@@ -33,9 +33,11 @@ export const useClientTableColumns = ({ contractsByClient, profilePath }) => {
                 label: "Status",
                 render: item => {
                     const contracts = contractsByClient[item.id] || []
-                    // Usar o primeiro contrato (mais recente) se houver, senão status do cliente
-                    const contract = contracts.length > 0 ? contracts[0] : null
-                    const statusToShow = contract ? contract.status : item.status
+                    const hasContracts = contracts.length > 0
+                    // Usar o primeiro contrato (mais recente) se houver, senão status "lead" se não houver contratos
+                    const contract = hasContracts ? contracts[0] : null
+
+                    const statusToShow = contract ? contract.status : (hasContracts ? item.status : "lead")
                     const typeToShow = contract ? "contract" : "client"
                     return <StatusBadge status={statusToShow} type={typeToShow} />
                 },

@@ -39,6 +39,18 @@ module.exports = createScheduledTrigger("3 0 * * *", "processExpiredContracts", 
                 finishedBy: "system",
             });
 
+            // Increment expiredContractsMonth in monthlySummary
+            const monthId = endDate.slice(0, 7);
+            const monthlyRef = db
+                .collection("tenants").doc(idTenant)
+                .collection("branches").doc(idBranch)
+                .collection("monthlySummary").doc(monthId);
+
+            tx.set(monthlyRef, {
+                expiredContractsMonth: admin.firestore.FieldValue.increment(1),
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
             // Auditoria
             await saveAuditLog({
                 idTenant, idBranch,

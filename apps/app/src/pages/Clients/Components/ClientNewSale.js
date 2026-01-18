@@ -11,11 +11,14 @@ import {
   Label,
   Row,
   Container,
+  Alert
 } from "reactstrap"
 import { useLocation } from "react-router-dom"
+import { useToast } from "../../../components/Common/ToastProvider"
 
 import { getAuthBranchContext } from "../../../services/Summary/index"
 import ButtonLoader from "../../../components/Common/ButtonLoader"
+import { BRAND_OPTIONS } from "../../Financial/Acquirers/Constants/acquirersDefaults"
 import { useSalesData } from "../Hooks/useSalesData"
 import { useSalesForm } from "../Hooks/useSalesForm"
 import { useSalesActions } from "../Hooks/useSalesActions"
@@ -32,7 +35,7 @@ const ClientNewSale = () => {
   const searchParams = new URLSearchParams(location.search)
   const idClient = searchParams.get("idClient") || ctx?.idClient || null
 
-  const { itemsByTab, isLoading: isLoadingData } = useSalesData()
+  const { itemsByTab, acquirers, cashierStatus, isLoading: isLoadingData } = useSalesData()
   const [clientName, setClientName] = useState("")
 
   useEffect(() => {
@@ -42,6 +45,19 @@ const ClientNewSale = () => {
       }).catch(err => console.warn("Erro ao carregar nome do cliente para auditoria", err))
     }
   }, [idClient])
+
+  // Notificar se caixa estiver fechado
+  const toast = useToast()
+  useEffect(() => {
+    if (cashierStatus.checked && !cashierStatus.isOpen) {
+      toast.show({
+        title: "Caixa Fechado",
+        description: "O caixa desta unidade está fechado. Abra o caixa para realizar vendas.",
+        color: "danger",
+        duration: 10000
+      })
+    }
+  }, [cashierStatus.checked, cashierStatus.isOpen, toast])
 
   const {
     saleTab, setSaleTab,
@@ -140,9 +156,19 @@ const ClientNewSale = () => {
             <FormGroup>
               <Label>Adquirente</Label>
               <Input
-                value={paymentForm.acquirer}
-                onChange={e => setPaymentForm(prev => ({ ...prev, acquirer: e.target.value }))}
-              />
+                type="select"
+                value={paymentForm.idAcquirer}
+                onChange={e => {
+                  const id = e.target.value
+                  const name = acquirers.find(a => a.id === id)?.name || ""
+                  setPaymentForm(prev => ({ ...prev, idAcquirer: id, acquirer: name, brand: "" }))
+                }}
+              >
+                <option value="">Selecione...</option>
+                {acquirers.filter(a => !a.inactive || a.id === paymentForm.idAcquirer).map(a => (
+                  <option key={a.id} value={a.id}>{a.name}</option>
+                ))}
+              </Input>
             </FormGroup>
           </Col>
           <Col md="4">
@@ -161,9 +187,21 @@ const ClientNewSale = () => {
             <FormGroup>
               <Label>Bandeira</Label>
               <Input
+                type="select"
                 value={paymentForm.brand}
                 onChange={e => setPaymentForm(prev => ({ ...prev, brand: e.target.value }))}
-              />
+                disabled={!paymentForm.idAcquirer}
+              >
+                <option value="">Selecione...</option>
+                {(() => {
+                  const selectedAcq = acquirers.find(a => a.id === paymentForm.idAcquirer)
+                  if (!selectedAcq) return null
+                  const allowedBrands = selectedAcq.brands || []
+                  return BRAND_OPTIONS.filter(b => allowedBrands.includes(b.id)).map(b => (
+                    <option key={b.id} value={b.id}>{b.label}</option>
+                  ))
+                })()}
+              </Input>
             </FormGroup>
           </Col>
         </>
@@ -178,9 +216,19 @@ const ClientNewSale = () => {
             <FormGroup>
               <Label>Adquirente</Label>
               <Input
-                value={paymentForm.acquirer}
-                onChange={e => setPaymentForm(prev => ({ ...prev, acquirer: e.target.value }))}
-              />
+                type="select"
+                value={paymentForm.idAcquirer}
+                onChange={e => {
+                  const id = e.target.value
+                  const name = acquirers.find(a => a.id === id)?.name || ""
+                  setPaymentForm(prev => ({ ...prev, idAcquirer: id, acquirer: name, brand: "" }))
+                }}
+              >
+                <option value="">Selecione...</option>
+                {acquirers.filter(a => !a.inactive || a.id === paymentForm.idAcquirer).map(a => (
+                  <option key={a.id} value={a.id}>{a.name}</option>
+                ))}
+              </Input>
             </FormGroup>
           </Col>
           <Col md="6">
@@ -196,9 +244,21 @@ const ClientNewSale = () => {
             <FormGroup>
               <Label>Bandeira</Label>
               <Input
+                type="select"
                 value={paymentForm.brand}
                 onChange={e => setPaymentForm(prev => ({ ...prev, brand: e.target.value }))}
-              />
+                disabled={!paymentForm.idAcquirer}
+              >
+                <option value="">Selecione...</option>
+                {(() => {
+                  const selectedAcq = acquirers.find(a => a.id === paymentForm.idAcquirer)
+                  if (!selectedAcq) return null
+                  const allowedBrands = selectedAcq.brands || []
+                  return BRAND_OPTIONS.filter(b => allowedBrands.includes(b.id)).map(b => (
+                    <option key={b.id} value={b.id}>{b.label}</option>
+                  ))
+                })()}
+              </Input>
             </FormGroup>
           </Col>
         </>
@@ -211,6 +271,8 @@ const ClientNewSale = () => {
       </>
     )
   }
+
+
 
   return (
     <Container fluid className="client-new-sale">
@@ -384,8 +446,14 @@ const ClientNewSale = () => {
                 </div>
               )}
 
-              <ButtonLoader color="success" className="w-100" onClick={onAttemptFinalize} loading={isLoading('save')}>
-                Finalizar venda
+              <ButtonLoader
+                color="success"
+                className="w-100"
+                onClick={onAttemptFinalize}
+                loading={isLoading('save')}
+                disabled={cashierStatus.checked && !cashierStatus.isOpen}
+              >
+                {cashierStatus.checked && !cashierStatus.isOpen ? "Caixa Fechado" : "Finalizar venda"}
               </ButtonLoader>
             </CardBody>
           </Card>

@@ -13,25 +13,22 @@ const { handleEnrollmentBump } = require("./helpers/occupancyHelper");
  * ============================================================================
  */
 
-module.exports = functions
+const onCreate = functions
   .region("us-central1")
   .firestore.document("tenants/{idTenant}/branches/{idBranch}/enrollments/{idEnrollment}")
   .onCreate(async (snap) => {
     const enrollment = snap.data() || {};
     const status = (enrollment.status || "").toLowerCase();
-    if (status && status !== "active") return null;
+
+    if (status !== "active") {
+      return null;
+    }
 
     const updated = await handleEnrollmentBump({ enrollment, delta: 1 });
-    functions.logger.info("enrollment.onCreate bump", {
-      type: enrollment.type,
-      idTenant: enrollment.idTenant,
-      idBranch: enrollment.idBranch,
-      updated,
-    });
     return null;
   });
 
-module.exports.onUpdate = functions
+const onUpdate = functions
   .region("us-central1")
   .firestore.document("tenants/{idTenant}/branches/{idBranch}/enrollments/{idEnrollment}")
   .onUpdate(async (change, context) => {
@@ -53,20 +50,12 @@ module.exports.onUpdate = functions
       // Usa o enrollment 'after' para pegar dados atuais.
       // Passamos isUpdate: true para garantir que normalizeStart use 'today'.
       const updated = await handleEnrollmentBump({ enrollment: after, delta, isUpdate: true });
-
-      functions.logger.info("enrollment.onUpdate occupancy bump result", {
-        type: after.type,
-        idTenant: after.idTenant,
-        idBranch: after.idBranch,
-        delta,
-        updated,
-      });
     }
 
     return null;
   });
 
-module.exports.onDelete = functions
+const onDelete = functions
   .region("us-central1")
   .firestore.document("tenants/{idTenant}/branches/{idBranch}/enrollments/{idEnrollment}")
   .onDelete(async (snap) => {
@@ -75,11 +64,10 @@ module.exports.onDelete = functions
     if (status && status !== "active") return null;
 
     const updated = await handleEnrollmentBump({ enrollment, delta: -1 });
-    functions.logger.info("enrollment.onDelete bump", {
-      type: enrollment.type,
-      idTenant: enrollment.idTenant,
-      idBranch: enrollment.idBranch,
-      updated,
-    });
     return null;
   });
+
+// Export onCreate as default and others as named exports
+module.exports = onCreate;
+module.exports.onUpdate = onUpdate;
+module.exports.onDelete = onDelete;

@@ -116,6 +116,30 @@ const AcquirerForm = ({
               </FormGroup>
             </Col>
 
+            <Col md="6">
+              <FormGroup>
+                <Label>Prazo de Recebimento (Dias)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={formState.receiptDays || 1}
+                  onChange={updateField("receiptDays", Number)}
+                />
+              </FormGroup>
+            </Col>
+            <Col md="6">
+              <FormGroup>
+                <Label>Taxa extra de Antecipação (%)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formState.anticipationFeePercent || 0}
+                  onChange={updateField("anticipationFeePercent", Number)}
+                />
+              </FormGroup>
+            </Col>
+
             <Col md="12">
               <Card className="border">
                 <CardHeader className="d-flex align-items-center justify-content-between">

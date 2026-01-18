@@ -16,3 +16,13 @@ export const calculateChurnPercent = (churnCount, activeCount) => {
     if (!activeCount || activeCount === 0 || !churnCount) return null
     return ((churnCount / activeCount) * 100).toFixed(1)
 }
+
+export const calculatePercent = (target, total) => {
+    if (!total || total === 0 || !target) return null
+    return ((target / total) * 100).toFixed(1)
+}
+
+export const calculateAverage = (value, total) => {
+    if (!total || total === 0 || !value) return null
+    return (value / total).toFixed(1)
+}

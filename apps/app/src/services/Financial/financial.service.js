@@ -38,8 +38,8 @@ export const listFinancialTransactions = async ({
   const snap = await getDocs(q)
 
   let transactions = snap.docs.map(d => ({
-    id: d.id,
     ...d.data(),
+    id: d.id,
   }))
 
   if (type) {

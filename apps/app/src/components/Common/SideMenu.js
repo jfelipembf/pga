@@ -23,7 +23,8 @@ const SideMenu = ({
   onDragStart,
   onDragOver,
   onDragEnd,
-  hideArrow, // NEW
+  hideArrow,
+  loading, // NEW
 }) => {
   const renderItemActions = item => {
     if (!onEdit && !onDelete) return null
@@ -82,7 +83,13 @@ const SideMenu = ({
         </CardHeader>
       )}
       <CardBody className="pt-3">
-        {items?.length ? (
+        {loading ? (
+          <div className="text-center py-5">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        ) : items?.length ? (
           <ListGroup flush className="side-menu__list">
             {items.map((item, index) => {
               if (item.isHeader) {

@@ -16,7 +16,8 @@ const Dashboard = ({ setBreadcrumbItems }) => {
 
   useEffect(() => {
     const breadcrumbItems = [
-      { title: "Dashboard", link: "#" }
+      { title: "Dashboard", link: "#" },
+      { title: "Gerencial", link: "#" }
     ]
     setBreadcrumbItems('Dashboard', breadcrumbItems)
   }, [setBreadcrumbItems])
@@ -36,7 +37,7 @@ const Dashboard = ({ setBreadcrumbItems }) => {
       {isLoading('page') ? (
         <PageLoader />
       ) : (
-        <>
+        <div className="dashboard-wrapper">
           <Miniwidget reports={reports} loading={false} />
 
           <Row>
@@ -48,7 +49,7 @@ const Dashboard = ({ setBreadcrumbItems }) => {
               <MonthlyEarnings2 current={monthlyCurrent} previous={monthlyPrevious} data={monthlyData} />
             </Col>
           </Row>
-        </>
+        </div>
       )}
     </React.Fragment>
   )

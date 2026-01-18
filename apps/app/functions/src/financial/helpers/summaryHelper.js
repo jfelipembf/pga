@@ -21,12 +21,14 @@ const updateSummaries = async ({
     revenueDelta = 0,
     expenseDelta = 0,
     salesDelta = 0,
+    grossRevenueDelta = 0,
+    feesDelta = 0,
 }) => {
     if (!idTenant || !idBranch || !dateStr) {
         return;
     }
 
-    if (revenueDelta === 0 && expenseDelta === 0 && salesDelta === 0) return;
+    if (revenueDelta === 0 && expenseDelta === 0 && salesDelta === 0 && grossRevenueDelta === 0 && feesDelta === 0) return;
 
     const monthId = toMonthKey(dateStr); // YYYY-MM
 
@@ -54,6 +56,12 @@ const updateSummaries = async ({
     if (salesDelta !== 0) {
         dailyUpdates.salesDay = FieldValue.increment(salesDelta);
     }
+    if (grossRevenueDelta !== 0) {
+        dailyUpdates.grossRevenue = FieldValue.increment(grossRevenueDelta);
+    }
+    if (feesDelta !== 0) {
+        dailyUpdates.totalFees = FieldValue.increment(feesDelta);
+    }
 
     // 2. Atualizações Mensais
     const monthlyUpdates = { updatedAt: FieldValue.serverTimestamp() };
@@ -66,6 +74,12 @@ const updateSummaries = async ({
     }
     if (salesDelta !== 0) {
         monthlyUpdates.salesMonth = FieldValue.increment(salesDelta);
+    }
+    if (grossRevenueDelta !== 0) {
+        monthlyUpdates.grossRevenue = FieldValue.increment(grossRevenueDelta);
+    }
+    if (feesDelta !== 0) {
+        monthlyUpdates.totalFees = FieldValue.increment(feesDelta);
     }
 
     batch.set(dailyRef, dailyUpdates, { merge: true });

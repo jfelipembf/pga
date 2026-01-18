@@ -68,12 +68,12 @@ export const useProfileLogic = ({ client, contracts, financial, enrollments, set
         id: formData.idGym || "--",
         status:
             (contractStatusValue && getStatusLabel(primaryContract.status, "contract")) ||
-            getStatusLabel(formData.status, "client") ||
-            "Ativo",
+            getStatusLabel(contracts?.length ? formData.status : "lead", "client") ||
+            (contracts?.length ? "Ativo" : "Lead"),
         statusColor:
             (contractStatusValue && getStatusColor(primaryContract.status)) ||
-            getStatusColor(formData.status) ||
-            "success",
+            getStatusColor(contracts?.length ? formData.status : "lead") ||
+            (contracts?.length ? "success" : "info"),
         photo: avatarPreview || PLACEHOLDER_AVATAR,
         cover: directoryBg,
     }

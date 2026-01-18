@@ -9,6 +9,7 @@ import ClassesPage from "../pages/Admin/Classes"
 import CashierPage from "../pages/Financial/Cashier"
 import CashierPrintPage from "../pages/Financial/Cashier/Components/Print"
 import CashFlowPage from "../pages/Financial/CashFlow"
+import FinancialDashboard from "../pages/Financial/Dashboard"
 import AcquirersPage from "../pages/Financial/Acquirers"
 import ClientsList from "../pages/Clients/Components/clientList"
 import ClientSalesPage from "../pages/Clients/Components/Sales"
@@ -70,6 +71,7 @@ const userRoutes = [
   { path: "/financial/cashier", component: <CashierPage />, permissions: ["financial_cashier"] },
   { path: "/financial/cashier/print", component: <CashierPrintPage />, permissions: ["financial_cashier"] },
   { path: "/financial/cashflow", component: <CashFlowPage />, permissions: ["financial_cashflow"] },
+  { path: "/financial/dashboard", component: <FinancialDashboard />, permissions: ["dashboards_financial_view"] },
   { path: "/financial/acquirers", component: <AcquirersPage />, permissions: ["financial_acquirers"] },
   { path: "/clients/profile", component: <ClientProfile />, permissions: ["members_manage"] },
   { path: "/clients/:clientId/enroll", component: <ClientEnrollPage />, permissions: ["sales_purchase"] },

@@ -4,6 +4,7 @@ import { connect } from "react-redux"
 
 import SideMenu from "components/Common/SideMenu"
 import AcquirerForm from "./Components/AcquirerForm"
+import ConfirmDialog from "../../../components/Common/ConfirmDialog"
 import { setBreadcrumbItems } from "../../../store/actions"
 import PageLoader from "../../../components/Common/PageLoader"
 import { BRAND_OPTIONS } from "./Constants/acquirersDefaults"
@@ -18,6 +19,9 @@ const AcquirersPage = ({ setBreadcrumbItems }) => {
     selectedId,
     handleSelect,
     handleDelete,
+    requestDelete,
+    cancelDelete,
+    isDeleteModalOpen,
     handleNew,
     sideMenuItems,
     toggleActive,
@@ -52,7 +56,7 @@ const AcquirersPage = ({ setBreadcrumbItems }) => {
             items={sideMenuItems}
             selectedId={selectedId}
             onSelect={handleSelect}
-            onDelete={handleDelete}
+            onDelete={requestDelete}
             onEdit={handleSelect}
             emptyLabel="Nenhuma adquirente cadastrada."
             headerActions={
@@ -80,6 +84,16 @@ const AcquirersPage = ({ setBreadcrumbItems }) => {
           />
         </Col>
       </Row>
+
+      <ConfirmDialog
+        isOpen={isDeleteModalOpen}
+        title="Excluir Adquirente"
+        message="Tem certeza que deseja excluir esta adquirente? Esta ação não pode ser desfeita."
+        confirmText="Excluir"
+        confirmColor="danger"
+        onConfirm={handleDelete}
+        onCancel={cancelDelete}
+      />
     </Container>
   )
 }

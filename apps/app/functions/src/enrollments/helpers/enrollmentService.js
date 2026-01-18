@@ -38,6 +38,13 @@ const deleteEnrollmentInternal = async ({ idTenant, idBranch, idEnrollment }) =>
  * Lógica interna para criar matrícula recorrente.
  */
 const createRecurringEnrollmentInternal = async ({ idTenant, idBranch, uid, data }) => {
+    console.log("[createRecurringEnrollmentInternal] START", {
+        idTenant,
+        idBranch,
+        uid,
+        dataReceived: data
+    });
+
     const payload = {
         ...data,
         idTenant,
@@ -49,8 +56,24 @@ const createRecurringEnrollmentInternal = async ({ idTenant, idBranch, uid, data
         createdBy: uid,
     };
 
+    console.log("[createRecurringEnrollmentInternal] Payload to save", {
+        idClass: payload.idClass,
+        idClient: payload.idClient,
+        type: payload.type,
+        status: payload.status,
+        startDate: payload.startDate,
+        endDate: payload.endDate,
+        hasIdClass: !!payload.idClass
+    });
+
     const ref = db.collection("tenants").doc(idTenant).collection("branches").doc(idBranch).collection("enrollments");
     const docRef = await ref.add(payload);
+
+    console.log("[createRecurringEnrollmentInternal] Enrollment created", {
+        enrollmentId: docRef.id,
+        path: docRef.path
+    });
+
     return { id: docRef.id, ...payload };
 };
 
@@ -73,8 +96,11 @@ const createSingleSessionEnrollmentInternal = async ({ idTenant, idBranch, uid, 
     const ref = db.collection("tenants").doc(idTenant).collection("branches").doc(idBranch).collection("enrollments");
     const docRef = await ref.add(payload);
 
+
+
     // --- AUTOMATION TRIGGER: EXPERIMENTAL_SCHEDULED ---
     if (payload.type === "experimental" || payload.type === "aula_experimental" || payload.subtype === "experimental") {
+
         try {
             const formattedDate = formatDate(data.sessionDate);
 

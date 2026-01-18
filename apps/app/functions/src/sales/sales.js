@@ -8,7 +8,7 @@ const { createTransactionInternal } = require("../financial/transactions");
 const { createReceivableInternal } = require("../financial/receivables");
 const { addClientCreditInternal } = require("../financial/credits");
 const { createClientContractInternal } = require("../clientContracts/clientContracts");
-const { toISODate } = require("../helpers/date");
+const { toISODate, addDays } = require("../helpers/date");
 
 const db = admin.firestore();
 
@@ -41,12 +41,35 @@ const detectSaleType = (items) => {
   return "generic";
 };
 
+const getSessionsColl = (idTenant, idBranch) =>
+  db
+    .collection("tenants")
+    .doc(idTenant)
+    .collection("branches")
+    .doc(idBranch)
+    .collection("cashierSessions");
+
 /**
  * Cria ou Atualiza uma venda (Sale).
  * Gerencia também os itens da venda (subcoleção 'items').
  */
 exports.saveSale = functions.https.onCall(async (data, context) => {
   const { idTenant, idBranch, uid, token } = requireAuthContext(data, context);
+
+  // Validar se há caixa aberto
+  const sessionsRef = getSessionsColl(idTenant, idBranch);
+  const openSnapshot = await sessionsRef
+    .where("status", "==", "open")
+    .limit(1)
+    .get();
+
+  if (openSnapshot.empty) {
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      "Não há caixa aberto para realizar vendas. Por favor, abra o caixa antes de continuar.",
+    );
+  }
+
   const { idSale: providedIdSale, items, payments, dueDate } = data;
 
 
@@ -185,36 +208,119 @@ exports.saveSale = functions.https.onCall(async (data, context) => {
     }
   }
 
-  // 4. Processar Financeiro (apenas se for nova venda ou se explicitamente solicitado atualização financeira - por enquanto focado em CREATE)
-  // O frontend atual manda payments apenas no create.
+  // 4. Processar Financeiro
   if (isNew && Array.isArray(payments) && payments.length > 0) {
     for (const payment of payments) {
       const amount = Number(payment.amount || 0);
       if (amount <= 0) continue;
 
-      await createTransactionInternal({
-        idTenant,
-        idBranch,
-        batch,
-        payload: {
-          type: "sale",
-          saleType: detectSaleType(items),
-          source: "contract",
-          amount,
-          date: toISODate(new Date()),
-          category: "Venda",
-          description: `Venda ${saleCode}`,
-          idSale: saleRef.id,
-          idClient: data.idClient || null,
-          method: payment.type || "Outros",
-          metadata: {
-            ...payment,
-            totals: data.totals,
-            registeredBy: token.name || token.email || "user",
-            uid,
+      const method = payment.type || "Outros";
+      const isCard = method === "credito" || method === "debito";
+      const idAcquirer = payment.idAcquirer;
+
+      let acquirerConfig = null;
+      if (isCard && idAcquirer) {
+        const acqDoc = await db.collection("tenants").doc(idTenant).collection("branches").doc(idBranch).collection("acquirers").doc(idAcquirer).get();
+        if (acqDoc.exists) {
+          acquirerConfig = acqDoc.data();
+          console.log(`[saveSale] Acquirer found: ${acquirerConfig.name}. Anticipate: ${acquirerConfig.anticipateReceivables}`);
+        } else {
+          console.warn(`[saveSale] Acquirer not found: ${idAcquirer}`);
+        }
+      }
+
+      // Se for crédito parcelado E NÃO antecipar, gerar múltiplas transações
+      const installments = Number(payment.installments || 1);
+      const shouldSplit = method === "credito" && installments > 1 && !acquirerConfig?.anticipateReceivables;
+
+      if (shouldSplit) {
+        const installmentAmount = amount / installments;
+
+        // Calcular taxa por parcela (simplificado: MDR proporcional)
+        const instFee = (acquirerConfig?.installmentFees || []).find(f => Number(f.installments) === installments);
+        const feePercent = Number(instFee?.feePercent || 0);
+
+        for (let i = 1; i <= installments; i++) {
+          const receiptDate = addDays(salePayload.saleDate, i * 30);
+          const feeAmount = (installmentAmount * feePercent) / 100;
+          const netAmount = installmentAmount - feeAmount;
+
+          await createTransactionInternal({
+            idTenant, idBranch, batch,
+            payload: {
+              type: "sale",
+              saleType: detectSaleType(items),
+              source: "contract",
+              amount: netAmount, // Valor que realmente entra
+              grossAmount: installmentAmount,
+              feeAmount,
+              date: toISODate(receiptDate),
+              category: "Venda",
+              description: `Venda ${saleCode} (Parcela ${i}/${installments})`,
+              idSale: saleRef.id,
+              idClient: data.idClient || null,
+              method,
+              metadata: { ...payment, installment: i, totalInstallments: installments, uid },
+            },
+          });
+        }
+      } else {
+        // Caso normal (Dinheiro, Pix, Débito ou Crédito Antecipado/À Vista)
+        let receiptDate = salePayload.saleDate;
+        let feeAmount = 0;
+
+        if (isCard && acquirerConfig) {
+          const days = Number(acquirerConfig.receiptDays || 1);
+          receiptDate = toISODate(addDays(salePayload.saleDate, days));
+
+          let feePercent = 0;
+          if (method === "debito") {
+            feePercent = Number(acquirerConfig.debitFeePercent || 0);
+          } else if (method === "credito") {
+            if (installments === 1) {
+              feePercent = Number(acquirerConfig.creditOneShotFeePercent || 0);
+            } else {
+              const instFee = (acquirerConfig.installmentFees || []).find(f => Number(f.installments) === installments);
+              feePercent = Number(instFee?.feePercent || 0);
+            }
+            // Se antecipar, somar taxa extra de antecipação
+            if (acquirerConfig.anticipateReceivables) {
+              feePercent += Number(acquirerConfig.anticipationFeePercent || 0) * installments;
+            }
+          }
+          feeAmount = (amount * feePercent) / 100;
+          console.log(`[saveSale] Standard transaction: method=${method}, installments=${installments}, feePercent=${feePercent}%, feeAmount=${feeAmount}`);
+        }
+
+        const netAmount = amount - feeAmount;
+
+        await createTransactionInternal({
+          idTenant,
+          idBranch,
+          batch,
+          payload: {
+            type: "sale",
+            saleType: detectSaleType(items),
+            source: "contract",
+            amount: netAmount, // Valor que realmente entra (Líquido)
+            grossAmount: amount,
+            feeAmount,
+            date: receiptDate,
+            category: "Venda",
+            description: `Venda ${saleCode}`,
+            idSale: saleRef.id,
+            idClient: data.idClient || null,
+            method,
+            metadata: {
+              ...payment,
+              receiptDate,
+              idAcquirer,
+              acquirerName: acquirerConfig?.name || payment.acquirer,
+              uid,
+            },
           },
-        },
-      });
+        });
+      }
     }
   }
 

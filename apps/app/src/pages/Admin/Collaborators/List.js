@@ -3,6 +3,7 @@ import { Button, Col, Row } from "reactstrap"
 import { connect } from "react-redux"
 
 import BasicTable from "../../../components/Common/BasicTable"
+import StatusBadge from "../../../components/Common/StatusBadge"
 import { setBreadcrumbItems } from "../../../store/actions"
 import { useNavigate, useParams } from "react-router-dom"
 import { createStaff, listStaff, useStaffPhotoUpload } from "../../../services/Staff/index"
@@ -71,18 +72,7 @@ const CollaboratorsList = ({ setBreadcrumbItems }) => {
       {
         key: "status",
         label: "Status",
-        render: item => (
-          <span
-            className={`badge bg-${item.status === "active"
-              ? "success"
-              : item.status === "pending"
-                ? "warning"
-                : "secondary"
-              }`}
-          >
-            {item.status}
-          </span>
-        ),
+        render: item => <StatusBadge status={item.status} type="common" />,
       },
       {
         key: "phone",

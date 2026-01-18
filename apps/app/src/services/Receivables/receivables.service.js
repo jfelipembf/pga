@@ -83,7 +83,7 @@ export const listReceivables = async ({ startDate, endDate, status, ctxOverride 
   const ctx = getContext(ctxOverride)
   const ref = receivablesCol(db, ctx)
   const snap = await getDocs(ref)
-  let items = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  let items = snap.docs.map(d => ({ ...d.data(), id: d.id }))
 
   if (status) {
     items = items.filter(rcv => (rcv.status || "").toLowerCase() === status.toLowerCase())

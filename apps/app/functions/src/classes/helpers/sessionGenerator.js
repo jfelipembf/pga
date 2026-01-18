@@ -39,29 +39,6 @@ const generateSessionsForClass = async ({
 
     const sessionsCol = db.collection("tenants").doc(idTenant).collection("branches").doc(idBranch).collection("sessions");
 
-    // Calcular ocupação de recorrentes (se houver lógica de enrollments)
-    // Aqui assumimos que precisamos calcular.
-    const enrollmentsCol = db.collection("tenants").doc(idTenant).collection("branches").doc(idBranch).collection("enrollments");
-    const enrSnap = await enrollmentsCol
-        .where("type", "==", "recurring")
-        .where("idClass", "==", idClass)
-        .where("status", "==", "active")
-        .get();
-    const recurring = enrSnap.docs.map((d) => d.data() || {});
-
-    const recurringCountForDate = (iso) => {
-        if (!iso) return 0;
-        let count = 0;
-        for (const e of recurring) {
-            const start = e.startDate ? String(e.startDate) : null;
-            const end = e.endDate ? String(e.endDate) : null;
-            if (start && iso < start) continue;
-            if (end && iso > end) continue;
-            count += 1;
-        }
-        return count;
-    };
-
     let ops = 0;
     let createdCount = 0;
     let batch = db.batch();
@@ -85,23 +62,14 @@ const generateSessionsForClass = async ({
 
         const existingSnap = await ref.get();
 
-        // Se já existe, atualizamos apensa contador se necessário?
+        // Se a sessão já existe, não fazemos nada
+        // O enrolledCount será gerenciado apenas pelos triggers de enrollment
         if (existingSnap.exists) {
-            const existingData = existingSnap.data();
-            const currentCount = recurringCountForDate(iso);
-
-            if (existingData.enrolledCount !== currentCount) {
-                batch.update(ref, {
-                    enrolledCount: currentCount,
-                    updatedAt: FieldValue.serverTimestamp(),
-                });
-                ops += 1;
-                await commitIfNeeded();
-            }
             continue;
         }
 
-        // Se não existe, cria
+        // Cria nova sessão com enrolledCount: 0
+        // Os triggers de enrollment incrementarão este valor automaticamente
         const payload = {
             idSession,
             idClass,
@@ -116,7 +84,7 @@ const generateSessionsForClass = async ({
             endTime: classData.endTime || "",
             durationMinutes: Number(classData.durationMinutes || 0),
             maxCapacity: Number(classData.maxCapacity || classData.capacity || 0),
-            enrolledCount: recurringCountForDate(iso),
+            enrolledCount: 0, // Sempre inicia em 0, triggers incrementarão
             status: "scheduled",
             attendanceRecorded: false,
             createdAt: FieldValue.serverTimestamp(),

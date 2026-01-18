@@ -46,10 +46,69 @@ exports.onClientContractWrite = functions
 
     // 1. Create
     if (!before && after) {
-      updates.newCount = FieldValue.increment(1);
-      monthlyUpdates.newCount = FieldValue.increment(1);
+      let type = "new";
 
-      if (isActiveLike(after.status)) {
+      // Check for history
+      try {
+        const historySnap = await db
+          .collection("tenants").doc(idTenant)
+          .collection("branches").doc(idBranch)
+          .collection("clientsContracts")
+          .where("idClient", "==", after.idClient)
+          .get();
+
+        const otherContracts = historySnap.docs.filter(d => d.id !== context.params.idContract);
+
+        if (otherContracts.length > 0) {
+          // Find newest previous
+          const sorted = otherContracts
+            .map(d => d.data())
+            .sort((a, b) => (b.endDate || "").localeCompare(a.endDate || ""));
+
+          const last = sorted[0];
+          const lastEnd = last.endDate;
+          const currentStart = after.startDate;
+
+          if (lastEnd && currentStart) {
+            const diffTime = (new Date(currentStart) - new Date(lastEnd));
+            const diffDays = diffTime / (1000 * 60 * 60 * 24);
+            type = diffDays <= 30 ? "renewal" : "return";
+          } else {
+            type = "renewal";
+          }
+        }
+      } catch (e) {
+        console.error("Error checking contract history:", e);
+      }
+
+      if (type === "new") {
+        updates.newCount = FieldValue.increment(1);
+        monthlyUpdates.newCount = FieldValue.increment(1);
+      } else if (type === "renewal") {
+        monthlyUpdates.renewalsMonth = FieldValue.increment(1);
+      } else if (type === "return") {
+        monthlyUpdates.returnsMonth = FieldValue.increment(1);
+      }
+
+      // Check if this client is ALREADY active (has other active contracts)
+      let alreadyActive = false;
+      try {
+        const otherActiveSnap = await db
+          .collection("tenants").doc(idTenant)
+          .collection("branches").doc(idBranch)
+          .collection("clientsContracts")
+          .where("idClient", "==", after.idClient)
+          .where("status", "in", ["active", "trial"]) // Adjust based on isActiveLike logic
+          .get();
+
+        // Filter out current contract ID just in case
+        const others = otherActiveSnap.docs.filter(d => d.id !== context.params.idContract);
+        if (others.length > 0) alreadyActive = true;
+      } catch (err) {
+        console.error("Error checking other active contracts:", err);
+      }
+
+      if (isActiveLike(after.status) && !alreadyActive) {
         updates.activeCount = FieldValue.increment(1);
         monthlyUpdates.activeAvg = FieldValue.increment(1);
       }
@@ -57,7 +116,23 @@ exports.onClientContractWrite = functions
 
     // 2. Delete
     if (before && !after) {
-      if (isActiveLike(before.status)) {
+      // Check if client REMAINS active (has other active contracts)
+      let remainsActive = false;
+      try {
+        const otherActiveSnap = await db
+          .collection("tenants").doc(idTenant)
+          .collection("branches").doc(idBranch)
+          .collection("clientsContracts")
+          .where("idClient", "==", before.idClient)
+          .where("status", "in", ["active", "trial"])
+          .get();
+
+        if (!otherActiveSnap.empty) remainsActive = true;
+      } catch (err) {
+        console.error("Error checking remaining active contracts:", err);
+      }
+
+      if (isActiveLike(before.status) && !remainsActive) {
         updates.activeCount = FieldValue.increment(-1);
         monthlyUpdates.activeAvg = FieldValue.increment(-1);
       }
@@ -73,11 +148,52 @@ exports.onClientContractWrite = functions
       const isActive = isActiveLike(statusAfter);
 
       if (!wasActive && isActive) {
-        updates.activeCount = FieldValue.increment(1);
-        monthlyUpdates.activeAvg = FieldValue.increment(1);
+        // Became active. Check if ALREADY active
+        let alreadyActive = false;
+        try {
+          const otherActiveSnap = await db
+            .collection("tenants").doc(idTenant)
+            .collection("branches").doc(idBranch)
+            .collection("clientsContracts")
+            .where("idClient", "==", after.idClient)
+            .where("status", "in", ["active", "trial"])
+            .get();
+
+          const others = otherActiveSnap.docs.filter(d => d.id !== context.params.idContract);
+          if (others.length > 0) alreadyActive = true;
+        } catch (err) { console.error(err); }
+
+        if (!alreadyActive) {
+          updates.activeCount = FieldValue.increment(1);
+          monthlyUpdates.activeAvg = FieldValue.increment(1);
+        }
+
       } else if (wasActive && !isActive) {
-        updates.activeCount = FieldValue.increment(-1);
-        monthlyUpdates.activeAvg = FieldValue.increment(-1);
+        // Became inactive. Check if REMAINS active
+        let remainsActive = false;
+        try {
+          const otherActiveSnap = await db
+            .collection("tenants").doc(idTenant)
+            .collection("branches").doc(idBranch)
+            .collection("clientsContracts")
+            .where("idClient", "==", after.idClient) // use after.idClient as it shouldn't change
+            .where("status", "in", ["active", "trial"])
+            .get();
+
+          // Filter out current contract (which is now inactive in memory but DB query might reflect current status depending on race condition? 
+          // Query filters by 'status in [active]'. If this contract was updated to 'inactive', it shouldn't appear in the query if query is consistent.
+          // But 'after' is the new state. The DB might not be fully consistent for a read immediately after write in same transaction? 
+          // Triggers run AFTER write. So DB *should* have the new status 'inactive'.
+          // So if I query for 'active', this contract will NOT show up.
+          // So `otherActiveSnap` contains ONLY OTHER contracts.
+          // So:
+          if (!otherActiveSnap.empty) remainsActive = true;
+        } catch (err) { console.error(err); }
+
+        if (!remainsActive) {
+          updates.activeCount = FieldValue.increment(-1);
+          monthlyUpdates.activeAvg = FieldValue.increment(-1);
+        }
       }
 
       // Flow metrics (transitions)

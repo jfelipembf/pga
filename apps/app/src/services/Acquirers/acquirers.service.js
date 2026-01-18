@@ -8,7 +8,7 @@ export const listAcquirers = async ({ ctxOverride = null } = {}) => {
 
   const ref = acquirersCol(db, ctx)
   const snap = await getDocs(ref)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return snap.docs.map(d => ({ ...d.data(), id: d.id }))
 }
 
 export const createAcquirer = async (data, { ctxOverride = null } = {}) => {
@@ -16,7 +16,8 @@ export const createAcquirer = async (data, { ctxOverride = null } = {}) => {
   const ctx = getContext(ctxOverride)
 
   const ref = acquirersCol(db, ctx)
-  const payload = makeCreatePayload(data, ctx)
+  const { id: _, ...rest } = data
+  const payload = makeCreatePayload(rest, ctx)
 
   const docRef = await addDoc(ref, payload)
   return { id: docRef.id, ...payload }
@@ -28,16 +29,17 @@ export const updateAcquirer = async (id, data, { ctxOverride = null } = {}) => {
   const ctx = getContext(ctxOverride)
 
   const ref = acquirerDoc(db, ctx, id)
-  const payload = makeUpdatePayload(data)
+  const { id: _, ...rest } = data
+  const payload = makeUpdatePayload(rest)
 
   await updateDoc(ref, payload)
   return { id, ...payload }
 }
 
 export const saveAcquirer = async (data, options) => {
-  // Check if document actually exists in Firestore
-  if (data?.id && !data.id.startsWith('acquirer-')) {
-    return updateAcquirer(data.id, data, options)
+  const id = data?.id
+  if (id && !id.toString().startsWith('acquirer-')) {
+    return updateAcquirer(id, data, options)
   }
   return createAcquirer(data, options)
 }

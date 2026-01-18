@@ -33,5 +33,6 @@ exports.onAttendanceWrite = functions
     if (!monthKey) return null;
 
     await recomputeClientMonthSummary({ idTenant, idBranch, idClient, monthKey });
+
     return null;
   });

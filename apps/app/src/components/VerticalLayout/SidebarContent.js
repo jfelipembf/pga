@@ -35,6 +35,7 @@ const SidebarContent = props => {
       subMenu: [
         { id: "operational", label: t("Operacional"), icon: "mdi mdi-view-dashboard-outline", link: "/dashboard/operational" },
         { id: "management", label: t("Gerencial"), icon: "mdi mdi-chart-areaspline", link: "/dashboard", permission: "dashboards_management_view" },
+        { id: "financial_dash", label: t("Financeiro"), icon: "mdi mdi-cash-multiple", link: "/financial/dashboard", permission: "dashboards_financial_view" },
       ],
     },
     { id: "grade", label: "Grade", icon: "mdi mdi-table-large", link: "/grade", permission: "grade_manage" },
@@ -63,6 +64,7 @@ const SidebarContent = props => {
       link: "#",
       anyPermission: ["financial_cashier", "financial_cashflow", "financial_acquirers"],
       subMenu: [
+
         { id: "cashier", label: "Caixa", link: "/financial/cashier", icon: "mdi mdi-cash-register", permission: "financial_cashier" },
         { id: "cashflow", label: "Fluxo de Caixa", link: "/financial/cashflow", icon: "mdi mdi-chart-line", permission: "financial_cashflow" },
         { id: "acquirers", label: "Adquirentes", link: "/financial/acquirers", icon: "mdi mdi-credit-card-multiple-outline", permission: "financial_acquirers" },

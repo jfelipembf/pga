@@ -64,6 +64,8 @@ export const createBlankAcquirer = () => ({
     debitFeePercent: 1.99,
     creditOneShotFeePercent: 3.49,
     anticipateReceivables: false,
+    receiptDays: 1,
+    anticipationFeePercent: 0,
     installmentFees: [
         { installments: 1, feePercent: 3.49 },
         { installments: 2, feePercent: 3.99 },

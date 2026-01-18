@@ -14,17 +14,35 @@ export const getStaffDailyStats = async (uid) => {
     const today = formatDateString(new Date())
 
     const salesRef = salesCollectionRef(db, ctx)
-    const q = query(
+
+    // Query 1: Sales where I am the assigned Staff
+    const qStaff = query(
         salesRef,
         where("idStaff", "==", uid),
         where("saleDate", "==", today)
     )
 
-    const snap = await getDocs(q)
-    const sales = snap.docs.map(d => d.data())
+    // Query 2: Sales created by me (even if not assigned)
+    const qCreated = query(
+        salesRef,
+        where("createdBy", "==", uid),
+        where("saleDate", "==", today)
+    )
+
+    const [snapStaff, snapCreated] = await Promise.all([
+        getDocs(qStaff),
+        getDocs(qCreated).catch(e => ({ docs: [] }))
+    ])
+
+    // Deduplicate by ID
+    const salesMap = new Map()
+    snapStaff.docs.forEach(d => salesMap.set(d.id, d.data()))
+    snapCreated.docs.forEach(d => salesMap.set(d.id, d.data()))
+
+    const sales = Array.from(salesMap.values())
 
     const totalCount = sales.length
-    const totalAmount = sales.reduce((acc, s) => acc + (Number(s.totals?.net || 0)), 0)
+    const totalAmount = sales.reduce((acc, s) => acc + (Number(s.totals?.net) || 0), 0)
 
     return {
         totalCount,
@@ -45,18 +63,36 @@ export const getStaffMonthlyStats = async (uid) => {
     const startOfMonth = `${monthId}-01`
     const endOfMonth = `${monthId}-31`
 
-    const q = query(
+    // Query 1: Sales where I am the assigned Staff
+    const qStaff = query(
         salesRef,
         where("idStaff", "==", uid),
         where("saleDate", ">=", startOfMonth),
         where("saleDate", "<=", endOfMonth)
     )
 
-    const snap = await getDocs(q)
-    const sales = snap.docs.map(d => d.data())
+    // Query 2: Sales created by me
+    const qCreated = query(
+        salesRef,
+        where("createdBy", "==", uid),
+        where("saleDate", ">=", startOfMonth),
+        where("saleDate", "<=", endOfMonth)
+    )
+
+    const [snapStaff, snapCreated] = await Promise.all([
+        getDocs(qStaff),
+        getDocs(qCreated).catch(e => ({ docs: [] }))
+    ])
+
+    // Deduplicate by ID
+    const salesMap = new Map()
+    snapStaff.docs.forEach(d => salesMap.set(d.id, d.data()))
+    snapCreated.docs.forEach(d => salesMap.set(d.id, d.data()))
+
+    const sales = Array.from(salesMap.values())
 
     const totalCount = sales.length
-    const totalAmount = sales.reduce((acc, s) => acc + (Number(s.totals?.net || 0)), 0)
+    const totalAmount = sales.reduce((acc, s) => acc + (Number(s.totals?.net) || 0), 0)
 
     return {
         totalCount,

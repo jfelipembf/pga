@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react"
 import { listContracts } from "../../../services/Contracts"
 import { listProducts, listServices } from "../../../services/Catalog/index"
+import { listAcquirers } from "../../../services/Acquirers"
+import { checkCashierStatus } from "../../../services/Financial/cashier.service"
 import { useToast } from "../../../components/Common/ToastProvider"
 import { useLoading } from "../../../hooks/useLoading"
 import { itemsByTabDefaults } from "../Constants/salesDefaults"
 
 export const useSalesData = () => {
     const [itemsByTab, setItemsByTab] = useState(itemsByTabDefaults)
+    const [acquirers, setAcquirers] = useState([])
+    const [cashierStatus, setCashierStatus] = useState({ isOpen: false, checked: false })
     const toast = useToast()
     const { isLoading, withLoading } = useLoading()
 
@@ -14,11 +18,15 @@ export const useSalesData = () => {
         const loadData = async () => {
             try {
                 await withLoading('load', async () => {
-                    const [contracts, products, services] = await Promise.all([
+                    const [contracts, products, services, acquirerList, cashier] = await Promise.all([
                         listContracts().then(list => list.filter(c => (c.status || "active") === "active")),
                         listProducts(),
                         listServices(),
+                        listAcquirers(),
+                        checkCashierStatus()
                     ])
+                    setAcquirers(acquirerList)
+                    setCashierStatus({ isOpen: cashier?.isOpen ?? false, checked: true })
                     setItemsByTab({
                         contratos: contracts.map(c => ({
                             id: c.id,
@@ -50,6 +58,8 @@ export const useSalesData = () => {
 
     return {
         itemsByTab,
+        acquirers,
+        cashierStatus,
         isLoading: isLoading('load')
     }
 }

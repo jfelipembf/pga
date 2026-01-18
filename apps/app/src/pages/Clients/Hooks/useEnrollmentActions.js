@@ -15,13 +15,14 @@ export const useEnrollmentActions = ({ clientId, clientName, clientPhone, select
     const toast = useToast()
 
     const handleEnroll = async () => {
+
         if (!clientId) {
-            toast.show({ title: "Cliente não identificado", color: "danger" })
-            return
+            toast.show({ title: "Cliente não identificado", color: "danger" });
+            return;
         }
         if (!selectedSessionKeys.length) {
-            toast.show({ title: "Selecione ao menos uma sessão", color: "warning" })
-            return
+            toast.show({ title: "Selecione ao menos uma sessão", color: "warning" });
+            return;
         }
         try {
             await withLoading('enroll', async () => {
@@ -97,23 +98,26 @@ export const useEnrollmentActions = ({ clientId, clientName, clientPhone, select
                         })
                     }
                 } else {
+
                     // Recurring Logic (Default)
-                    const byClass = {}
+                    const byClass = {};
                     selectedSessions.forEach(s => {
-                        const idClass = s.idClass || s.idActivity
-                        byClass[idClass] = byClass[idClass] || []
-                        byClass[idClass].push(s)
-                    })
+                        const idClass = s.idClass || s.idActivity;
+                        byClass[idClass] = byClass[idClass] || [];
+                        byClass[idClass].push(s);
+                    });
+
+
 
                     for (const idClass of Object.keys(byClass)) {
-                        const list = byClass[idClass]
-                        const first = list[0]
-                        if (!first) continue
+                        const list = byClass[idClass];
+                        const first = list[0];
+                        if (!first) continue;
                         const startDate = list
                             .map(s => s.sessionDate)
                             .filter(Boolean)
                             .sort()
-                            .shift()
+                            .shift();
 
                         const payload = createRecurringPayload({
                             idClient: clientId,
@@ -121,10 +125,14 @@ export const useEnrollmentActions = ({ clientId, clientName, clientPhone, select
                             classData: first,
                             startDate,
                             status: "active"
-                        })
+                        });
+
+
 
                         // Ensure legacy fields if needed or rely on helper
-                        await createRecurringEnrollment(payload)
+                        await createRecurringEnrollment(payload);
+
+
                     }
                 }
 
@@ -160,6 +168,11 @@ export const useEnrollmentActions = ({ clientId, clientName, clientPhone, select
                 } else if (setExistingEnrollments) {
                     const enrollments = await listEnrollmentsByClient(clientId)
                     setExistingEnrollments(enrollments || [])
+                }
+
+                // Recarregar dados para atualizar badges
+                if (reloadPageData) {
+                    await reloadPageData();
                 }
             })
         } catch (e) {

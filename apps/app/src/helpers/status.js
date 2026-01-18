@@ -45,13 +45,42 @@ export const STATUS_LABELS = {
     inactive: "Inativo",
     pending: "Pendente",
     suspended: "Suspenso",
+    lead: "Lead",
+  },
+  common: {
+    active: "Ativo",
+    inactive: "Inativo",
+    enabled: "Habilitado",
+    disabled: "Desabilitado",
+    trial: "Experimental",
+    experimental: "Experimental",
+    blocked: "Bloqueado",
+    banned: "Banido",
+    archived: "Arquivado",
+    deleted: "Excluído",
+    draft: "Rascunho",
+    published: "Publicado",
+    verified: "Verificado",
+    unverified: "Não Verificado",
+    approved: "Aprovado",
+    rejected: "Rejeitado",
+    success: "Sucesso",
+    error: "Erro",
+    failure: "Falha",
+    warning: "Aviso",
+    info: "Informação",
+    new: "Novo",
+    processing: "Processando",
+    completed: "Completo",
+    finished: "Finalizado",
   },
 }
 
 export const getStatusLabel = (status, type = "contract") => {
   const normalized = normalizeStatus(status)
   const labels = STATUS_LABELS[type] || {}
-  return labels[normalized] || STATUS_LABELS.contract[normalized] || status || "" // Try type-specific, then contract fallback (common), then raw
+  // Try type-specific, then contract (legacy fallback), then common, then raw
+  return labels[normalized] || STATUS_LABELS.contract[normalized] || STATUS_LABELS.common[normalized] || status || ""
 }
 
 /**

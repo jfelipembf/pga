@@ -77,9 +77,7 @@ const AutomationsPage = ({ setBreadcrumbItems }) => {
         formattedItems.push(item)
     })
 
-    if (loading && automations.length === 0) {
-        return <PageLoader />
-    }
+
 
     return (
         <Container fluid>
@@ -92,6 +90,7 @@ const AutomationsPage = ({ setBreadcrumbItems }) => {
                         selectedId={selectedId}
                         onSelect={setSelectedId}
                         emptyLabel="Nenhum gatilho disponível."
+                        loading={loading}
                     />
                 </Col>
 
