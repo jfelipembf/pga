@@ -45,7 +45,6 @@ const TransactionDetailsModal = ({ isOpen, toggle, transaction, allTransactions 
     }, [transaction, allTransactions])
 
     const metadata = transaction?.raw?.metadata || transaction?.metadata || {}
-    const totals = transaction?.raw?.totals || {}
     const isInstallment = metadata.totalInstallments > 1
     const currentInstallment = metadata.installment || 1
 

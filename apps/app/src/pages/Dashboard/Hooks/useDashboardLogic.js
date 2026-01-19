@@ -5,9 +5,7 @@ import { formatCurrency, formatDelta, calculateChurnPercent, calculatePercent } 
 
 export const useDashboardLogic = () => {
     const { isLoading, withLoading } = useLoading()
-    const [daily, setDaily] = useState(null)
     const [monthly, setMonthly] = useState(null)
-    const [dailyPrev, setDailyPrev] = useState(null)
     const [monthlyPrev, setMonthlyPrev] = useState(null)
     const [monthId, setMonthId] = useState(null)
     const [monthlyHistory, setMonthlyHistory] = useState([])
@@ -45,14 +43,10 @@ export const useDashboardLogic = () => {
                     getMonthlySummary({ idTenant: ctx.idTenant, idBranch: ctx.idBranch, monthId: prevMonthId }),
                     ...monthPromises,
                 ])
-                const safeDaily = d || {}
                 const safeMonthly = m ? { id: m.id || monthId, ...m } : { id: monthId, salesMonth: 0, expenses: 0 }
-                const safeDailyPrev = dPrev || {}
                 const safeMonthlyPrev = mPrev ? { id: mPrev.id || prevMonthId, ...mPrev } : { id: prevMonthId, salesMonth: 0, expenses: 0 }
 
-                setDaily(safeDaily)
                 setMonthly(safeMonthly)
-                setDailyPrev(safeDailyPrev)
                 setMonthlyPrev(safeMonthlyPrev)
                 const historyData = mAll
                     .map(entry => entry && entry.data ? { ...entry.data, id: entry.id } : null)
@@ -93,7 +87,7 @@ export const useDashboardLogic = () => {
             { title: "Cancelamentos", iconClass: "cancel", total: m.contractsCanceledMonth ?? "--", average: formatDelta(m.contractsCanceledMonth, mp.contractsCanceledMonth), badgecolor: "danger" },
             { title: "Suspensos", iconClass: "pause-octagon", total: m.suspendedCount ?? "--", average: formatDelta(m.suspendedCount, mp.suspendedCount), badgecolor: "light" },
         ]
-    }, [daily, monthly, dailyPrev, monthlyPrev])
+    }, [monthly, monthlyPrev])
 
     const monthlyCurrent = monthly?.salesMonth ?? 0
     const monthlyPrevious = monthlyPrev?.salesMonth ?? 0
