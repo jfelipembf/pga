@@ -19,12 +19,10 @@ export const useDashboardLogic = () => {
         try {
             await withLoading('page', async () => {
                 const today = new Date()
-                const dateStr = today.toISOString().slice(0, 10)
                 const monthId = today.toISOString().slice(0, 7)
                 setMonthId(monthId)
                 const yesterday = new Date(today)
                 yesterday.setDate(today.getDate() - 1)
-                const prevDateStr = yesterday.toISOString().slice(0, 10)
                 const prevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1)
                 const prevMonthId = prevMonth.toISOString().slice(0, 7)
 
@@ -39,9 +37,9 @@ export const useDashboardLogic = () => {
                 }
 
                 const [d, m, dPrev, mPrev, ...mAll] = await Promise.all([
-                    getDailySummary({ idTenant: ctx.idTenant, idBranch: ctx.idBranch, dateStr }),
+                    getDailySummary({ idTenant: ctx.idTenant, idBranch: ctx.idBranch, dateStr: today.toISOString().slice(0, 10) }),
                     getMonthlySummary({ idTenant: ctx.idTenant, idBranch: ctx.idBranch, monthId }),
-                    getDailySummary({ idTenant: ctx.idTenant, idBranch: ctx.idBranch, dateStr: prevDateStr }),
+                    getDailySummary({ idTenant: ctx.idTenant, idBranch: ctx.idBranch, dateStr: yesterday.toISOString().slice(0, 10) }),
                     getMonthlySummary({ idTenant: ctx.idTenant, idBranch: ctx.idBranch, monthId: prevMonthId }),
                     ...monthPromises,
                 ])
@@ -93,7 +91,7 @@ export const useDashboardLogic = () => {
             { title: "Cancelamentos", iconClass: "cancel", total: m.contractsCanceledMonth ?? "--", average: formatDelta(m.contractsCanceledMonth, mp.contractsCanceledMonth), badgecolor: "danger" },
             { title: "Suspensos", iconClass: "pause-octagon", total: m.suspendedCount ?? "--", average: formatDelta(m.suspendedCount, mp.suspendedCount), badgecolor: "light" },
         ]
-    }, [daily, monthly, dailyPrev, monthlyPrev])
+    }, [monthly, monthlyPrev])
 
     const monthlyCurrent = monthly?.salesMonth ?? 0
     const monthlyPrevious = monthlyPrev?.salesMonth ?? 0
