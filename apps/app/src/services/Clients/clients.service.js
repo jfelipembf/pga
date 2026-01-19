@@ -76,7 +76,6 @@ export const createClient = async (data, { ctxOverride = null } = {}) => {
     }
 
     return result.data
-    return result.data
   } catch (error) {
     console.error("Erro ao criar cliente via função:", error)
     throw error

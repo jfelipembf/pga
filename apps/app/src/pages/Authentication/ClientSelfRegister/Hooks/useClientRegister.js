@@ -4,7 +4,7 @@ import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "fi
 import { useFormik } from "formik"
 
 // Services & Helpers
-import { createClient, createPublicClient, useClientAvatarUpload } from "../../../../services/Clients/clients.service"
+import { createPublicClient, useClientAvatarUpload } from "../../../../services/Clients/clients.service"
 import { fetchAddressByCep } from "../../../../helpers/cep"
 import { useToast } from "../../../../components/Common/ToastProvider"
 
