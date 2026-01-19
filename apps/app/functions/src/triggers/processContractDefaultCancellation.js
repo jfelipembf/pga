@@ -12,24 +12,23 @@ module.exports = createScheduledTrigger("0 1 * * *", "processContractDefaultCanc
     try {
         const tenantsSnap = await db.collection("tenants").get();
 
-        for (const tenantDoc of tenantsSnap.docs) {
+        await Promise.all(tenantsSnap.docs.map(async (tenantDoc) => {
             const tenantId = tenantDoc.id;
             const branchesSnap = await db.collection(`tenants/${tenantId}/branches`).get();
 
-            for (const branchDoc of branchesSnap.docs) {
+            await Promise.all(branchesSnap.docs.map(async (branchDoc) => {
                 const branchId = branchDoc.id;
 
                 const settingsRef = db.doc(`tenants/${tenantId}/branches/${branchId}/settings/general`);
                 const settingsSnap = await settingsRef.get();
-                if (!settingsSnap.exists) continue;
+                if (!settingsSnap.exists) return;
 
                 const settings = settingsSnap.data();
                 const cancelDays = Number(settings.finance?.cancelContractAfterDays || 0);
 
-                if (cancelDays <= 0) continue;
+                if (cancelDays <= 0) return;
 
                 const limitDateIso = toISODate(addDays(new Date(), -cancelDays));
-
                 const receivablesRef = db.collection(`tenants/${tenantId}/branches/${branchId}/receivables`);
 
                 const overdueSnap = await receivablesRef
@@ -37,7 +36,7 @@ module.exports = createScheduledTrigger("0 1 * * *", "processContractDefaultCanc
                     .where("dueDate", "<=", limitDateIso)
                     .get();
 
-                if (overdueSnap.empty) continue;
+                if (overdueSnap.empty) return;
 
                 const clientIds = new Set();
                 overdueSnap.docs.forEach(d => {
@@ -45,14 +44,15 @@ module.exports = createScheduledTrigger("0 1 * * *", "processContractDefaultCanc
                     if (data.idClient) clientIds.add(data.idClient);
                 });
 
-                for (const clientId of clientIds) {
+                // Processa clientes em paralelo
+                await Promise.all(Array.from(clientIds).map(async (clientId) => {
                     const contractsRef = db.collection(`tenants/${tenantId}/branches/${branchId}/clientsContracts`);
                     const activeContractsSnap = await contractsRef
                         .where("idClient", "==", clientId)
                         .where("status", "==", "active")
                         .get();
 
-                    if (activeContractsSnap.empty) continue;
+                    if (activeContractsSnap.empty) return;
 
                     const batch = db.batch();
                     let batchCount = 0;
@@ -69,9 +69,11 @@ module.exports = createScheduledTrigger("0 1 * * *", "processContractDefaultCanc
                     });
 
                     if (batchCount > 0) await batch.commit();
-                }
-            }
-        }
+                }));
+            }));
+        }));
+
+        console.log("[processContractDefaultCancellation] Execução finalizada.");
     } catch (e) {
         console.error("Erro na rotina de cancelamento por inadimplência:", e);
         throw e;

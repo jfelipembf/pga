@@ -11,30 +11,33 @@ module.exports = createScheduledTrigger("59 23 * * *", "autoCloseCashier", async
     try {
         const tenantsSnap = await db.collection("tenants").get();
 
-        for (const tenantDoc of tenantsSnap.docs) {
+        // Processa todos os tenants em paralelo
+        await Promise.all(tenantsSnap.docs.map(async (tenantDoc) => {
             const tenantId = tenantDoc.id;
             const branchesSnap = await db.collection(`tenants/${tenantId}/branches`).get();
 
-            for (const branchDoc of branchesSnap.docs) {
+            // Processa todas as branches em paralelo
+            await Promise.all(branchesSnap.docs.map(async (branchDoc) => {
                 const branchId = branchDoc.id;
 
                 const settingsRef = db.doc(`tenants/${tenantId}/branches/${branchId}/settings/general`);
                 const settingsSnap = await settingsRef.get();
 
-                if (!settingsSnap.exists) continue;
+                if (!settingsSnap.exists) return;
 
                 const settings = settingsSnap.data();
                 const autoClose = settings.finance?.autoCloseCashier === true;
 
-                if (!autoClose) continue;
+                if (!autoClose) return;
 
                 const cashierRef = db.collection(`tenants/${tenantId}/branches/${branchId}/cashierSessions`);
                 const openSessionsSnap = await cashierRef.where("status", "==", "open").get();
 
-                if (openSessionsSnap.empty) continue;
+                if (openSessionsSnap.empty) return;
 
                 const batch = db.batch();
                 const now = admin.firestore.FieldValue.serverTimestamp();
+                let ops = 0;
 
                 openSessionsSnap.docs.forEach((doc) => {
                     const data = doc.data();
@@ -45,11 +48,16 @@ module.exports = createScheduledTrigger("59 23 * * *", "autoCloseCashier", async
                         closingBalance: data.currentBalance || data.openingBalance || 0,
                         updatedAt: now,
                     });
+                    ops++;
                 });
 
-                await batch.commit();
-            }
-        }
+                if (ops > 0) {
+                    await batch.commit();
+                }
+            }));
+        }));
+
+        console.log("[autoCloseCashier] Execução finalizada.");
     } catch (error) {
         console.error("Erro no fechamento automático de caixas:", error);
         throw error;

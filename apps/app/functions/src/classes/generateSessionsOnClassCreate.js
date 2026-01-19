@@ -29,7 +29,7 @@ module.exports = functions
       idBranch,
       idClass,
       classData,
-      weeks: 4, // Reduced to 4 weeks to avoid emulator timeout
+      weeks: 26, // 6 months (approx 26 weeks)
       fromDate,
     });
 
