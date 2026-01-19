@@ -36,10 +36,8 @@ export const useDashboardLogic = () => {
                     )
                 }
 
-                const [d, m, dPrev, mPrev, ...mAll] = await Promise.all([
-                    getDailySummary({ idTenant: ctx.idTenant, idBranch: ctx.idBranch, dateStr }),
+                const [m, mPrev, ...mAll] = await Promise.all([
                     getMonthlySummary({ idTenant: ctx.idTenant, idBranch: ctx.idBranch, monthId }),
-                    getDailySummary({ idTenant: ctx.idTenant, idBranch: ctx.idBranch, dateStr: prevDateStr }),
                     getMonthlySummary({ idTenant: ctx.idTenant, idBranch: ctx.idBranch, monthId: prevMonthId }),
                     ...monthPromises,
                 ])
