@@ -106,6 +106,7 @@ exports.deleteEvent = require("./src/events/events").deleteEvent;
 exports.getNextClientGymId = require("./src/clients/clients").getNextClientGymId;
 exports.createClient = require("./src/clients/clients").createClient;
 exports.updateClient = require("./src/clients/clients").updateClient;
+exports.createPublicClient = require("./src/clients/clients").createPublicClient;
 
 // Enrollments
 // Enrollments
