@@ -100,17 +100,16 @@ const Evaluation = ({ setBreadcrumbItems }) => {
 
   return (
     <Container fluid>
-      <Row className="mb-4">
-        <Col>
-          <Nav tabs>
+      <Row className="g-4">
+        <Col xs="12" md="3" lg="3">
+          <Nav pills className="mb-3 nav-justified bg-light p-1 rounded">
             <NavItem>
               <NavLink
                 className={classnames({ active: activeTab === "avaliacao" })}
                 onClick={() => setActiveTab("avaliacao")}
                 style={{ cursor: "pointer" }}
               >
-                <i className="mdi mdi-clipboard-check-outline me-2" />
-                Avaliação Técnica
+                Avaliação
               </NavLink>
             </NavItem>
             <NavItem>
@@ -119,16 +118,11 @@ const Evaluation = ({ setBreadcrumbItems }) => {
                 onClick={() => setActiveTab("testes")}
                 style={{ cursor: "pointer" }}
               >
-                <i className="mdi mdi-timer-outline me-2" />
-                Testes de Performance
+                Testes
               </NavLink>
             </NavItem>
           </Nav>
-        </Col>
-      </Row>
 
-      <Row className="g-4">
-        <Col xs="12" md="3" lg="3">
           <div className="mb-3">
             <Input
               type="select"

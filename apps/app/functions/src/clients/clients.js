@@ -98,6 +98,69 @@ exports.createClient = functions
 
 
 /**
+ * Cria um cliente (Público - Sem Autenticação).
+ * Usado para auto-cadastro (Self Service).
+ */
+exports.createPublicClient = functions
+  .region("us-central1")
+  .https.onCall(async (data, context) => {
+    try {
+      // NOTE: Permitimos chamadas sem context.auth para cadastro público.
+      // Em produção, validação adicional pode ser feita via App Check.
+
+      const { idTenant, idBranch, clientData } = data;
+
+      if (!idTenant || !idBranch) {
+        throw new functions.https.HttpsError("invalid-argument", "idTenant e idBranch são obrigatórios");
+      }
+
+      if (!clientData) {
+        throw new functions.https.HttpsError("invalid-argument", "clientData é obrigatório");
+      }
+
+      const db = admin.firestore();
+
+      // Gerar idGym sequencial
+      const fullId = await generateEntityId(idTenant, idBranch, "client", {
+        prefix: "",
+        sequential: true,
+        digits: 4
+      });
+
+      const idGym = fullId.split('-').pop();
+
+      const clientRef = db
+        .collection("tenants")
+        .doc(idTenant)
+        .collection("branches")
+        .doc(idBranch)
+        .collection("clients")
+        .doc();
+
+      const basePayload = buildClientPayload(clientData);
+
+      const payload = {
+        ...basePayload,
+        idGym,
+        idTenant,
+        idBranch,
+        origin: "self_register",
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+        status: "lead"
+      };
+
+      await clientRef.set(payload);
+
+      return { id: clientRef.id, ...payload };
+    } catch (error) {
+      console.error("Error creating public client:", error);
+      throw new functions.https.HttpsError("internal", error.message || "Erro interno ao criar cliente");
+    }
+  });
+
+
+/**
  * Atualiza um cliente.
  */
 exports.updateClient = functions

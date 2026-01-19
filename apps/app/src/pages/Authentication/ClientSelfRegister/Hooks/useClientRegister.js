@@ -4,7 +4,7 @@ import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "fi
 import { useFormik } from "formik"
 
 // Services & Helpers
-import { createClient, useClientAvatarUpload } from "../../../../services/Clients/clients.service"
+import { createClient, createPublicClient, useClientAvatarUpload } from "../../../../services/Clients/clients.service"
 import { fetchAddressByCep } from "../../../../helpers/cep"
 import { useToast } from "../../../../components/Common/ToastProvider"
 
@@ -101,7 +101,7 @@ export const useClientRegister = () => {
                     status: "lead"
                 }
 
-                await createClient(clientData, {
+                await createPublicClient(clientData, {
                     ctxOverride: { idTenant: ids.idTenant, idBranch: ids.idBranch }
                 })
 

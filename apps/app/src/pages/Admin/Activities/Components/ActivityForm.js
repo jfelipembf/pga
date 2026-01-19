@@ -19,7 +19,7 @@ const baseValue = {
  * - Mantém apenas preview/file locais para a foto.
  * - Upload deve ser feito no salvar (fora do componente).
  */
-const ActivityForm = ({ value = {}, onChange, photoPreview = "", onPhotoChange }) => {
+const ActivityForm = ({ value = {}, onChange, photoPreview = "", onPhotoChange, readOnly = false }) => {
   const [localPreview, setLocalPreview] = useState(photoPreview || value.photo || "")
 
   useEffect(() => {
@@ -49,6 +49,7 @@ const ActivityForm = ({ value = {}, onChange, photoPreview = "", onPhotoChange }
             placeholder={PLACEHOLDER_CAMERA}
             onChange={handlePhotoChange}
             size={120}
+            readOnly={readOnly}
           />
         </Col>
         <Col xs="12" sm="8" md="9" lg="10" className="ps-lg-4">
@@ -60,6 +61,7 @@ const ActivityForm = ({ value = {}, onChange, photoPreview = "", onPhotoChange }
                   value={form.name}
                   onChange={e => update("name", e.target.value)}
                   style={{ maxWidth: 400 }}
+                  disabled={readOnly}
                 />
               </FormGroup>
             </Col>
@@ -71,6 +73,7 @@ const ActivityForm = ({ value = {}, onChange, photoPreview = "", onPhotoChange }
                   value={form.color}
                   onChange={e => update("color", e.target.value)}
                   style={{ height: 48, width: 72, padding: 0, rounded: 8, maxWidth: 100 }}
+                  disabled={readOnly}
                 />
               </FormGroup>
             </Col>
@@ -85,6 +88,7 @@ const ActivityForm = ({ value = {}, onChange, photoPreview = "", onPhotoChange }
               value={form.description}
               onChange={e => update("description", e.target.value)}
               style={{ maxWidth: 500 }}
+              disabled={readOnly}
             />
           </FormGroup>
         </Col>

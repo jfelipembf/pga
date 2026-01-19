@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { Badge, Button, Card, CardBody, CardHeader, Col, Input, Row } from "reactstrap"
 
-const ActivityObjectives = ({ objectives: externalObjectives = [], onChange }) => {
+const ActivityObjectives = ({ objectives: externalObjectives = [], onChange, readOnly = false }) => {
   const [objectives, setObjectives] = useState(externalObjectives)
   const [editMode, setEditMode] = useState(false)
   const [dragging, setDragging] = useState({ type: null, id: null, parent: null })
@@ -226,17 +226,20 @@ const ActivityObjectives = ({ objectives: externalObjectives = [], onChange }) =
           <h5 className="mb-0">Objetivos e tópicos</h5>
           <p className="text-muted mb-0 small">Visualize ou edite a estrutura da atividade.</p>
         </div>
-        <div className="d-flex gap-2">
-          <Button color="light" size="sm" onClick={() => setEditMode(false)} active={!editMode}>
-            Visualizar
-          </Button>
-          <Button color="primary" size="sm" onClick={() => setEditMode(true)} active={editMode}>
-            Editar
-          </Button>
-        </div>
+
+        {!readOnly && (
+          <div className="d-flex gap-2">
+            <Button color="light" size="sm" onClick={() => setEditMode(false)} active={!editMode}>
+              Visualizar
+            </Button>
+            <Button color="primary" size="sm" onClick={() => setEditMode(true)} active={editMode}>
+              Editar
+            </Button>
+          </div>
+        )}
       </CardHeader>
       <CardBody>{editMode ? renderEditMode() : renderViewMode()}</CardBody>
-    </Card>
+    </Card >
   )
 }
 

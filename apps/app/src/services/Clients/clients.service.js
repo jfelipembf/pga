@@ -76,8 +76,38 @@ export const createClient = async (data, { ctxOverride = null } = {}) => {
     }
 
     return result.data
+    return result.data
   } catch (error) {
     console.error("Erro ao criar cliente via função:", error)
+    throw error
+  }
+}
+
+/** CREATE PUBLIC (No Auth) */
+export const createPublicClient = async (data, { ctxOverride = null } = {}) => {
+  const functions = requireFunctions()
+  const ctx = ctxOverride || {}
+
+  if (!ctx.idTenant || !ctx.idBranch) {
+    throw new Error("Contexto de tenant/unidade obrigatório para cadastro público")
+  }
+
+  // Sanitizar payload
+  const payload = buildClientPayload(data)
+  payload.status = "lead"
+
+  const createFn = httpsCallable(functions, "createPublicClient")
+
+  try {
+    const result = await createFn({
+      idTenant: ctx.idTenant,
+      idBranch: ctx.idBranch,
+      clientData: payload,
+    })
+
+    return result.data
+  } catch (error) {
+    console.error("Erro ao criar cliente público via função:", error)
     throw error
   }
 }
