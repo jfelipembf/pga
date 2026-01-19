@@ -21,7 +21,7 @@ const CollaboratorProfileForm = ({ value, onChange, passwordValue, onPasswordCha
 
   const handleSave = () => onSave?.()
   const handlePasswordSave = () => {
-    if (!passwordValue?.current || !passwordValue?.next || passwordValue.next !== passwordValue.confirm) {
+    if (!passwordValue?.next || passwordValue.next !== passwordValue.confirm) {
       return
     }
     // Chama a função de alterar senha do pai
@@ -183,17 +183,7 @@ const CollaboratorProfileForm = ({ value, onChange, passwordValue, onPasswordCha
       <hr className="my-4" />
       <h6 className="fw-semibold mb-3">Alterar senha</h6>
       <Row className="g-3">
-        <Col md="4">
-          <FormGroup>
-            <Label>Senha atual</Label>
-            <Input
-              type="password"
-              value={passwordValue.current}
-              onChange={e => updatePwd("current", e.target.value)}
-            />
-          </FormGroup>
-        </Col>
-        <Col md="4">
+        <Col md="6">
           <FormGroup>
             <Label>Nova senha</Label>
             <Input
@@ -203,7 +193,7 @@ const CollaboratorProfileForm = ({ value, onChange, passwordValue, onPasswordCha
             />
           </FormGroup>
         </Col>
-        <Col md="4">
+        <Col md="6">
           <FormGroup>
             <Label>Confirmar nova senha</Label>
             <Input

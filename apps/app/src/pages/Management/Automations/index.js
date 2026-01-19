@@ -13,8 +13,7 @@ import { TRIGGER_LABELS, TRIGGER_CONFIG } from "./constants/triggers"
 // Actions
 import { setBreadcrumbItems } from "../../../store/actions"
 
-// Custom Components
-import PageLoader from "../../../components/Common/PageLoader"
+
 
 const AutomationsPage = ({ setBreadcrumbItems }) => {
     const { automations, loading, saveAutomation } = useAutomations()

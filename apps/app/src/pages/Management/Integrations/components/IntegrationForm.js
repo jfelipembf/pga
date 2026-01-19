@@ -3,7 +3,6 @@ import { Form, FormGroup, Label, Input, Alert } from "reactstrap"
 
 // Custom Components
 import ButtonLoader from "../../../../components/Common/ButtonLoader"
-import PageLoader from "../../../../components/Common/PageLoader"
 
 const IntegrationForm = ({
     selected,

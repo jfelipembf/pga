@@ -39,6 +39,19 @@ const generateSessionsForClass = async ({
 
     const sessionsCol = db.collection("tenants").doc(idTenant).collection("branches").doc(idBranch).collection("sessions");
 
+    // Busca a última sessão existente para copiar o enrolledCount
+    let lastEnrolledCount = 0;
+    const lastSessionSnap = await sessionsCol
+        .where("idClass", "==", String(idClass))
+        .orderBy("sessionDate", "desc")
+        .limit(1)
+        .get();
+
+    if (!lastSessionSnap.empty) {
+        const lastSession = lastSessionSnap.docs[0].data();
+        lastEnrolledCount = Number(lastSession.enrolledCount || 0);
+    }
+
     let ops = 0;
     let createdCount = 0;
     let batch = db.batch();
@@ -63,13 +76,11 @@ const generateSessionsForClass = async ({
         const existingSnap = await ref.get();
 
         // Se a sessão já existe, não fazemos nada
-        // O enrolledCount será gerenciado apenas pelos triggers de enrollment
         if (existingSnap.exists) {
             continue;
         }
 
-        // Cria nova sessão com enrolledCount: 0
-        // Os triggers de enrollment incrementarão este valor automaticamente
+        // Cria nova sessão herdando o enrolledCount da última sessão
         const payload = {
             idSession,
             idClass,
@@ -84,7 +95,7 @@ const generateSessionsForClass = async ({
             endTime: classData.endTime || "",
             durationMinutes: Number(classData.durationMinutes || 0),
             maxCapacity: Number(classData.maxCapacity || classData.capacity || 0),
-            enrolledCount: 0, // Sempre inicia em 0, triggers incrementarão
+            enrolledCount: lastEnrolledCount, // Herda da última sessão
             status: "scheduled",
             attendanceRecorded: false,
             createdAt: FieldValue.serverTimestamp(),

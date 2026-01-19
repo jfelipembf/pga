@@ -5,7 +5,6 @@ import { httpsCallable } from "firebase/functions"
 import { getFirebaseFunctions } from "../../../helpers/firebase_helper"
 
 // Custom Components
-import PageLoader from "../../../components/Common/PageLoader"
 import { useToast } from "../../../components/Common/ToastProvider"
 
 // Components
@@ -29,7 +28,6 @@ const IntegrationsPage = ({ setBreadcrumbItems }) => {
     const [configData, setConfigData] = useState({})
     const [loading, setLoading] = useState(false) // Saving state
     const [isFetching, setIsFetching] = useState(false) // Fetching state
-    const [isInitializing, setIsInitializing] = useState(true) // Initial Page Load
 
     // Hooks
     const toast = useToast()
@@ -48,7 +46,6 @@ const IntegrationsPage = ({ setBreadcrumbItems }) => {
         // Validation: If no branch, we can't fetch, but we stop initializing to show the UI (and the warning inside form)
         if (!selectedIntegration || !idBranch) {
             setIsFetching(false)
-            setIsInitializing(false)
             return
         }
 
@@ -63,7 +60,6 @@ const IntegrationsPage = ({ setBreadcrumbItems }) => {
             toast.show({ title: "Erro", description: "Erro ao carregar configurações.", color: "danger" })
         } finally {
             setIsFetching(false)
-            setIsInitializing(false)
         }
     }, [selectedIntegration, idBranch, idTenant, toast])
 

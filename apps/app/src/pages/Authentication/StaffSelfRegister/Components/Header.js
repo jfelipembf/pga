@@ -1,6 +1,6 @@
 import React from "react"
 import { Row, Col } from "reactstrap"
-import pgaLogo from "../../../../assets/images/pgaLogo.png"
+import logoIcon from "../../../../assets/images/logoIcon.png"
 
 const Header = () => {
     return (
@@ -8,12 +8,12 @@ const Header = () => {
             <Row className="align-items-center justify-content-center m-0">
                 <Col xs={5} className="d-flex justify-content-end pe-4">
                     <img
-                        src={pgaLogo}
+                        src={logoIcon}
                         alt="Logo"
                         className="img-fluid"
                         style={{
                             filter: 'brightness(0) invert(1)',
-                            height: '80px', // Same as Kiosk
+                            height: '120px',
                             width: 'auto',
                             objectFit: 'contain'
                         }}

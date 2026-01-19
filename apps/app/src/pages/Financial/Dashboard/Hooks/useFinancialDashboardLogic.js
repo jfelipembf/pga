@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { useLoading } from "../../../../hooks/useLoading"
-import { getAuthBranchContext, getDailySummary, getMonthlySummary } from "../../../../services/Summary/index"
+import { getAuthBranchContext, getMonthlySummary } from "../../../../services/Summary/index"
 import { listFinancialTransactions } from "../../../../services/Financial/index"
 import { formatCurrency, formatDelta } from "../../../Dashboard/Utils/dashboardUtils"
 

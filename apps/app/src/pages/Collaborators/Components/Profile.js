@@ -27,7 +27,6 @@ const CollaboratorProfile = ({ setBreadcrumbItems }) => {
   const [activeTab, setActiveTab] = useState("Perfil")
   const [formData, setFormData] = useState(null)
   const [passwordForm, setPasswordForm] = useState({
-    current: "",
     next: "",
     confirm: "",
   })
@@ -131,7 +130,7 @@ const CollaboratorProfile = ({ setBreadcrumbItems }) => {
     try {
       await withLoading('password', async () => {
         await updateStaff({ id: staffId, password: passwordForm.next })
-        setPasswordForm({ current: "", next: "", confirm: "" })
+        setPasswordForm({ next: "", confirm: "" })
         toast.show({ title: "Sucesso", description: "Senha alterada com sucesso.", color: "success" })
       })
     } catch (e) {
