@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { useLoading } from "../../../hooks/useLoading"
 import { getAuthBranchContext, getDailySummary, getMonthlySummary } from "../../../services/Summary/index"
-import { formatCurrency, formatDelta, calculateChurnPercent, calculatePercent, calculateAverage } from "../Utils/dashboardUtils"
+import { formatCurrency, formatDelta, calculateChurnPercent, calculatePercent } from "../Utils/dashboardUtils"
 
 export const useDashboardLogic = () => {
     const { isLoading, withLoading } = useLoading()
@@ -71,9 +71,7 @@ export const useDashboardLogic = () => {
     }, [refreshData])
 
     const reports = useMemo(() => {
-        const d = daily || {}
         const m = monthly || {}
-        const dp = dailyPrev || {}
         const mp = monthlyPrev || {}
 
         // Calcular porcentagem de churn
@@ -83,10 +81,6 @@ export const useDashboardLogic = () => {
         // Calcular renovação
         const renewalRate = calculatePercent(m.renewalsMonth, m.expiredContractsMonth)
         const prevRenewalRate = calculatePercent(mp.renewalsMonth, mp.expiredContractsMonth)
-
-        // Calcular conversão
-        const conversionRate = calculatePercent(m.conversions, m.attended)
-        const prevConversionRate = calculatePercent(mp.conversions, mp.attended)
 
         return [
             { title: "Vendas", iconClass: "currency-usd", total: formatCurrency(m.salesMonth || 0), average: formatDelta(m.salesMonth, mp.salesMonth), badgecolor: "success" },

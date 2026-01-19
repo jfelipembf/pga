@@ -1,5 +1,5 @@
 import React from "react"
-import { Card, CardBody, Input, Button, Badge } from "reactstrap"
+import { Card, CardBody, Input, Button } from "reactstrap"
 
 const OperationalAlertCard = ({
     title,

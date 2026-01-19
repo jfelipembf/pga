@@ -14,6 +14,7 @@ import {
 } from "reactstrap"
 import { GENDER_OPTIONS } from "../../../constants/gender"
 import { fetchAddressByCep, normalizeCep } from "../../../helpers/cep"
+import { formatTitleCase } from "../../../helpers/string"
 import PhotoPreview from "../../../components/Common/PhotoPreview"
 import OverlayLoader from "../../../components/Common/OverlayLoader"
 import logoIcon from "../../../assets/images/logoIcon.png"
@@ -47,9 +48,19 @@ const ClientAddModal = ({
     const [isFetchingCep, setIsFetchingCep] = useState(false)
 
     const updateField = (field, value) => {
+        let finalValue = value
+        const fieldsToFormat = [
+            "firstName", "lastName",
+            "city", "neighborhood", "address", "state", "complement"
+        ]
+
+        if (fieldsToFormat.includes(field) && typeof value === "string") {
+            finalValue = formatTitleCase(value)
+        }
+
         setFormData(prev => ({
             ...prev,
-            [field]: value,
+            [field]: finalValue,
         }))
     }
 

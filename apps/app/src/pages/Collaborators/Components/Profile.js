@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { connect } from "react-redux"
-import { Badge, Button, Card, CardBody, CardHeader, Col, Container, Row } from "reactstrap"
+import { Button, Card, CardBody, CardHeader, Col, Container, Row } from "reactstrap"
 import { useSearchParams } from "react-router-dom"
 
 import CollaboratorProfileForm from "./CollaboratorProfileForm"
