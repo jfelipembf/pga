@@ -111,14 +111,7 @@ exports.createClass = functions
     await classRef.set(payload);
     functions.logger.info("[DEBUG] createClass write success", { id: classRef.id });
 
-    // Auto-generate sessions for first 4 weeks
-    await generateSessionsForClass({
-      idTenant,
-      idBranch,
-      idClass: classRef.id,
-      classData: payload,
-      weeks: 4
-    });
+
 
     // Auditoria
     await saveAuditLog({
