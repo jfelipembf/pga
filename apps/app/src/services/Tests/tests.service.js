@@ -62,9 +62,21 @@ export const saveTestResult = async ({
  * Busca resultados de um evento de teste específico
  */
 export const getTestResultsByEvent = async (idTestEvent) => {
-    // Implementar busca se necessário, ou usar subcoleção no evento
-    // Por enquanto, o foco é salvar.
-    return []
+    const db = getDb()
+    const ctx = getContext()
+
+    if (!ctx.idTenant || !ctx.idBranch || !idTestEvent) return []
+
+    // 1. Fetch all results for this event
+    const q = query(
+        collection(db, "tenants", ctx.idTenant, "branches", ctx.idBranch, "testResults"),
+        where("idTestEvent", "==", idTestEvent)
+    )
+
+    const snap = await getDocs(q)
+    const results = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+
+    return results
 }
 
 /**

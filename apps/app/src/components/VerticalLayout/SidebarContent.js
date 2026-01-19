@@ -67,6 +67,7 @@ const SidebarContent = props => {
 
         { id: "cashier", label: "Caixa", link: "/financial/cashier", icon: "mdi mdi-cash-register", permission: "financial_cashier" },
         { id: "cashflow", label: "Fluxo de Caixa", link: "/financial/cashflow", icon: "mdi mdi-chart-line", permission: "financial_cashflow" },
+        { id: "receivables", label: "Contas a Receber", link: "/financial/receivables", icon: "mdi mdi-format-list-checks", permission: "financial_cashflow" },
         { id: "acquirers", label: "Adquirentes", link: "/financial/acquirers", icon: "mdi mdi-credit-card-multiple-outline", permission: "financial_acquirers" },
       ],
     },

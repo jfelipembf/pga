@@ -67,6 +67,7 @@
     "react-sparklines": "^1.7.0",
     "react-super-responsive-table": "^6.0.0",
     "react-switch": "^7.0.0",
+    "react-to-print": "^3.2.0",
     "react-toastify": "10.0.6",
     "reactstrap": "^9.2.3",
     "redux": "^4.2.1",

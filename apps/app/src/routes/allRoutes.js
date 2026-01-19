@@ -11,6 +11,7 @@ import CashierPrintPage from "../pages/Financial/Cashier/Components/Print"
 import CashFlowPage from "../pages/Financial/CashFlow"
 import FinancialDashboard from "../pages/Financial/Dashboard"
 import AcquirersPage from "../pages/Financial/Acquirers"
+import ReceivablesPage from "../pages/Financial/Receivables"
 import ClientsList from "../pages/Clients/Components/clientList"
 import ClientSalesPage from "../pages/Clients/Components/Sales"
 import RolesPage from "../pages/Admin/Roles"
@@ -73,6 +74,7 @@ const userRoutes = [
   { path: "/financial/cashflow", component: <CashFlowPage />, permissions: ["financial_cashflow"] },
   { path: "/financial/dashboard", component: <FinancialDashboard />, permissions: ["dashboards_financial_view"] },
   { path: "/financial/acquirers", component: <AcquirersPage />, permissions: ["financial_acquirers"] },
+  { path: "/financial/receivables", component: <ReceivablesPage />, permissions: ["financial_cashflow"] }, // Using cashflow permission for now
   { path: "/clients/profile", component: <ClientProfile />, permissions: ["members_manage"] },
   { path: "/clients/:clientId/enroll", component: <ClientEnrollPage />, permissions: ["sales_purchase"] },
   { path: "/clients/enroll", component: <ClientEnrollPage />, permissions: ["sales_purchase"] },

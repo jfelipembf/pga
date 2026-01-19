@@ -52,9 +52,15 @@ const Evaluation = ({ setBreadcrumbItems }) => {
       return occursOnDate(schedule, todayISO, todayDayIndex)
     })
 
-    return dailySchedules.filter(schedule => {
-      return !selectedStaffId || String(schedule.idStaff) === String(selectedStaffId)
-    })
+    return dailySchedules
+      .filter(schedule => {
+        return !selectedStaffId || String(schedule.idStaff) === String(selectedStaffId)
+      })
+      .sort((a, b) => {
+        const timeA = a.startTime || "00:00"
+        const timeB = b.startTime || "00:00"
+        return timeA.localeCompare(timeB)
+      })
   }, [schedules, currentDate, selectedStaffId])
 
   const instructors = useMemo(() => {

@@ -14,6 +14,8 @@ import { PLANNING_TABS, TEST_TYPES } from "./Constants/planningDefaults"
 import PhotoPreview from "components/Common/PhotoPreview"
 import { PLACEHOLDER_CAMERA } from "../Clients/Constants/defaults"
 
+import RankingModal from "./Components/RankingModal"
+
 const PlanningEventsPage = ({ setBreadcrumbItems }) => {
   const {
     activeEventId,
@@ -36,14 +38,13 @@ const PlanningEventsPage = ({ setBreadcrumbItems }) => {
     uploading
   } = usePlanningEvents()
 
+  const [showRanking, setShowRanking] = React.useState(false)
+
   const handlePhotoChange = e => {
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
     reader.onloadend = () => {
-      // Update form state directly since hook exposes setForm
-      // Actually hook exposes updateField, but that's for simple fields. 
-      // setForm is exposed.
       setForm(prev => ({
         ...prev,
         photo: reader.result,
@@ -134,7 +135,7 @@ const PlanningEventsPage = ({ setBreadcrumbItems }) => {
 
         <Col lg="8">
           <Card className="shadow-sm h-100">
-            <CardHeader className="bg-white">
+            <CardHeader className="bg-white d-flex align-items-center justify-content-between">
               <div className="client-contracts__tabs">
                 {[PLANNING_TABS.AVALIACAO, PLANNING_TABS.TESTES, PLANNING_TABS.OUTRO].map(key => (
                   <button
@@ -147,6 +148,16 @@ const PlanningEventsPage = ({ setBreadcrumbItems }) => {
                   </button>
                 ))}
               </div>
+
+              {tab === PLANNING_TABS.TESTES && activeEventId && (
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-warning d-flex align-items-center gap-1"
+                  onClick={() => setShowRanking(true)}
+                >
+                  <i className="mdi mdi-trophy"></i> Ranking
+                </button>
+              )}
             </CardHeader>
             <CardBody>
               <Form>
@@ -200,7 +211,6 @@ const PlanningEventsPage = ({ setBreadcrumbItems }) => {
         </Col>
       </Row>
 
-
       <ConfirmDialog
         isOpen={isDeleteModalOpen}
         title="Excluir Evento"
@@ -210,6 +220,14 @@ const PlanningEventsPage = ({ setBreadcrumbItems }) => {
         confirmColor="danger"
         onConfirm={confirmDelete}
         onCancel={cancelDelete}
+      />
+
+      {/* Ranking Modal */}
+      <RankingModal
+        isOpen={showRanking}
+        toggle={() => setShowRanking(false)}
+        eventId={activeEventId}
+        eventTitle={form.name}
       />
     </Container>
   )

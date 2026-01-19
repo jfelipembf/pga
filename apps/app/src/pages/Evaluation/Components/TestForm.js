@@ -2,7 +2,7 @@ import React, { useState } from "react"
 import PropTypes from "prop-types"
 import { Input, Badge } from "reactstrap"
 import { useToast } from "../../../components/Common/ToastProvider"
-import { saveTestResult } from "../../../services/Tests/tests.service"
+import { saveTestResult, getTestResultsByEvent } from "../../../services/Tests/tests.service"
 import { useEvaluationFormLogic } from "../Hooks/useEvaluationFormLogic"
 import { PLACEHOLDER_AVATAR as placeholderAvatar } from "../Constants/evaluationDefaults"
 import InputMask from "react-input-mask"
@@ -11,6 +11,27 @@ import ButtonLoader from "../../../components/Common/ButtonLoader"
 const TestForm = ({ testEvent, classId }) => {
     const [results, setResults] = useState({})
     const toast = useToast()
+
+    // NEW: Load existing results
+    React.useEffect(() => {
+        const loadResults = async () => {
+            if (!testEvent?.id || !classId) return
+            try {
+                const fetchedResults = await getTestResultsByEvent(testEvent.id)
+
+                // Map to state: { [clientId]: { value: ... } }
+                const mapped = {}
+                fetchedResults.forEach(r => {
+                    mapped[r.idClient] = { value: r.result }
+                })
+
+                setResults(prev => ({ ...prev, ...mapped }))
+            } catch (error) {
+                console.error("Error loading test results", error)
+            }
+        }
+        loadResults()
+    }, [testEvent, classId])
 
     const {
         isLoading,
@@ -26,6 +47,7 @@ const TestForm = ({ testEvent, classId }) => {
     }
 
     const parseTime = (timeStr) => {
+        if (!timeStr) return 0
         const parts = timeStr.split(':').map(Number)
         if (parts.length !== 3) return 0
         return (parts[0] * 3600) + (parts[1] * 60) + parts[2]
