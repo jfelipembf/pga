@@ -1,6 +1,7 @@
 import React from "react"
 import { Row, Col, Label, Input, FormFeedback } from "reactstrap"
 import InputMask from "react-input-mask"
+import { GENDER_OPTIONS } from "../../../../constants/gender"
 
 const PersonalData = ({ validation }) => {
     return (
@@ -63,9 +64,11 @@ const PersonalData = ({ validation }) => {
                             onBlur={validation.handleBlur}
                             value={validation.values.gender}
                         >
-                            <option value="Masculino">Masculino</option>
-                            <option value="Feminino">Feminino</option>
-                            <option value="Outro">Outro</option>
+                            {GENDER_OPTIONS.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
                         </Input>
                     </div>
                 </Col>
