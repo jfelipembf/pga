@@ -1,6 +1,7 @@
 const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
-const { addDays, toISODate, findFirstWeekdayOnOrAfter } = require("./dateUtils");
+const { addDays, toISODate, findFirstWeekdayOnOrAfter } = require("../../helpers/date");
+const { getBranchCollectionRef } = require("../../shared/references");
 
 const db = admin.firestore();
 
@@ -26,21 +27,22 @@ const generateSessionsForClass = async ({
 }) => {
     if (!idTenant || !idBranch || !idClass || !classData) return { created: 0 };
 
-    const weekday = classData.weekday ?? null;
+    // Handle both weekday (singular) and weekDays (array) formats
+    let weekday = classData.weekday;
+    if (weekday === null || weekday === undefined) {
+        // Try to get from weekDays array
+        if (Array.isArray(classData.weekDays) && classData.weekDays.length > 0) {
+            weekday = Number(classData.weekDays[0]);
+        }
+    }
+
     if (weekday === null || weekday === undefined) return { created: 0 };
 
-    const startIso = toISODate(fromDate || classData.startDate || new Date());
-    if (!startIso) return { created: 0 };
-
-    const endDateStr = classData.endDate ? toISODate(classData.endDate) : null;
-
-    const first = findFirstWeekdayOnOrAfter(startIso, weekday);
-    const totalDays = Math.max(1, Number(weeks || 0) * 7);
-
-    const sessionsCol = db.collection("tenants").doc(idTenant).collection("branches").doc(idBranch).collection("sessions");
-
-    // Busca a última sessão existente para copiar o enrolledCount
+    // Busca a última sessão existente para copiar o enrolledCount e OTIMIZAR a geração
+    const sessionsCol = getBranchCollectionRef(idTenant, idBranch, "sessions");
     let lastEnrolledCount = 0;
+    let lastSessionDate = null;
+
     const lastSessionSnap = await sessionsCol
         .where("idClass", "==", String(idClass))
         .orderBy("sessionDate", "desc")
@@ -50,7 +52,38 @@ const generateSessionsForClass = async ({
     if (!lastSessionSnap.empty) {
         const lastSession = lastSessionSnap.docs[0].data();
         lastEnrolledCount = Number(lastSession.enrolledCount || 0);
+        lastSessionDate = lastSession.sessionDate;
     }
+
+    const startIso = toISODate(fromDate || classData.startDate || new Date());
+    if (!startIso) return { created: 0 };
+
+    const endDateStr = classData.endDate ? toISODate(classData.endDate) : null;
+    const totalDays = Math.max(1, Number(weeks || 0) * 7);
+
+    // Otimização: Se já temos sessões futuras suficientes, começamos DEPOIS da última.
+    // Isso evita ler centenas de documentos desnecessariamente com 'exists()'
+
+    // Data alvo até onde queremos garantir sessões
+    const targetHorizonDate = addDays(startIso, totalDays);
+
+    let effectiveStart = startIso;
+
+    if (lastSessionDate) {
+        // Se a última sessão já cobre ou passa do horizonte desejado, não fazemos nada.
+        if (lastSessionDate >= toISODate(targetHorizonDate)) {
+            return { created: 0 };
+        }
+
+        // Se a última sessão está no futuro em relação ao startIso, começamos dela + 1 dia
+        if (lastSessionDate >= startIso) {
+            const dayAfterLast = addDays(lastSessionDate, 1);
+            effectiveStart = toISODate(dayAfterLast);
+        }
+    }
+
+    // Calcula o primeiro dia de aula a partir do NOVO início efetivo
+    const first = findFirstWeekdayOnOrAfter(effectiveStart, weekday);
 
     let ops = 0;
     let createdCount = 0;

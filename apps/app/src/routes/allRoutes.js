@@ -44,7 +44,7 @@ import Register1 from "../pages/AuthenticationInner/Register"
 import Recoverpw from "../pages/AuthenticationInner/Recoverpw"
 import LockScreen from "../pages/AuthenticationInner/auth-lock-screen"
 import StaffSelfRegister from "../pages/Authentication/StaffSelfRegister"
-import ClientSelfRegister from "../pages/Authentication/ClientSelfRegister"
+
 import Kiosk from "../pages/Kiosk"
 
 // Dashboard
@@ -123,8 +123,7 @@ const authRoutes = [
   // Public Staff Registration
   { path: "/:tenant/:branch/simple-register", component: <StaffSelfRegister /> },
 
-  // Public Client Registration
-  { path: "/:tenant/:branch/client-register", component: <ClientSelfRegister /> },
+
 
   // Public Kiosk
   { path: "/:tenant/:branch/kiosk", component: <Kiosk /> },

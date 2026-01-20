@@ -69,6 +69,7 @@ export const createClasses = async (data = {}, { weeks = 4 } = {}) => {
 
   for (const day of days) {
     const { weekDays, ...rest } = data
+    // Use singular weekday only (user requirement: no redundant weekDays array)
     const classPayload = { ...rest, weekday: day ?? null }
 
 

@@ -14,6 +14,7 @@ export const STATUS_LABELS = {
     suspension_scheduled: "Suspensão Agendada",
     scheduled: "Agendado",
     stopped: "Interrompido",
+    inactive: "Inativo",
   },
   suspension: {
     active: "Ativa",
@@ -39,6 +40,13 @@ export const STATUS_LABELS = {
     refunded: "Reembolsado",
     open: "Aberto",
     overdue: "Vencido",
+  },
+  task: {
+    pending: "Pendente",
+    in_progress: "Em Andamento",
+    completed: "Concluído",
+    overdue: "Atrasado",
+    canceled: "Cancelado",
   },
   client: {
     active: "Ativo",
@@ -104,6 +112,8 @@ export const STATUS_COLORS = {
   cancellation_scheduled: "danger",
   stopped: "secondary",
   finished: "dark",
+  inactive: "secondary",
+  in_progress: "primary",
 }
 
 /**

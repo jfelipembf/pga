@@ -65,7 +65,7 @@ export const useProfileLogic = ({ client, contracts, financial, enrollments, set
 
     const profile = {
         name: `${formData.firstName || ""} ${formData.lastName || ""} `.trim() || "Cliente",
-        id: formData.idGym || "--",
+        id: formData.idGym || (formData.idGymPending ? "Gerando..." : "--"),
         status:
             (contractStatusValue && getStatusLabel(primaryContract.status, "contract")) ||
             getStatusLabel(contracts?.length ? formData.status : "lead", "client") ||

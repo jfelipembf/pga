@@ -22,7 +22,9 @@ export const useClientTableColumns = ({ contractsByClient, profilePath }) => {
                         />
                         <div>
                             <div className="fw-semibold">{item.name}</div>
-                            <div className="text-muted fs-12">{item.idGym || "--"}</div>
+                            <div className="text-muted fs-12">
+                                {item.idGym || (item.idGymPending ? "Gerando..." : "--")}
+                            </div>
                             {item.age && <div className="text-muted fs-12">{item.age} anos</div>}
                         </div>
                     </div>

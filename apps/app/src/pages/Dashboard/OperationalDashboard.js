@@ -7,6 +7,7 @@ import OperationalMiniWidgets from "./Components/OperationalMiniWidgets"
 import ExperimentalTracker from "./Components/ExperimentalTracker"
 import OperationalAlertCard from "./Components/OperationalAlertCard"
 import TaskModal from "./Components/TaskModal"
+import TaskDetailModal from "./Components/TaskDetailModal"
 
 import { setBreadcrumbItems } from "../../store/actions"
 import { useOperationalDashboardLogic } from "./Hooks/useOperationalDashboardLogic"
@@ -16,6 +17,13 @@ import PageLoader from "../../components/Common/PageLoader"
 const OperationalDashboard = ({ setBreadcrumbItems }) => {
     document.title = "Dashboard Operacional | PGA"
     const [isTaskModalOpen, setIsTaskModalOpen] = React.useState(false)
+    const [selectedTask, setSelectedTask] = React.useState(null)
+    const [isDetailModalOpen, setIsDetailModalOpen] = React.useState(false)
+
+    const handleTaskClick = (task) => {
+        setSelectedTask(task)
+        setIsDetailModalOpen(true)
+    }
 
     const {
         reports,
@@ -24,7 +32,6 @@ const OperationalDashboard = ({ setBreadcrumbItems }) => {
         birthdays,
         expirations,
         refreshTasks,
-        markTaskAsCompleted,
         markBirthdayAsCompleted,
         markExpirationAsCompleted,
         isLoading
@@ -57,7 +64,7 @@ const OperationalDashboard = ({ setBreadcrumbItems }) => {
                         title="Minhas Tarefas"
                         type="tasks"
                         items={tasks}
-                        onCheck={markTaskAsCompleted}
+                        onCheck={handleTaskClick}
                         onAdd={() => setIsTaskModalOpen(true)}
                         isLoading={isLoading}
                     />
@@ -88,6 +95,13 @@ const OperationalDashboard = ({ setBreadcrumbItems }) => {
                 isOpen={isTaskModalOpen}
                 toggle={() => setIsTaskModalOpen(!isTaskModalOpen)}
                 onTaskCreated={refreshTasks}
+            />
+
+            <TaskDetailModal
+                isOpen={isDetailModalOpen}
+                toggle={() => setIsDetailModalOpen(!isDetailModalOpen)}
+                task={selectedTask}
+                onTaskUpdated={refreshTasks}
             />
         </React.Fragment>
     )

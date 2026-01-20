@@ -51,7 +51,7 @@ const ClientEnrollments = ({ client = null, enrollments = [], onEnroll = undefin
           <Badge color="info" className="ms-1 cursor-pointer" id={`ae-${item.idEnrollment || item.id}`}>
             AE
           </Badge>
-          <UncontrolledTooltip target={`ae-${item.idEnrollment || item.id}`} fade={false}>
+          <UncontrolledTooltip target={`ae-${item.idEnrollment || item.id}`} fade={false} delay={0}>
             Aula Experimental
           </UncontrolledTooltip>
         </>
@@ -83,7 +83,7 @@ const ClientEnrollments = ({ client = null, enrollments = [], onEnroll = undefin
             </ButtonLoader>
           </div>
           {isBlocked && (
-            <UncontrolledTooltip target="enrollButtonWrapper" fade={false}>
+            <UncontrolledTooltip target="enrollButtonWrapper" fade={false} delay={0}>
               Clone com contrato suspenso. Regularize para matricular.
             </UncontrolledTooltip>
           )}

@@ -1,13 +1,5 @@
 const functions = require("firebase-functions/v1");
-const admin = require("firebase-admin");
-
-if (!admin.apps.length) {
-  admin.initializeApp();
-}
-
-const db = admin.firestore();
-
-const axios = require("axios");
+const { getBranchCollectionRef } = require("../shared/references");
 
 /**
  * Salva a configuração de uma integração e gerencia recursos externos (Evolution API).
@@ -44,16 +36,9 @@ exports.saveIntegrationConfig = functions
         await ensureEvolutionInstance(config.baseUrl, config.apiKey, config.instanceName);
       }
       // -------------------------------------------
-      // ------------------------------------
 
       // Salva na subcoleção do branch
-      const targetRef = db
-        .collection("tenants")
-        .doc(idTenant)
-        .collection("branches")
-        .doc(idBranch)
-        .collection("integrations")
-        .doc(integrationId);
+      const targetRef = getBranchCollectionRef(idTenant, idBranch, "integrations", integrationId);
 
       const payload = {
         ...config,
@@ -95,13 +80,7 @@ exports.getIntegrationConfig = functions
     }
 
     try {
-      const targetRef = db
-        .collection("tenants")
-        .doc(idTenant)
-        .collection("branches")
-        .doc(idBranch)
-        .collection("integrations")
-        .doc(integrationId);
+      const targetRef = getBranchCollectionRef(idTenant, idBranch, "integrations", integrationId);
 
       const doc = await targetRef.get();
 
@@ -115,3 +94,4 @@ exports.getIntegrationConfig = functions
       throw new functions.https.HttpsError("internal", "Erro ao recuperar configuração.");
     }
   });
+

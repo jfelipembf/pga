@@ -27,6 +27,12 @@ const ScheduleForm = ({
     handleWeekdayToggle,
   } = useScheduleFormHandlers({ values, disabled, handleChange, setFieldValue })
 
+  // Helper to safely get value (converts null to empty string for controlled inputs)
+  const safeValue = (key) => {
+    const val = values[key];
+    return val === null || val === undefined ? "" : val;
+  };
+
   return (
     <div className="schedule-form">
       <Row className="g-3">
@@ -36,7 +42,7 @@ const ScheduleForm = ({
             <Input
               type="select"
               name="idActivity"
-              value={values.idActivity}
+              value={safeValue("idActivity")}
               onChange={handleChange}
               disabled={Boolean(disabled)}
               invalid={Boolean(touched.idActivity && errors.idActivity)}
@@ -57,7 +63,7 @@ const ScheduleForm = ({
             <Input
               type="select"
               name="idStaff"
-              value={values.idStaff}
+              value={safeValue("idStaff")}
               onChange={handleChange}
               disabled={Boolean(disabled)}
               invalid={Boolean(touched.idStaff && errors.idStaff)}
@@ -80,7 +86,7 @@ const ScheduleForm = ({
             <Input
               type="select"
               name="idArea"
-              value={values.idArea}
+              value={safeValue("idArea")}
               onChange={handleChange}
               disabled={Boolean(disabled)}
               invalid={Boolean(touched.idArea && errors.idArea)}
@@ -140,7 +146,7 @@ const ScheduleForm = ({
                 <Input
                   type="time"
                   name="startTime"
-                  value={values.startTime}
+                  value={safeValue("startTime")}
                   onChange={handleStartTimeChange}
                   disabled={Boolean(disabled)}
                   invalid={Boolean(touched.startTime && errors.startTime)}
@@ -154,7 +160,7 @@ const ScheduleForm = ({
                 <Input
                   type="number"
                   name="durationMinutes"
-                  value={values.durationMinutes}
+                  value={safeValue("durationMinutes")}
                   onChange={handleDurationChange}
                   disabled={Boolean(disabled)}
                   invalid={Boolean(touched.durationMinutes && errors.durationMinutes)}
@@ -168,7 +174,7 @@ const ScheduleForm = ({
                 <Input
                   type="number"
                   name="maxCapacity"
-                  value={values.maxCapacity}
+                  value={safeValue("maxCapacity")}
                   onChange={handleChange}
                   disabled={Boolean(disabled)}
                   invalid={Boolean(touched.maxCapacity && errors.maxCapacity)}
@@ -184,7 +190,7 @@ const ScheduleForm = ({
             <Input
               type="date"
               name="startDate"
-              value={values.startDate}
+              value={safeValue("startDate")}
               onChange={handleChange}
               disabled={Boolean(disabled)}
               invalid={Boolean(touched.startDate && errors.startDate)}
@@ -198,7 +204,7 @@ const ScheduleForm = ({
             <Input
               type="date"
               name="endDate"
-              value={values.endDate}
+              value={safeValue("endDate")}
               onChange={handleChange}
               disabled={Boolean(disabled)}
               invalid={Boolean(touched.endDate && errors.endDate)}

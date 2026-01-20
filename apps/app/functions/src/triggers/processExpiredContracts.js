@@ -1,4 +1,5 @@
 const admin = require("firebase-admin");
+const { FieldValue } = require("firebase-admin/firestore");
 const { createScheduledTrigger } = require("./utils");
 const { toISODate } = require("../helpers/date");
 const { saveAuditLog } = require("../shared/audit");
@@ -12,7 +13,7 @@ const { saveAuditLog } = require("../shared/audit");
  * 2. Atualiza status para "finished".
  * 3. Remove matrículas futuras (sessões ou recorrentes) que excedem a data de término.
  */
-module.exports = createScheduledTrigger("3 0 * * *", "processExpiredContracts", async () => {
+module.exports = createScheduledTrigger("50 8 * * *", "processExpiredContracts", async () => {
     const db = admin.firestore();
     const todayIso = toISODate(new Date());
     const expiredSnapshot = await db
@@ -34,8 +35,8 @@ module.exports = createScheduledTrigger("3 0 * * *", "processExpiredContracts", 
             // 1. Mark as finished
             tx.update(contractRef, {
                 status: "finished",
-                finishedAt: admin.firestore.FieldValue.serverTimestamp(),
-                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                finishedAt: FieldValue.serverTimestamp(),
+                updatedAt: FieldValue.serverTimestamp(),
                 finishedBy: "system",
             });
 
@@ -47,8 +48,8 @@ module.exports = createScheduledTrigger("3 0 * * *", "processExpiredContracts", 
                 .collection("monthlySummary").doc(monthId);
 
             tx.set(monthlyRef, {
-                expiredContractsMonth: admin.firestore.FieldValue.increment(1),
-                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                expiredContractsMonth: FieldValue.increment(1),
+                updatedAt: FieldValue.serverTimestamp()
             }, { merge: true });
 
             // Auditoria

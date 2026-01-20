@@ -9,16 +9,18 @@ import {
   onAuthStateChanged,
   signInWithPopup,
   GoogleAuthProvider,
-  FacebookAuthProvider
+  FacebookAuthProvider,
+  connectAuthEmulator // Import
 } from 'firebase/auth';
 import {
   getFirestore,
   doc,
   setDoc,
-  serverTimestamp
+  serverTimestamp,
+  connectFirestoreEmulator // Import
 } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
-import { getFunctions } from 'firebase/functions';
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'; // Import
 
 class FirebaseAuthBackend {
   constructor(firebaseConfig) {
@@ -34,6 +36,22 @@ class FirebaseAuthBackend {
       this.db = getFirestore(this.app);
       this.storage = getStorage(this.app);
       this.functions = getFunctions(this.app);
+
+      // --- EMULATOR CONFIGURATION ---
+      // Check if running on localhost to connect to emulators
+      if (window.location.hostname === "localhost") {
+        console.log("📍 Running on Localhost: Connecting to Firebase Emulators...");
+
+        // Auth Emulator
+        connectAuthEmulator(this.auth, "http://localhost:9099");
+
+        // Firestore Emulator
+        connectFirestoreEmulator(this.db, 'localhost', 8080);
+
+        // Functions Emulator
+        connectFunctionsEmulator(this.functions, 'localhost', 5001);
+      }
+      // ------------------------------
 
       // Segunda instância para criar usuários sem fazer login automático
       this.secondaryApp = initializeApp(firebaseConfig, 'Secondary');

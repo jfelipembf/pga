@@ -6,6 +6,7 @@ import { setBreadcrumbItems } from "../../../store/actions"
 // Components
 import ReceivablesFilters from "./Components/ReceivablesFilters"
 import ReceivablesTable from "./Components/ReceivablesTable"
+import ConfirmDialog from "../../../components/Common/ConfirmDialog"
 
 // Hook
 import { useReceivables } from "./Hooks/useReceivables"
@@ -18,7 +19,7 @@ const ReceivablesPage = ({ setBreadcrumbItems }) => {
         loading,
         filters,
         updateFilter,
-        refresh, // Expose Refresh/Search
+        refresh,
         clearFilters,
         // Client Search Props
         clientSearchText,
@@ -26,7 +27,12 @@ const ReceivablesPage = ({ setBreadcrumbItems }) => {
         clientCandidates,
         selectedClient,
         handleSelectClient,
-        handleClearClient
+        handleClearClient,
+        // Cancellation
+        cancelDialog,
+        openCancelDialog,
+        closeCancelDialog,
+        handleConfirmCancel
     } = useReceivables()
 
     // Set Breadcrumbs via Redux (Standard Layout)
@@ -47,7 +53,7 @@ const ReceivablesPage = ({ setBreadcrumbItems }) => {
                         <ReceivablesFilters
                             filters={filters}
                             onUpdate={updateFilter}
-                            onSearch={refresh} // Manual Trigger
+                            onSearch={refresh}
                             onClear={clearFilters}
                             // Pass Search Props
                             clientSearchText={clientSearchText}
@@ -59,7 +65,23 @@ const ReceivablesPage = ({ setBreadcrumbItems }) => {
                         />
 
                         {/* Table */}
-                        <ReceivablesTable data={data} loading={loading} />
+                        <ReceivablesTable
+                            data={data}
+                            loading={loading}
+                            onCancel={openCancelDialog}
+                        />
+
+                        {/* Confirm Dialog */}
+                        <ConfirmDialog
+                            isOpen={cancelDialog.open}
+                            title="Cancelar Recebível"
+                            message="Tem certeza que deseja cancelar este recebível? O status será alterado para Cancelado."
+                            confirmText="Sim, Cancelar"
+                            confirmColor="danger"
+                            onConfirm={handleConfirmCancel}
+                            onCancel={closeCancelDialog}
+                            loading={cancelDialog.loading}
+                        />
                     </CardBody>
                 </Card>
             </Col>

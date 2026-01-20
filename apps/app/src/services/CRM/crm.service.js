@@ -2,7 +2,7 @@ import { getDocs, query, where, orderBy } from "firebase/firestore"
 import { requireDb } from "../_core/db"
 import { clientsCol, getContext, listClientsByIdsRepo } from "../Clients/clients.repository"
 import { clientContractsCollection } from "../ClientContracts/clientContracts.repository"
-import { receivablesCol } from "../Receivables/receivables.repository"
+import { receivablesCol } from "../Financial/receivables.repository"
 
 /**
  * Service to handle CRM data fetching.
@@ -42,7 +42,7 @@ export const loadCrmSegment = async (segmentId, filterDateStart, filterDateEnd) 
         case "credit":
             return listClientsWithCredit(db, ctx)
         case "debt":
-            return listClientsWithDebt(db, ctx)
+            return listClientsWithDebt(db, ctx, filterDateStart, filterDateEnd)
 
         default:
             return []
@@ -275,13 +275,26 @@ export const listClientsWithCredit = async (db, ctx) => {
 /**
  * 09. Com Saldo Devedor
  */
-export const listClientsWithDebt = async (db, ctx) => {
+export const listClientsWithDebt = async (db, ctx, start, end) => {
     const ref = receivablesCol(db, ctx)
-    const q = query(
-        ref,
+
+    let qArgs = [
         where("status", "==", "open"),
-        where("balance", ">", 0)
-    )
+        where("pending", ">", 0)
+    ];
+
+    if (start && end) {
+        // Filtrar por data de vencimento se houver período
+        const sDate = toYMD(start);
+        const eDate = toYMD(end);
+        qArgs.push(where("dueDate", ">=", sDate));
+        qArgs.push(where("dueDate", "<=", eDate));
+        // OrderBy é necessário para inequality filter se tiver index, mas status e pending já são filtros.
+        // Com múltiplos campos, pode precisar de index composto. 
+        // Vamos tentar sem orderBy explícito composto por enquanto ou adicionar se o range filter exigir.
+    }
+
+    const q = query(ref, ...qArgs);
     const snap = await getDocs(q)
     const debts = mapDocs(snap)
 
@@ -293,7 +306,7 @@ export const listClientsWithDebt = async (db, ctx) => {
     const debtMap = {}
     debts.forEach(d => {
         if (!debtMap[d.idClient]) debtMap[d.idClient] = 0
-        debtMap[d.idClient] += d.balance
+        debtMap[d.idClient] += Number(d.pending || 0)
     })
 
     return clients.filter(c => debtMap[c.id] > 0).map(c => ({

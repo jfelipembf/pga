@@ -32,16 +32,16 @@ exports.openCashier = functions.region("us-central1").https.onCall(async (data, 
 
   const sessionsRef = getSessionsColl(idTenant, idBranch);
 
-  // 1. Verificar se já existe caixa aberto
-  // Nota: Idealmente isso seria uma transação, mas para simplificar e reduzir custos de leitura em alta concorrência (raro aqui),
-  // fazemos uma query simples. O risco de race condition é baixo para um caixa físico por branch.
+  // 1. Verificar se o USUÁRIO já tem um caixa aberto
+  // Refatorado para permitir múltiplos caixas (um por staff)
   const openSnapshot = await sessionsRef
     .where("status", "==", "open")
+    .where("idStaff", "==", uid)
     .limit(1)
     .get();
 
   if (!openSnapshot.empty) {
-    throw new functions.https.HttpsError("failed-precondition", "Já existe um caixa aberto nesta unidade.");
+    throw new functions.https.HttpsError("failed-precondition", "Você já possui uma sessão de caixa aberta.");
   }
 
   // 2. Criar nova sessão

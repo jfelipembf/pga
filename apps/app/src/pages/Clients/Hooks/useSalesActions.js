@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom"
 import { createSale } from "../../../services/Sales"
-import { listReceivablesByClient } from "../../../services/Receivables"
+import { listReceivablesByClient } from "../../../services/Financial"
 import { useToast } from "../../../components/Common/ToastProvider"
 import { useLoading } from "../../../hooks/useLoading"
 import { useSystemSettings } from "../../../hooks/useSystemSettings"

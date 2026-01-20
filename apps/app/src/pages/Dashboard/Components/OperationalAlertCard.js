@@ -1,5 +1,6 @@
 import React from "react"
 import { Card, CardBody, Input, Button } from "reactstrap"
+import StatusBadge from "../../../components/Common/StatusBadge"
 
 const OperationalAlertCard = ({
     title,
@@ -49,14 +50,24 @@ const OperationalAlertCard = ({
                             items.map((item) => (
                                 <li key={item.id} className="feed-item">
                                     <div className="feed-item-list d-flex align-items-start gap-2">
-                                        {onCheck && (
-                                            <Input
-                                                type="checkbox"
-                                                checked={item.status === 'completed'}
-                                                onChange={() => (item.status !== 'completed') ? onCheck(item) : null}
-                                                style={{ marginTop: "2px", cursor: "pointer" }}
-                                                disabled={item.status === 'completed'}
-                                            />
+                                        {type === 'tasks' ? (
+                                            <div
+                                                onClick={() => onCheck(item)}
+                                                style={{ cursor: 'pointer' }}
+                                                className="me-2 text-muted"
+                                            >
+                                                <i className="mdi mdi-clipboard-text-outline" style={{ fontSize: '16px' }}></i>
+                                            </div>
+                                        ) : (
+                                            onCheck && (
+                                                <Input
+                                                    type="checkbox"
+                                                    checked={item.status === 'completed'}
+                                                    onChange={() => (item.status !== 'completed') ? onCheck(item) : null}
+                                                    style={{ marginTop: "2px", cursor: "pointer" }}
+                                                    disabled={item.status === 'completed'}
+                                                />
+                                            )
                                         )}
 
                                         {type !== 'tasks' && item.photo && (
@@ -69,8 +80,30 @@ const OperationalAlertCard = ({
                                         )}
 
                                         <div style={{ opacity: item.status === 'completed' ? 0.6 : 1, width: '100%' }}>
-                                            <div className="d-flex justify-content-between">
-                                                <span className="date mb-1">{item.dueDate || item.date || item.endDate}</span>
+                                            <div className="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <div className="d-flex align-items-center gap-2 mb-1">
+                                                        <span className="date">{item.dueDate || item.date || item.endDate}</span>
+                                                        {type === 'tasks' && <StatusBadge status={item.status} type="task" />}
+                                                    </div>
+                                                    <span className={`activity-text fw-bold d-block text-dark ${item.status === 'completed' ? 'text-decoration-line-through' : ''}`}>
+                                                        {item.description || item.title || item.name}
+                                                    </span>
+                                                    <p className="text-muted small mb-0">{item.info || item.role || item.contractTitle || ""}</p>
+                                                </div>
+
+                                                {type === 'tasks' && (
+                                                    <Button
+                                                        color="light"
+                                                        size="sm"
+                                                        className="btn-sm ms-2"
+                                                        onClick={() => onCheck(item)}
+                                                        title="Ver Detalhes"
+                                                    >
+                                                        <i className="mdi mdi-eye-outline"></i>
+                                                    </Button>
+                                                )}
+
                                                 {type === 'birthday' && (
                                                     <span>
                                                         {item.messageSent === true && <i className="mdi mdi-check-circle text-success" title="Mensagem Enviada"></i>}
@@ -79,10 +112,6 @@ const OperationalAlertCard = ({
                                                     </span>
                                                 )}
                                             </div>
-                                            <span className={`activity-text fw-bold d-block text-dark ${item.status === 'completed' ? 'text-decoration-line-through' : ''}`}>
-                                                {item.description || item.title || item.name}
-                                            </span>
-                                            <p className="text-muted small mb-0">{item.info || item.role || item.contractTitle || ""}</p>
                                         </div>
                                     </div>
                                 </li>

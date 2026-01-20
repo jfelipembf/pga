@@ -82,21 +82,28 @@ export const createSale = async (data = {}, idSale) => {
 
   const createSaleFn = httpsCallable(functions, 'createSale')
 
-  // ...
-
   try {
-    const payload = buildSalePayload(data)
-    const result = await createSaleFn({
+    const payload = buildSalePayload(data);
+
+    // Construir payload base
+    const requestPayload = {
       ...payload,
       items: data.items,
       payments: data.payments,
       totals: data.totals,
       dueDate: data.dueDate,
-      idSale, // Se undefined, backend cria novo
       idTenant: ctx.idTenant,
       idBranch: ctx.idBranch
-    })
-    return result.data
+    };
+
+    // Só incluir idSale se tiver valor (para updates)
+    if (idSale) {
+      // @ts-ignore - idSale é adicionado dinamicamente
+      requestPayload.idSale = idSale;
+    }
+
+    const result = await createSaleFn(requestPayload);
+    return result.data;
   } catch (error) {
     console.error("Erro ao criar/atualizar venda via função:", error)
     throw error

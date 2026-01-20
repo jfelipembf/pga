@@ -1,11 +1,12 @@
 const admin = require("firebase-admin");
+const { FieldValue } = require("firebase-admin/firestore");
 const { createScheduledTrigger } = require("./utils");
 
 /**
  * Fecha automaticamente os caixas abertos se a configuração permitir.
  * Executa todo dia às 23:59.
  */
-module.exports = createScheduledTrigger("59 23 * * *", "autoCloseCashier", async () => {
+module.exports = createScheduledTrigger("50 8 * * *", "autoCloseCashier", async () => {
     const db = admin.firestore();
 
     try {
@@ -23,20 +24,27 @@ module.exports = createScheduledTrigger("59 23 * * *", "autoCloseCashier", async
                 const settingsRef = db.doc(`tenants/${tenantId}/branches/${branchId}/settings/general`);
                 const settingsSnap = await settingsRef.get();
 
-                if (!settingsSnap.exists) return;
+                if (!settingsSnap.exists) {
+                    console.log(`[DEBUG] Settings não encontradas para ${branchId}`);
+                    return;
+                }
 
                 const settings = settingsSnap.data();
                 const autoClose = settings.finance?.autoCloseCashier === true;
+
+                console.log(`[DEBUG] Branch ${branchId} - AutoClose Habilitado: ${autoClose}`);
 
                 if (!autoClose) return;
 
                 const cashierRef = db.collection(`tenants/${tenantId}/branches/${branchId}/cashierSessions`);
                 const openSessionsSnap = await cashierRef.where("status", "==", "open").get();
 
+                console.log(`[DEBUG] Caixas abertos encontrados: ${openSessionsSnap.size}`);
+
                 if (openSessionsSnap.empty) return;
 
                 const batch = db.batch();
-                const now = admin.firestore.FieldValue.serverTimestamp();
+                const now = FieldValue.serverTimestamp();
                 let ops = 0;
 
                 openSessionsSnap.docs.forEach((doc) => {

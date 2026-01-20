@@ -70,10 +70,22 @@ const AuditLogPage = ({ setBreadcrumbItems }) => {
         return { name, isSystem: false }
     }
 
-    const getClientInfo = (log) => {
+    const getTargetInfo = (log) => {
+        // 1. New Pattern (target object)
+        if (log.target && log.target.name && log.target.name !== "Unknown") {
+            return {
+                name: log.target.name,
+                idGym: log.target.idGym || log.target.metadata?.idGym, // idGym might be at top level or in metadata
+                type: log.target.type,
+                id: log.target.id
+            }
+        }
+
+        // 2. Old Pattern (metadata key)
         const name = log.metadata?.clientName || log.metadata?.idClient || log.metadata?.idLead
-        if (!name) return null
-        return name
+        if (name) return { name, idGym: log.metadata?.idGym, type: 'client' }
+
+        return null
     }
 
     const columns = useMemo(() => [
@@ -120,8 +132,7 @@ const AuditLogPage = ({ setBreadcrumbItems }) => {
                 }
 
                 // Try to find staff details
-                // We rely on userId for staff identification in new format
-                const staff = staffMap.byId[log.userId]
+                const staff = staffMap.byId[log.userId] || staffMap.byId[log.actor?.uid]
                 const photo = staff?.photo
 
                 return (
@@ -144,36 +155,20 @@ const AuditLogPage = ({ setBreadcrumbItems }) => {
             label: "Aluno / Alvo",
             key: "client",
             render: (log) => {
-                const clientName = getClientInfo(log)
-                if (!clientName) return <span className="text-muted small">-</span>
+                const target = getTargetInfo(log);
 
-                // Check if target is actually a staff member
-                const staff = staffMap.byName[clientName.toLowerCase()]
+                if (!target) return <span className="text-muted small">-</span>
 
-                if (staff) {
-                    // Render as Staff
-                    return (
-                        <div className="d-flex align-items-center">
-                            <div className="avatar-xs me-2" style={{ width: '24px', height: '24px' }}>
-                                {staff.photo ? (
-                                    <img src={staff.photo} alt="" className="avatar-title rounded-circle" style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
-                                ) : (
-                                    <span className="avatar-title rounded-circle bg-soft-info text-info font-size-10">
-                                        {staff.name.charAt(0).toUpperCase()}
-                                    </span>
-                                )}
-                            </div>
-                            <span className="text-dark fw-medium small">{staff.name}</span>
-                        </div>
-                    )
-                }
-
-                // Render as Client (default)
                 return (
-                    <span className="text-info fw-semibold">
-                        <i className="mdi mdi-account-circle me-1"></i>
-                        {clientName}
-                    </span>
+                    <div className="d-flex flex-column">
+                        <span className="text-info fw-semibold">
+                            <i className="mdi mdi-account-circle me-1"></i>
+                            {target.name}
+                        </span>
+                        {target.idGym && (
+                            <small className="text-muted ms-3">ID: {target.idGym}</small>
+                        )}
+                    </div>
                 )
             }
         },

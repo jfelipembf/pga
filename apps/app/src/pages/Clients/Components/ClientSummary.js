@@ -44,7 +44,9 @@ const ClientSummary = ({ onOpenTab, client, contracts = [], financial = [], pres
                 </Col>
                 <Col md="2">
                   <div className="client-summary__label">ID</div>
-                  <div className="fw-semibold">{client?.idGym || "--"}</div>
+                  <div className="fw-semibold">
+                    {client?.idGym || (client?.idGymPending ? "Gerando..." : "--")}
+                  </div>
                 </Col>
                 <Col md="3">
                   <div className="client-summary__label">Telefone</div>

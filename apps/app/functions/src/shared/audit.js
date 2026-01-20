@@ -1,4 +1,5 @@
 const admin = require("firebase-admin");
+const { FieldValue } = require("firebase-admin/firestore"); // Fix import
 
 /**
  * Salva um registro de auditoria no Firestore.
@@ -20,6 +21,8 @@ exports.saveAuditLog = async ({
     action,
     targetId,
     description,
+    actor, // New
+    target, // New
     metadata = {},
 }) => {
     if (!idTenant || !idBranch) {
@@ -37,11 +40,26 @@ exports.saveAuditLog = async ({
         .doc();
 
     const logEntry = {
-        timestamp: admin.firestore.FieldValue.serverTimestamp(),
-        userId: uid || "system",
-        userName: userName || metadata.userName || metadata.registeredBy || null,
+        timestamp: FieldValue.serverTimestamp(),
+
+        // Standardized Fields (New Pattern)
+        actor: actor || {
+            uid: uid || "system",
+            name: userName || "System/Unknown",
+            role: "unknown"
+        },
+        target: target || {
+            id: targetId || null,
+            type: "unknown",
+            name: "Unknown"
+        },
+
+        // Backward Compatibility / Flat Indexing
+        userId: actor?.uid || uid || "system",
+        userName: actor?.name || userName || metadata.userName || null,
+        targetId: target?.id || targetId || null,
+
         action: action || "UNKNOWN_ACTION",
-        targetId: targetId || null,
         description: description || "",
         metadata,
     };

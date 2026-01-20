@@ -13,14 +13,14 @@ export const formatDate = value => {
  */
 export const parseDate = (dateString) => {
   if (!dateString) return null
-  
+
   // Se for formato YYYY-MM-DD, tratar como data local
   const ymdMatch = dateString.match(/^(\d{4})-(\d{2})-(\d{2})$/)
   if (ymdMatch) {
     const [, year, month, day] = ymdMatch
     return new Date(Number(year), Number(month) - 1, Number(day))
   }
-  
+
   // Para outros formatos, usar constructor padrão
   return new Date(dateString)
 }
@@ -30,7 +30,9 @@ export const parseDate = (dateString) => {
  */
 export const formatDateString = (date) => {
   if (!date) return null
-  return date.toISOString().slice(0, 10)
+  const d = new Date(date)
+  const pad = n => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
 /**
@@ -59,7 +61,7 @@ export const getToday = () => {
 export const compareDates = (date1, date2) => {
   const d1 = normalizeDate(date1)
   const d2 = normalizeDate(date2)
-  
+
   if (d1 < d2) return -1
   if (d1 > d2) return 1
   return 0

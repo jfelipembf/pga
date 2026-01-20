@@ -2,7 +2,7 @@ const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 
 const db = admin.firestore();
-const FieldValue = admin.firestore.FieldValue;
+const { FieldValue } = require("firebase-admin/firestore");
 
 const { toISODate } = require("../helpers/date");
 const { isActiveLike } = require("./helpers/utils");

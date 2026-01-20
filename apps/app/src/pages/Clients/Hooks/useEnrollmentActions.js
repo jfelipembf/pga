@@ -1,7 +1,7 @@
 import { useLoading } from "../../../hooks/useLoading"
 import { useSystemSettings } from "../../../hooks/useSystemSettings"
 import { useToast } from "../../../components/Common/ToastProvider"
-import { listReceivablesByClient } from "../../../services/Receivables"
+import { listReceivablesByClient } from "../../../services/Financial"
 import { validateEnrollmentRules } from "../../../validators/enrollment/guards"
 import { validateDuplicateEnrollment } from "../../../validators/enrollment/duplicates"
 import { createRecurringEnrollment, createSingleSessionEnrollment, listEnrollmentsByClient } from "../../../services/Enrollments/index"
@@ -170,10 +170,7 @@ export const useEnrollmentActions = ({ clientId, clientName, clientPhone, select
                     setExistingEnrollments(enrollments || [])
                 }
 
-                // Recarregar dados para atualizar badges
-                if (reloadPageData) {
-                    await reloadPageData();
-                }
+
             })
         } catch (e) {
             console.error("handleEnroll: Erro durante o processo", e)

@@ -1,7 +1,13 @@
 const admin = require("firebase-admin");
 
 
+
 if (!admin.apps.length) {
+  // Fix for Auth Emulator not being auto-detected in some environments
+  if (process.env.FUNCTIONS_EMULATOR === 'true') {
+    process.env.FIREBASE_AUTH_EMULATOR_HOST = "localhost:9099";
+    console.log("🔧 Forced FIREBASE_AUTH_EMULATOR_HOST to localhost:9099");
+  }
   admin.initializeApp();
 }
 
@@ -17,6 +23,8 @@ exports.processSuspensionEnds =
   require("./src/triggers/processSuspensionEnds");
 exports.processExpiredContracts =
   require("./src/triggers/processExpiredContracts");
+exports.processInactiveContracts =
+  require("./src/triggers/processInactiveContracts");
 
 exports.generateSessionsOnClassCreate =
   require("./src/classes/generateSessionsOnClassCreate");
@@ -75,6 +83,8 @@ exports.payReceivables = require("./src/financial/receivables").payReceivables;
 exports.addClientCredit = require("./src/financial/credits").addClientCredit;
 exports.consumeClientCredit = require("./src/financial/credits").consumeClientCredit;
 exports.deleteClientCredit = require("./src/financial/credits").deleteClientCredit;
+exports.analyzeCancellationImpact = require("./src/financial/cancellation").analyzeCancellationImpact;
+exports.processFinancialCancellation = require("./src/financial/cancellation").processFinancialCancellation;
 
 // Vendas
 exports.createSale = require("./src/sales/sales").saveSale;
@@ -103,10 +113,10 @@ exports.updateEvent = require("./src/events/events").updateEvent;
 exports.deleteEvent = require("./src/events/events").deleteEvent;
 
 // Clients
-exports.getNextClientGymId = require("./src/clients/clients").getNextClientGymId;
 exports.createClient = require("./src/clients/clients").createClient;
 exports.updateClient = require("./src/clients/clients").updateClient;
-exports.createPublicClient = require("./src/clients/clients").createPublicClient;
+exports.onClientCreate = require("./src/clients/clientTriggers").onClientCreate;
+
 
 // Enrollments
 // Enrollments
@@ -144,6 +154,7 @@ exports.checkExperimentalClassAutomations = require("./src/triggers/checkExperim
 exports.completeTask = require("./src/tasks/tasks").completeTask;
 exports.completeOperationalAlert = require("./src/tasks/tasks").completeOperationalAlert;
 exports.createTask = require("./src/tasks/tasks").createTask;
+exports.processRecurringTasks = require("./src/triggers/processRecurringTasks");
 exports.checkExpiringContracts = require("./src/triggers/checkExpiringContracts");
 
 

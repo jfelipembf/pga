@@ -152,26 +152,48 @@ export const StaffRole = {
 }
 
 export const buildStaffPayload = (data) => {
-    return {
+    const payload = {
         id: data.id,
-        firstName: data.firstName || "",
-        lastName: data.lastName || "",
-        name: data.name || [data.firstName, data.lastName].filter(Boolean).join(" ").trim(),
-        email: data.email || "",
-        phone: data.phone || "",
-        document: data.document || data.cpf || "", // Standardized to document
-        address: buildAddress(data), // Added address
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
 
-        role: data.role || StaffRole.INSTRUCTOR,
-        roleId: data.roleId || null, // NEW: ID-driven link
-        isInstructor: !!data.isInstructor,
-        active: data.active !== false, // Default true
-        photo: data.photo || "",
+        // Password is required for creating new staff (Auth user)
+        password: data.password,
 
-        // Dates
-        birthDate: data.birthDate || null,
-        hiringDate: data.hiringDate || null
-    }
+        // Address
+        address: buildAddress(data),
+
+        // Photo
+        photo: data.photo || data.avatar,
+        avatar: data.photo || data.avatar, // Backward compatibility
+
+        // Role
+        role: data.role,
+        roleId: data.roleId,
+        isInstructor: data.isInstructor,
+
+        // Status
+        status: data.status,
+
+        // Personal Info
+        gender: data.gender,
+        birthDate: data.birthDate,
+        hireDate: data.hireDate || data.hiringDate, // Support legacy field name
+        council: data.council,
+        employmentType: data.employmentType,
+        salary: data.salary,
+    };
+
+    // Remove undefined values to avoid sending them to backend
+    Object.keys(payload).forEach(key => {
+        if (payload[key] === undefined) {
+            delete payload[key];
+        }
+    });
+
+    return payload;
 }
 
 // ============================================================================

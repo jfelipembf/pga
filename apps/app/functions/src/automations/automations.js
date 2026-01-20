@@ -1,5 +1,6 @@
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
+const { getBranchCollectionRef } = require("../shared/references");
 
 if (!admin.apps.length) {
     admin.initializeApp();
@@ -35,12 +36,7 @@ exports.saveAutomation = functions.region("us-central1").https.onCall(async (dat
     }
 
     try {
-        const automationsRef = db
-            .collection("tenants")
-            .doc(idTenant)
-            .collection("branches")
-            .doc(idBranch)
-            .collection("automations");
+        const automationsRef = getBranchCollectionRef(idTenant, idBranch, "automations");
 
         const payload = {
             ...automationData,
@@ -78,12 +74,7 @@ exports.getAutomations = functions.region("us-central1").https.onCall(async (dat
     }
 
     try {
-        const snapshot = await db
-            .collection("tenants")
-            .doc(idTenant)
-            .collection("branches")
-            .doc(idBranch)
-            .collection("automations")
+        const snapshot = await getBranchCollectionRef(idTenant, idBranch, "automations")
             .orderBy("updatedAt", "desc")
             .get();
 
@@ -115,14 +106,7 @@ exports.deleteAutomation = functions.region("us-central1").https.onCall(async (d
     }
 
     try {
-        await db
-            .collection("tenants")
-            .doc(idTenant)
-            .collection("branches")
-            .doc(idBranch)
-            .collection("automations")
-            .doc(automationId)
-            .delete();
+        await getBranchCollectionRef(idTenant, idBranch, "automations", automationId).delete();
 
         return { success: true };
     } catch (error) {
@@ -130,3 +114,4 @@ exports.deleteAutomation = functions.region("us-central1").https.onCall(async (d
         throw new functions.https.HttpsError("internal", error.message);
     }
 });
+

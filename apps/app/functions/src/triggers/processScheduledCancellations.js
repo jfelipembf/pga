@@ -1,4 +1,5 @@
 const admin = require("firebase-admin");
+const { FieldValue } = require("firebase-admin/firestore");
 const { createScheduledTrigger } = require("./utils");
 const { toISODate, toMonthKey } = require("../helpers/date");
 const { saveAuditLog } = require("../shared/audit");
@@ -7,7 +8,7 @@ const { saveAuditLog } = require("../shared/audit");
  * Processa cancelamentos que foram programados para hoje.
  * Roda diariamente às 00:02 (America/Sao_Paulo).
  */
-module.exports = createScheduledTrigger("2 0 * * *", "processScheduledCancellations", async () => {
+module.exports = createScheduledTrigger("50 8 * * *", "processScheduledCancellations", async () => {
     const db = admin.firestore();
     const todayIso = toISODate(new Date());
     const scheduledSnapshot = await db
@@ -53,9 +54,9 @@ module.exports = createScheduledTrigger("2 0 * * *", "processScheduledCancellati
         // 2. Atualizar status do contrato
         await contractRef.update({
             status: "canceled",
-            canceledAt: admin.firestore.FieldValue.serverTimestamp(),
+            canceledAt: FieldValue.serverTimestamp(),
             previousStatus: contract.previousStatus || null,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
         });
 
         // 2.1 Cancelar dívidas se configurado
@@ -76,9 +77,9 @@ module.exports = createScheduledTrigger("2 0 * * *", "processScheduledCancellati
                 debtsSnap.forEach(d => {
                     debtBatch.update(d.ref, {
                         status: "canceled",
-                        canceledAt: admin.firestore.FieldValue.serverTimestamp(),
+                        canceledAt: FieldValue.serverTimestamp(),
                         cancelReason: "Cancelamento programado de contrato",
-                        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                        updatedAt: FieldValue.serverTimestamp()
                     });
                     debtCount++;
                 });
@@ -117,14 +118,14 @@ module.exports = createScheduledTrigger("2 0 * * *", "processScheduledCancellati
         }, { merge: true });
 
         await dailyRef.update({
-            contractsCanceledDay: admin.firestore.FieldValue.increment(1),
-            churnDay: admin.firestore.FieldValue.increment(1),
-            activeCount: admin.firestore.FieldValue.increment(-1),
+            contractsCanceledDay: FieldValue.increment(1),
+            churnDay: FieldValue.increment(1),
+            activeCount: FieldValue.increment(-1),
         });
         await monthlyRef.update({
-            contractsCanceledMonth: admin.firestore.FieldValue.increment(1),
-            churnMonth: admin.firestore.FieldValue.increment(1),
-            activeAvg: admin.firestore.FieldValue.increment(-1),
+            contractsCanceledMonth: FieldValue.increment(1),
+            churnMonth: FieldValue.increment(1),
+            activeAvg: FieldValue.increment(-1),
         });
 
         // Auditoria

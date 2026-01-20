@@ -31,10 +31,9 @@ const onCreate = functions
 const onUpdate = functions
   .region("us-central1")
   .firestore.document("tenants/{idTenant}/branches/{idBranch}/enrollments/{idEnrollment}")
-  .onUpdate(async (change, context) => {
+  .onUpdate(async (change) => {
     const before = change.before.data() || {};
     const after = change.after.data() || {};
-    const idEnrollment = context.params.idEnrollment;
 
     const statusBefore = (before.status || "").toLowerCase();
     const statusAfter = (after.status || "").toLowerCase();

@@ -1,4 +1,5 @@
 const admin = require("firebase-admin");
+const { FieldValue } = require("firebase-admin/firestore");
 const db = admin.firestore();
 
 /**
@@ -15,7 +16,7 @@ async function updateMonthlySummary(idTenant, idBranch, updates, overrideMonthId
         .collection("monthlySummary")
         .doc(monthId);
 
-    updates.updatedAt = admin.firestore.FieldValue.serverTimestamp();
+    updates.updatedAt = FieldValue.serverTimestamp();
     updates.idTenant = String(idTenant);
     updates.idBranch = String(idBranch);
     updates.id = monthId;
@@ -47,11 +48,11 @@ async function handleNewLead(change, context) {
         if (!funnel.isLead) {
             await clientRef.update({
                 "funnel.isLead": true,
-                "funnel.leadAt": admin.firestore.FieldValue.serverTimestamp()
+                "funnel.leadAt": FieldValue.serverTimestamp()
             });
             // Incrementar Métrica
             await updateMonthlySummary(idTenant, idBranch, {
-                leadsMonth: admin.firestore.FieldValue.increment(1)
+                leadsMonth: FieldValue.increment(1)
             });
         }
     }
@@ -77,10 +78,10 @@ async function handleExperimentalScheduled(snap, context) {
         if (!funnel.scheduled) {
             await clientRef.update({
                 "funnel.scheduled": true,
-                "funnel.scheduledAt": admin.firestore.FieldValue.serverTimestamp()
+                "funnel.scheduledAt": FieldValue.serverTimestamp()
             });
             await updateMonthlySummary(idTenant, idBranch, {
-                experimental_scheduled: admin.firestore.FieldValue.increment(1)
+                experimental_scheduled: FieldValue.increment(1)
             });
         }
     }
@@ -106,10 +107,10 @@ async function handleConversion(snap, context) {
     if ((funnel.isLead || funnel.leadAt) && !funnel.converted) {
         await clientRef.update({
             "funnel.converted": true,
-            "funnel.convertedAt": admin.firestore.FieldValue.serverTimestamp()
+            "funnel.convertedAt": FieldValue.serverTimestamp()
         });
         await updateMonthlySummary(idTenant, idBranch, {
-            conversions: admin.firestore.FieldValue.increment(1)
+            conversions: FieldValue.increment(1)
         });
     }
     return null;
@@ -138,10 +139,10 @@ async function handleExperimentalAttendance(change, context) {
         if (!funnel.attended) {
             await clientRef.update({
                 "funnel.attended": true,
-                "funnel.attendedAt": admin.firestore.FieldValue.serverTimestamp()
+                "funnel.attendedAt": FieldValue.serverTimestamp()
             });
             await updateMonthlySummary(idTenant, idBranch, {
-                attended: admin.firestore.FieldValue.increment(1)
+                attended: FieldValue.increment(1)
             });
         }
     }
@@ -201,7 +202,7 @@ async function handleExperimentalDeletion(snap, context) {
             });
 
             await updateMonthlySummary(idTenant, idBranch, {
-                experimental_scheduled: admin.firestore.FieldValue.increment(-1)
+                experimental_scheduled: FieldValue.increment(-1)
             }, monthId);
         }
     }

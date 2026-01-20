@@ -1,6 +1,4 @@
 const functions = require("firebase-functions/v1");
-const admin = require("firebase-admin");
-const db = admin.firestore();
 const { generateSessionsForClass } = require("./helpers/sessionGenerator");
 
 /**
@@ -13,8 +11,6 @@ const { generateSessionsForClass } = require("./helpers/sessionGenerator");
  * ============================================================================
  */
 
-// ... (code omitted)
-
 module.exports = functions
   .region("us-central1")
   .firestore.document("tenants/{idTenant}/branches/{idBranch}/classes/{idClass}")
@@ -23,6 +19,16 @@ module.exports = functions
     functions.logger.info("[DEBUG] generateSessionsOnClassCreate TRIGGERED", { idClass, idTenant, idBranch });
 
     const classData = snap.data() || {};
+
+    // Debug: Log the full classData to see what we're working with
+    functions.logger.info("[DEBUG] classData received:", {
+      weekday: classData.weekday,
+      weekDays: classData.weekDays,
+      startDate: classData.startDate,
+      endDate: classData.endDate,
+      startTime: classData.startTime,
+    });
+
     const fromDate = classData.startDate || new Date();
     const result = await generateSessionsForClass({
       idTenant,
@@ -33,7 +39,7 @@ module.exports = functions
       fromDate,
     });
 
-    functions.logger.info("generateSessionsOnClassCreate", {
+    functions.logger.info("generateSessionsOnClassCreate RESULT", {
       idTenant,
       idBranch,
       idClass,

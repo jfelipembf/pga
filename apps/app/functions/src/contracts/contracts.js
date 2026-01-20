@@ -4,14 +4,14 @@ const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
 const { requireAuthContext } = require("../shared/context");
 const { saveAuditLog } = require("../shared/audit");
+const { getBranchCollectionRef } = require("../shared/references");
 
-const { buildContractPayload } = require("../shared/payloads");
+const { buildContractPayload } = require("./helpers/contracts.payloads");
 
 const db = admin.firestore();
 
-
 const getContractsColl = (idTenant, idBranch) =>
-  db.collection("tenants").doc(idTenant).collection("branches").doc(idBranch).collection("contracts");
+  getBranchCollectionRef(idTenant, idBranch, "contracts");
 
 /**
  * Creates a new Catalog Contract (Product/Plan).

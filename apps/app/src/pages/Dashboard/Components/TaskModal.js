@@ -10,12 +10,20 @@ import { useActiveClientsPool } from "../../../hooks/evaluation/useActiveClients
 
 const TaskModal = ({ isOpen, toggle, onTaskCreated }) => {
     const [description, setDescription] = useState("")
-    const [dueDate, setDueDate] = useState(new Date().toLocaleDateString('en-CA'))
+    const [dueDate, setDueDate] = useState(new Date().toLocaleDateString('en-CA')) // YYYY-MM-DD
     const [selectedStaffs, setSelectedStaffs] = useState([])
     const [selectedClient, setSelectedClient] = useState(null)
     const [searchText, setSearchText] = useState("")
     const [staffOptions, setStaffOptions] = useState([])
     const [isSaving, setIsSaving] = useState(false)
+
+    // Recurrence states
+    const [recurrenceEnabled, setRecurrenceEnabled] = useState(false)
+    const [recurrenceFreq, setRecurrenceFreq] = useState("monthly")
+    const [recurrenceStart, setRecurrenceStart] = useState("")
+    const [endMode, setEndMode] = useState("occurrences") // 'occurrences', 'date', 'infinite'
+    const [endValue, setEndValue] = useState(12)
+
     const toast = useToast()
 
     // Load active clients for search
@@ -64,6 +72,34 @@ const TaskModal = ({ isOpen, toggle, onTaskCreated }) => {
         }
     }, [isOpen, loadStaff])
 
+    // Auto-calculate recurrence start when main date changes
+    useEffect(() => {
+        if (recurrenceEnabled && dueDate) {
+            try {
+                const [y, m, d] = dueDate.split('-').map(Number)
+                const date = new Date(y, m - 1, d) // Create date object correctly
+
+                if (recurrenceFreq === 'daily') {
+                    date.setDate(date.getDate() + 1)
+                } else if (recurrenceFreq === 'yearly') {
+                    date.setFullYear(date.getFullYear() + 1)
+                } else {
+                    // monthly default
+                    date.setMonth(date.getMonth() + 1)
+                }
+
+                // Format safely back to YYYY-MM-DD
+                const newY = date.getFullYear();
+                const newM = String(date.getMonth() + 1).padStart(2, '0');
+                const newD = String(date.getDate()).padStart(2, '0');
+
+                setRecurrenceStart(`${newY}-${newM}-${newD}`)
+            } catch (e) {
+                console.log("Error calculating next date", e)
+            }
+        }
+    }, [dueDate, recurrenceFreq, recurrenceEnabled])
+
     // Custom renderer for Select options
     const formatStaffOption = ({ label, photo }) => (
         <div className="d-flex align-items-center">
@@ -104,7 +140,14 @@ const TaskModal = ({ isOpen, toggle, onTaskCreated }) => {
                 assignedStaffNames: selectedStaffs.map(s => s.label).join(", "),
                 clientName: clientTargetName, // New field for Audit Log
                 clientId: selectedClient?.id, // Optional linkage
-                createdBy: user?.uid
+                createdBy: user?.uid,
+                recurrence: recurrenceEnabled ? {
+                    enabled: true,
+                    frequency: recurrenceFreq,
+                    startDate: recurrenceStart,
+                    endMode,
+                    endValue: endMode === 'infinite' ? null : endValue
+                } : null
             })
 
             toast.show({ title: "Sucesso", description: "Tarefa criada com sucesso", color: "success" })
@@ -112,6 +155,9 @@ const TaskModal = ({ isOpen, toggle, onTaskCreated }) => {
             setSelectedStaffs([])
             setSelectedClient(null)
             setSearchText("")
+            setRecurrenceEnabled(false)
+            setEndMode("occurrences")
+            setEndValue(12)
             onTaskCreated()
             toggle()
         } catch (error) {
@@ -174,15 +220,112 @@ const TaskModal = ({ isOpen, toggle, onTaskCreated }) => {
                             required
                         />
                     </FormGroup>
-                    <FormGroup>
-                        <Label>Data de Entrega</Label>
+
+                    {/* Show simple date ONLY if recurrence is OFF */}
+                    {!recurrenceEnabled && (
+                        <FormGroup>
+                            <Label>Data de Entrega</Label>
+                            <Input
+                                type="date"
+                                value={dueDate}
+                                onChange={(e) => setDueDate(e.target.value)}
+                                required
+                            />
+                        </FormGroup>
+                    )}
+
+                    <FormGroup switch className="my-3">
                         <Input
-                            type="date"
-                            value={dueDate}
-                            onChange={(e) => setDueDate(e.target.value)}
-                            required
+                            type="switch"
+                            id="recurrenceSwitch"
+                            checked={recurrenceEnabled}
+                            onClick={() => setRecurrenceEnabled(!recurrenceEnabled)}
                         />
+                        <Label check for="recurrenceSwitch" className="mb-0 fw-medium">Repetir esta tarefa?</Label>
                     </FormGroup>
+
+                    {recurrenceEnabled && (
+                        <div className="p-3 bg-light border rounded mb-3">
+                            {/* Embedded Start Date */}
+                            <FormGroup>
+                                <Label size="sm">Início da Série (1ª Tarefa)</Label>
+                                <Input
+                                    type="date"
+                                    bsSize="sm"
+                                    value={dueDate}
+                                    onChange={(e) => setDueDate(e.target.value)}
+                                    required
+                                />
+                            </FormGroup>
+
+                            <FormGroup>
+                                <Label size="sm">Frequência</Label>
+                                <Input type="select" bsSize="sm" value={recurrenceFreq} onChange={e => setRecurrenceFreq(e.target.value)}>
+                                    <option value="daily">Diariamente</option>
+                                    <option value="monthly">Mensalmente</option>
+                                    <option value="yearly">Anualmente</option>
+                                </Input>
+                            </FormGroup>
+
+                            <Label size="sm" className="mb-1">Terminar</Label>
+                            <div className="d-grid gap-2">
+                                <FormGroup check className="mb-0">
+                                    <Label check className="small">
+                                        <Input
+                                            type="radio"
+                                            name="endMode"
+                                            checked={endMode === 'infinite'}
+                                            onChange={() => setEndMode('infinite')}
+                                        />{' '}
+                                        Nunca (Recorrência infinita)
+                                    </Label>
+                                </FormGroup>
+
+                                <FormGroup check className="d-flex align-items-center gap-2 mb-0">
+                                    <Label check className="small mb-0 text-nowrap">
+                                        <Input
+                                            type="radio"
+                                            name="endMode"
+                                            checked={endMode === 'occurrences'}
+                                            onChange={() => { setEndMode('occurrences'); setEndValue(12); }}
+                                        />{' '}
+                                        Após
+                                    </Label>
+                                    <Input
+                                        type="number"
+                                        bsSize="sm"
+                                        style={{ width: '60px' }}
+                                        min="1"
+                                        disabled={endMode !== 'occurrences'}
+                                        value={endMode === 'occurrences' ? endValue : 12}
+                                        onChange={e => setEndValue(e.target.value)}
+                                    />
+                                    <span className="small">ocorrências</span>
+                                </FormGroup>
+
+                                <FormGroup check className="d-flex align-items-center gap-2 mb-0">
+                                    <Label check className="small mb-0 text-nowrap">
+                                        <Input
+                                            type="radio"
+                                            name="endMode"
+                                            checked={endMode === 'date'}
+                                            onChange={() => { setEndMode('date'); setEndValue(""); }}
+                                        />{' '}
+                                        Em
+                                    </Label>
+                                    <Input
+                                        type="date"
+                                        bsSize="sm"
+                                        style={{ width: '130px' }}
+                                        disabled={endMode !== 'date'}
+                                        value={endMode === 'date' ? endValue : ""}
+                                        onChange={e => setEndValue(e.target.value)}
+                                    />
+                                </FormGroup>
+                            </div>
+                        </div>
+                    )}
+
                     <FormGroup>
                         <Label>Destinar para</Label>
                         <Select

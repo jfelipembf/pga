@@ -1,4 +1,5 @@
 const admin = require("firebase-admin");
+const { FieldValue } = require("firebase-admin/firestore");
 const db = admin.firestore();
 
 /**
@@ -39,7 +40,7 @@ const applyDelta = async ({ idTenant, idBranch, idClient, activeDelta, pastDelta
             {
                 enrollmentsActiveCount: nextActive,
                 enrollmentsPastCount: nextPast,
-                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                updatedAt: FieldValue.serverTimestamp(),
             },
             { merge: true },
         );

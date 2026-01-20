@@ -331,6 +331,109 @@ const ClientContracts = ({ contracts = [], idClient = null, clientName = "", onR
                   />
                 </FormGroup>
               </Col>
+              <Col md="12">
+                <div className="d-flex align-items-start gap-2 mb-3">
+                  <Input
+                    type="switch"
+                    id="cancelOpenReceivablesCheck"
+                    checked={!!cancelForm.cancelOpenReceivables}
+                    onClick={() => setCancelForm(prev => ({ ...prev, cancelOpenReceivables: !prev.cancelOpenReceivables }))}
+                    onChange={() => { }}
+                    style={{ cursor: 'pointer', transform: 'scale(1.1)', position: 'relative', zIndex: 50 }}
+                  />
+                  <div>
+                    <Label htmlFor="cancelOpenReceivablesCheck" className="fw-semibold mb-0" style={{ cursor: 'pointer' }}>
+                      Cancelar contas a receber (faturas)?
+                    </Label>
+                    <div className="text-muted small">
+                      Cancela cobranças pendentes (saldo devedor) deste contrato.
+                    </div>
+                  </div>
+                </div>
+              </Col>
+
+              <Col md="12">
+                <div className="d-flex align-items-start gap-2 mb-3">
+                  <Input
+                    type="switch"
+                    id="cancelFutureSessionsCheck"
+                    checked={!!cancelForm.cancelFutureSessions}
+                    onClick={() => setCancelForm(prev => ({ ...prev, cancelFutureSessions: !prev.cancelFutureSessions }))}
+                    onChange={() => { }}
+                    style={{ cursor: 'pointer', transform: 'scale(1.1)', position: 'relative', zIndex: 50 }}
+                  />
+                  <div>
+                    <Label htmlFor="cancelFutureSessionsCheck" className="fw-semibold mb-0" style={{ cursor: 'pointer' }}>
+                      Remover aulas futuras?
+                    </Label>
+                    <div className="text-muted small">
+                      Remove o aluno das listas de presença.
+                    </div>
+                  </div>
+                </div>
+              </Col>
+
+              <Col md="12" className="mt-3">
+                <div className="border p-3 rounded bg-light">
+                  <h6 className="mb-3 text-primary">Acerto Financeiro</h6>
+
+                  <div className="mb-3">
+                    <div className="d-flex align-items-center gap-2">
+                      <Input
+                        type="switch"
+                        id="generateCreditCheck"
+                        checked={!!cancelForm.generateCredit}
+                        onClick={() => setCancelForm(prev => ({ ...prev, generateCredit: !prev.generateCredit }))}
+                        onChange={() => { }}
+                        style={{ cursor: 'pointer', transform: 'scale(1.1)', position: 'relative', zIndex: 50 }}
+                      />
+                      <Label htmlFor="generateCreditCheck" className="fw-semibold mb-0" style={{ cursor: 'pointer' }}>
+                        Gerar crédito?
+                      </Label>
+                    </div>
+                    {cancelForm.generateCredit && (
+                      <div className="mt-2 ps-4" style={{ maxWidth: '200px' }}>
+                        <Label size="sm">Valor do Crédito (R$)</Label>
+                        <Input
+                          type="number"
+                          bsSize="sm"
+                          value={cancelForm.creditAmount}
+                          onChange={e => setCancelForm(prev => ({ ...prev, creditAmount: e.target.value }))}
+                          placeholder="0,00"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <div className="d-flex align-items-center gap-2">
+                      <Input
+                        type="switch"
+                        id="applyFineCheck"
+                        checked={!!cancelForm.applyFine}
+                        onClick={() => setCancelForm(prev => ({ ...prev, applyFine: !prev.applyFine }))}
+                        onChange={() => { }}
+                        style={{ cursor: 'pointer', transform: 'scale(1.1)', position: 'relative', zIndex: 50 }}
+                      />
+                      <Label htmlFor="applyFineCheck" className="fw-semibold mb-0" style={{ cursor: 'pointer' }}>
+                        Aplicar multa?
+                      </Label>
+                    </div>
+                    {cancelForm.applyFine && (
+                      <div className="mt-2 ps-4" style={{ maxWidth: '200px' }}>
+                        <Label size="sm">Valor da Multa (R$)</Label>
+                        <Input
+                          type="number"
+                          bsSize="sm"
+                          value={cancelForm.fineAmount}
+                          onChange={e => setCancelForm(prev => ({ ...prev, fineAmount: e.target.value }))}
+                          placeholder="0,00"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Col>
             </Row>
             <div className="d-flex justify-content-end">
               <ButtonLoader color="primary" size="sm" type="submit" loading={isLoading('cancel')}>

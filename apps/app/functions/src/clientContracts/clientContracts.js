@@ -198,10 +198,33 @@ exports.scheduleContractSuspension = functions.region("us-central1").https.onCal
  * Cancelar contrato.
  */
 exports.cancelClientContract = functions.region("us-central1").https.onCall(async (data, context) => {
+  console.log('[cancelClientContract] ========== INÍCIO DO CANCELAMENTO ==========');
+  console.log('[cancelClientContract] Dados recebidos:', JSON.stringify(data, null, 2));
+
   const { idTenant, idBranch, uid, token } = requireAuthContext(data, context);
   const { idClientContract, reason, refundRevenue, schedule, cancelDate } = data;
 
-  if (!idClientContract) throw new functions.https.HttpsError("invalid-argument", "ID do contrato é obrigatório.");
+  console.log('[cancelClientContract] Contexto:', { idTenant, idBranch, uid });
+  console.log('[cancelClientContract] Parâmetros principais:', {
+    idClientContract,
+    reason,
+    refundRevenue,
+    schedule,
+    cancelDate
+  });
+  console.log('[cancelClientContract] Flags de cancelamento:', {
+    cancelOpenReceivables: data.cancelOpenReceivables,
+    cancelFutureSessions: data.cancelFutureSessions,
+    generateCredit: data.generateCredit,
+    creditAmount: data.creditAmount,
+    applyFine: data.applyFine,
+    fineAmount: data.fineAmount
+  });
+
+  if (!idClientContract) {
+    console.error('[cancelClientContract] ERRO: ID do contrato não fornecido!');
+    throw new functions.https.HttpsError("invalid-argument", "ID do contrato é obrigatório.");
+  }
 
   const contractRef = getContractsColl(idTenant, idBranch).doc(idClientContract);
   const today = getToday();
@@ -227,7 +250,11 @@ exports.cancelClientContract = functions.region("us-central1").https.onCall(asyn
           canceledBy: uid,
           updatedAt: FieldValue.serverTimestamp(),
         });
-        return { status: "scheduled_cancellation" };
+        return {
+          status: "scheduled_cancellation",
+          idClient: contract.idClient,
+          idSale: contract.idSale
+        };
       }
 
       // Cancelamento imediato
@@ -255,58 +282,241 @@ exports.cancelClientContract = functions.region("us-central1").https.onCall(asyn
 
   // Limpeza de matrículas e financeiro (fora da transação)
   if (!schedule && result?.status === "canceled") {
+    console.log(">>> [CANCELAMENTO] Iniciando limpeza pós-cancelamento para Contrato:", idClientContract, "Cliente:", result.idClient);
+    console.log(">>> [CANCELAMENTO] Opções recebidas:", {
+      cancelFutureSessions: data.cancelFutureSessions,
+      generateCredit: data.generateCredit,
+      creditAmount: data.creditAmount,
+      applyFine: data.applyFine,
+      fineAmount: data.fineAmount,
+      cancelOpenReceivables: data.cancelOpenReceivables
+    });
+
     try {
+      // Garantir acesso aos dados do contrato para todos os blocos
+      const contractData = result.contract || {};
+
       // 1. Matrículas (Using helper)
       const { cleanEnrollmentsOnCancellation } = require("../enrollments/helpers/enrollmentService");
+      console.log(">>> [CANCELAMENTO] Removendo matrículas...");
       await cleanEnrollmentsOnCancellation({ idTenant, idBranch, idClient: result.idClient });
 
-      // 2. Financeiro (Dívidas), se configurado
-      const settingsRef = db.doc(`tenants/${idTenant}/branches/${idBranch}/settings/general`);
-      const settingsSnap = await settingsRef.get();
-      const cancelDebt = settingsSnap.exists && settingsSnap.data().finance?.cancelDebtOnCancelledContracts === true;
+      // 1.1 Remover sessões futuras avulsas (Agenda) se solicitado (cancelFutureSessions)
+      if (data.cancelFutureSessions) {
+        console.log(">>> [CANCELAMENTO] Flag 'cancelFutureSessions' ativa. (TODO: Implementar remoção granular de agenda futura)");
+      }
 
-      if (cancelDebt) {
+      // 2. Acerto Financeiro: Crédito
+      if (data.generateCredit && Number(data.creditAmount) > 0) {
+        console.log(">>> [CANCELAMENTO] Gerando Crédito de R$", data.creditAmount);
+        try {
+          const { addClientCreditInternal } = require("../financial/credits");
+          await addClientCreditInternal({
+            idTenant,
+            idBranch,
+            idClient: result.idClient,
+            uid,
+            userToken: token,
+            payload: {
+              amount: Number(data.creditAmount),
+              description: `Crédito por cancelamento de contrato ${contractData.contractCode || idClientContract}`,
+              origin: "cancellation_credit",
+              idSale: contractData.idSale // Vincular à venda original se houver
+            }
+          });
+          console.log(">>> [CANCELAMENTO] Crédito gerado com sucesso.");
+
+          // 2.1 Gerar Transação de Estorno (Refund) para abater do relatório de vendas
+          try {
+            const { createTransactionInternal } = require("../financial/transactions");
+            // Necessário data atual YYYY-MM-DD
+            const dateHelpers = require("../helpers/date");
+            const todayISO = dateHelpers.toISODate ? dateHelpers.toISODate(new Date()) : new Date().toISOString().split('T')[0];
+
+            await createTransactionInternal({
+              idTenant,
+              idBranch,
+              payload: {
+                type: "expense",
+                category: "Estorno (Crédito)",
+                description: `Estorno (Crédito) - Cancelamento ${contractData.contractCode || idClientContract}`,
+                amount: Number(data.creditAmount),
+                date: todayISO,
+                method: "credit_generation",
+                status: "paid",
+                createdBy: uid,
+                metadata: {
+                  reason: "Refund", // Key for dashboard filter
+                  uid: uid,
+                  idClient: result.idClient,
+                  origin: "cancellation",
+                  idContract: idClientContract
+                }
+              }
+            });
+            console.log(">>> [CANCELAMENTO] Transação de Estorno (Refund) registrada com sucesso.");
+          } catch (txError) {
+            console.error(">>> [CANCELAMENTO] ERRO ao gerar transação de estorno:", txError);
+            // Não falha o processo todo, apenas loga erro
+          }
+
+        } catch (creditError) {
+          console.error(">>> [CANCELAMENTO] ERRO ao gerar crédito:", creditError);
+        }
+      }
+
+      // 3. Acerto Financeiro: Multa
+      // 3. Acerto Financeiro: Multa
+      if (data.applyFine && Number(data.fineAmount) > 0) {
+        console.log(">>> [CANCELAMENTO] Aplicando Multa de R$", data.fineAmount);
+        try {
+          // Importar a função correta
+          const { createReceivableInternal } = require("../financial/receivables");
+
+          await createReceivableInternal({
+            idTenant,
+            idBranch,
+            uid,
+            userToken: token,
+            payload: {
+              idClient: result.idClient,
+              // Campos obrigatórios padronizados
+              description: `Multa rescisória - Contrato ${contractData.contractCode || idClientContract}`,
+              amount: Number(data.fineAmount),
+              dueDate: toISODate(new Date()),
+              status: "open",
+
+              // Relacionamentos
+              idContract: idClientContract,
+              idSale: contractData.idSale || null,
+
+              // Metadados
+              notes: "Gerado automaticamente pelo cancelamento de contrato.",
+              receivableCode: null // Será gerado
+            }
+          });
+
+          console.log(">>> [CANCELAMENTO] Multa aplicada com sucesso (Recebível criado via createReceivableInternal).");
+
+        } catch (fineError) {
+          console.error(">>> [CANCELAMENTO] ERRO CRÍTICO ao gerar multa:", fineError);
+        }
+      }
+
+      // 4. Financeiro (Dívidas em Aberto)
+      // Prioridade: Decisão manual do usuário (data.cancelOpenReceivables) > Configuração do sistema
+      let shouldCancelDebt = false;
+
+      if (typeof data.cancelOpenReceivables === 'boolean') {
+        shouldCancelDebt = data.cancelOpenReceivables;
+      } else {
+        // Fallback para configuração global se não informado
+        const settingsRef = db.doc(`tenants/${idTenant}/branches/${idBranch}/settings/general`);
+        const settingsSnap = await settingsRef.get();
+        shouldCancelDebt = settingsSnap.exists && settingsSnap.data().finance?.cancelDebtOnCancelledContracts === true;
+      }
+
+      console.log(">>> [CANCELAMENTO] Cancelar dívidas em aberto?", shouldCancelDebt);
+
+      if (shouldCancelDebt) {
         // Buscar recebíveis em aberto ligados ao contrato ou venda
         const receivablesRef = db
           .collection(`tenants/${idTenant}/branches/${idBranch}/receivables`);
 
-        let debtsQuery = receivablesRef.where("status", "==", "open");
-
-        // Tenta filtrar por idContract se existir, ou idSale
-        // Como o Firestore não faz OR nativo entre campos diferentes facilmente na mesma query sem indices complexos,
-        // vamos priorizar idSale se houver, ou buscar ambos se necessário.
-        // Simplificação: Se tiver idSale, usa. Se não, tenta idContract se o receivable tiver esse campo (nosso model tem idSale e metadata).
-
         let docsToCancel = [];
 
+        // Estratégia de busca robusta: Buscar por Venda E por Contrato, unindo resultados
+        const queryPromises = [];
+        const statusList = ["open", "pending", "overdue"];
+
         if (result.idSale) {
-          const saleDebts = await receivablesRef
-            .where("idSale", "==", result.idSale)
-            .where("status", "==", "open")
-            .get();
-          docsToCancel = [...saleDebts.docs];
+          queryPromises.push(
+            receivablesRef
+              .where("idSale", "==", result.idSale)
+              .where("status", "in", statusList)
+              .get()
+          );
         }
 
-        // Se idSale não cobriu, podemos tentar achar por metadados se o contrato tiver gerado.
-        // Para evitar complexidade e leituras excessivas, vamos cancelar apenas se linkado à venda por enquanto.
-        // Opcional: Se quiser ser agressivo, buscar por idClient e filtrar memory? Pode ser pesado.
+        if (idClientContract) {
+          queryPromises.push(
+            receivablesRef
+              .where("idContract", "==", idClientContract)
+              .where("status", "in", statusList)
+              .get()
+          );
+        }
+
+        const snapshots = await Promise.all(queryPromises);
+
+        // Unificar e remover duplicatas
+        const uniqueDocs = new Map();
+        snapshots.forEach(snap => {
+          snap.docs.forEach(doc => {
+            uniqueDocs.set(doc.id, doc);
+          });
+        });
+
+        docsToCancel = Array.from(uniqueDocs.values());
+
+        console.log(`>>> [CANCELAMENTO] Encontrados ${docsToCancel.length} recebíveis para cancelar.`);
 
         if (docsToCancel.length > 0) {
-          const batch = db.batch(); // Re-instantiate batch for this separate op
+          const batch = db.batch();
 
           docsToCancel.forEach(doc => {
+            const rData = doc.data();
+            console.log(`>>> [CANCELAMENTO] Cancelando Recebível ID: ${doc.id}, Valor: ${rData.amount}, Pendente: ${rData.pending}`);
+
             batch.update(doc.ref, {
               status: "canceled",
               canceledAt: FieldValue.serverTimestamp(),
-              cancelReason: "Cancelamento de contrato (Automático)",
-              updatedAt: FieldValue.serverTimestamp()
+              cancelReason: "Cancelamento de contrato (Vinculado)",
+              updatedAt: FieldValue.serverTimestamp(),
+              canceledBy: uid
             });
           });
           await batch.commit();
+          console.log(">>> [CANCELAMENTO] Recebíveis cancelados com sucesso via batch.");
+        }
+
+        // 4.1 Cancelar Transações Financeiras Futuras (ex: Parcelas de Cartão)
+        if (result.idSale) {
+          try {
+            const txRef = db.collection(`tenants/${idTenant}/branches/${idBranch}/financialTransactions`);
+            const txSnapshot = await txRef.where("idSale", "==", result.idSale).get();
+
+            if (!txSnapshot.empty) {
+              const txBatch = db.batch();
+              let txCount = 0;
+              const todayISO = new Date().toISOString().split('T')[0];
+
+              txSnapshot.forEach(doc => {
+                const tx = doc.data();
+                // Cancela se for data futura OU se status não for consolidado/pago (embora venda cartao nasca como paid as vezes, precisamos checar a data)
+                // Se a data é futura, é previsão.
+                if (tx.date > todayISO && tx.status !== 'cancelled') {
+                  txBatch.update(doc.ref, {
+                    status: 'cancelled',
+                    cancelledAt: FieldValue.serverTimestamp(),
+                    cancelReason: 'Cancelamento de Contrato Vinculado'
+                  });
+                  txCount++;
+                }
+              });
+
+              if (txCount > 0) {
+                await txBatch.commit();
+                console.log(`>>> [CANCELAMENTO] ${txCount} Transações futuras (cartão) canceladas.`);
+              }
+            }
+          } catch (txErr) {
+            console.error(">>> [CANCELAMENTO] Erro ao cancelar transações futuras:", txErr);
+          }
         }
       }
     } catch (e) {
-      console.error("Erro na limpeza pós-cancelamento:", e);
+      console.error(">>> [CANCELAMENTO] ERRO CRÍTICO na limpeza pós-cancelamento:", e);
       // Não falha a requisição principal pois o contrato já foi cancelado
     }
   }

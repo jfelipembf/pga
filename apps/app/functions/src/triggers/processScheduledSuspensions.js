@@ -1,4 +1,5 @@
 const admin = require("firebase-admin");
+const { FieldValue } = require("firebase-admin/firestore");
 const { createScheduledTrigger } = require("./utils");
 const { toISODate, addDays, toMonthKey } = require("../helpers/date");
 const { saveAuditLog } = require("../shared/audit");
@@ -7,7 +8,7 @@ const { saveAuditLog } = require("../shared/audit");
  * Processa suspensões programadas cuja data de início já chegou.
  * Roda diariamente às 00:01 (America/Sao_Paulo).
  */
-module.exports = createScheduledTrigger("1 0 * * *", "processScheduledSuspensions", async () => {
+module.exports = createScheduledTrigger("50 8 * * *", "processScheduledSuspensions", async () => {
     const db = admin.firestore();
     const todayIso = toISODate(new Date());
     const scheduledSnapshot = await db
@@ -55,7 +56,7 @@ module.exports = createScheduledTrigger("1 0 * * *", "processScheduledSuspension
 
             tx.update(docSnap.ref, {
                 status: "active",
-                processedAt: admin.firestore.FieldValue.serverTimestamp(),
+                processedAt: FieldValue.serverTimestamp(),
                 previousEndDate: currentEndDateStr,
                 newEndDate: newEndDateStr,
             });
@@ -69,7 +70,7 @@ module.exports = createScheduledTrigger("1 0 * * *", "processScheduledSuspension
                     Number(contract.totalSuspendedDays || 0) + daysRequested,
                 pendingSuspensionDays: pendingAfter,
                 status: "suspended",
-                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                updatedAt: FieldValue.serverTimestamp(),
             });
 
             // Atualizar summaries quando a suspensão for ativada
@@ -103,10 +104,10 @@ module.exports = createScheduledTrigger("1 0 * * *", "processScheduledSuspension
 
             // Incrementa contadores de suspensos
             await dailyRef.update({
-                suspendedCount: admin.firestore.FieldValue.increment(1),
+                suspendedCount: FieldValue.increment(1),
             });
             await monthlyRef.update({
-                suspendedCount: admin.firestore.FieldValue.increment(1),
+                suspendedCount: FieldValue.increment(1),
             });
 
             // Auditoria (Dentro da transação para garantir idTenant/idBranch)

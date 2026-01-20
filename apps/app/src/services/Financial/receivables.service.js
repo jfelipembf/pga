@@ -59,6 +59,14 @@ export const markReceivablePaid = async (idReceivable, receivingDate) => {
   })
 }
 
+export const cancelReceivable = async (idReceivable, reason = "Cancelamento manual") => {
+  return updateReceivable(idReceivable, {
+    status: "canceled",
+    cancelReason: reason,
+    canceledAt: new Date().toISOString()
+  })
+}
+
 export const deleteReceivable = async idReceivable => {
   const functions = requireFunctions()
   const { idTenant, idBranch } = getContext()

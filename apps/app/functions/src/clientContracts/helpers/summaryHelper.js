@@ -1,6 +1,6 @@
 const admin = require("firebase-admin");
 const db = admin.firestore();
-const FieldValue = admin.firestore.FieldValue;
+const { FieldValue } = require("firebase-admin/firestore");
 const { toMonthKey } = require("../../helpers/date");
 
 /**

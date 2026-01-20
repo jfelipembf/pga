@@ -5,8 +5,7 @@ import { getStatusColor, getStatusLabel } from "../../../helpers/status"
 import { useToast } from "../../../components/Common/ToastProvider"
 import ButtonLoader from "../../../components/Common/ButtonLoader"
 import { useLoading } from "../../../hooks/useLoading"
-import { payReceivables } from "../../../services/Receivables"
-import { listReceivablesByClient } from "../../../services/Receivables"
+import { payReceivables, listReceivablesByClient } from "../../../services/Financial"
 import { listAcquirers } from "../../../services/Acquirers"
 import { BRAND_OPTIONS } from "../../Financial/Acquirers/Constants/acquirersDefaults"
 
@@ -62,13 +61,14 @@ const ClientFinancial = ({ financial = [], idClient, clientName, onRefresh }) =>
 
   const loadReceivables = React.useCallback(async () => {
     try {
-      const data = await listReceivablesByClient(idClient, { status: 'open' })
-      setReceivables(data)
+      const data = await listReceivablesByClient(idClient, { status: 'open' });
+      console.log('[ClientFinancial] Loaded receivables:', data);
+      setReceivables(data);
     } catch (error) {
-      console.error("Erro ao carregar receivables:", error)
-      toast.show({ title: "Erro ao carregar débitos", color: "danger" })
+      console.error("Erro ao carregar receivables:", error);
+      toast.show({ title: "Erro ao carregar débitos", color: "danger" });
     }
-  }, [idClient, toast])
+  }, [idClient, toast]);
 
   useEffect(() => {
     loadAcquirers()
@@ -83,34 +83,50 @@ const ClientFinancial = ({ financial = [], idClient, clientName, onRefresh }) =>
   }, [paymentModal, idClient, totalPending, loadReceivables])
 
   const handlePayment = async () => {
-    if (!idClient) return
+    if (!idClient) {
+      toast.show({
+        title: "Erro",
+        description: "ID do cliente não encontrado",
+        color: "danger"
+      });
+      return;
+    }
 
-    const paymentAmount = paymentForm.amount || totalPending
+    const paymentAmount = paymentForm.amount || totalPending;
+
+    if (paymentAmount <= 0) {
+      toast.show({
+        title: "Erro",
+        description: "Valor do pagamento deve ser maior que zero",
+        color: "danger"
+      });
+      return;
+    }
 
     try {
       await withLoading('pay', async () => {
-        await payReceivables({
+        const result = await payReceivables({
           idClient,
-          clientName, // Added
+          clientName,
           amount: paymentAmount,
           paymentMethod: paymentForm.method,
           paymentDate: paymentForm.date,
           // Card-specific fields
-          authorization: paymentForm.authorization,
-          acquirer: paymentForm.acquirer,
-          brand: paymentForm.brand,
-          installments: paymentForm.installments,
+          authorization: paymentForm.authorization || undefined,
+          acquirer: paymentForm.acquirer || undefined,
+          brand: paymentForm.brand || undefined,
+          installments: paymentForm.installments || 1,
           // Partial payment
-          nextDueDate: paymentForm.nextDueDate,
-        })
+          nextDueDate: paymentForm.nextDueDate || undefined,
+        });
 
         toast.show({
           title: "Pagamento realizado",
-          description: `${formatCurrency(paymentAmount)} pago com sucesso`,
+          description: `${formatCurrency(result.totalPaid || paymentAmount)} pago com sucesso`,
           color: "success"
-        })
+        });
 
-        setPaymentModal(false)
+        setPaymentModal(false);
         setPaymentForm({
           method: 'pix',
           amount: 0,
@@ -120,19 +136,21 @@ const ClientFinancial = ({ financial = [], idClient, clientName, onRefresh }) =>
           brand: '',
           installments: 1,
           nextDueDate: ''
-        })
+        });
 
-        if (onRefresh) onRefresh()
-      })
+        // Refresh data
+        if (onRefresh) await onRefresh();
+        await loadReceivables();
+      });
     } catch (error) {
-      console.error("Erro ao processar pagamento:", error)
+      console.error("Erro ao processar pagamento:", error);
       toast.show({
         title: "Erro ao processar pagamento",
         description: error.message || "Tente novamente",
         color: "danger"
-      })
+      });
     }
-  }
+  };
 
   // Inline functions formatCurrency and renderMethod removed
 

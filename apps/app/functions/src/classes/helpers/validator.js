@@ -1,18 +1,18 @@
 const functions = require("firebase-functions/v1");
+const { getBranchCollectionRef } = require("../../shared/references");
 
 /**
  * Valida se os novos dias da semana são permitidos pelos contratos dos alunos matriculados.
  * @param {object} params
- * @param {admin.firestore.Firestore} params.db
  * @param {string} params.idTenant
  * @param {string} params.idBranch
  * @param {string} params.idClass
  * @param {number[]} params.newDays - Array de dias da semana (0-6)
  * @returns {Promise<void>} - Lança erro se inválido
  */
-const validateClassDaysAgainstContracts = async ({ db, idTenant, idBranch, idClass, newDays }) => {
-    const enrollmentsCol = db.collection("tenants").doc(idTenant).collection("branches").doc(idBranch).collection("enrollments");
-    const clientsContractsCol = db.collection("tenants").doc(idTenant).collection("branches").doc(idBranch).collection("clientsContracts");
+const validateClassDaysAgainstContracts = async ({ idTenant, idBranch, idClass, newDays }) => {
+    const enrollmentsCol = getBranchCollectionRef(idTenant, idBranch, "enrollments");
+    const clientsContractsCol = getBranchCollectionRef(idTenant, idBranch, "clientsContracts");
 
     // 1. Buscar matrículas ativas
     const activeEnrollmentsSnap = await enrollmentsCol
@@ -61,4 +61,49 @@ const validateClassDaysAgainstContracts = async ({ db, idTenant, idBranch, idCla
     }
 };
 
-module.exports = { validateClassDaysAgainstContracts };
+const { toISODate } = require("../../helpers/date");
+
+/**
+ * Valida se definir um endDate causaria conflitos com matrículas recorrentes ativas.
+ * @param {object} params
+ * @param {string} params.idTenant
+ * @param {string} params.idBranch
+ * @param {string} params.idClass
+ * @param {string} params.endDate - YYYY-MM-DD
+ * @returns {Promise<void>} - Lança erro se inválido
+ */
+const validateEndDateConflicts = async ({ idTenant, idBranch, idClass, endDate }) => {
+    const limitIso = toISODate(endDate);
+    if (!limitIso) return; // Se data inválida, ignorar validação (outros checks pegam dps)
+
+    const enrollmentsCol = getBranchCollectionRef(idTenant, idBranch, "enrollments");
+
+    const enrollmentsSnap = await enrollmentsCol
+        .where("idClass", "==", idClass)
+        .where("status", "==", "active")
+        .get();
+
+    if (enrollmentsSnap.empty) return;
+
+    const conflictingEnrollments = [];
+
+    enrollmentsSnap.docs.forEach(d => {
+        const enr = d.data();
+        if (enr.type === "recurring") {
+            const enrEnd = enr.endDate;
+            // Se o aluno não tem data fim OU tem data fim posterior à nova data da turma
+            if (!enrEnd || enrEnd > limitIso) {
+                conflictingEnrollments.push(enr);
+            }
+        }
+    });
+
+    if (conflictingEnrollments.length > 0) {
+        throw new functions.https.HttpsError(
+            "failed-precondition",
+            `Não é possível salvar. Esta data final deixaria ${conflictingEnrollments.length} alunos sem aula. Remova ou transfira os alunos antes de encerrar a turma.`
+        );
+    }
+};
+
+module.exports = { validateClassDaysAgainstContracts, validateEndDateConflicts };

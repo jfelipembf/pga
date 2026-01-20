@@ -3,7 +3,7 @@ import { Badge, UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem
 import BasicTable from "../../../../components/Common/BasicTable"
 import { RECEIVABLE_STATUS_COLORS, RECEIVABLE_STATUS_LABELS } from "../Constants/receivablesConstants"
 
-const ReceivablesTable = ({ data, loading }) => {
+const ReceivablesTable = ({ data, loading, onCancel }) => {
     const columns = [
         {
             label: "Status",
@@ -74,7 +74,7 @@ const ReceivablesTable = ({ data, loading }) => {
                                     <i className="bx bx-pencil me-1"></i> Editar
                                 </DropdownItem>
                                 <DropdownItem divider />
-                                <DropdownItem onClick={() => console.log("Cancelar", row.id)} className="text-danger">
+                                <DropdownItem onClick={() => onCancel && onCancel(row.id)} className="text-danger">
                                     <i className="bx bx-trash me-1"></i> Cancelar
                                 </DropdownItem>
                             </>

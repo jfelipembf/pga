@@ -1,6 +1,20 @@
 {
   "indexes": [
     {
+      "collectionGroup": "cashierSessions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "idStaff",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "openedAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "sales",
       "queryScope": "COLLECTION",
       "fields": [

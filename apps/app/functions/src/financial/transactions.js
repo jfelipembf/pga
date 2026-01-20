@@ -3,7 +3,7 @@ const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
 const { requireAuthContext } = require("../shared/context");
 const { generateEntityId } = require("../shared/id");
-const { buildTransactionPayload } = require("../shared/payloads"); // Import added
+const { buildTransactionPayload } = require("./helpers/financial.payloads");
 const { toISODate } = require("../helpers/date");
 const { saveAuditLog } = require("../shared/audit");
 
@@ -108,17 +108,18 @@ exports.addExpense = functions.region("us-central1").https.onCall(async (data, c
     );
   }
 
-  // Verificar se o caixa está aberto
+  // Verificar se o caixa está aberto PARA O USUÁRIO
   const sessionsRef = getSessionsColl(idTenant, idBranch);
   const openSnapshot = await sessionsRef
     .where("status", "==", "open")
+    .where("idStaff", "==", uid)
     .limit(1)
     .get();
 
   if (openSnapshot.empty) {
     throw new functions.https.HttpsError(
       "failed-precondition",
-      "Não há caixa aberto para registrar despesa.",
+      "Você precisa ter um caixa aberto para registrar despesas.",
     );
   }
 

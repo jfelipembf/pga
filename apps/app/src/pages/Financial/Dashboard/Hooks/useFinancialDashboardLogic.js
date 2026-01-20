@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { useLoading } from "../../../../hooks/useLoading"
 import { getAuthBranchContext, getMonthlySummary } from "../../../../services/Summary/index"
-import { listFinancialTransactions } from "../../../../services/Financial/index"
+import { listReceivables, listFinancialTransactions } from "../../../../services/Financial/index"
 import { formatCurrency, formatDelta } from "../../../Dashboard/Utils/dashboardUtils"
 
 export const useFinancialDashboardLogic = () => {
@@ -74,24 +74,43 @@ export const useFinancialDashboardLogic = () => {
 
                 // 2. Fetch Forecast (Future Receivables)
                 // Next 6 months
-                const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1)
-                const sixMonthsLater = new Date(today.getFullYear(), today.getMonth() + 7, 0)
+                // Next 6 months (including current month remaining)
+                const startDate = new Date(today)
+                const endDate = new Date(today.getFullYear(), today.getMonth() + 7, 0)
 
-                const futureTxs = await listFinancialTransactions({
-                    dateRange: {
-                        start: nextMonth.toISOString().slice(0, 10),
-                        end: sixMonthsLater.toISOString().slice(0, 10)
-                    },
-                    type: 'sale',
-                    limit: 1000
+                const futureReceivables = await listReceivables({
+                    startDate: startDate,
+                    endDate: endDate,
+                    status: 'open'
                 })
 
-                // Aggregate by month
+                const futureTransactions = await listFinancialTransactions({
+                    dateRange: {
+                        start: startDate.toISOString().split('T')[0],
+                        end: endDate.toISOString().split('T')[0]
+                    },
+                    type: 'sale',
+                    limit: 2000
+                })
+
+                // Aggregate by month using dueDate/date
                 const forecastMap = {}
-                futureTxs.forEach(tx => {
-                    if (!tx.date) return
-                    const mId = tx.date.slice(0, 7)
-                    forecastMap[mId] = (forecastMap[mId] || 0) + Number(tx.amount || 0)
+
+                const processItem = (dateStr, val) => {
+                    if (!dateStr) return
+                    const mId = dateStr.slice(0, 7) // YYYY-MM
+                    forecastMap[mId] = (forecastMap[mId] || 0) + Number(val || 0)
+                }
+
+                futureReceivables.forEach(rcv => {
+                    const val = (rcv.pending !== undefined && rcv.pending !== null) ? rcv.pending : rcv.amount
+                    processItem(rcv.dueDate, val)
+                })
+
+                futureTransactions.forEach(tx => {
+                    // Ignore cancelled transactions
+                    if (tx.status === 'cancelled' || tx.status === 'canceled') return
+                    processItem(tx.date, tx.amount)
                 })
 
                 const forecastList = Object.keys(forecastMap).sort().map(mId => {

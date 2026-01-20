@@ -1,5 +1,6 @@
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
+const { FieldValue } = require("firebase-admin/firestore");
 const { analyzeExpense } = require("../helpers/gemini.service");
 const { sendWhatsAppMessageInternal } = require("../../notifications/whatsapp");
 const { generateEntityId } = require("../../shared/id");
@@ -102,7 +103,7 @@ exports.financialWebhook = functions.region("us-central1").https.onRequest(async
                 // Confirma a última despesa pendente
                 await pendingQuery.docs[0].ref.update({
                     status: "paid",
-                    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                    updatedAt: FieldValue.serverTimestamp()
                 });
                 await sendWhatsAppMessageInternal(idTenant, idBranch, sender, "✅ *Confirmado!* Despesa lançada.", "evolution_financial");
                 return res.status(200).send("Expense Confirmed");
@@ -140,7 +141,7 @@ exports.financialWebhook = functions.region("us-central1").https.onRequest(async
             method: "outros",
             status: "pending",
             source: "whatsapp_bot",
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            createdAt: FieldValue.serverTimestamp(),
             createdBy: "bot",
             // Helper para auditoria
             metadata: {

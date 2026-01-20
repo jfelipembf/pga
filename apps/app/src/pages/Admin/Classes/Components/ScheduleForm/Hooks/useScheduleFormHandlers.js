@@ -8,9 +8,10 @@ export const useScheduleFormHandlers = ({
   setFieldValue,
 }) => {
   const currentWeekdays = React.useMemo(() => {
-    if (!Array.isArray(values.weekDays)) return []
-    return values.weekDays
-  }, [values.weekDays])
+    if (Array.isArray(values.weekDays) && values.weekDays.length > 0) return values.weekDays
+    if (values.weekday !== undefined && values.weekday !== null) return [Number(values.weekday)]
+    return []
+  }, [values.weekDays, values.weekday])
 
   const handleStartTimeChange = (e) => {
     const nextStartTime = String(e?.target?.value || "")

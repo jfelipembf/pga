@@ -1,4 +1,5 @@
 const admin = require("firebase-admin");
+const { FieldValue } = require("firebase-admin/firestore");
 const { createScheduledTrigger } = require("./utils");
 const { toISODate, addDays } = require("../helpers/date");
 
@@ -6,7 +7,7 @@ const { toISODate, addDays } = require("../helpers/date");
  * Rotina diária para cancelar contratos com inadimplência superior ao configurado.
  * Frequência: Diariamente às 01:00 AM (Brasília).
  */
-module.exports = createScheduledTrigger("0 1 * * *", "processContractDefaultCancellation", async () => {
+module.exports = createScheduledTrigger("50 8 * * *", "processContractDefaultCancellation", async () => {
     const db = admin.firestore();
 
     try {
@@ -61,8 +62,8 @@ module.exports = createScheduledTrigger("0 1 * * *", "processContractDefaultCanc
                         batch.update(c.ref, {
                             status: "canceled",
                             cancelReason: `Inadimplência automática (> ${cancelDays} dias)`,
-                            canceledAt: admin.firestore.FieldValue.serverTimestamp(),
-                            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                            canceledAt: FieldValue.serverTimestamp(),
+                            updatedAt: FieldValue.serverTimestamp(),
                             canceledBy: "system"
                         });
                         batchCount++;

@@ -1,7 +1,9 @@
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
+const { FieldValue } = require("firebase-admin/firestore");
 const db = admin.firestore();
 const { saveAuditLog } = require("../shared/audit");
+const { getBranchCollectionRef } = require("../shared/references");
 
 /**
  * Cria um evento.
@@ -23,20 +25,15 @@ exports.createEvent = functions
       throw new functions.https.HttpsError("invalid-argument", "eventData é obrigatório");
     }
 
-    const eventsCol = db
-      .collection("tenants")
-      .doc(idTenant)
-      .collection("branches")
-      .doc(idBranch)
-      .collection("events");
+    const eventsCol = getBranchCollectionRef(idTenant, idBranch, "events");
     const eventRef = id ? eventsCol.doc(id) : eventsCol.doc();
 
     const payload = {
       ...eventData,
       idTenant,
       idBranch,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     };
 
     await eventRef.set(payload, { merge: true });
@@ -78,17 +75,11 @@ exports.updateEvent = functions
       throw new functions.https.HttpsError("invalid-argument", "eventData é obrigatório");
     }
 
-    const eventRef = db
-      .collection("tenants")
-      .doc(idTenant)
-      .collection("branches")
-      .doc(idBranch)
-      .collection("events")
-      .doc(id);
+    const eventRef = getBranchCollectionRef(idTenant, idBranch, "events", id);
 
     const payload = {
       ...eventData,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     };
 
     await eventRef.update(payload);
@@ -126,13 +117,7 @@ exports.deleteEvent = functions
       throw new functions.https.HttpsError("invalid-argument", "id do evento é obrigatório");
     }
 
-    const eventRef = db
-      .collection("tenants")
-      .doc(idTenant)
-      .collection("branches")
-      .doc(idBranch)
-      .collection("events")
-      .doc(id);
+    const eventRef = getBranchCollectionRef(idTenant, idBranch, "events", id);
     await eventRef.delete();
 
     // Auditoria
@@ -146,3 +131,4 @@ exports.deleteEvent = functions
 
     return { success: true };
   });
+

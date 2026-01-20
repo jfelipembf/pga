@@ -3,7 +3,7 @@ const db = admin.firestore();
 const { FieldValue } = require("firebase-admin/firestore");
 const { generateEntityId } = require("../../shared/id");
 const { createTransactionInternal } = require("../../financial/transactions");
-const { buildClientContractPayload } = require("../../shared/payloads");
+const { buildClientContractPayload } = require("./clientContracts.payloads");
 const { toISODate } = require("../../helpers/date");
 const { getContractsColl } = require("./utils");
 

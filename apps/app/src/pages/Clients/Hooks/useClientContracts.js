@@ -19,7 +19,17 @@ export const useClientContracts = (contracts, idClient, clientName, onRefresh) =
     const [activeAction, setActiveAction] = useState("Dados")
     const [adjustAddForm, setAdjustAddForm] = useState({ days: "", reason: "" })
     const [adjustDebitForm, setAdjustDebitForm] = useState({ days: "", reason: "" })
-    const [cancelForm, setCancelForm] = useState({ mode: "now", date: "", reason: "" })
+    const [cancelForm, setCancelForm] = useState({
+        mode: "now",
+        date: "",
+        reason: "",
+        cancelOpenReceivables: false,
+        cancelFutureSessions: false,
+        generateCredit: false,
+        creditAmount: "",
+        applyFine: false,
+        fineAmount: ""
+    })
     const [transferForm, setTransferForm] = useState({ target: "", note: "" })
     const [suspendForm, setSuspendForm] = useState({
         start: "",
@@ -116,7 +126,6 @@ export const useClientContracts = (contracts, idClient, clientName, onRefresh) =
 
     const handleStopSuspension = async (idSuspension) => {
         if (!selected?.id || !idSuspension) return
-
         try {
             await withLoading('stop-suspension', async () => {
                 const response = await stopContractSuspension({
@@ -163,57 +172,81 @@ export const useClientContracts = (contracts, idClient, clientName, onRefresh) =
     }
 
     const handleCancel = async (e) => {
-        e?.preventDefault()
+        e?.preventDefault();
+
+        console.log('[handleCancel] Iniciando cancelamento...');
+        console.log('[handleCancel] Contrato selecionado:', selected);
+        console.log('[handleCancel] Formulário de cancelamento:', cancelForm);
+
         if (!selected?.id) {
-            toast.show({ title: "Nenhum contrato selecionado", color: "warning" })
-            return
+            console.warn('[handleCancel] Nenhum contrato selecionado!');
+            toast.show({ title: "Nenhum contrato selecionado", color: "warning" });
+            return;
         }
+
         if (!cancelForm.reason || cancelForm.reason.trim().length === 0) {
-            toast.show({ title: "Motivo obrigatório", description: "Informe o motivo do cancelamento.", color: "warning" })
-            return
+            console.warn('[handleCancel] Motivo não preenchido!');
+            toast.show({ title: "Motivo obrigatório", description: "Informe o motivo do cancelamento.", color: "warning" });
+            return;
         }
+
         try {
             await withLoading('cancel', async () => {
-                const idClientContract = selected.id
-                // eslint-disable-next-line no-unused-vars
-                const result = await cancelClientContract({
+                const idClientContract = selected.id;
+
+                const payload = {
                     idClientContract,
-                    idClient, // Added
-                    clientName, // Added
+                    idClient,
+                    clientName,
                     reason: cancelForm.reason,
-                    canceledBy: null, // TODO: pegar do usuário logado
+                    canceledBy: null,
                     refundRevenue: false,
                     schedule: cancelForm.mode === "schedule",
                     cancelDate: cancelForm.mode === "schedule" ? cancelForm.date : null,
-                })
+                    cancelOpenReceivables: cancelForm.cancelOpenReceivables,
+                    cancelFutureSessions: cancelForm.cancelFutureSessions,
+                    generateCredit: cancelForm.generateCredit,
+                    creditAmount: cancelForm.generateCredit ? Number(cancelForm.creditAmount) : 0,
+                    applyFine: cancelForm.applyFine,
+                    fineAmount: cancelForm.applyFine ? Number(cancelForm.fineAmount) : 0,
+                };
+
+                console.log('[handleCancel] Payload sendo enviado:', payload);
+
+                const result = await cancelClientContract(payload);
+
+                console.log('[handleCancel] Resultado do cancelamento:', result);
+
                 // Atualizar UI localmente
                 setSelectedOverride(prev => ({
                     ...prev || selected,
                     status: cancelForm.mode === "schedule" ? "scheduled_cancellation" : "canceled",
                     ...(cancelForm.mode === "schedule" && { cancelDate: cancelForm.date }),
                     cancelReason: cancelForm.reason,
-                }))
+                }));
 
-                // Mostrar toast apenas quando o contrato for efetivamente cancelado (não agendado)
+                // Mostrar toast
                 if (cancelForm.mode !== "schedule") {
                     toast.show({
                         title: "Contrato cancelado",
                         color: "success",
-                    })
+                    });
                 } else {
                     toast.show({
                         title: "Cancelamento agendado",
                         color: "success",
-                    })
+                    });
                 }
 
-                onRefresh?.()
-            })
+                console.log('[handleCancel] Chamando onRefresh...');
+                onRefresh?.();
+                console.log('[handleCancel] Cancelamento concluído com sucesso!');
+            });
         } catch (error) {
-            console.error("Erro ao cancelar contrato", error)
-            toast.show({ title: "Erro ao cancelar", description: error?.message || String(error), color: "danger" })
+            console.error("[handleCancel] Erro ao cancelar contrato:", error);
+            toast.show({ title: "Erro ao cancelar", description: error?.message || String(error), color: "danger" });
         }
-    }
+    };
 
     return {
         selectedId,

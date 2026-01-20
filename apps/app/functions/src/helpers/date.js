@@ -55,6 +55,17 @@ const addDays = (date, days) => {
  */
 const toISODate = (date) => {
     if (!date) return null;
+
+    // Handle string inputs that might contain time
+    if (typeof date === "string") {
+        // Simple regex or split
+        const parts = date.split("T")[0].split(" ")[0];
+        if (/^\d{4}-\d{2}-\d{2}$/.test(parts)) {
+            return parts;
+        }
+        // If not match, try parsing
+    }
+
     const d = date instanceof Date ? date : new Date(date);
     if (Number.isNaN(d.getTime())) return null;
     return d.toISOString().slice(0, 10);

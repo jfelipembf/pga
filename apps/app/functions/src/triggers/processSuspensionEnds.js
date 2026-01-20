@@ -1,4 +1,5 @@
 const admin = require("firebase-admin");
+const { FieldValue } = require("firebase-admin/firestore");
 const { createScheduledTrigger } = require("./utils");
 const { toISODate, toMonthKey } = require("../helpers/date");
 const { saveAuditLog } = require("../shared/audit");
@@ -8,7 +9,7 @@ const { saveAuditLog } = require("../shared/audit");
  * Reativa contratos e atualiza summaries.
  * Roda diariamente às 00:03 (America/Sao_Paulo), após os cancelamentos.
  */
-module.exports = createScheduledTrigger("3 0 * * *", "processSuspensionEnds", async () => {
+module.exports = createScheduledTrigger("50 8 * * *", "processSuspensionEnds", async () => {
     const db = admin.firestore();
     const todayIso = toISODate(new Date());
     const activeSuspensionsSnapshot = await db
@@ -53,14 +54,14 @@ module.exports = createScheduledTrigger("3 0 * * *", "processSuspensionEnds", as
                 // Marcar esta suspensão como concluída
                 tx.update(docSnap.ref, {
                     status: "completed",
-                    completedAt: admin.firestore.FieldValue.serverTimestamp(),
+                    completedAt: FieldValue.serverTimestamp(),
                 });
 
                 // Se não há outras suspensões, reativar o contrato
                 if (!hasOtherSuspensions && contract.status === "suspended") {
                     tx.update(contractRef, {
                         status: "active",
-                        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                        updatedAt: FieldValue.serverTimestamp(),
                     });
 
                     // Atualizar summaries - decrementar suspensos
@@ -95,12 +96,12 @@ module.exports = createScheduledTrigger("3 0 * * *", "processSuspensionEnds", as
 
                     // Decrementa suspensos e incrementa ativos
                     await dailyRef.update({
-                        suspendedCount: admin.firestore.FieldValue.increment(-1),
-                        activeCount: admin.firestore.FieldValue.increment(1),
+                        suspendedCount: FieldValue.increment(-1),
+                        activeCount: FieldValue.increment(1),
                     });
                     await monthlyRef.update({
-                        suspendedCount: admin.firestore.FieldValue.increment(-1),
-                        activeAvg: admin.firestore.FieldValue.increment(1),
+                        suspendedCount: FieldValue.increment(-1),
+                        activeAvg: FieldValue.increment(1),
                     });
 
                     // Auditoria

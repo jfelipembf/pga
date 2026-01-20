@@ -4,7 +4,7 @@ const { FieldValue } = require("firebase-admin/firestore");
 const { requireAuthContext } = require("../shared/context");
 const { saveAuditLog } = require("../shared/audit");
 const { generateEntityId } = require("../shared/id");
-const { buildReceivablePayload } = require("../shared/payloads");
+const { buildReceivablePayload } = require("./helpers/financial.payloads");
 const { toISODate } = require("../helpers/date");
 const { distributePaymentToReceivables } = require("./helpers/paymentHelper");
 
@@ -245,7 +245,6 @@ exports.payReceivables = functions.region("us-central1").https.onCall(async (dat
       const receivablesRef = getReceivablesColl(idTenant, idBranch);
 
       // 1. Buscar receivables em aberto
-      // Buscar por balance > 0 (campo usado nas vendas) ou pending > 0
       let query = receivablesRef
         .where("idClient", "==", idClient)
         .where("status", "==", "open");
@@ -257,8 +256,6 @@ exports.payReceivables = functions.region("us-central1").https.onCall(async (dat
 
       const receivablesSnap = await t.get(query);
 
-
-
       if (receivablesSnap.empty) {
         console.error(`[payReceivables] No receivables found for client ${idClient}`);
         throw new functions.https.HttpsError("not-found", "Nenhum recebível em aberto encontrado.");
@@ -269,17 +266,13 @@ exports.payReceivables = functions.region("us-central1").https.onCall(async (dat
         ...doc.data(),
       }));
 
-
-
-      // Calcular total em aberto (compatibilidade balance/pending)
+      // Calcular total em aberto usando APENAS 'pending'
       const totalPending = receivables.reduce((sum, rec) =>
-        sum + Number(rec.balance || rec.pending || 0), 0
+        sum + Number(rec.pending || 0), 0
       );
 
-
-
       // 2. Distribuir pagamento
-      const { distribution, remainingAmount, totalDistributed } = distributePaymentToReceivables(
+      const { distribution, totalDistributed } = distributePaymentToReceivables(
         receivables,
         paymentAmount,
       );
@@ -307,11 +300,12 @@ exports.payReceivables = functions.region("us-central1").https.onCall(async (dat
         transaction: t,
         payload: {
           transactionCode, // ID Estruturado pré-gerado
-          type: "receivablePayment",
+          type: "sale", // Alterado para 'sale' para ser reconhecido como receita pelo caixa
+          category: "Recebimento de Títulos", // Categoria explícita
           description: `Pagamento de saldo devedor - ${distribution.length} recebível(is)`,
           idClient,
           method: paymentMethod,
-          amount: -totalDistributed, // Negativo pois é pagamento (saída do cliente)
+          amount: totalDistributed, // Positivo, pois é entrada no caixa da empresa
           date: paymentDate || toISODate(new Date()),
           status: "completed",
           receivableIds: distribution.map(d => d.idReceivable),
@@ -323,6 +317,7 @@ exports.payReceivables = functions.region("us-central1").https.onCall(async (dat
           cardInstallments: installments,
 
           metadata: {
+            originalType: "receivablePayment", // Manter rastro do tipo original
             registeredBy: token?.name || token?.email || "System",
             uid
           }
@@ -335,23 +330,21 @@ exports.payReceivables = functions.region("us-central1").https.onCall(async (dat
       const updatedReceivables = [];
       for (const item of distribution) {
         const recRef = receivablesRef.doc(item.idReceivable);
-        const currentRec = receivables.find(r => r.id === item.idReceivable);
-
-        const newPaid = Number(currentRec.paid || currentRec.amountPaid || 0) + item.amountToPay;
-        const newPending = item.newPending;
-        const newStatus = item.willBeFullyPaid ? "paid" : "open";
 
         const updatePayload = {
-          paid: newPaid,
-          amountPaid: newPaid, // Keeping both for compatibility
-          pending: newPending,
-          balance: newPending, // Balance = pending (usado nas vendas)
-          status: newStatus,
+          paid: item.newPaid,           // Usar valor calculado pelo distributor
+          pending: item.newPending,     // Usar valor calculado pelo distributor
+          status: item.willBeFullyPaid ? "paid" : "open",
           lastPaymentAt: FieldValue.serverTimestamp(),
           lastPaymentMethod: paymentMethod,
           updatedAt: FieldValue.serverTimestamp(),
           updatedBy: uid,
         };
+
+        // Se foi totalmente pago, registrar data de quitação
+        if (item.willBeFullyPaid) {
+          updatePayload.paidAt = FieldValue.serverTimestamp();
+        }
 
         t.update(recRef, updatePayload);
 

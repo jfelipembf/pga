@@ -14,9 +14,13 @@ export const useCrmData = (activeSegment, dateRange) => {
             if (!activeSegment) return
 
             // MANUAL SEARCH ENFORCED:
-            // Para segmentos historiques (suspenso, cancelado, inativo),
-            // só buscar se houver filtro de data (botão buscar).
-            const isManualSearch = ['suspended', 'canceled', 'inactive'].includes(activeSegment)
+            // Todas as visualizações exigem filtro de data para evitar carga inicial excessiva e respeitar o fluxo "Selecionar Data -> Buscar".
+            const manualSegments = [
+                'leads', 'birthday', 'active', 'inactive', 'suspended', 'canceled',
+                'contractsDue', 'credit', 'debt'
+            ];
+            const isManualSearch = manualSegments.includes(activeSegment);
+
             if (isManualSearch && (!startDate || !endDate)) {
                 setClients([])
                 return

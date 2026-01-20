@@ -1,5 +1,6 @@
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
+const { FieldValue } = require("firebase-admin/firestore");
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -75,7 +76,7 @@ module.exports = functions
             presentCount: 0,
             absentCount: 0,
             autoProcessed: true,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
           });
           continue;
         }
@@ -123,8 +124,8 @@ module.exports = functions
             type: "auto",
             idTenant,
             idBranch,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
           }, { merge: true });
         }
 
@@ -136,7 +137,7 @@ module.exports = functions
           presentCount: snapshotData.length,
           absentCount: 0,
           autoProcessed: true,
-          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
         });
 
         await batch.commit();

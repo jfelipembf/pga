@@ -1,5 +1,8 @@
 const functions = require("firebase-functions/v1");
 const { deleteEnrollmentInternal, createRecurringEnrollmentInternal, createSingleSessionEnrollmentInternal } = require("./helpers/enrollmentService");
+const { requireAuthContext } = require("../shared/context");
+const { validate } = require("../shared/validator");
+const { RecurringEnrollmentSchema, SingleSessionEnrollmentSchema } = require("./validation/enrollment.validation");
 
 /**
  * ============================================================================
@@ -16,17 +19,17 @@ const { deleteEnrollmentInternal, createRecurringEnrollmentInternal, createSingl
 /**
  * Soft delete de uma matrícula (muda status para canceled).
  */
+/**
+ * Soft delete de uma matrícula (muda status para canceled).
+ */
 exports.deleteEnrollment = functions
   .region("us-central1")
   .https.onCall(async (data, context) => {
-    if (!context.auth) {
-      throw new functions.https.HttpsError("unauthenticated", "Usuário não autenticado");
-    }
+    const { idTenant, idBranch } = requireAuthContext(data, context);
+    const { idEnrollment } = data;
 
-    const { idTenant, idBranch, idEnrollment } = data;
-
-    if (!idTenant || !idBranch || !idEnrollment) {
-      throw new functions.https.HttpsError("invalid-argument", "idTenant, idBranch e idEnrollment são obrigatórios");
+    if (!idEnrollment) {
+      throw new functions.https.HttpsError("invalid-argument", "idEnrollment é obrigatório");
     }
 
     try {
@@ -41,20 +44,16 @@ exports.deleteEnrollment = functions
  * Creates a Recurring Enrollment.
  */
 exports.createRecurringEnrollment = functions.region("us-central1").https.onCall(async (data, context) => {
-  if (!context.auth) throw new functions.https.HttpsError("unauthenticated", "User must be logged in");
-
-  const { idTenant, idBranch } = data;
+  const { idTenant, idBranch } = requireAuthContext(data, context);
   const uid = context.auth.uid;
 
-  if (!idTenant || !idBranch || !data.idClient || !data.idClass) {
-    throw new functions.https.HttpsError("invalid-argument", "Missing required fields");
-  }
-
   try {
-    return await createRecurringEnrollmentInternal({ idTenant, idBranch, uid, data });
+    const validatedData = validate(RecurringEnrollmentSchema, data);
+    return await createRecurringEnrollmentInternal({ idTenant, idBranch, uid, data: validatedData });
   } catch (error) {
     console.error("Error creating recurring enrollment:", error);
-    throw new functions.https.HttpsError("internal", "Error creating enrollment");
+    if (error instanceof functions.https.HttpsError) throw error;
+    throw new functions.https.HttpsError("internal", error.message || "Error creating enrollment");
   }
 });
 
@@ -62,19 +61,15 @@ exports.createRecurringEnrollment = functions.region("us-central1").https.onCall
  * Creates a Single Session Enrollment.
  */
 exports.createSingleSessionEnrollment = functions.region("us-central1").https.onCall(async (data, context) => {
-  if (!context.auth) throw new functions.https.HttpsError("unauthenticated", "User must be logged in");
-
-  const { idTenant, idBranch } = data;
+  const { idTenant, idBranch } = requireAuthContext(data, context);
   const uid = context.auth.uid;
 
-  if (!idTenant || !idBranch || !data.idClient || !data.idSession || !data.sessionDate) {
-    throw new functions.https.HttpsError("invalid-argument", "Missing required fields");
-  }
-
   try {
-    return await createSingleSessionEnrollmentInternal({ idTenant, idBranch, uid, data });
+    const validatedData = validate(SingleSessionEnrollmentSchema, data);
+    return await createSingleSessionEnrollmentInternal({ idTenant, idBranch, uid, data: validatedData });
   } catch (error) {
     console.error("Error creating single session enrollment:", error);
-    throw new functions.https.HttpsError("internal", "Error creating enrollment");
+    if (error instanceof functions.https.HttpsError) throw error;
+    throw new functions.https.HttpsError("internal", error.message || "Error creating enrollment");
   }
 });

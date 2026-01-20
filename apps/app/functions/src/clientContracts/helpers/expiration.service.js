@@ -1,4 +1,5 @@
 const admin = require("firebase-admin");
+const { FieldValue } = require("firebase-admin/firestore");
 const db = admin.firestore();
 
 /**
@@ -80,7 +81,7 @@ async function processBranchExpirations(idTenant, idBranch) {
 
     await summaryRef.set({
         list: expirationsList,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        updatedAt: FieldValue.serverTimestamp()
     });
 }
 

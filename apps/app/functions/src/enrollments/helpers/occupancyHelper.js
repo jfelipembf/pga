@@ -130,7 +130,7 @@ const handleEnrollmentBump = async ({ enrollment, delta, isUpdate = false }) => 
 
     if (!idTenant || !idBranch) return 0;
 
-    if (type === "experimental") {
+    if (["experimental", "single-session"].includes(type)) {
         const idSession = enrollment?.idSession ? String(enrollment.idSession) : null;
         const sessionDate = enrollment?.sessionDate ? String(enrollment.sessionDate) : null;
         const startIso = toISODate(new Date());

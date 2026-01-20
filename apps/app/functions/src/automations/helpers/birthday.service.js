@@ -1,4 +1,5 @@
 const admin = require("firebase-admin");
+const { FieldValue } = require("firebase-admin/firestore");
 const db = admin.firestore();
 const { processTrigger } = require("./helper");
 
@@ -152,13 +153,13 @@ async function processBranchBirthdays(idTenant, idBranch) {
     if (dashboardList.length > 0) {
         await summaryRef.set({
             list: dashboardList,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            updatedAt: FieldValue.serverTimestamp()
         });
     } else {
         // Limpar lista se vazio
         await summaryRef.set({
             list: [],
-            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            updatedAt: FieldValue.serverTimestamp()
         });
     }
 }

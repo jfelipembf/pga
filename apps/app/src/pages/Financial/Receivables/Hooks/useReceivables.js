@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect, useCallback } from "react"
-import { listReceivables } from "../../../../services/Receivables/receivables.service"
-import { listFinancialTransactions } from "../../../../services/Financial/financial.service"
+import { listReceivables, cancelReceivable, listFinancialTransactions } from "../../../../services/Financial"
 import { listClients } from "../../../../services/Clients/clients.service"
 import { RECEIVABLE_STATUS } from "../Constants/receivablesConstants"
+import { useToast } from "../../../../components/Common/ToastProvider"
 
 export const useReceivables = () => {
     // Filters State
@@ -22,10 +22,14 @@ export const useReceivables = () => {
     const [receivables, setReceivables] = useState([])
     const [allClients, setAllClients] = useState([]) // For autocomplete
     const [loading, setLoading] = useState(false)
+    const toast = useToast()
 
     // Client Search State
     const [clientSearchText, setClientSearchText] = useState("")
     const [selectedClient, setSelectedClient] = useState(null)
+
+    // Cancel Dialog State
+    const [cancelDialog, setCancelDialog] = useState({ open: false, id: null, loading: false })
 
     // Actions
     const updateFilter = (key, value) => {
@@ -176,6 +180,31 @@ export const useReceivables = () => {
         setClientSearchText("")
     }
 
+    // Cancellation Logic
+    const openCancelDialog = (id) => {
+        setCancelDialog({ open: true, id, loading: false })
+    }
+
+    const closeCancelDialog = () => {
+        setCancelDialog({ open: false, id: null, loading: false })
+    }
+
+    const handleConfirmCancel = async () => {
+        if (!cancelDialog.id) return
+
+        setCancelDialog(prev => ({ ...prev, loading: true }))
+        try {
+            await cancelReceivable(cancelDialog.id, "Cancelado manualmente via Financeiro")
+            toast.show({ title: "Recebível cancelado com sucesso", color: "success" })
+            fetchData() // Refresh list
+        } catch (error) {
+            console.error("Erro ao cancelar recebível", error)
+            toast.show({ title: "Erro ao cancelar", description: "Não foi possível cancelar o item.", color: "danger" })
+        } finally {
+            setCancelDialog(prev => ({ ...prev, loading: false, open: false, id: null }))
+        }
+    }
+
     // Derived Data: Filtered Receivables (Client Side Filters)
     const filteredData = useMemo(() => {
         return receivables.filter(item => {
@@ -227,13 +256,19 @@ export const useReceivables = () => {
         stats,
 
         refresh: fetchData,
-        clearFilters, // New
-        // New Props for Client Search
+        clearFilters,
+        // Client Search
         clientSearchText,
         setClientSearchText,
         clientCandidates,
         selectedClient,
         handleSelectClient,
-        handleClearClient
+        handleClearClient,
+
+        // Cancellation
+        cancelDialog,
+        openCancelDialog,
+        closeCancelDialog,
+        handleConfirmCancel,
     }
 }
