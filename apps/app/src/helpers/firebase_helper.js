@@ -9,18 +9,16 @@ import {
   onAuthStateChanged,
   signInWithPopup,
   GoogleAuthProvider,
-  FacebookAuthProvider,
-  connectAuthEmulator // Import
+  FacebookAuthProvider
 } from 'firebase/auth';
 import {
   getFirestore,
   doc,
   setDoc,
-  serverTimestamp,
-  connectFirestoreEmulator // Import
+  serverTimestamp
 } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
-import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'; // Import
+import { getFunctions } from 'firebase/functions'; // Import
 
 class FirebaseAuthBackend {
   constructor(firebaseConfig) {
