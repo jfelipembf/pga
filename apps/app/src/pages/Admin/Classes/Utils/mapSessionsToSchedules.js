@@ -3,6 +3,7 @@ const safeName = (obj = {}) =>
 
 export const mapSessionsToSchedules = ({
   sessions = [],
+  classes = [],
   activities = [],
   areas = [],
   instructors = [],
@@ -16,8 +17,6 @@ export const mapSessionsToSchedules = ({
     const area = areasById.get(sess.idArea) || {}
     const instructor = staffById.get(sess.idStaff) || {}
 
-
-
     return {
       id: sess.idSession || sess.id,
       idClass: sess.idClass || null,
@@ -27,13 +26,10 @@ export const mapSessionsToSchedules = ({
       employeeName: safeName(instructor) || sess.idStaff || "",
       startTime: sess.startTime || "",
       endTime: sess.endTime || "",
-      startDate: sess.sessionDate || null, // specific date
+      startDate: sess.sessionDate || null,
       endDate: sess.sessionDate || null,
       sessionDate: sess.sessionDate || null,
-      weekDays: null, // Sessions are specific instances, no recurrence usually needed if date is set
-      // However, if the grid expects weekDays for logic, we keep it. 
-      // But usually sessions = specific date.
-
+      weekDays: [Number(sess.weekday)], // Added weekday for grid placement
       color: activity.color || "#466b8f",
       maxCapacity: Number(sess.maxCapacity || 0),
       enrolledCount: Number(sess.enrolledCount || 0),
@@ -41,18 +37,34 @@ export const mapSessionsToSchedules = ({
     }
   })
 
+  const mappedClasses = (classes || []).map((cls) => {
+    const activity = actsById.get(cls.idActivity) || {}
+    const area = areasById.get(cls.idArea) || {}
+    const instructor = staffById.get(cls.idStaff) || {}
 
+    const wd = (cls.weekday !== undefined && cls.weekday !== null)
+      ? [Number(cls.weekday)]
+      : (Array.isArray(cls.weekDays) ? cls.weekDays.map(Number) : [])
 
-  // simple deduping or just merging?
-  // If we show BOTH, we might see duplicates on the grid if the grid handles both recurrence and instances.
-  // Strategy: For Administration, we often want to see the Class Definition (Template).
-  // If the user created a class, they want to see the Class Configuration on the grid.
-  // Sessions are instances.
-  // Let's return ONLY mappedClasses if we are in "Grade" mode, or mix them.
-  // Given the user complained "Turma" (Class) didn't show up, showing the Class Definition is the safest bet.
-  // If actual sessions render on top, that's acceptable for now.
+    return {
+      id: cls.id,
+      idClass: cls.id,
+      idActivity: cls.idActivity,
+      activityName: activity.name || "...",
+      areaName: area.name || "",
+      employeeName: safeName(instructor) || "...",
+      startTime: cls.startTime,
+      endTime: cls.endTime,
+      weekDays: wd,
+      color: activity.color || "#666",
+      maxCapacity: Number(cls.maxCapacity || 0),
+      enrolledCount: 0,
+      isClass: true,
+      editable: true
+    }
+  })
 
-  // Return ONLY sessions to prevent duplicates on the grid (Template + Session)
-  // Since sessions are auto-generated, they are the source of truth for the schedule.
-  return [...mappedSessions];
+  // Return both. Grid will handle rendering. 
+  // Usually we prioritze Classes in the Admin view.
+  return [...mappedClasses, ...mappedSessions];
 }
