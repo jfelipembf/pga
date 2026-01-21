@@ -7,10 +7,12 @@ import { getAuthUser } from "../../../helpers/permission_helper"
 import { useToast } from "../../../components/Common/ToastProvider"
 import ClientAddSearch from "../../../components/Common/ClientAddSearch"
 import { useActiveClientsPool } from "../../../hooks/evaluation/useActiveClientsPool"
+import { getTodayISO } from "../../../utils/date"
+import { addDays, toISODate, parseDate } from "@pga/shared"
 
 const TaskModal = ({ isOpen, toggle, onTaskCreated }) => {
     const [description, setDescription] = useState("")
-    const [dueDate, setDueDate] = useState(new Date().toLocaleDateString('en-CA')) // YYYY-MM-DD
+    const [dueDate, setDueDate] = useState(getTodayISO()) // YYYY-MM-DD
     const [selectedStaffs, setSelectedStaffs] = useState([])
     const [selectedClient, setSelectedClient] = useState(null)
     const [searchText, setSearchText] = useState("")
@@ -76,24 +78,20 @@ const TaskModal = ({ isOpen, toggle, onTaskCreated }) => {
     useEffect(() => {
         if (recurrenceEnabled && dueDate) {
             try {
-                const [y, m, d] = dueDate.split('-').map(Number)
-                const date = new Date(y, m - 1, d) // Create date object correctly
+                const date = parseDate(dueDate)
+                if (!date) return
 
+                let nextDate
                 if (recurrenceFreq === 'daily') {
-                    date.setDate(date.getDate() + 1)
+                    nextDate = addDays(date, 1)
                 } else if (recurrenceFreq === 'yearly') {
-                    date.setFullYear(date.getFullYear() + 1)
+                    nextDate = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate())
                 } else {
                     // monthly default
-                    date.setMonth(date.getMonth() + 1)
+                    nextDate = new Date(date.getFullYear(), date.getMonth() + 1, date.getDate())
                 }
 
-                // Format safely back to YYYY-MM-DD
-                const newY = date.getFullYear();
-                const newM = String(date.getMonth() + 1).padStart(2, '0');
-                const newD = String(date.getDate()).padStart(2, '0');
-
-                setRecurrenceStart(`${newY}-${newM}-${newD}`)
+                setRecurrenceStart(toISODate(nextDate))
             } catch (e) {
                 console.log("Error calculating next date", e)
             }

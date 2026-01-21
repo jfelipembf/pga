@@ -1,7 +1,7 @@
 import React from "react"
 import { Badge, Button, Card, CardBody, CardHeader, Col, Row, Table } from "reactstrap"
 import StatusBadge from "../../../components/Common/StatusBadge"
-import { formatComparison } from "../../../helpers/presence"
+import { formatComparison } from "@pga/shared"
 import ReactApexChart from "react-apexcharts"
 
 import { useClientSummary } from "../Hooks/useClientSummary"

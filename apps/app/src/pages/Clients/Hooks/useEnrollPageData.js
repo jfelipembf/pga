@@ -5,7 +5,7 @@ import { listStaff } from "../../../services/Staff/index"
 import { listClasses, listSessions } from "../../../services/Classes"
 import { listEnrollmentsByClient } from "../../../services/Enrollments/index"
 import { getClient } from "../../../services/Clients"
-import { sortClassesByCreated, buildClassOrderMap, sortSessionsWithClassOrder } from "../../Grade/Utils/sortUtils"
+import { sortClassesByCreated, buildClassOrderMap, sortSessionsWithClassOrder } from "../../Grade/Utils/gridUtils"
 import { useToast } from "../../../components/Common/ToastProvider"
 import { useLoading } from "../../../hooks/useLoading"
 

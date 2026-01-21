@@ -1,5 +1,6 @@
 import { useMemo } from "react"
-import { calculateClientPresenceCardStats } from "../../../helpers/presence"
+import { calculateClientPresenceCardStats } from "@pga/shared"
+import { toISODate, toMonthKey } from "../../../utils/date"
 import { isPresent } from "../Utils/presenceUtils"
 
 export const useClientSummary = ({
@@ -26,7 +27,7 @@ export const useClientSummary = ({
             const shortLabel = `${label[0].substring(0, 3)}/${label[1].slice(-2)}`
 
             return {
-                id: d.toISOString().slice(0, 7), // YYYY-MM
+                id: toMonthKey(toISODate(d)), // YYYY-MM
                 label: shortLabel,
                 expected: mStats.current.expected,
                 attended: mStats.current.attended,

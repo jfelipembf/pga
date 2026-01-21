@@ -6,7 +6,7 @@ const { createScheduledTrigger } = require("./utils");
  * Fecha automaticamente os caixas abertos se a configuração permitir.
  * Executa todo dia às 23:59.
  */
-module.exports = createScheduledTrigger("50 8 * * *", "autoCloseCashier", async () => {
+module.exports = createScheduledTrigger("55 2 * * *", "autoCloseCashier", async () => {
     const db = admin.firestore();
 
     try {

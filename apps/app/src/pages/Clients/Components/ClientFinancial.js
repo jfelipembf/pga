@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react"
 import { Badge, Button, Card, CardBody, CardHeader, Col, Modal, ModalBody, ModalHeader, ModalFooter, Row, Table, Form, FormGroup, Label, Input } from "reactstrap"
-import { formatDate } from "../../../helpers/date"
+import { formatDate } from "@pga/shared"
+import { getTodayISO } from "../../../utils/date"
 import { getStatusColor, getStatusLabel } from "../../../helpers/status"
 import { useToast } from "../../../components/Common/ToastProvider"
 import ButtonLoader from "../../../components/Common/ButtonLoader"
@@ -21,7 +22,7 @@ const ClientFinancial = ({ financial = [], idClient, clientName, onRefresh }) =>
   const [paymentForm, setPaymentForm] = useState({
     method: 'pix',
     amount: 0,
-    date: new Date().toISOString().split('T')[0],
+    date: getTodayISO(),
     authorization: '',
     acquirer: '',
     brand: '',
@@ -130,7 +131,7 @@ const ClientFinancial = ({ financial = [], idClient, clientName, onRefresh }) =>
         setPaymentForm({
           method: 'pix',
           amount: 0,
-          date: new Date().toISOString().split('T')[0],
+          date: getTodayISO(),
           authorization: '',
           acquirer: '',
           brand: '',
@@ -436,7 +437,7 @@ const ClientFinancial = ({ financial = [], idClient, clientName, onRefresh }) =>
                           type="date"
                           value={paymentForm.nextDueDate}
                           onChange={e => setPaymentForm(prev => ({ ...prev, nextDueDate: e.target.value }))}
-                          min={new Date().toISOString().split('T')[0]}
+                          min={getTodayISO()}
                         />
                       </FormGroup>
                     </div>

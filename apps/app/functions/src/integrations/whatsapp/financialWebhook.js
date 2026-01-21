@@ -5,6 +5,7 @@ const { analyzeExpense } = require("../helpers/gemini.service");
 const { sendWhatsAppMessageInternal } = require("../../notifications/whatsapp");
 const { generateEntityId } = require("../../shared/id");
 const { fetchBase64FromMessage } = require("../helpers/evolution.service");
+const { toISODate } = require("../../shared");
 
 if (!admin.apps.length) {
     admin.initializeApp();
@@ -137,7 +138,7 @@ exports.financialWebhook = functions.region("us-central1").https.onRequest(async
             description: expenseData.description || "Despesa WhatsApp",
             amount: Number(expenseData.amount) || 0,
             category: expenseData.category || "Outros",
-            date: expenseData.date || new Date().toLocaleDateString("en-CA"),
+            date: expenseData.date || toISODate(new Date()),
             method: "outros",
             status: "pending",
             source: "whatsapp_bot",

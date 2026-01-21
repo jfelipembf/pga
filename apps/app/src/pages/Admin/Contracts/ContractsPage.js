@@ -9,6 +9,7 @@ import PageLoader from "../../../components/Common/PageLoader"
 import { useLoading } from "../../../hooks/useLoading"
 import { listContracts, createContract, updateContract } from "../../../services/Contracts"
 import { getStatusLabel } from "../../../helpers/status"
+import { formatCurrency } from "@pga/shared"
 
 const ContractsPage = ({ setBreadcrumbItems }) => {
   const [contracts, setContracts] = useState([])
@@ -51,9 +52,7 @@ const ContractsPage = ({ setBreadcrumbItems }) => {
     return contracts.map(item => ({
       id: item.id,
       title: item.title || "Sem nome",
-      subtitle: item.value
-        ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.value)
-        : "R$ 0,00",
+      subtitle: item.value ? formatCurrency(item.value) : "R$ 0,00",
       meta: getStatusLabel(item.status || "active", "contract"),
     }))
   }, [contracts])

@@ -16,7 +16,7 @@ import { requireBranchContext } from "../_core/context"
 import { makeCreatePayload, makeUpdatePayload } from "../_core/payload"
 
 import { activitiesCol, activityDoc } from "./activities.repository"
-import { buildActivityPayload } from "../payloads"
+import { buildActivityPayload } from "@pga/shared"
 import { listObjectivesWithTopics } from "./activities.objectives.service"
 
 const mapDoc = d => ({ id: d.id, ...d.data() })

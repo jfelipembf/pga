@@ -4,8 +4,8 @@ const { FieldValue } = require("firebase-admin/firestore");
 const { requireAuthContext } = require("../shared/context");
 const { saveAuditLog } = require("../shared/audit");
 const { generateEntityId } = require("../shared/id");
-const { buildReceivablePayload } = require("./helpers/financial.payloads");
-const { toISODate } = require("../helpers/date");
+const { buildReceivablePayload } = require("../shared");
+const { toISODate } = require("../shared");
 const { distributePaymentToReceivables } = require("./helpers/paymentHelper");
 
 const db = admin.firestore();

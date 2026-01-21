@@ -2,7 +2,7 @@ const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 
 const db = admin.firestore();
-const { toISODate } = require("../helpers/date");
+const { toISODate } = require("../shared");
 const { updateSummaries } = require("./helpers/summaryHelper");
 
 // ============================================================================

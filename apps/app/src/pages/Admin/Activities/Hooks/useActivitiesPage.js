@@ -9,7 +9,7 @@ import {
     deleteActivity, // NEW
 } from "../../../../services/Activity"
 import { normalizeStatusPt } from "../Utils"
-import { buildActivityPayload } from "services/payloads"
+import { buildActivityPayload } from "@pga/shared"
 import { INITIAL_ACTIVITY_FORM } from "../Constants"
 import { useActivitiesData } from "./useActivitiesData"
 

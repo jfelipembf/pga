@@ -7,7 +7,7 @@ if (!admin.apps.length) {
 }
 
 const db = admin.firestore();
-const { toISODate, addDays } = require("../helpers/date");
+const { toISODate, addDays } = require("../shared");
 
 /**
  * ============================================================================

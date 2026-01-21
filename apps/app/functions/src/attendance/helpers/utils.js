@@ -1,7 +1,7 @@
 const {
     toMonthKey,
     monthRangeFromKey,
-} = require("../../helpers/date");
+} = require("../../shared");
 
 /**
  * Verifica se o status indica presença.

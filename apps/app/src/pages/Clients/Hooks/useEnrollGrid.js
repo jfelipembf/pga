@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from "react"
 import { useToast } from "../../../components/Common/ToastProvider"
+import { mapToGridFormat } from "@pga/shared"
 
 export const useEnrollGrid = ({ sessions, activities, areas, staff, existingEnrollments }) => {
     const [selectedSessionKeys, setSelectedSessionKeys] = useState([])
@@ -27,35 +28,17 @@ export const useEnrollGrid = ({ sessions, activities, areas, staff, existingEnro
     }, [existingEnrollments])
 
     const schedulesForGrid = useMemo(() => {
-        return (sessions || []).map(sess => {
-            const activity = activities.find(a => a.id === sess.idActivity) || {}
-            const area = areas.find(a => a.id === sess.idArea) || {}
-            const instructor = staff.find(i => i.id === sess.idStaff) || {}
-            const weekday =
-                sess.weekday !== undefined && sess.weekday !== null ? Number(sess.weekday) : null
-            return {
-                id: sess.idSession || sess.id,
-                idSession: sess.idSession || sess.id,
-                idActivity: sess.idActivity,
-                idClass: sess.idClass || sess.idActivity, // fallback
-                idStaff: sess.idStaff || null,
-                activityName: activity.name || sess.idActivity,
-                areaName: area.name || "",
-                employeeName:
-                    instructor.name || `${instructor.firstName || ""} ${instructor.lastName || ""} `.trim(),
-                startTime: sess.startTime || "",
-                endTime: sess.endTime || "",
-                startDate: sess.sessionDate || null,
-                endDate: sess.sessionDate || null,
-                sessionDate: sess.sessionDate || null,
-                weekDays: weekday !== null ? [weekday] : [],
-                weekday,
-                color: activity.color || "#466b8f",
-                maxCapacity: Number(sess.maxCapacity || 0),
-                enrolledCount: Number(sess.enrolledCount || 0),
-                isAlreadyEnrolled: isSessionAlreadyEnrolled(sess),
-            }
+        const mapped = mapToGridFormat({
+            sessions,
+            activities,
+            areas,
+            instructors: staff,
         })
+
+        return mapped.map(s => ({
+            ...s,
+            isAlreadyEnrolled: isSessionAlreadyEnrolled(s.originalData || s)
+        }))
     }, [sessions, activities, areas, staff, isSessionAlreadyEnrolled])
 
     const toggleSelection = (session, isoDate) => {

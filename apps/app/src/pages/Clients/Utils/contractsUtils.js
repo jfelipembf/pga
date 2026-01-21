@@ -1,4 +1,4 @@
-import { parseDate, getToday } from "../../../helpers/date"
+import { parseDate, getToday } from "@pga/shared"
 
 export const buildContractKey = (contract, index = 0) => {
     const id = contract.id

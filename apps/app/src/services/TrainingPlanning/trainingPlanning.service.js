@@ -8,6 +8,7 @@ import {
     serverTimestamp,
     updateDoc,
 } from "firebase/firestore"
+import { toISODate } from "@pga/shared"
 
 import { requireDb } from "../_core/db"
 import { requireBranchContext } from "../_core/context"
@@ -70,7 +71,7 @@ export const createTrainingPlan = async (data = {}, { ctxOverride = null } = {})
     // data.date is expected to be a JS Date object from the UI, so we convert it or expect data.dateString
     if (!data.dateString && data.date) {
         try {
-            data.dateString = data.date.toISOString().split('T')[0];
+            data.dateString = toISODate(data.date);
         } catch (e) {
             console.warn("Invalid date format in createTrainingPlan", data.date);
         }

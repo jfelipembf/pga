@@ -2,15 +2,15 @@ const functions = require("firebase-functions/v1");
 const { getBranchCollectionRef } = require("../../shared/references");
 
 /**
- * Valida se os novos dias da semana são permitidos pelos contratos dos alunos matriculados.
+ * Valida se o novo dia da semana é permitido pelos contratos dos alunos matriculados.
  * @param {object} params
  * @param {string} params.idTenant
  * @param {string} params.idBranch
  * @param {string} params.idClass
- * @param {number[]} params.newDays - Array de dias da semana (0-6)
+ * @param {number} params.newDay - Dia da semana (0-6)
  * @returns {Promise<void>} - Lança erro se inválido
  */
-const validateClassDaysAgainstContracts = async ({ idTenant, idBranch, idClass, newDays }) => {
+const validateClassDaysAgainstContracts = async ({ idTenant, idBranch, idClass, newDay }) => {
     const enrollmentsCol = getBranchCollectionRef(idTenant, idBranch, "enrollments");
     const clientsContractsCol = getBranchCollectionRef(idTenant, idBranch, "clientsContracts");
 
@@ -40,8 +40,8 @@ const validateClassDaysAgainstContracts = async ({ idTenant, idBranch, idClass, 
 
             // Se o contrato tem restrição de dias
             if (allowedDays && Array.isArray(allowedDays) && allowedDays.length > 0) {
-                // Verifica se TODOS os novos dias são permitidos
-                const isAllowed = newDays.every(day => allowedDays.includes(Number(day)));
+                // Verifica se o novo dia é permitido
+                const isAllowed = allowedDays.includes(Number(newDay));
 
                 if (!isAllowed) {
                     const dayMap = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
@@ -61,7 +61,7 @@ const validateClassDaysAgainstContracts = async ({ idTenant, idBranch, idClass, 
     }
 };
 
-const { toISODate } = require("../../helpers/date");
+const { toISODate } = require("../../shared");
 
 /**
  * Valida se definir um endDate causaria conflitos com matrículas recorrentes ativas.

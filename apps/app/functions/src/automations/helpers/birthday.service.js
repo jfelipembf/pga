@@ -2,6 +2,7 @@ const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
 const db = admin.firestore();
 const { processTrigger } = require("./helper");
+const { addDays } = require("../../shared");
 
 /**
  * Processa diariamente os aniversariantes.
@@ -103,8 +104,7 @@ async function processBranchBirthdays(idTenant, idBranch) {
 
             // Calcular data alvo para ESSA automação
             // Ex: se daysBefore = 3, buscamos quem faz niver daqui a 3 dias
-            const targetDate = new Date(todaySP);
-            targetDate.setDate(targetDate.getDate() + daysBefore);
+            const targetDate = addDays(todaySP, daysBefore);
 
             const targetMonth = targetDate.getMonth() + 1;
             const targetDay = targetDate.getDate();

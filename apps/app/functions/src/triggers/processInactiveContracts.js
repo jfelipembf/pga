@@ -1,7 +1,7 @@
 const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
 const { createScheduledTrigger } = require("./utils");
-const { toISODate, addDays } = require("../helpers/date");
+const { toISODate, addDays } = require("../shared");
 const { saveAuditLog } = require("../shared/audit");
 
 /**
@@ -10,7 +10,7 @@ const { saveAuditLog } = require("../shared/audit");
  * Regra: Contratos com status 'canceled' há mais de 15 dias são movidos para status 'inactive'.
  * Frequência: Diariamente às 02:00 AM (Horário de Brasília).
  */
-module.exports = createScheduledTrigger("0 2 * * *", "processInactiveContracts", async () => {
+module.exports = createScheduledTrigger("40 0 * * *", "processInactiveContracts", async () => {
     const db = admin.firestore();
     const today = new Date();
     // Data limite: 15 dias atrás

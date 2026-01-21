@@ -13,10 +13,7 @@ import {
 
 import pgaLogo from "assets/images/pgaLogo.png"
 import { setBreadcrumbItems } from "../../../../store/actions"
-import { formatDate } from "../../../../helpers/date"
-
-const formatCurrency = value =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value || 0))
+import { formatDate, formatCurrency } from "@pga/shared"
 
 export const CashierPrintContent = ({ transactions = [], totals = {}, session = {}, settings = {}, dateRange = [] }) => {
   // Configurações podem vir aninhadas como settings.general.general.logo ou settings.general.logo

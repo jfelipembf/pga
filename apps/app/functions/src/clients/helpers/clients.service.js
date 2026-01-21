@@ -2,8 +2,8 @@ const functions = require("firebase-functions/v1");
 const { FieldValue } = require("firebase-admin/firestore");
 
 // Local utilities
-const { buildClientPayload, deriveFullName } = require("./clients.payloads");
-const { buildAddress } = require("../../shared/payloads");
+const { buildClientPayload, deriveFullName, buildAddress } = require("../../shared");
+
 const { saveAuditLog } = require("../../shared/audit");
 const { getActorSnapshot, getTargetSnapshot } = require("../../shared/snapshots");
 const { getBranchCollectionRef } = require("../../shared/references");
@@ -11,7 +11,7 @@ const { requireAuthContext } = require("../../shared/context");
 const { validate } = require("../../shared/validator");
 
 // Schemas
-const { ClientSchema } = require("../validation/client.validation");
+const { ClientSchema } = require("../../shared");
 
 /**
  * Logic: Create a new Client
@@ -43,13 +43,12 @@ exports.createClientLogic = async (data, context) => {
             updatedAt: FieldValue.serverTimestamp(),
         };
 
-        await clientRef.set(payload);
+        const actor = getActorSnapshot(context.auth);
+        const target = getTargetSnapshot("client", { ...payload, id: clientRef.id }, clientRef.id);
 
-        // Defer audit log to after response (fire-and-forget)
-        setImmediate(() => {
-            const actor = getActorSnapshot(context.auth);
-            const target = getTargetSnapshot("client", { ...payload, id: clientRef.id }, clientRef.id);
-
+        // Run DB set and Audit Log in parallel for performance
+        await Promise.all([
+            clientRef.set(payload),
             saveAuditLog({
                 idTenant,
                 idBranch,
@@ -58,8 +57,8 @@ exports.createClientLogic = async (data, context) => {
                 target,
                 description: `Criou o cliente ${payload.name} (ID pendente)`,
                 metadata: { pendingIdGym: true }
-            }).catch(err => console.error('[createClient] Audit log failed:', err));
-        });
+            }).catch(err => console.error('[createClient] Audit log failed:', err))
+        ]);
 
         return { id: clientRef.id, ...payload };
     } catch (error) {
@@ -90,9 +89,6 @@ exports.updateClientLogic = async (data, context) => {
         // Get client reference
         const clientRef = getBranchCollectionRef(idTenant, idBranch, "clients", data.idClient);
 
-        // Build payload manually (for update we might want to be more specific, or reuse buildClientPayload but careful with defaults)
-        // Original code used spread ...validatedData and some manual field merging
-
         const payload = {
             ...validatedData,
             updatedAt: FieldValue.serverTimestamp(),
@@ -100,7 +96,6 @@ exports.updateClientLogic = async (data, context) => {
 
         // Sync derived name if needed
         if (data.clientData.firstName !== undefined || data.clientData.lastName !== undefined || data.clientData.name !== undefined) {
-            // deriveFullName comes from shared/payloads
             payload.name = deriveFullName(data.clientData);
         }
 
@@ -112,21 +107,23 @@ exports.updateClientLogic = async (data, context) => {
         // Remove undefined values
         Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
 
-        await clientRef.update(payload);
-
-        // Audit log
+        // Audit log preparation
         const actor = getActorSnapshot(context.auth);
         const target = getTargetSnapshot("client", { ...payload, id: data.idClient }, data.idClient);
 
-        await saveAuditLog({
-            idTenant,
-            idBranch,
-            action: "CLIENT_UPDATE",
-            actor,
-            target,
-            description: `Atualizou o cliente ${payload.name || "..."}`,
-            metadata: { updates: Object.keys(payload) }
-        });
+        // Run Update and Audit Log in parallel
+        await Promise.all([
+            clientRef.update(payload),
+            saveAuditLog({
+                idTenant,
+                idBranch,
+                action: "CLIENT_UPDATE",
+                actor,
+                target,
+                description: `Atualizou o cliente ${payload.name || "..."}`,
+                metadata: { updates: Object.keys(payload) }
+            }).catch(err => console.error('[updateClient] Audit log failed:', err))
+        ]);
 
         return { id: data.idClient, ...payload };
 

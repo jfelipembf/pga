@@ -2,7 +2,7 @@ const functions = require("firebase-functions/v1");
 const { deleteEnrollmentInternal, createRecurringEnrollmentInternal, createSingleSessionEnrollmentInternal } = require("./helpers/enrollmentService");
 const { requireAuthContext } = require("../shared/context");
 const { validate } = require("../shared/validator");
-const { RecurringEnrollmentSchema, SingleSessionEnrollmentSchema } = require("./validation/enrollment.validation");
+const { EnrollmentSchema } = require("../shared");
 
 /**
  * ============================================================================
@@ -16,9 +16,6 @@ const { RecurringEnrollmentSchema, SingleSessionEnrollmentSchema } = require("./
  * ============================================================================
  */
 
-/**
- * Soft delete de uma matrícula (muda status para canceled).
- */
 /**
  * Soft delete de uma matrícula (muda status para canceled).
  */
@@ -48,7 +45,7 @@ exports.createRecurringEnrollment = functions.region("us-central1").https.onCall
   const uid = context.auth.uid;
 
   try {
-    const validatedData = validate(RecurringEnrollmentSchema, data);
+    const validatedData = validate(EnrollmentSchema, data);
     return await createRecurringEnrollmentInternal({ idTenant, idBranch, uid, data: validatedData });
   } catch (error) {
     console.error("Error creating recurring enrollment:", error);
@@ -65,7 +62,7 @@ exports.createSingleSessionEnrollment = functions.region("us-central1").https.on
   const uid = context.auth.uid;
 
   try {
-    const validatedData = validate(SingleSessionEnrollmentSchema, data);
+    const validatedData = validate(EnrollmentSchema, data);
     return await createSingleSessionEnrollmentInternal({ idTenant, idBranch, uid, data: validatedData });
   } catch (error) {
     console.error("Error creating single session enrollment:", error);

@@ -18,7 +18,7 @@ import { MOCK_CLASSES as mockClasses } from "../Constants/collaboratorDefaults"
 import { listRoles } from "../../../services/Roles/roles.service"
 import { getStaff, updateStaff, useStaffPhotoUpload } from "../../../services/Staff/index"
 import { PLACEHOLDER_AVATAR } from "../../Clients/Constants/defaults"
-import { buildStaffPayload } from "../../../services/payloads"
+import { buildStaffPayload } from "@pga/shared"
 
 const CollaboratorProfile = ({ setBreadcrumbItems }) => {
   const [searchParams] = useSearchParams()
@@ -110,7 +110,13 @@ const CollaboratorProfile = ({ setBreadcrumbItems }) => {
         payload.id = staffId // Ensure ID is present from URL param
 
         await updateStaff(payload)
-        setFormData(payload)
+        
+        // Merge payload with previous data and clear avatarFile to prevent re-upload
+        setFormData(prev => {
+          const next = { ...prev, ...payload }
+          delete next.avatarFile
+          return next
+        })
         toast.show({ title: "Sucesso", description: "Dados atualizados com sucesso.", color: "success" })
       })
     } catch (e) {

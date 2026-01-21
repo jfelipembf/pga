@@ -2,7 +2,7 @@ const admin = require("firebase-admin");
 const functions = require("firebase-functions/v1");
 const db = admin.firestore();
 const { FieldValue } = require("firebase-admin/firestore");
-const { toISODate, addDays } = require("../../helpers/date");
+const { toISODate, addDays } = require("../../shared");
 
 /**
  * Atualiza o contador de matriculados em uma sessão específica.

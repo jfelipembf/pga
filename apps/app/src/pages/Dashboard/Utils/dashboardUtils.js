@@ -1,28 +1,8 @@
-export const formatCurrency = value => {
-    if (value === null || value === undefined) return "--"
-    const num = Number(value)
-    if (Number.isNaN(num)) return "--"
-    return num.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 })
-}
+import { formatCurrency, calculateDelta, calculatePercent, calculateAverage } from "@pga/shared"
 
-export const formatDelta = (current, previous) => {
-    if (previous == null || previous === 0 || current == null) return "--"
-    const diff = ((current - previous) / previous) * 100
-    const rounded = Math.round(diff * 10) / 10
-    return `${rounded > 0 ? "+" : ""}${rounded}%`
-}
+// Re-export for compatibility
+export { formatCurrency, calculatePercent, calculateAverage }
 
-export const calculateChurnPercent = (churnCount, activeCount) => {
-    if (!activeCount || activeCount === 0 || !churnCount) return null
-    return ((churnCount / activeCount) * 100).toFixed(1)
-}
-
-export const calculatePercent = (target, total) => {
-    if (!total || total === 0 || !target) return null
-    return ((target / total) * 100).toFixed(1)
-}
-
-export const calculateAverage = (value, total) => {
-    if (!total || total === 0 || !value) return null
-    return (value / total).toFixed(1)
-}
+// Aliases para manter compatibilidade com código existente
+export const formatDelta = calculateDelta
+export const calculateChurnPercent = calculatePercent

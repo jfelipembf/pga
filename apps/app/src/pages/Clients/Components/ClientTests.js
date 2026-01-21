@@ -1,6 +1,7 @@
 import React from "react"
 import { Card, CardBody, CardHeader, Table, Badge, Col, Row } from "reactstrap"
 import PropTypes from "prop-types"
+import { formatDate } from "../../../utils/date"
 
 const ClientTests = ({ tests = [] }) => {
   return (
@@ -35,7 +36,7 @@ const ClientTests = ({ tests = [] }) => {
                       // Formatting date safely
                       let dateStr = "--"
                       if (test.updatedAt?.seconds) {
-                        dateStr = new Date(test.updatedAt.seconds * 1000).toLocaleDateString('pt-BR')
+                        dateStr = formatDate(new Date(test.updatedAt.seconds * 1000))
                       }
 
                       // isDistanceFixed (Measure Time) = testType === 'tempo'

@@ -3,6 +3,7 @@ const admin = require("firebase-admin");
 const db = admin.firestore();
 const { processTrigger } = require("../automations/helpers/helper");
 const { getClientData, formatEvaluationResults } = require("./helpers/evaluationHelper");
+const { formatDate } = require("../shared");
 
 // ============================================================================
 // TRIGGERS (Gatilhos do Firestore)
@@ -43,7 +44,7 @@ exports.onEvaluationWrite = functions
                     name: firstName,
                     student: firstName,
                     phone: phone,
-                    date: new Date().toLocaleDateString("pt-BR"),
+                    date: formatDate(new Date()),
                     results: resultsText
                 };
 
@@ -134,7 +135,7 @@ exports.saveEvaluation = functions
                     name: firstName,
                     student: firstName,
                     phone: phone,
-                    date: new Date().toLocaleDateString("pt-BR"),
+                    date: formatDate(new Date()),
                     results: resultsText
                 };
 

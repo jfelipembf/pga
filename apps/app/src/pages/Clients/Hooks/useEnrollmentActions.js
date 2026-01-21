@@ -1,5 +1,6 @@
 import { useLoading } from "../../../hooks/useLoading"
 import { useSystemSettings } from "../../../hooks/useSystemSettings"
+import { toISODate } from "../../../utils/date"
 import { useToast } from "../../../components/Common/ToastProvider"
 import { listReceivablesByClient } from "../../../services/Financial"
 import { validateEnrollmentRules } from "../../../validators/enrollment/guards"
@@ -36,7 +37,7 @@ export const useEnrollmentActions = ({ clientId, clientName, clientPhone, select
                     const limitDate = new Date()
                     limitDate.setDate(limitDate.getDate() - toleranceDays)
                     // Formato YYYY-MM-DD para comparação com strings de data do Firestore
-                    const limitDateISO = limitDate.toISOString().split('T')[0]
+                    const limitDateISO = toISODate(limitDate)
 
                     const hasOverdue = receivables.some(r => {
                         if (!r.dueDate) return false
@@ -138,12 +139,76 @@ export const useEnrollmentActions = ({ clientId, clientName, clientPhone, select
 
                 toast.show({ title: enrollmentType === ENROLLMENT_TYPES.EXPERIMENTAL ? "Agendamento realizado" : "Matrícula realizada", color: "success" })
 
+                // OTIMISMO: Atualizar enrollments imediatamente para feedback visual (Badge de 'Matriculado')
+                if (setExistingEnrollments) {
+                    setExistingEnrollments(prev => {
+                        const newItems = []
+                        if (enrollmentType === ENROLLMENT_TYPES.EXPERIMENTAL) {
+                            selectedSessions.forEach(s => {
+                                newItems.push({
+                                    id: `opt-${Date.now()}-${s.id}`,
+                                    idEnrollment: `opt-${Date.now()}-${s.id}`,
+                                    status: "active",
+                                    type: enrollmentType,
+                                    idSession: s.idSession || s.id,
+                                    idClass: s.idClass || s.idActivity,
+                                    start: s.sessionDate,
+                                    activityName: s.activityName || s.name,
+                                    instructorName: s.employeeName || s.instructorName
+                                })
+                            })
+                        } else {
+                            // Para recorrente, evita duplicados por turma
+                            const uniqueClasses = new Set()
+                            selectedSessions.forEach(s => {
+                                const idClass = s.idClass || s.idActivity
+                                if (idClass && !uniqueClasses.has(idClass)) {
+                                    uniqueClasses.add(idClass)
+                                    newItems.push({
+                                        id: `opt-${Date.now()}-${idClass}`,
+                                        idEnrollment: `opt-${Date.now()}-${idClass}`,
+                                        status: "active",
+                                        type: enrollmentType,
+                                        idClass: idClass,
+                                        startDate: s.sessionDate,
+                                        activityName: s.activityName || s.name
+                                    })
+                                }
+                            })
+                        }
+                        return [...prev, ...newItems]
+                    })
+                }
+
                 // OTIMISMO: Atualizar ocupação na grade imediatamente
                 if (setSessions) {
+                    const isExperimental = enrollmentType === ENROLLMENT_TYPES.EXPERIMENTAL
+                    const targetIds = new Set()
+
+                    if (isExperimental) {
+                        selectedSessions.forEach(s => targetIds.add(String(s.idSession || s.id)))
+                    } else {
+                        // Recurring: target keys by Class ID
+                        selectedSessions.forEach(s => {
+                            if (s.idClass) targetIds.add(String(s.idClass))
+                        })
+                    }
+
                     setSessions(prev =>
                         (Array.isArray(prev) ? prev : []).map(sess => {
-                            const key = `${sess.idSession || sess.id}|${sess.sessionDate || ""}`
-                            if (selectedSessionKeys.includes(key)) {
+                            const sessId = String(sess.idSession || sess.id)
+                            const classId = String(sess.idClass)
+
+                            let shouldIncrement = false
+
+                            if (isExperimental) {
+                                shouldIncrement = targetIds.has(sessId)
+                            } else {
+                                // Update if it matches the class ID
+                                shouldIncrement = targetIds.has(classId)
+                            }
+
+                            if (shouldIncrement) {
                                 return {
                                     ...sess,
                                     enrolledCount: Number(sess.enrolledCount || 0) + 1

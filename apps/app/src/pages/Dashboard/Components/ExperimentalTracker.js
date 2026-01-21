@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from "react";
 import { Card, CardBody, Badge, Input } from "reactstrap";
 import Spinner from "components/Common/Spinner"
+import { getTodayISO } from "../../../utils/date"
 
 const ExperimentalTracker = ({ experimentals = [], isLoading = false }) => {
-    const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString('en-CA'));
+    const [selectedDate, setSelectedDate] = useState(getTodayISO());
 
     const getStatusColor = (status) => {
         switch (status) {

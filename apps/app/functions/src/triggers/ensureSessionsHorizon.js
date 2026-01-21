@@ -1,13 +1,13 @@
 const admin = require("firebase-admin");
 const { createScheduledTrigger } = require("./utils");
-const { toISODate } = require("../helpers/date");
+const { toISODate } = require("../shared");
 const { generateSessionsForClass } = require("../classes/helpers/sessionGenerator");
 
 /**
  * Garante que existam sessões criadas para os próximos 6 meses.
  * Roda diariamente às 00:10 para manter o horizonte sempre preenchido.
  */
-module.exports = createScheduledTrigger("50 8 * * *", "ensureSessionsHorizon", async () => {
+module.exports = createScheduledTrigger("10 0 * * *", "ensureSessionsHorizon", async () => {
     const db = admin.firestore();
     const fromIso = toISODate(new Date());
     const weeks = 26; // ~6 meses

@@ -4,6 +4,8 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 import PropTypes from 'prop-types';
 import useTenant from '../../../hooks/useTenant';
 
+import { formatDate } from "@pga/shared";
+
 const AcademyBilling = ({ academy }) => {
     const { tenant, loading: tenantLoading } = useTenant(academy?.tenantId);
 
@@ -231,7 +233,7 @@ const AcademyBilling = ({ academy }) => {
                                 ) : (
                                     invoices.map((inv) => (
                                         <tr key={inv.id}>
-                                            <td>{new Date(inv.date * 1000).toLocaleDateString('pt-BR')}</td>
+                                            <td>{formatDate(new Date(inv.date * 1000))}</td>
                                             <td><code className="text-primary">{inv.number}</code></td>
                                             <td>
                                                 {new Intl.NumberFormat('pt-BR', {

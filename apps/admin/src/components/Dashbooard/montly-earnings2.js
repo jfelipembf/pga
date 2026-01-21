@@ -3,13 +3,7 @@ import { Row, Col, Card, CardBody } from "reactstrap"
 import ReactApexChart from "react-apexcharts"
 import PropTypes from "prop-types"
 import { MONTHS_SHORT } from "../../constants/months"
-
-const currencyFormatter = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-})
-
-const formatCurrency = value => currencyFormatter.format(value || 0)
+import { formatCurrency } from "@pga/shared"
 
 const monthLabel = idOrName => {
   if (idOrName && idOrName.length <= 4 && !idOrName.includes("-")) return idOrName

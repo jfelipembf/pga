@@ -1,6 +1,6 @@
 import React, { useMemo } from "react"
 import { Badge, Card, CardBody, CardHeader, Table, UncontrolledTooltip } from "reactstrap"
-import { formatDate } from "../../../helpers/date"
+import { formatDate } from "@pga/shared"
 import PropTypes from "prop-types"
 import ConfirmDialog from "../../../components/Common/ConfirmDialog"
 import ButtonLoader from "../../../components/Common/ButtonLoader"

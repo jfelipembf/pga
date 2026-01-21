@@ -1,18 +1,14 @@
 const functions = require("firebase-functions/v1");
-const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
 
 const { requireAuthContext } = require("../../shared/context");
 const { saveAuditLog } = require("../../shared/audit");
 const { getActorSnapshot, getTargetSnapshot } = require("../../shared/snapshots");
 const { validate } = require("../../shared/validator");
-const { StaffSchema } = require("../validation/staff.validation");
+const { StaffSchema } = require("../../shared");
 
-// Local utilities
-const { buildStaffPayload } = require("./staff.payloads");
-const { deriveFullName } = require("../../shared/payloads");
+const { buildStaffPayload, deriveFullName } = require("../../shared");
 const { getOrCreateAuthUser, updateAuthUser, buildAuthUpdates } = require("../../shared/auth");
-const { getStaffRef } = require("../../shared/references");
 const { resolveRoleData } = require("./roleResolver");
 
 // =========================
@@ -57,8 +53,6 @@ async function createStaffUserLogic(data, context) {
             updatedAt: now,
         };
 
-        await staffRef.set(finalPayload);
-
         // Audit log
         const actor = getActorSnapshot(context.auth);
         const target = getTargetSnapshot(
@@ -67,15 +61,19 @@ async function createStaffUserLogic(data, context) {
             userRecord.uid
         );
 
-        await saveAuditLog({
-            idTenant,
-            idBranch,
-            action: "STAFF_CREATE",
-            actor,
-            target,
-            description: `Criou o colaborador ${displayName} (${finalRole})`,
-            metadata: { email: validatedData.email, role: finalRole, roleId: validatedData.roleId },
-        });
+        // Run Firestore set and Audit Log in parallel
+        await Promise.all([
+            staffRef.set(finalPayload),
+            saveAuditLog({
+                idTenant,
+                idBranch,
+                action: "STAFF_CREATE",
+                actor,
+                target,
+                description: `Criou o colaborador ${displayName} (${finalRole})`,
+                metadata: { email: validatedData.email, role: finalRole, roleId: validatedData.roleId },
+            }).catch(err => console.error('[createStaffUserLogic] Audit log failed:', err))
+        ]);
 
         return { success: true, uid: userRecord.uid, message: "Colaborador criado com sucesso." };
     } catch (error) {
@@ -164,11 +162,6 @@ async function updateStaffUserLogic(data, context) {
         }
 
         // Update Firestore
-        await staffRef.set(
-            { ...firestorePayload, ...legacyAddressFieldsToRemove },
-            { merge: true }
-        );
-
         // Audit log
         const actor = getActorSnapshot(context.auth);
         const target = getTargetSnapshot(
@@ -182,18 +175,24 @@ async function updateStaffUserLogic(data, context) {
             validatedUpdates.id
         );
 
-        await saveAuditLog({
-            idTenant,
-            idBranch,
-            action: "STAFF_UPDATE",
-            actor,
-            target,
-            description: `Atualizou os dados do colaborador ${firestorePayload.displayName}`,
-            metadata: {
-                updates: Object.keys(firestorePayload),
-                email: firestorePayload.email,
-            },
-        });
+        await Promise.all([
+            staffRef.set(
+                { ...firestorePayload, ...legacyAddressFieldsToRemove },
+                { merge: true }
+            ),
+            saveAuditLog({
+                idTenant,
+                idBranch,
+                action: "STAFF_UPDATE",
+                actor,
+                target,
+                description: `Atualizou os dados do colaborador ${firestorePayload.displayName}`,
+                metadata: {
+                    updates: Object.keys(firestorePayload),
+                    email: firestorePayload.email,
+                },
+            }).catch(err => console.error('[updateStaffUserLogic] Audit log failed:', err))
+        ]);
 
         return { success: true, message: "Colaborador atualizado com sucesso." };
     } catch (error) {

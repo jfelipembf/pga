@@ -1,4 +1,4 @@
-import { formatDate } from "../../../helpers/date"
+import { formatDate } from "@pga/shared"
 
 export const normalizeTests = (tests) => {
     return tests.map(t => {

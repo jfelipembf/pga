@@ -1,15 +1,14 @@
-export const ENROLLMENT_TYPES = {
-    RECURRING: 'recurring',
-    EXPERIMENTAL: 'experimental',
-    SINGLE: 'single-session'
-}
+/**
+ * Re-exports from @pga/shared for backward compatibility
+ * Use centralized constants from @pga/shared package
+ */
+import { EnrollmentType, EnrollmentStatus } from "@pga/shared"
 
-export const ENROLLMENT_STATUS = {
-    ACTIVE: 'active',
-    CANCELED: 'canceled',
-    SUSPENDED: 'suspended'
-}
+// Re-export with legacy names for backward compatibility
+export const ENROLLMENT_TYPES = EnrollmentType
+export const ENROLLMENT_STATUS = EnrollmentStatus
 
+// Field constants (UI-specific, kept local)
 export const ENROLLMENT_FIELDS = {
     ID: 'id',
     ID_ENROLLMENT: 'idEnrollment',

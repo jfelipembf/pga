@@ -2,8 +2,8 @@ import { useState, useCallback } from "react"
 import { useLoading } from "../../../../hooks/useLoading"
 import { getAuthBranchContext } from "../../../../services/Summary/index"
 import { listFinancialTransactions } from "../../../../services/Financial/index"
-
 import { toLocalISODate } from "../../Cashier/Utils/cashierUtils"
+import { toMonthKey } from "../../../../utils/date"
 
 export const useCashFlowLogic = () => {
     const { isLoading, withLoading } = useLoading()
@@ -40,7 +40,8 @@ export const useCashFlowLogic = () => {
                 const safeTxs = Array.isArray(txs) ? txs : []
                 safeTxs.forEach(tx => {
                     if (!tx.date) return
-                    const monthId = tx.date.slice(0, 7)
+                    const monthId = toMonthKey(tx.date)
+                    if (!monthId) return
                     monthlyMap[monthId] = monthlyMap[monthId] || { revenue: 0, expenses: 0 }
                     const amt = Number(tx.amount || 0)
                     if (tx.type === "sale") monthlyMap[monthId].revenue += amt

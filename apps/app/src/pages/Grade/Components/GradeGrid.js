@@ -5,13 +5,13 @@ import OverlayLoader from "../../../components/Common/OverlayLoader"
 import {
   addDays,
   formatDayHeaderLabel,
-  formatISODate,
+  toISODate,
   getStartOfWeekSunday,
   isSameDay,
   minutesToTime,
-} from "../Utils/dateUtils"
+} from "@pga/shared"
 import { buildVisibleMinutes, isWithinTurn, occursOnDate } from "../Utils/gridUtils"
-import { normalizeDate } from "../../../helpers/date"
+import { normalizeDate } from "@pga/shared"
 import GradeEventCard from "./GradeEventCard"
 
 const GradeGrid = ({
@@ -63,7 +63,7 @@ const GradeGrid = ({
         if (!isWithinTurn(turn, startTime)) return
 
         days.forEach(d => {
-          const iso = formatISODate(d)
+          const iso = toISODate(d)
           const dayIndex = d.getDay()
           if (!occursOnDate(s, iso, dayIndex)) return
 
@@ -88,7 +88,7 @@ const GradeGrid = ({
         <div className="grade-grid__corner" />
         {days.map(d => (
           <div
-            key={formatISODate(d)}
+            key={toISODate(d)}
             className={`grade-grid__header ${isSameDay(d, referenceDate) ? "is-today" : ""}`}
           >
             {formatDayHeaderLabel(d)}
@@ -99,7 +99,7 @@ const GradeGrid = ({
           <React.Fragment key={t.label}>
             <div className="grade-grid__time">{t.label}</div>
             {days.map(d => {
-              const iso = formatISODate(d)
+              const iso = toISODate(d)
               const key = `${iso}|${t.label}`
               const cellSchedules = (schedulesByCell.get(key) || []).slice().sort((a, b) => {
                 const aa = String(a?.idActivity || "")

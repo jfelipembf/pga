@@ -3,7 +3,7 @@ import { Button, Card, CardBody, CardHeader, Col, Form, FormGroup, Input, Label,
 
 import SideMenu from "components/Common/SideMenu"
 import StatusBadge from "components/Common/StatusBadge"
-import { formatDate } from "../../../helpers/date"
+import { formatDate } from "@pga/shared"
 
 import ButtonLoader from "../../../components/Common/ButtonLoader"
 import ConfirmDialog from "../../../components/Common/ConfirmDialog"

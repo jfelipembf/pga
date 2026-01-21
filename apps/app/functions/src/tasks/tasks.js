@@ -3,6 +3,7 @@ const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
 const { requireAuthContext } = require("../shared/context");
 const { saveAuditLog } = require("../shared/audit");
+const { toISODate, formatDate, addDays } = require("../shared");
 
 const db = admin.firestore();
 
@@ -186,13 +187,14 @@ exports.createTask = functions.region("us-central1").https.onCall(async (data, c
 
                 // Lógica de incremento
                 if (recurrence.frequency === 'daily') {
-                    nextDate.setDate(nextDate.getDate() + 1);
+                    nextDate = addDays(nextDate, 1);
                 } else if (recurrence.frequency === 'yearly') {
-                    nextDate.setFullYear(nextDate.getFullYear() + 1);
+                    nextDate = new Date(nextDate.getFullYear() + 1, nextDate.getMonth(), nextDate.getDate());
                 } else {
-                    nextDate.setMonth(nextDate.getMonth() + 1);
+                    // monthly
+                    nextDate = new Date(nextDate.getFullYear(), nextDate.getMonth() + 1, nextDate.getDate());
                 }
-                nextDateIso = nextDate.toISOString().split('T')[0];
+                nextDateIso = toISODate(nextDate);
             }
 
             const templatePayload = {
@@ -257,7 +259,7 @@ exports.createTask = functions.region("us-central1").https.onCall(async (data, c
     if (Array.isArray(assignedStaffIds) && assignedStaffIds.length > 0) {
         console.log(`Iniciando notificações para ${assignedStaffIds.length} staffs. IDs:`, assignedStaffIds);
         try {
-            const dateFormatted = new Date(dueDate).toLocaleDateString('pt-BR');
+            const dateFormatted = formatDate(new Date(dueDate));
             const studentInfo = clientName ? ` (Vínculo: ${clientName})` : "";
 
             for (const staffId of assignedStaffIds) {
@@ -318,7 +320,7 @@ exports.completeOperationalAlert = functions.region("us-central1").https.onCall(
         .doc(alertId);
 
     const now = FieldValue.serverTimestamp();
-    const today = new Date().toISOString().split('T')[0];
+    const today = toISODate(new Date());
 
     await completionRef.set({
         type: type || "unknown",

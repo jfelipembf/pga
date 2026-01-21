@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react"
+import { getTodayISO, getThisMonth, monthRangeFromKey } from "../../../../utils/date"
 import { listReceivables, cancelReceivable, listFinancialTransactions } from "../../../../services/Financial"
 import { listClients } from "../../../../services/Clients/clients.service"
 import { RECEIVABLE_STATUS } from "../Constants/receivablesConstants"
@@ -6,16 +7,15 @@ import { useToast } from "../../../../components/Common/ToastProvider"
 
 export const useReceivables = () => {
     // Filters State
-    const [filters, setFilters] = useState({
-        startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-            .toISOString()
-            .split("T")[0],
-        endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
-            .toISOString()
-            .split("T")[0],
-        status: "", // all
-        search: "",
-        clientId: null, // Specific client filter
+    const [filters, setFilters] = useState(() => {
+        const { start, end } = monthRangeFromKey(getThisMonth())
+        return {
+            startDate: start,
+            endDate: end,
+            status: "", // all
+            search: "",
+            clientId: null, // Specific client filter
+        }
     })
 
     // Data State
@@ -89,7 +89,7 @@ export const useReceivables = () => {
             }))
 
             const normalizedTransactions = transactionsData.map(tx => {
-                const isFuture = tx.date > new Date().toISOString().split("T")[0]
+                const isFuture = tx.date > getTodayISO()
                 const computedStatus = isFuture ? RECEIVABLE_STATUS.OPEN : RECEIVABLE_STATUS.PAID
 
                 return {
@@ -169,9 +169,10 @@ export const useReceivables = () => {
 
     // Clear All Filters
     const clearFilters = () => {
+        const { start, end } = monthRangeFromKey(getThisMonth())
         setFilters({
-            startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split("T")[0],
-            endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split("T")[0],
+            startDate: start,
+            endDate: end,
             status: "",
             search: "",
             clientId: null

@@ -7,12 +7,12 @@ const { getBranchCollectionRef } = require("../shared/references");
 const { saveAuditLog } = require("../shared/audit");
 const { getActorSnapshot, getTargetSnapshot } = require("../shared/snapshots");
 const { validate } = require("../shared/validator");
-const { ClassSchema } = require("./validation/class.validation");
+const { ClassSchema } = require("../shared");
 
 // Class-specific helpers
 const { validateClassDaysAgainstContracts, validateEndDateConflicts } = require("./helpers/validator");
 const { cleanupFutureSessions, syncSessionUpdates } = require("./helpers/sessionUpdater");
-const { computeEndTime } = require("../helpers/date");
+const { computeEndTime } = require("../shared");
 
 /**
  * ============================================================================
@@ -44,10 +44,10 @@ exports.updateClass = functions.region("us-central1").https.onCall(async (data, 
         const updates = validate(ClassSchema, rawUpdates);
         const classRef = getBranchCollectionRef(idTenant, idBranch, "classes", id);
 
-        // 1. Validar Contratos (Se houver mudança de dias)
-        if (updates.weekDays && Array.isArray(updates.weekDays)) {
-            const newDays = updates.weekDays.map(Number);
-            await validateClassDaysAgainstContracts({ idTenant, idBranch, idClass: id, newDays });
+        // 1. Validar Contratos (Se houver mudança de dia)
+        if (updates.weekday !== undefined) {
+            const newDay = Number(updates.weekday);
+            await validateClassDaysAgainstContracts({ idTenant, idBranch, idClass: id, newDay });
         }
 
         // 2. Validar Conflitos de EndDate (PRIORITÁRIO)

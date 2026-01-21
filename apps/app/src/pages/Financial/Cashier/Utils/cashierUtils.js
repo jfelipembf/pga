@@ -1,23 +1,13 @@
 import { registerLocale } from "react-datepicker"
 import ptBR from "date-fns/locale/pt-BR"
+import { formatCurrency, toISODate } from "@pga/shared"
 
 registerLocale("pt-BR", ptBR)
 
-export const formatCurrency = (value) =>
-    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
-        Number(value || 0)
-    )
+export { formatCurrency }
 
-/**
- * Converte Date -> "YYYY-MM-DD" em horário local (não UTC)
- */
-export const toLocalISODate = (d) => {
-    if (!d) return null
-    const yyyy = d.getFullYear()
-    const mm = String(d.getMonth() + 1).padStart(2, "0")
-    const dd = String(d.getDate()).padStart(2, "0")
-    return `${yyyy}-${mm}-${dd}`
-}
+// Re-export toISODate from shared for compatibility
+export { toISODate as toLocalISODate }
 
 /**
  * Tenta extrair uma data (Date) da transação.

@@ -1,5 +1,6 @@
 const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
+const { toISODate } = require("../../shared");
 const db = admin.firestore();
 
 /**
@@ -38,7 +39,7 @@ async function processBranchExpirations(idTenant, idBranch) {
     const now = new Date();
     const spDateString = now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
     const todaySP = new Date(spDateString);
-    const todayIso = todaySP.toISOString().split("T")[0];
+    const todayIso = toISODate(todaySP);
 
     // Buscar contratos ativos desse branch que vencem hoje
     const contractsRef = db.collection("tenants").doc(idTenant)

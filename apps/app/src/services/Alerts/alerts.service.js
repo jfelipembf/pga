@@ -3,6 +3,7 @@ import { httpsCallable } from "firebase/functions"
 import { requireFunctions } from "../_core/functions"
 import { requireDb } from "../_core/db"
 import { requireBranchContext } from "../_core/context"
+import { getTodayISO } from "../../utils/date"
 
 /**
  * Marca um alerta (aniversário ou vencimento) como concluído com auditoria via Cloud Function.
@@ -25,7 +26,7 @@ export const markAlertAsCompleted = async (alertData) => {
 export const getTodayCompletedAlerts = async () => {
     const db = requireDb()
     const ctx = requireBranchContext()
-    const today = new Date().toISOString().split('T')[0]
+    const today = getTodayISO()
 
     const ref = collection(db, "tenants", ctx.idTenant, "branches", ctx.idBranch, "alertCompletions")
     const q = query(

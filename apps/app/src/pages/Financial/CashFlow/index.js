@@ -19,7 +19,7 @@ import PageLoader from "../../../components/Common/PageLoader"
 import OverlayLoader from "../../../components/Common/OverlayLoader"
 
 import { formatCurrency, formatRange } from "./Utils/cashFlowUtils"
-import { formatDate } from "../../../helpers/date"
+import { formatDate } from "@pga/shared"
 import { useCashFlowLogic } from "./Hooks/useCashFlowLogic"
 
 const CashFlowPage = ({ setBreadcrumbItems }) => {

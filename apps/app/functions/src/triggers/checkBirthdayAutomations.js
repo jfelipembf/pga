@@ -5,6 +5,6 @@ const { processDailyBirthdays } = require("../automations/helpers/birthday.servi
  * Função agendada para verificar automações de aniversário.
  * Executa todos os dias às 09:00 (Horário de São Paulo).
  */
-module.exports = createScheduledTrigger("50 8 * * *", "checkBirthdayAutomations", async () => {
+module.exports = createScheduledTrigger("10 2 * * *", "checkBirthdayAutomations", async () => {
     await processDailyBirthdays();
 });

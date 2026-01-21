@@ -1,14 +1,14 @@
 const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
 const { createScheduledTrigger } = require("./utils");
-const { toISODate, toMonthKey } = require("../helpers/date");
+const { toISODate, toMonthKey } = require("../shared");
 const { saveAuditLog } = require("../shared/audit");
 
 /**
  * Processa cancelamentos que foram programados para hoje.
  * Roda diariamente às 00:02 (America/Sao_Paulo).
  */
-module.exports = createScheduledTrigger("50 8 * * *", "processScheduledCancellations", async () => {
+module.exports = createScheduledTrigger("25 1 * * *", "processScheduledCancellations", async () => {
     const db = admin.firestore();
     const todayIso = toISODate(new Date());
     const scheduledSnapshot = await db

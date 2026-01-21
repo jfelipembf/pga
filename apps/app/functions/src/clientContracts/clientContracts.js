@@ -6,7 +6,7 @@ const { saveAuditLog } = require("../shared/audit");
 
 const db = admin.firestore();
 
-const { parseDate, toISODate, getToday, addDays } = require("../helpers/date");
+const { parseDate, toISODate, getToday, addDays } = require("../shared");
 const { getContractsColl } = require("./helpers/utils");
 const { createClientContractInternal } = require("./helpers/contractService");
 
@@ -330,8 +330,8 @@ exports.cancelClientContract = functions.region("us-central1").https.onCall(asyn
           try {
             const { createTransactionInternal } = require("../financial/transactions");
             // Necessário data atual YYYY-MM-DD
-            const dateHelpers = require("../helpers/date");
-            const todayISO = dateHelpers.toISODate ? dateHelpers.toISODate(new Date()) : new Date().toISOString().split('T')[0];
+            const dateHelpers = require("../shared");
+            const todayISO = dateHelpers.toISODate(new Date());
 
             await createTransactionInternal({
               idTenant,
@@ -489,7 +489,7 @@ exports.cancelClientContract = functions.region("us-central1").https.onCall(asyn
             if (!txSnapshot.empty) {
               const txBatch = db.batch();
               let txCount = 0;
-              const todayISO = new Date().toISOString().split('T')[0];
+              const todayISO = toISODate(new Date());
 
               txSnapshot.forEach(doc => {
                 const tx = doc.data();

@@ -1,5 +1,5 @@
 const admin = require("firebase-admin");
-const { toISODate, addDays } = require("../../helpers/date");
+const { toISODate, addDays } = require("../../shared");
 const { sendWhatsAppMessageInternal } = require("../../notifications/whatsapp");
 
 /**

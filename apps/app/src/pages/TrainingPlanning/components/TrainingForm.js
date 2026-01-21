@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardBody, Button, Row, Col, Badge } from "reactstrap";
 import WorkoutItem from "./WorkoutItem";
 import { calculateTotalDistance } from "../utils/trainingUtils";
+import { formatDateDisplay } from "../../../utils/date";
 
 const TrainingForm = ({ date, initialData, onSave, onBack }) => {
     const [workoutItems, setWorkoutItems] = useState(initialData?.items || []);
@@ -52,7 +53,7 @@ const TrainingForm = ({ date, initialData, onSave, onBack }) => {
         onSave(workoutData);
     }
 
-    const formattedDate = date ? date.toLocaleDateString("pt-BR", {
+    const formattedDate = date ? formatDateDisplay(date, {
         weekday: 'long',
         year: 'numeric',
         month: 'long',

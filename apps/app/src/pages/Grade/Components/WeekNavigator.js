@@ -5,7 +5,7 @@ import {
   addDays,
   getStepForView,
   formatRangeLabel,
-} from "../Utils/dateUtils"
+} from "@pga/shared"
 
 const WeekNavigator = ({ referenceDate, view, onReferenceDateChange }) => {
   const step = getStepForView(view)

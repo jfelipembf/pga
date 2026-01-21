@@ -1,4 +1,4 @@
-const normalizeStatus = status => String(status || "").toLowerCase().trim()
+import { normalizeStatus } from "@pga/shared"
 
 export const STATUS_LABELS = {
   contract: {

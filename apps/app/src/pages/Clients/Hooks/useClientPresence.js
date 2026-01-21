@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react"
-import { calculatePresenceStats } from "../../../helpers/presence"
+import { calculatePresenceStats } from "@pga/shared"
 import { isPresent } from "../Utils/presenceUtils"
 
 export const useClientPresence = (presences = []) => {

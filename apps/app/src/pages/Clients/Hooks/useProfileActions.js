@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom"
 import { useClientAvatarUpload, updateClient as updateClientAction } from "../../../services/Clients/index"
-import { buildClientPayload } from "../../../services/payloads"
+import { buildClientPayload } from "@pga/shared"
 import { deleteEnrollment } from "../../../services/Enrollments/index"
 import { useToast } from "../../../components/Common/ToastProvider"
 import { useLoading } from "../../../hooks/useLoading"
@@ -44,7 +44,13 @@ export const useProfileActions = ({
 
                 await updateClientAction(clientId, payload)
 
-                setFormData(payload)
+                // Merge payload with previous data to preserve read-only fields like id, idGym, createdAt
+                // Also clear avatarFile to prevent re-upload on subsequent saves
+                setFormData(prev => {
+                    const next = { ...prev, ...payload }
+                    delete next.avatarFile
+                    return next
+                })
                 setAvatarPreview(payload.photo)
                 toast.show({ title: "Cliente salvo", description: profileName, color: "success" })
             })

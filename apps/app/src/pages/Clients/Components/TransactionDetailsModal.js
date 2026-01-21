@@ -18,7 +18,7 @@ import {
     CardBody
 } from "reactstrap"
 import classnames from "classnames"
-import { formatDate } from "../../../helpers/date"
+import { formatDate } from "@pga/shared"
 import { formatCurrency } from "../Utils/financialUtils"
 import { getStatusColor, getStatusLabel } from "../../../helpers/status"
 

@@ -15,7 +15,7 @@ import {
 
 import { listEnrollmentsByClass } from "../../../services/Enrollments/enrollments.service"
 import { listClients } from "../../../services/Clients"
-import { addExtraParticipantToSession, getSessionAttendanceSnapshot, markAttendance, saveSessionSnapshot } from "../../../services/Attendance/attendance.service"
+import { addExtraParticipantToSession, getSessionAttendanceSnapshot, saveSessionSnapshot } from "../../../services/Attendance/attendance.service"
 import ButtonLoader from "../../../components/Common/ButtonLoader"
 import { useLoading } from "../../../hooks/useLoading"
 import { useToast } from "../../../components/Common/ToastProvider"
@@ -250,27 +250,6 @@ const AttendanceModal = ({ isOpen, onClose, schedule, onAttendanceSaved, onEnrol
             isExtra: Boolean(s.isExtra),
           })),
           presentCount,
-          absentCount,
-        })
-
-        // Marcar presenças individuais
-        const attendancePromises = clients
-          .filter(s => s.status !== "editing") // não salvar status temporários
-          .map(client => ({
-            idSession: schedule.id,
-            idClient: client.id,
-            idClass: schedule.idClass, // ← garantir idClass
-            sessionDate: schedule.sessionDate || schedule.startDate || new Date().toISOString().slice(0, 10), // ← garantir sessionDate
-            idEnrollment: client.enrollmentId,
-            status: client.status,
-            justification: client.justification,
-            type: client.type || null,
-            recordedAt: new Date().toISOString(),
-          }))
-
-        await Promise.all(attendancePromises.map(p => markAttendance(p)))
-
-        toast.show({
           title: "Presenças salvas",
           description: `${presentCount} presentes, ${absentCount} ausentes`,
           color: "success"

@@ -3,6 +3,7 @@ import { useParams, useLocation } from "react-router-dom"
 import { getStatusLabel, getStatusColor } from "../../../helpers/status"
 import { PLACEHOLDER_AVATAR } from "../Constants/defaults"
 import directoryBg from "../../../assets/images/directory-bg.jpg"
+import { formatCurrency } from "@pga/shared"
 
 export const useProfileLogic = ({ client, contracts, financial, enrollments, setBreadcrumbItems }) => {
     const { tenant, branch } = useParams()
@@ -57,9 +58,6 @@ export const useProfileLogic = ({ client, contracts, financial, enrollments, set
             .filter(f => Number(f.pending || 0) > 0)
             .reduce((acc, cur) => acc + Number(cur.pending || 0), 0)
     }, [financial])
-
-    const formatCurrency = value =>
-        new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value || 0))
 
     const contractStatusValue = (primaryContract?.status || "").toLowerCase() || null
 

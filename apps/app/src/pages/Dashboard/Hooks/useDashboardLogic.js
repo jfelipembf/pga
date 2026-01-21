@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react"
 import { useLoading } from "../../../hooks/useLoading"
 import { getAuthBranchContext, getDailySummary, getMonthlySummary } from "../../../services/Summary/index"
 import { formatCurrency, formatDelta, calculateChurnPercent, calculatePercent } from "../Utils/dashboardUtils"
+import { toISODate, toMonthKey, addDays, formatDateDisplay } from "../../../utils/date"
 
 export const useDashboardLogic = () => {
     const { isLoading, withLoading } = useLoading()
@@ -19,17 +20,19 @@ export const useDashboardLogic = () => {
         try {
             await withLoading('page', async () => {
                 const today = new Date()
-                const monthId = today.toISOString().slice(0, 7)
+                const monthId = toMonthKey(toISODate(today))
                 setMonthId(monthId)
-                const yesterday = new Date(today)
-                yesterday.setDate(today.getDate() - 1)
-                const prevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1)
-                const prevMonthId = prevMonth.toISOString().slice(0, 7)
+                const yesterday = addDays(today, -1)
+                
+                // Calculate previous month by subtracting ~30 days and getting first of that month
+                const prevMonthDate = new Date(today.getFullYear(), today.getMonth() - 1, 1)
+                const prevMonthId = toMonthKey(toISODate(prevMonthDate))
 
                 const monthPromises = []
                 for (let i = 0; i < 12; i++) {
-                    const dt = new Date(today.getFullYear(), today.getMonth() - i, 1)
-                    const id = dt.toISOString().slice(0, 7)
+                    // Calculate month offset (keep Date constructor for month arithmetic)
+                    const monthDate = new Date(today.getFullYear(), today.getMonth() - i, 1)
+                    const id = toMonthKey(toISODate(monthDate))
                     monthPromises.push(
                         getMonthlySummary({ idTenant: ctx.idTenant, idBranch: ctx.idBranch, monthId: id })
                             .then(res => ({ id, data: res || null }))
@@ -37,9 +40,9 @@ export const useDashboardLogic = () => {
                 }
 
                 const [d, m, dPrev, mPrev, ...mAll] = await Promise.all([
-                    getDailySummary({ idTenant: ctx.idTenant, idBranch: ctx.idBranch, dateStr: today.toISOString().slice(0, 10) }),
+                    getDailySummary({ idTenant: ctx.idTenant, idBranch: ctx.idBranch, dateStr: toISODate(today) }),
                     getMonthlySummary({ idTenant: ctx.idTenant, idBranch: ctx.idBranch, monthId }),
-                    getDailySummary({ idTenant: ctx.idTenant, idBranch: ctx.idBranch, dateStr: yesterday.toISOString().slice(0, 10) }),
+                    getDailySummary({ idTenant: ctx.idTenant, idBranch: ctx.idBranch, dateStr: toISODate(yesterday) }),
                     getMonthlySummary({ idTenant: ctx.idTenant, idBranch: ctx.idBranch, monthId: prevMonthId }),
                     ...monthPromises,
                 ])
@@ -101,7 +104,7 @@ export const useDashboardLogic = () => {
             if (!id) return "Mês"
             const [y, m] = id.split("-").map(Number)
             const date = new Date(y, (m || 1) - 1, 1)
-            return date.toLocaleDateString("pt-BR", { month: "short" })
+            return formatDateDisplay(date, { month: "short" })
         }
         const list = monthlyHistory.length ? monthlyHistory : [{ id: monthId, salesMonth: monthlyCurrent }]
         return list.map((item, idx) => ({

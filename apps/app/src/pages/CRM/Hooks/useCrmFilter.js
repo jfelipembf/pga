@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { parseDate } from "../Utils/dateParsers"
+import { parseDate } from "@pga/shared"
 import { CRM_CLIENTS } from "../Constants/mockClients"
 
 export const useCrmFilter = (activeSegment, startDate, endDate) => {

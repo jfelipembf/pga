@@ -2,15 +2,7 @@ import { getDocs, query, where } from "firebase/firestore"
 import { httpsCallable } from "firebase/functions"
 import { requireFunctions } from "../_core/functions"
 import { receivablesCol, getContext, getDb } from "./receivables.repository"
-import { buildReceivablePayload } from "../payloads"
-
-
-
-const toISODate = d => {
-  const date = new Date(d || new Date())
-  const off = date.getTimezoneOffset()
-  return new Date(date.getTime() - off * 60000).toISOString().slice(0, 10)
-}
+import { buildReceivablePayload, toISODate } from "@pga/shared"
 
 export const createReceivable = async data => {
   const functions = requireFunctions()
@@ -62,8 +54,8 @@ export const markReceivablePaid = async (idReceivable, receivingDate) => {
 export const cancelReceivable = async (idReceivable, reason = "Cancelamento manual") => {
   return updateReceivable(idReceivable, {
     status: "canceled",
-    cancelReason: reason,
-    canceledAt: new Date().toISOString()
+    cancelReason: reason
+    // canceledAt will be added by backend with FieldValue.serverTimestamp()
   })
 }
 

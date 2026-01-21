@@ -6,7 +6,7 @@ const { requireAuthContext } = require("../shared/context");
 const { saveAuditLog } = require("../shared/audit");
 const { getBranchCollectionRef } = require("../shared/references");
 
-const { buildContractPayload } = require("./helpers/contracts.payloads");
+const { buildContractPayload } = require("../shared");
 
 const db = admin.firestore();
 

@@ -1,5 +1,6 @@
 const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
+const { toMonthKey, toISODate } = require("../../shared");
 const db = admin.firestore();
 
 /**
@@ -7,7 +8,7 @@ const db = admin.firestore();
  */
 async function updateMonthlySummary(idTenant, idBranch, updates, overrideMonthId = null) {
     if (!idTenant || !idBranch) return;
-    const monthId = overrideMonthId || new Date().toISOString().slice(0, 7);
+    const monthId = overrideMonthId || toMonthKey(toISODate(new Date()));
     const monthlyRef = db
         .collection("tenants")
         .doc(String(idTenant))
@@ -190,10 +191,10 @@ async function handleExperimentalDeletion(snap, context) {
             // Usa a data scheduledAt para encontrar o mês
             let monthId = null;
             if (funnel.scheduledAt && funnel.scheduledAt.toDate) {
-                monthId = funnel.scheduledAt.toDate().toISOString().slice(0, 7);
+                monthId = toMonthKey(toISODate(funnel.scheduledAt.toDate()));
             } else {
                 // Fallback para o mês atual se a data estiver faltando (raro)
-                monthId = new Date().toISOString().slice(0, 7);
+                monthId = toMonthKey(toISODate(new Date()));
             }
 
             await clientRef.update({

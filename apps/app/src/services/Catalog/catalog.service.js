@@ -8,7 +8,7 @@ import {
   getContext,
   getDb
 } from "./catalog.repository"
-import { buildServicePayload } from "../payloads"
+import { buildServicePayload } from "@pga/shared"
 
 
 /** PRODUCTS */

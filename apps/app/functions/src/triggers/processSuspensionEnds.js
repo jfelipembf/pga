@@ -1,7 +1,7 @@
 const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
 const { createScheduledTrigger } = require("./utils");
-const { toISODate, toMonthKey } = require("../helpers/date");
+const { toISODate, toMonthKey } = require("../shared");
 const { saveAuditLog } = require("../shared/audit");
 
 /**
@@ -9,7 +9,7 @@ const { saveAuditLog } = require("../shared/audit");
  * Reativa contratos e atualiza summaries.
  * Roda diariamente às 00:03 (America/Sao_Paulo), após os cancelamentos.
  */
-module.exports = createScheduledTrigger("50 8 * * *", "processSuspensionEnds", async () => {
+module.exports = createScheduledTrigger("10 1 * * *", "processSuspensionEnds", async () => {
     const db = admin.firestore();
     const todayIso = toISODate(new Date());
     const activeSuspensionsSnapshot = await db

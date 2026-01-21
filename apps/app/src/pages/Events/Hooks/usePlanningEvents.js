@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { listEvents, createEvent, updateEvent, deleteEvent, useEventAttachmentUpload } from "../../../services/Events"
 import { usePhotoUpload } from "../../../hooks/usePhotoUpload"
-import { buildEventPayload } from "../../../services/payloads"
+import { buildEventPayload } from "@pga/shared"
 import { useToast } from "../../../components/Common/ToastProvider"
 import { useLoading } from "../../../hooks/useLoading"
 import { INITIAL_FORM_STATE, PLANNING_TABS, TEST_TYPES } from "../Constants/planningDefaults"

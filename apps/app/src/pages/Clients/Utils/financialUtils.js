@@ -1,5 +1,6 @@
-export const formatCurrency = value =>
-    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value || 0))
+import { formatCurrency } from "@pga/shared"
+
+export { formatCurrency }
 
 export const renderMethod = method => {
     if (!method) return "-"

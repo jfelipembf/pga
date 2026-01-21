@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { useToast } from "../../../components/Common/ToastProvider"
 import { useLoading } from "../../../hooks/useLoading"
 import { useClientAvatarUpload, createClient } from "../../../services/Clients/index"
-import { buildClientPayload } from "../../../services/payloads"
+import { buildClientPayload } from "@pga/shared"
 
 export const useClientListActions = ({ setClients }) => {
     const [modalOpen, setModalOpen] = useState(false)

@@ -45,8 +45,8 @@ export const useCashierExpenses = ({ loadTransactions, withLoading }) => {
                     category: expenseForm.category || "Despesa",
                     method: expenseForm.method,
                     metadata: {
-                        registeredBy: "cashier",
-                        registeredAt: new Date().toISOString(),
+                        registeredBy: "cashier"
+                        // registeredAt will be added by backend with FieldValue.serverTimestamp()
                     },
                 })
 

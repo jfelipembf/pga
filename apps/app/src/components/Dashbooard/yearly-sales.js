@@ -2,10 +2,10 @@ import React, { Component } from "react"
 import { Row, Col, Card, CardBody } from "reactstrap"
 import ReactApexChart from "react-apexcharts"
 import { MONTHS_SHORT } from "../../constants/months"
+import { formatCurrency } from "@pga/shared"
 
 const MONTH_LABELS = MONTHS_SHORT
 const MONTHLY_REVENUE = [32000, 28500, 29800, 31250, 33400, 34120, 35500, 36210, 37100, 38850, 40220, 41780]
-const formatCurrency = value => value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
 
 class YearlySales extends Component {
   constructor(props) {

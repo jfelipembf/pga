@@ -2,11 +2,7 @@ import React, { Component } from "react"
 import { Row, Col, Card, CardBody } from "reactstrap"
 import ReactApexChart from "react-apexcharts"
 import { MONTHS_SHORT } from "../../constants/months"
-
-const currencyFormatter = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-})
+import { formatCurrency } from "@pga/shared"
 
 const defaultMonthlyComparison = [
   { month: "Jan", current: 21560, previous: 19870 },
@@ -22,8 +18,6 @@ const defaultMonthlyComparison = [
   { month: "Nov", current: 31840, previous: 29810 },
   { month: "Dez", current: 33120, previous: 31200 },
 ]
-
-const formatCurrency = value => currencyFormatter.format(value)
 const monthLabel = idOrName => {
   if (idOrName && idOrName.length <= 4 && !idOrName.includes("-")) return idOrName
   if (!idOrName) return ""

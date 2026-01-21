@@ -1,8 +1,9 @@
 import React from "react";
 import { Card, CardBody, Button, Badge } from "reactstrap";
+import { formatDateDisplay } from "../../../utils/date";
 
 const WorkoutList = ({ date, workouts, onNewClick, onEditClick, onDeleteClick }) => {
-    const formattedDate = date ? date.toLocaleDateString("pt-BR", {
+    const formattedDate = date ? formatDateDisplay(date, {
         weekday: 'long',
         year: 'numeric',
         month: 'long',

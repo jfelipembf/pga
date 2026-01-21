@@ -117,8 +117,6 @@ exports.createClient = require("./src/clients/clients").createClient;
 exports.updateClient = require("./src/clients/clients").updateClient;
 exports.onClientCreate = require("./src/clients/clientTriggers").onClientCreate;
 
-
-// Enrollments
 // Enrollments
 exports.deleteEnrollment = require("./src/enrollments/enrollments").deleteEnrollment;
 exports.createRecurringEnrollment = require("./src/enrollments/enrollments").createRecurringEnrollment;

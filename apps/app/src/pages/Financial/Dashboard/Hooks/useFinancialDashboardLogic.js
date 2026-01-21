@@ -3,6 +3,7 @@ import { useLoading } from "../../../../hooks/useLoading"
 import { getAuthBranchContext, getMonthlySummary } from "../../../../services/Summary/index"
 import { listReceivables, listFinancialTransactions } from "../../../../services/Financial/index"
 import { formatCurrency, formatDelta } from "../../../Dashboard/Utils/dashboardUtils"
+import { toISODate, toMonthKey, formatDateDisplay } from "../../../../utils/date"
 
 export const useFinancialDashboardLogic = () => {
     const { isLoading, withLoading } = useLoading()
@@ -18,18 +19,16 @@ export const useFinancialDashboardLogic = () => {
         try {
             await withLoading('page', async () => {
                 const today = new Date()
-                const monthId = today.toISOString().slice(0, 7) // YYYY-MM
+                const monthId = toMonthKey(toISODate(today))
 
-                const yesterday = new Date(today)
-                yesterday.setDate(today.getDate() - 1)
                 const prevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1)
-                const prevMonthId = prevMonth.toISOString().slice(0, 7)
+                const prevMonthId = toMonthKey(toISODate(prevMonth))
 
                 // 1. Fetch Monthly Summaries (Current + Prev + History)
                 const monthPromises = []
                 for (let i = 0; i < 12; i++) {
                     const dt = new Date(today.getFullYear(), today.getMonth() - i, 1)
-                    const id = dt.toISOString().slice(0, 7)
+                    const id = toMonthKey(toISODate(dt))
                     monthPromises.push(
                         getMonthlySummary({ idTenant: ctx.idTenant, idBranch: ctx.idBranch, monthId: id })
                             .then(res => ({ id, data: res || null }))
@@ -60,7 +59,7 @@ export const useFinancialDashboardLogic = () => {
                         // Parse month label from ID
                         const [y, mm] = entry.id.split('-')
                         const date = new Date(Number(y), Number(mm) - 1, 1)
-                        const monthLabel = date.toLocaleDateString("pt-BR", { month: "short" })
+                        const monthLabel = formatDateDisplay(date, { month: "short" })
 
                         return {
                             month: monthLabel,
@@ -86,8 +85,8 @@ export const useFinancialDashboardLogic = () => {
 
                 const futureTransactions = await listFinancialTransactions({
                     dateRange: {
-                        start: startDate.toISOString().split('T')[0],
-                        end: endDate.toISOString().split('T')[0]
+                        start: toISODate(startDate),
+                        end: toISODate(endDate)
                     },
                     type: 'sale',
                     limit: 2000
@@ -98,7 +97,8 @@ export const useFinancialDashboardLogic = () => {
 
                 const processItem = (dateStr, val) => {
                     if (!dateStr) return
-                    const mId = dateStr.slice(0, 7) // YYYY-MM
+                    const mId = toMonthKey(dateStr) // YYYY-MM
+                    if (!mId) return
                     forecastMap[mId] = (forecastMap[mId] || 0) + Number(val || 0)
                 }
 
@@ -117,7 +117,7 @@ export const useFinancialDashboardLogic = () => {
                     const [y, mm] = mId.split('-')
                     const date = new Date(Number(y), Number(mm) - 1, 1)
                     return {
-                        month: date.toLocaleDateString("pt-BR", { month: "long", year: 'numeric' }),
+                        month: formatDateDisplay(date, { month: "long", year: 'numeric' }),
                         amount: forecastMap[mId]
                     }
                 })

@@ -1,6 +1,7 @@
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
+const { toMonthKey, toISODate } = require("../shared");
 
 const db = admin.firestore();
 
@@ -21,7 +22,7 @@ module.exports = functions
       return null;
     }
 
-    const monthId = new Date().toISOString().slice(0, 7);
+    const monthId = toMonthKey(toISODate(new Date()));
 
     const monthlyRef = db
       .collection("tenants")

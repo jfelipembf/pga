@@ -1,5 +1,5 @@
 {
-  "name": "lexareact",
+  "name": "pga-app",
   "version": "3.0.0",
   "private": true,
   "dependencies": {
@@ -10,6 +10,7 @@
     "@fullcalendar/list": "^6.1.15",
     "@fullcalendar/react": "^6.1.15",
     "@hello-pangea/dnd": "^17.0.0",
+    "@pga/shared": "*",
     "@react-google-maps/api": "^2.20.3",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.0.1",
@@ -78,7 +79,8 @@
     "simplebar-react": "^3.2.6",
     "styled-components": "^6.1.13",
     "yet-another-react-lightbox": "^3.21.6",
-    "yup": "1.4.0"
+    "yup": "1.4.0",
+    "zod": "3.21.4"
   },
   "scripts": {
     "start": "react-scripts start",

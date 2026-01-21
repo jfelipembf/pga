@@ -1,6 +1,6 @@
 const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
-const { addDays, toISODate, findFirstWeekdayOnOrAfter } = require("../../helpers/date");
+const { addDays, toISODate, findFirstWeekdayOnOrAfter } = require("../../shared");
 const { getBranchCollectionRef } = require("../../shared/references");
 
 const db = admin.firestore();
@@ -27,14 +27,7 @@ const generateSessionsForClass = async ({
 }) => {
     if (!idTenant || !idBranch || !idClass || !classData) return { created: 0 };
 
-    // Handle both weekday (singular) and weekDays (array) formats
     let weekday = classData.weekday;
-    if (weekday === null || weekday === undefined) {
-        // Try to get from weekDays array
-        if (Array.isArray(classData.weekDays) && classData.weekDays.length > 0) {
-            weekday = Number(classData.weekDays[0]);
-        }
-    }
 
     if (weekday === null || weekday === undefined) return { created: 0 };
 
@@ -66,12 +59,13 @@ const generateSessionsForClass = async ({
 
     // Data alvo até onde queremos garantir sessões
     const targetHorizonDate = addDays(startIso, totalDays);
+    const horizonIso = toISODate(targetHorizonDate);
 
     let effectiveStart = startIso;
 
     if (lastSessionDate) {
         // Se a última sessão já cobre ou passa do horizonte desejado, não fazemos nada.
-        if (lastSessionDate >= toISODate(targetHorizonDate)) {
+        if (lastSessionDate >= horizonIso) {
             return { created: 0 };
         }
 
@@ -85,6 +79,22 @@ const generateSessionsForClass = async ({
     // Calcula o primeiro dia de aula a partir do NOVO início efetivo
     const first = findFirstWeekdayOnOrAfter(effectiveStart, weekday);
 
+    // ========================================================================
+    // OTIMIZAÇÃO: Bulk Read das sessões existentes no intervalo
+    // Em vez de verificar doc.exists um a um, lemos todas de uma vez.
+    // ========================================================================
+    const existingSessionsSnapshot = await sessionsCol
+        .where("idClass", "==", String(idClass))
+        .where("sessionDate", ">=", toISODate(first))
+        .where("sessionDate", "<=", horizonIso) // Limita a busca ao horizonte
+        .get();
+
+    const existingDates = new Set();
+    existingSessionsSnapshot.forEach(doc => {
+        const d = doc.data();
+        if (d.sessionDate) existingDates.add(d.sessionDate);
+    });
+
     let ops = 0;
     let createdCount = 0;
     let batch = db.batch();
@@ -97,21 +107,20 @@ const generateSessionsForClass = async ({
         }
     };
 
+    // Loop de Geração
     for (let i = 0; i < totalDays; i += 7) {
         const sessionDate = addDays(first, i);
         const iso = toISODate(sessionDate);
         if (!iso) continue;
         if (endDateStr && iso > endDateStr) break;
 
-        const idSession = `${idClass}-${iso}`;
-        const ref = sessionsCol.doc(idSession);
-
-        const existingSnap = await ref.get();
-
-        // Se a sessão já existe, não fazemos nada
-        if (existingSnap.exists) {
+        // Se já existe no Set, pula (em memória, super rápido)
+        if (existingDates.has(iso)) {
             continue;
         }
+
+        const idSession = `${idClass}-${iso}`;
+        const ref = sessionsCol.doc(idSession);
 
         // Cria nova sessão herdando o enrolledCount da última sessão
         const payload = {
@@ -134,7 +143,6 @@ const generateSessionsForClass = async ({
             createdAt: FieldValue.serverTimestamp(),
             updatedAt: FieldValue.serverTimestamp(),
         };
-
 
         batch.set(ref, payload);
         ops += 1;

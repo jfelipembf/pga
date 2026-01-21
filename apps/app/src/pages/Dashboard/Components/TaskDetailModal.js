@@ -3,6 +3,7 @@ import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Input, FormGroup, L
 import StatusBadge from "../../../components/Common/StatusBadge"
 import { updateTaskStatus, completeTask } from "../../../services/Tasks/tasks.service"
 import { useToast } from "../../../components/Common/ToastProvider"
+import { formatDate } from "../../../utils/date"
 
 const TaskDetailModal = ({ isOpen, toggle, task, onTaskUpdated }) => {
     const [observations, setObservations] = useState(task?.observations || "")
@@ -91,7 +92,7 @@ const TaskDetailModal = ({ isOpen, toggle, task, onTaskUpdated }) => {
                 <div className="row mb-4">
                     <div className="col-md-6">
                         <small className="text-muted d-block uppercase fw-bold">Prazo</small>
-                        <span>{new Date(task.dueDate).toLocaleDateString()}</span>
+                        <span>{formatDate(new Date(task.dueDate))}</span>
                     </div>
                     {task.recurrenceTemplateId && (
                         <div className="col-md-6">

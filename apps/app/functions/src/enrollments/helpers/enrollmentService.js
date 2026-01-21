@@ -1,7 +1,7 @@
 const admin = require("firebase-admin");
 const db = admin.firestore();
 const { FieldValue } = require("firebase-admin/firestore");
-const { formatDate } = require("../../helpers/date");
+const { formatDate } = require("../../shared");
 const { processTrigger } = require("../../automations/helpers/helper");
 const { getBranchCollectionRef } = require("../../shared/references");
 
@@ -144,11 +144,8 @@ const createSingleSessionEnrollmentInternal = async ({ idTenant, idBranch, uid, 
  * Cancela matrículas de um cliente (cancelamento de contrato).
  */
 const cleanEnrollmentsOnCancellation = async ({ idTenant, idBranch, idClient }) => {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const todayIso = `${yyyy}-${mm}-${dd}`;
+    const { toISODate } = require("../../shared");
+    const todayIso = toISODate(new Date());
 
     const enrollmentsRef = getBranchCollectionRef(idTenant, idBranch, "enrollments");
 

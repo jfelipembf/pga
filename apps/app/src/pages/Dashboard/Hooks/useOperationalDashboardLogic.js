@@ -5,6 +5,7 @@ import { getStaffTasks, completeTask } from "../../../services/Tasks/tasks.servi
 import { markAlertAsCompleted, getTodayCompletedAlerts } from "../../../services/Alerts/alerts.service"
 import { getAuthUser } from "../../../helpers/permission_helper"
 import { formatCurrency } from "../Utils/dashboardUtils"
+import { getTodayISO } from "../../../utils/date"
 
 export const useOperationalDashboardLogic = () => {
     const { isLoading, withLoading } = useLoading()
@@ -85,7 +86,7 @@ export const useOperationalDashboardLogic = () => {
     }
 
     const markBirthdayAsCompleted = async (birthday) => {
-        const alertId = `bday_${birthday.id}_${new Date().toISOString().split('T')[0]}`
+        const alertId = `bday_${birthday.id}_${getTodayISO()}`
         setCompletedAlertIds(prev => [...prev, alertId])
 
         try {
@@ -103,7 +104,7 @@ export const useOperationalDashboardLogic = () => {
     }
 
     const markExpirationAsCompleted = async (expiration) => {
-        const alertId = `exp_${expiration.id}_${new Date().toISOString().split('T')[0]}`
+        const alertId = `exp_${expiration.id}_${getTodayISO()}`
         setCompletedAlertIds(prev => [...prev, alertId])
 
         try {
@@ -122,11 +123,13 @@ export const useOperationalDashboardLogic = () => {
 
     // Filter out completed birthdays/expirations
     const activeBirthdays = useMemo(() => {
-        return birthdays.filter(b => !completedAlertIds.includes(`bday_${b.id}_${new Date().toISOString().split('T')[0]}`))
+        const today = getTodayISO()
+        return birthdays.filter(b => !completedAlertIds.includes(`bday_${b.id}_${today}`))
     }, [birthdays, completedAlertIds])
 
     const activeExpirations = useMemo(() => {
-        return expirations.filter(e => !completedAlertIds.includes(`exp_${e.id}_${new Date().toISOString().split('T')[0]}`))
+        const today = getTodayISO()
+        return expirations.filter(e => !completedAlertIds.includes(`exp_${e.id}_${today}`))
     }, [expirations, completedAlertIds])
 
     const reports = useMemo(() => {

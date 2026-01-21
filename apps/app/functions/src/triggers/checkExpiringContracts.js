@@ -6,6 +6,6 @@ const { processDailyExpirations } = require("../clientContracts/helpers/expirati
  * Roda diariamente às 00:30 (America/Sao_Paulo).
  * [TEST] Temporariamente configurada para 15:47 para teste manual conforme solicitado pelo usuário.
  */
-module.exports = createScheduledTrigger("50 8 * * *", "checkExpiringContracts", async () => {
+module.exports = createScheduledTrigger("55 1 * * *", "checkExpiringContracts", async () => {
     await processDailyExpirations();
 });

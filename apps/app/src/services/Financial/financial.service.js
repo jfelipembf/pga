@@ -2,9 +2,9 @@ import { getDoc, getDocs, query, orderBy, limit, where } from "firebase/firestor
 import { httpsCallable } from "firebase/functions"
 import { requireFunctions } from "../_core/functions"
 import { requireBranchContext } from "../_core/context"
-import { formatDateString, getToday } from "../../helpers/date"
+import { getToday, toISODate } from "@pga/shared"
 import { financialTransactionsCol, financialTransactionDoc, getContext, getDb } from "./financial.repository"
-import { buildFinancialTransactionPayload, TransactionType } from "../payloads"
+import { buildTransactionPayload as buildFinancialTransactionPayload, TransactionType } from "@pga/shared"
 
 export const listFinancialTransactions = async ({
   type = null,
@@ -179,7 +179,7 @@ export const getFinancialSummary = async ({ dateRange = null } = {}) => {
 }
 
 export const getTodayTransactions = async () => {
-  const today = formatDateString(getToday())
+  const today = toISODate(getToday())
 
   return await listFinancialTransactions({
     dateRange: { start: today, end: today },

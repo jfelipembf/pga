@@ -1,11 +1,10 @@
 import React, { Component } from "react"
 import { Row, Col, Card, CardBody } from "reactstrap"
 import ReactApexChart from "react-apexcharts"
+import { formatCurrency } from "@pga/shared"
 
 const formatValue = value =>
-  typeof value === "number"
-    ? new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value)
-    : value
+  typeof value === "number" ? formatCurrency(value) : value
 
 class CashFlow extends Component {
   constructor(props) {

@@ -4,6 +4,7 @@ import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { listTrainingPlans } from "../../../services/TrainingPlanning/trainingPlanning.service";
 import { formatDateKey } from "../utils/trainingUtils";
+import { formatDateDisplay } from "../../../utils/date";
 import PageLoader from "../../../components/Common/PageLoader";
 import logoTV from "../../../assets/images/logoTV.png";
 
@@ -61,10 +62,10 @@ const TrainingTVView = () => {
                 {/* Center: Current Date Title (Centered) */}
                 <div className="d-flex flex-column align-items-center justify-content-center h-100 w-100">
                     <h2 className="mb-0 text-primary fw-bold text-uppercase" style={{ letterSpacing: '1px', fontSize: '1.8rem' }}>
-                        {selectedDate.toLocaleDateString('pt-BR', { weekday: 'long' })}
+                        {formatDateDisplay(selectedDate, { weekday: 'long' })}
                     </h2>
                     <span className="text-muted fs-5">
-                        {selectedDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                        {formatDateDisplay(selectedDate, { day: '2-digit', month: 'long', year: 'numeric' })}
                     </span>
                 </div>
 

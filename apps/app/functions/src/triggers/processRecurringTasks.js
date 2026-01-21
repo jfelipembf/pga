@@ -1,18 +1,26 @@
 const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
 const { createScheduledTrigger } = require("./utils");
-const { sendWhatsAppMessageInternal } = require("../notifications/whatsapp");
+const { toISODate, addDays } = require("../shared");
 
 /**
  * Trigger diário para processar tarefas recorrentes.
  * Verifica templates ativos e gera as tarefas do dia.
  * Frequência: Diariamente às 06:00 AM.
  */
-module.exports = createScheduledTrigger("0 6 * * *", "processRecurringTasks", async () => {
+module.exports = createScheduledTrigger("40 2 * * *", "processRecurringTasks", async () => {
     const db = admin.firestore();
     const today = new Date();
     // Ajustar para dia local YYYY-MM-DD
-    const todayIso = today.toLocaleString("sv-SE", { timeZone: "America/Sao_Paulo" }).split("T")[0]; // YYYY-MM-DD
+    // Using toISODate will use local time of the server, but the previous code was using sv-SE locale with Brazil timezone
+    // to simulate YYYY-MM-DD in Brazil. toISODate uses UTC-offset adjustment. 
+    // To match original behavior we should stick to the Date construction or adapt toISODate usage.
+    // Original: today.toLocaleString("sv-SE", { timeZone: "America/Sao_Paulo" }).split("T")[0]
+    // The previous code explicitly wanted Brazil time. 
+    // Let's keep the logic but use toISODate on the shifted date.
+    
+    const spDateStr = today.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
+    const todayIso = toISODate(new Date(spDateStr));
 
     console.log(`[RecurringTasks] Iniciando processamento para: ${todayIso}`);
 
@@ -93,16 +101,18 @@ module.exports = createScheduledTrigger("0 6 * * *", "processRecurringTasks", as
 
             // Regra de Frequência
             const freq = template.recurrence?.frequency || 'monthly';
+            let nextDate;
             if (freq === 'daily') {
-                nextDateObj.setDate(nextDateObj.getDate() + 1);
+                nextDate = addDays(nextDateObj, 1);
             } else if (freq === 'yearly') {
-                nextDateObj.setFullYear(nextDateObj.getFullYear() + 1);
+                nextDate = new Date(nextDateObj.getFullYear() + 1, nextDateObj.getMonth(), nextDateObj.getDate());
             } else {
-                nextDateObj.setMonth(nextDateObj.getMonth() + 1);
+                // monthly
+                nextDate = new Date(nextDateObj.getFullYear(), nextDateObj.getMonth() + 1, nextDateObj.getDate());
             }
 
             // Formatar YYYY-MM-DD
-            const nextDateIso = nextDateObj.toISOString().split('T')[0];
+            const nextDateIso = toISODate(nextDate);
 
             // 3. Atualizar Template
             // Se é data mode, verifica se a PRÓXIMA data passa do limite. Se sim, marca completed AGORA (mas a tarefa de hoje já foi criada).

@@ -3,7 +3,8 @@ import { httpsCallable } from "firebase/functions"
 import { requireFunctions } from "../_core/functions"
 import { usePhotoUpload } from "../../hooks/usePhotoUpload"
 import { eventsCol, getContext, getDb } from "./events.repository"
-import { buildEventPayload } from "../payloads"
+import { buildEventPayload } from "@pga/shared"
+import { getTodayISO } from "../../utils/date"
 
 export const listEvents = async ({ ctxOverride = null } = {}) => {
   const db = getDb()
@@ -77,8 +78,7 @@ export const deleteEvent = async id => {
 
 export const getActiveEvent = async (type = 'avaliacao') => {
   const events = await listEvents()
-  const now = new Date()
-  const today = now.toISOString().split('T')[0]
+  const today = getTodayISO()
 
   return events.find(ev => {
     if (ev.type !== type) return false
@@ -90,8 +90,7 @@ export const getActiveEvent = async (type = 'avaliacao') => {
 export const getActiveEvaluationEvent = async () => getActiveEvent('avaliacao')
 export const getActiveTestEvent = async () => {
   const events = await listEvents()
-  const now = new Date()
-  const today = now.toISOString().split('T')[0]
+  const today = getTodayISO()
 
   return events.find(ev => {
     if (ev.type !== 'testes' && ev.type !== 'teste') return false

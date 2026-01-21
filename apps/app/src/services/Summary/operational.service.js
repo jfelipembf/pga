@@ -4,7 +4,8 @@ import { requireBranchContext } from "../_core/context"
 import { salesCollectionRef } from "../Sales/sales.repository"
 import { enrollmentsCol } from "../Enrollments/enrollments.repository"
 import { financialTransactionsCol } from "../Financial/financial.repository"
-import { formatDateString } from "../../helpers/date"
+import { toISODate } from "@pga/shared"
+import { toMonthKey } from "../../utils/date"
 
 /**
  * Busca estatísticas de vendas do staff logado para hoje.
@@ -12,7 +13,7 @@ import { formatDateString } from "../../helpers/date"
 export const getStaffDailyStats = async (uid) => {
     const db = requireDb()
     const ctx = requireBranchContext()
-    const today = formatDateString(new Date())
+    const today = toISODate(new Date())
 
     const salesRef = salesCollectionRef(db, ctx)
 
@@ -58,7 +59,7 @@ export const getStaffMonthlyStats = async (uid) => {
     const db = requireDb()
     const ctx = requireBranchContext()
     const now = new Date()
-    const monthId = now.toISOString().slice(0, 7) // YYYY-MM
+    const monthId = toMonthKey(toISODate(now))
     const startOfMonth = `${monthId}-01`
     const endOfMonth = `${monthId}-31`
 
@@ -129,7 +130,7 @@ export const getStaffMonthlyStats = async (uid) => {
 export const getStaffDailyExperimentals = async (uid) => {
     const db = requireDb()
     const ctx = requireBranchContext()
-    const today = formatDateString(new Date())
+    const today = toISODate(new Date())
 
     const enrollRef = enrollmentsCol(db, ctx)
     const q = query(
@@ -155,7 +156,7 @@ export const getStaffMonthlyExperimentals = async (uid) => {
     const db = requireDb()
     const ctx = requireBranchContext()
     const now = new Date()
-    const monthId = now.toISOString().slice(0, 7) // YYYY-MM
+    const monthId = toMonthKey(toISODate(now))
     const startOfMonth = `${monthId}-01`
     const endOfMonth = `${monthId}-31`
 

@@ -1,0 +1,14 @@
+{
+    "name": "pga-sistema",
+    "private": true,
+    "workspaces": [
+        "apps/*",
+        "apps/app/functions",
+        "packages/*"
+    ],
+    "scripts": {
+        "app:start": "npm start --workspace=apps/app",
+        "functions:build": "npm run build --workspace=apps/app/functions",
+        "shared:build": "npm run build --workspace=packages/shared"
+    }
+}

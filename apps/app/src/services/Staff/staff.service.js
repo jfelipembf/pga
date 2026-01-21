@@ -5,7 +5,7 @@ import { usePhotoUpload } from "../../hooks/usePhotoUpload"
 import { makeCreatePayload } from "../_core/payload"
 import { requireFunctions } from "../_core/functions"
 import { staffCol, staffDoc, getContext, getDb } from "./staff.repository"
-import { buildStaffPayload } from "../payloads"
+import { buildStaffPayload } from "@pga/shared"
 
 export const listStaff = async ({ ctxOverride = null } = {}) => {
   const db = getDb()

@@ -16,7 +16,7 @@ import { requireBranchContext } from "../_core/context"
 
 import { getSaleSortTime } from "./sales.utils"
 import { salesCollectionRef, saleDocRef, saleItemsRef } from "./sales.repository"
-import { buildSalePayload } from "../payloads"
+import { buildSalePayload } from "@pga/shared"
 
 /** ========= LISTAS ========= */
 

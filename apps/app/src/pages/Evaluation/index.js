@@ -8,7 +8,7 @@ import EvaluationCard from "./Components/evaluationCard"
 import TestCard from "./Components/TestCard"
 import { useEvaluationData } from "./Hooks/useEvaluationData"
 import { mapSessionsToEvaluationSchedules } from "./Utils/mappers"
-import { formatISODate } from "../Grade/Utils/dateUtils"
+import { toISODate, addDays } from "@pga/shared"
 import { isWithinTurn, occursOnDate } from "../Grade/Utils/gridUtils"
 import PageLoader from "../../components/Common/PageLoader"
 
@@ -43,7 +43,7 @@ const Evaluation = ({ setBreadcrumbItems }) => {
   }, [sessions, activities, areas, staff])
 
   const todaySchedules = useMemo(() => {
-    const todayISO = formatISODate(currentDate)
+    const todayISO = toISODate(currentDate)
     const todayDayIndex = currentDate.getDay()
 
     const dailySchedules = schedules.filter(schedule => {
@@ -65,7 +65,7 @@ const Evaluation = ({ setBreadcrumbItems }) => {
 
   const instructors = useMemo(() => {
     // Get unique instructors from the current day's classes
-    const todayISO = formatISODate(currentDate)
+    const todayISO = toISODate(currentDate)
     const todayDayIndex = currentDate.getDay()
 
     const dailySchedules = schedules.filter(schedule => {
@@ -79,19 +79,11 @@ const Evaluation = ({ setBreadcrumbItems }) => {
   }, [schedules, currentDate, staff])
 
   const handlePrevDay = () => {
-    setCurrentDate(prev => {
-      const d = new Date(prev)
-      d.setDate(d.getDate() - 1)
-      return d
-    })
+    setCurrentDate(prev => addDays(prev, -1))
   }
 
   const handleNextDay = () => {
-    setCurrentDate(prev => {
-      const d = new Date(prev)
-      d.setDate(d.getDate() + 1)
-      return d
-    })
+    setCurrentDate(prev => addDays(prev, 1))
   }
 
   if (isLoading("page") && !sessions.length) {

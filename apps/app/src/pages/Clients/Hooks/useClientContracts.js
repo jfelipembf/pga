@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react"
+import { getYesterdayISO } from "../../../utils/date"
 import { useLoading } from "../../../hooks/useLoading"
 import { useToast } from "../../../components/Common/ToastProvider"
 import {
@@ -158,7 +159,7 @@ export const useClientContracts = (contracts, idClient, clientName, onRefresh) =
                     ...s,
                     status: response.type === "active_stopped" ? "stopped" : "cancelled",
                     endDate: response.type === "active_stopped"
-                        ? new Date(new Date().getTime() - 86400000).toISOString().split('T')[0]
+                        ? getYesterdayISO()
                         : s.endDate,
                     daysUsed: response.type === "active_stopped" ? response.actuallyUsedDays : 0
                 } : s))

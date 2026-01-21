@@ -4,7 +4,7 @@ import classNames from "classnames"
 import { parseMaxCapacity, getOccupancyPct } from "../Utils/occupancy"
 import { getEventColor } from "../Utils/gridUtils"
 
-const GradeEventCard = ({ schedule, showOccupancyMask, onClick, isSelected }) => {
+const GradeEventCard = ({ schedule, onClick, isSelected }) => {
   const startTime = String(schedule?.startTime || "")
   const endTime = String(schedule?.endTime || "")
 

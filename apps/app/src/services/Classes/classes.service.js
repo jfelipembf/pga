@@ -4,7 +4,7 @@ import { requireBranchContext } from "../_core/context"
 import { listClasses } from "./classes.repository"
 import { httpsCallable } from "firebase/functions"
 import { requireFunctions } from "../_core/functions"
-import { buildClassPayload } from "../payloads"
+import { buildClassPayload } from "@pga/shared"
 
 const getContext = () => requireBranchContext()
 
@@ -63,30 +63,22 @@ export const createClasses = async (data = {}, { weeks = 4 } = {}) => {
     return created
   }
 
-  // 2) weekDays (cria 1 turma por dia)
-  const days =
-    Array.isArray(data.weekDays) && data.weekDays.length > 0 ? data.weekDays : [data.weekday ?? null]
+  // Use singular weekday only
+  const classPayload = buildClassPayload(data);
 
-  for (const day of days) {
-    const { weekDays, ...rest } = data
-    // Use singular weekday only (user requirement: no redundant weekDays array)
-    const classPayload = { ...rest, weekday: day ?? null }
+  const startT = Date.now();
+  try {
+    const result = await createClassFn({
+      idTenant,
+      idBranch,
+      classData: classPayload,
+    })
 
-
-    const startT = Date.now();
-    try {
-      const result = await createClassFn({
-        idTenant,
-        idBranch,
-        classData: classPayload,
-      })
-
-      const createdClass = result.data
-      created.push(createdClass)
-    } catch (err) {
-      console.error(`[DEBUG] createClasses (weekDays) ERROR (${Date.now() - startT}ms)`, err);
-      throw err;
-    }
+    const createdClass = result.data
+    created.push(createdClass)
+  } catch (err) {
+    console.error(`[DEBUG] createClass ERROR (${Date.now() - startT}ms)`, err);
+    throw err;
   }
 
   return created

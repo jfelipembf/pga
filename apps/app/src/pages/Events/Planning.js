@@ -1,7 +1,7 @@
 import React, { useEffect } from "react"
 import { Card, CardBody, CardHeader, Col, Container, Form, FormGroup, Input, Label, Row } from "reactstrap"
 import { connect } from "react-redux"
-import { formatDate } from "../../helpers/date"
+import { formatDate } from "@pga/shared"
 
 import { setBreadcrumbItems } from "../../store/actions"
 import SideMenu from "components/Common/SideMenu"

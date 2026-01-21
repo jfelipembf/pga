@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom"
+import { toISODate } from "../../../utils/date"
 import { createSale } from "../../../services/Sales"
 import { listReceivablesByClient } from "../../../services/Financial"
 import { useToast } from "../../../components/Common/ToastProvider"
@@ -42,7 +43,7 @@ export const useSalesActions = ({
 
                     const limitDate = new Date()
                     limitDate.setDate(limitDate.getDate() - toleranceDays)
-                    const limitDateISO = limitDate.toISOString().split('T')[0]
+                    const limitDateISO = toISODate(limitDate)
 
                     const hasOverdue = receivables.some(r => {
                         if (!r.dueDate) return false

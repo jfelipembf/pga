@@ -23,7 +23,6 @@ module.exports = functions
     // Debug: Log the full classData to see what we're working with
     functions.logger.info("[DEBUG] classData received:", {
       weekday: classData.weekday,
-      weekDays: classData.weekDays,
       startDate: classData.startDate,
       endDate: classData.endDate,
       startTime: classData.startTime,

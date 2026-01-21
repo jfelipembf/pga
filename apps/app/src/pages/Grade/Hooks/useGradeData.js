@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react"
+import { toISODate } from "../../../utils/date"
 import { listSessions, listClasses } from "../../../services/Classes"
 import { listActivities } from "../../../services/Activity"
 import { listAreas } from "../../../services/Areas/index"
@@ -31,8 +32,8 @@ export const useGradeData = (referenceDate) => {
                     // End: Last day of next month
                     const endDateObj = new Date(y, m + 2, 0)
 
-                    const startDate = startDateObj.toISOString().split("T")[0]
-                    const endDate = endDateObj.toISOString().split("T")[0]
+                    const startDate = toISODate(startDateObj)
+                    const endDate = toISODate(endDateObj)
 
                     const [sess, acts, ars, stf] = await Promise.all([
                         listSessions({ startDate, endDate, limitCount: 1000 }),

@@ -1,7 +1,7 @@
 import { httpsCallable } from "firebase/functions"
 import { requireFunctions } from "../_core/functions"
 import { requireBranchContext } from "../_core/context"
-import { buildContractPayload } from "../payloads"
+import { buildContractPayload } from "@pga/shared"
 
 /**
  * Creates a new contract via Cloud Function.

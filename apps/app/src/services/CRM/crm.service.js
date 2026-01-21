@@ -3,20 +3,12 @@ import { requireDb } from "../_core/db"
 import { clientsCol, getContext, listClientsByIdsRepo } from "../Clients/clients.repository"
 import { clientContractsCollection } from "../ClientContracts/clientContracts.repository"
 import { receivablesCol } from "../Financial/receivables.repository"
+import { toISODate, addDays } from "@pga/shared"
 
 /**
  * Service to handle CRM data fetching.
  * Centralizes queries for different segments.
  */
-
-// Helper para formatar data localmente (evita bug de timezone do toISOString)
-const toYMD = (date) => {
-    if (!date) return ""
-    const y = date.getFullYear()
-    const m = String(date.getMonth() + 1).padStart(2, "0")
-    const d = String(date.getDate()).padStart(2, "0")
-    return `${y}-${m}-${d}`
-}
 
 export const loadCrmSegment = async (segmentId, filterDateStart, filterDateEnd) => {
     const db = requireDb()
@@ -157,8 +149,8 @@ export const listByStatus = async (db, ctx, status, start, end) => {
 
     let q
     if (start && end) {
-        const sDate = toYMD(start)
-        const eDate = toYMD(end)
+        const sDate = toISODate(start)
+        const eDate = toISODate(end)
 
         q = query(
             ref,
@@ -217,11 +209,11 @@ export const listByStatus = async (db, ctx, status, start, end) => {
 export const listContractsDue = async (db, ctx, start, end) => {
     const ref = clientContractsCollection(db, ctx)
 
-    let sDate = toYMD(new Date())
-    let eDate = toYMD(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))
+    let sDate = toISODate(new Date())
+    let eDate = toISODate(addDays(new Date(), 30))
 
-    if (start) sDate = toYMD(start)
-    if (end) eDate = toYMD(end)
+    if (start) sDate = toISODate(start)
+    if (end) eDate = toISODate(end)
 
     const q = query(
         ref,
@@ -285,8 +277,8 @@ export const listClientsWithDebt = async (db, ctx, start, end) => {
 
     if (start && end) {
         // Filtrar por data de vencimento se houver período
-        const sDate = toYMD(start);
-        const eDate = toYMD(end);
+        const sDate = toISODate(start);
+        const eDate = toISODate(end);
         qArgs.push(where("dueDate", ">=", sDate));
         qArgs.push(where("dueDate", "<=", eDate));
         // OrderBy é necessário para inequality filter se tiver index, mas status e pending já são filtros.

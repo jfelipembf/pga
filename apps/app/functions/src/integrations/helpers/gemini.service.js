@@ -1,4 +1,5 @@
 const axios = require("axios");
+const { toISODate } = require("../../shared");
 
 /**
  * Analisa um texto ou imagem usando o Google Gemini para extrair dados de despesa.
@@ -25,7 +26,7 @@ const analyzeExpense = async (apiKey, text = "", imageBase64 = null, mimeType = 
         "description": string (descrição curta, ex: "Almoço"),
         "category": string (Escolha OBRIGATORIAMENTE uma destas: "Infraestrutura", "Manutenção", "Recursos Humanos" (Salários, 13º, Férias), "Marketing", "Equipamentos", "Operacional", "Impostos", "Reembolso", "Indefinido"),
         "warning": string (opcional. Se estiver inseguro ou faltar informação, explique aqui o motivo. Ex: "Não citou o motivo do gasto")
-        "date": string (data da despesa no formato YYYY-MM-DD. A DATA DE HOJE É: ${new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" })}. Se o usuário não disser o ano, assuma o ano ATUAL: ${new Date().getFullYear()})
+        "date": string (data da despesa no formato YYYY-MM-DD. A DATA DE HOJE É: ${toISODate(new Date())}. Se o usuário não disser o ano, assuma o ano ATUAL: ${new Date().getFullYear()})
     }
     Se não conseguir entender ou não for uma despesa, retorne: { "error": "Não entendi" }
     `;

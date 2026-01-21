@@ -8,7 +8,7 @@ import {
   createService,
   updateService,
 } from "../../../../services/Catalog"
-import { buildProductPayload, buildServicePayload } from "../../../../services/payloads"
+import { buildProductPayload, buildServicePayload } from "@pga/shared"
 
 import { usePhotoUpload } from "../../../../hooks/usePhotoUpload"
 

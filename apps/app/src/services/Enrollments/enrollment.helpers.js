@@ -1,6 +1,15 @@
 import { ENROLLMENT_TYPES, ENROLLMENT_STATUS } from "./enrollment.types"
 
 /**
+ * UI-SPECIFIC ENROLLMENT HELPERS
+ * 
+ * These helpers are wrappers that adapt UI data structures (sessions, classes from grid)
+ * into the standardized enrollment payload format expected by buildEnrollmentPayload.
+ * 
+ * They extract and map UI-specific fields before passing to the centralized builder.
+ */
+
+/**
  * Creates a standardized payload for Experimental/Single Session enrollment.
  * @param {object} params
  * @param {string} params.idClient
@@ -24,7 +33,7 @@ export const createExperimentalPayload = ({ idClient, clientName, session, statu
         employeeName: session.employeeName || session.instructorName || null,
         startTime: session.startTime || null,
         endTime: session.endTime || null,
-        weekday: session.weekday ?? (session.weekDays && session.weekDays[0]) ?? null,
+        weekday: session.weekday ?? null,
 
         // Instructor Data
         instructorId: session.idStaff || session.idInstructor || null,
@@ -59,7 +68,7 @@ export const createRecurringPayload = ({ idClient, clientName, classData, startD
         // Denormalized
         activityName: classData.activityName || classData.name || null,
         employeeName: classData.employeeName || classData.instructorName || null, // If available
-        weekday: classData.weekday ?? (classData.weekDays && classData.weekDays[0]) ?? null,
+        weekday: classData.weekday ?? null,
         startTime: classData.startTime || null,
         endTime: classData.endTime || null,
 

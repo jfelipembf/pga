@@ -1,19 +1,19 @@
 import { useMemo } from "react"
-import { mapSessionsToSchedules } from "../Utils"
+import { mapToGridFormat } from "@pga/shared"
 import { createEmptyClassForm } from "../Constants"
 
 export const useClassGridLogic = ({ data, formState, setFormState }) => {
 
     // Computed Data
     const schedulesForGrid = useMemo(() => {
-        return mapSessionsToSchedules({
-            sessions: data.sessions,
-            classes: data.classes, // Added classes
+        return mapToGridFormat({
+            sessions: [], // Admin view focuses on editing Class templates
+            classes: data.classes,
             activities: data.activities,
             areas: data.areas,
             instructors: data.instructors,
         })
-    }, [data.sessions, data.classes, data.activities, data.areas, data.instructors])
+    }, [data.classes, data.activities, data.areas, data.instructors])
 
     const instructorsForSelect = useMemo(() => {
         return data.instructors.filter(s => s.isInstructor)
@@ -42,8 +42,7 @@ export const useClassGridLogic = ({ data, formState, setFormState }) => {
                 durationMinutes: Number(classObj.durationMinutes || 0),
                 maxCapacity: Number(classObj.maxCapacity || 0),
                 startTime: classObj.startTime || "",
-                // User Request: Seek directly weekday (singular), no need to check weekDays array
-                weekDays: (classObj.weekday !== undefined && classObj.weekday !== null) ? [Number(classObj.weekday)] : []
+                weekday: (classObj.weekday !== undefined && classObj.weekday !== null) ? Number(classObj.weekday) : null
             })
             // Scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' })

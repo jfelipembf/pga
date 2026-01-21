@@ -1,6 +1,6 @@
 const admin = require("firebase-admin");
 const { FieldPath } = require("firebase-admin/firestore");
-const { addDays, toISODate } = require("../../helpers/date");
+const { addDays, toISODate } = require("../../shared");
 
 /**
  * Process a list of raw payment objects from the frontend and generate a structured list of financial transactions.

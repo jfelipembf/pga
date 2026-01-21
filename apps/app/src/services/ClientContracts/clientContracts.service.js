@@ -3,7 +3,7 @@
 import { httpsCallable } from "firebase/functions"
 import { requireFunctions } from "../_core/functions"
 
-import { buildClientContractPayload } from "../payloads"
+import { buildClientContractPayload } from "@pga/shared"
 
 import { requireDb } from "../_core/db"
 import { requireBranchContext } from "../_core/context"

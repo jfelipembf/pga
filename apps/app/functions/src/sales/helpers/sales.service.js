@@ -9,10 +9,10 @@ const { getActorSnapshot, getTargetSnapshot } = require("../../shared/snapshots"
 const { validate } = require("../../shared/validator"); // Validator
 const { generateEntityId } = require("../../shared/id");
 const { getBranchCollectionRef } = require("../../shared/references");
-const { toISODate } = require("../../helpers/date");
+const { toISODate, detectSaleType } = require("../../shared");
 
 // Schema
-const { SaleSchema } = require("../validation/sales.validation");
+const { SaleSchema } = require("../../shared");
 
 // Internal Services
 const { createTransactionInternal } = require("../../financial/transactions");
@@ -23,14 +23,6 @@ const { processPayments } = require("../services/paymentProcessor");
 
 const db = admin.firestore();
 
-// Helper local
-const detectSaleType = (items) => {
-    if (!items || !items.length) return "generic";
-    if (items.some((i) => i.itemType === "contract" || i.type === "contract")) return "contract";
-    if (items.some((i) => i.itemType === "service" || i.type === "service")) return "service";
-    if (items.some((i) => i.itemType === "product" || i.type === "product")) return "product";
-    return "generic";
-};
 
 // =========================
 // SAVE SALE (CREATE/UPDATE)

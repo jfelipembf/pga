@@ -5,9 +5,9 @@ import { connect } from "react-redux"
 import GradeHeader from "./Components/GradeHeader"
 import GradeGrid from "./Components/GradeGrid"
 import AttendanceModal from "./Components/AttendanceModal"
-import { getStartOfWeekSunday } from "./Utils/dateUtils"
+import { getStartOfWeekSunday } from "@pga/shared"
 import { setBreadcrumbItems } from "../../store/actions"
-import { mapSessionsToSchedules } from "./Utils/mappers"
+import { mapToGridFormat } from "@pga/shared"
 import { useGradeData } from "./Hooks/useGradeData"
 // Removed direct service imports as they are used in the hook
 import PageLoader from "../../components/Common/PageLoader"
@@ -33,7 +33,7 @@ const Grade = ({ setBreadcrumbItems }) => {
   const weekStart = useMemo(() => getStartOfWeekSunday(referenceDate), [referenceDate])
 
   const schedules = useMemo(() => {
-    return mapSessionsToSchedules(sessions, activities, areas, staff)
+    return mapToGridFormat({ sessions, activities, areas, instructors: staff })
   }, [sessions, activities, areas, staff])
 
   const handleSelectSchedule = (schedule, iso) => {

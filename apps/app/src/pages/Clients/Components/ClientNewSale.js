@@ -24,9 +24,7 @@ import { useSalesActions } from "../Hooks/useSalesActions"
 import { paymentTabs } from "../Constants/salesDefaults"
 import { getClient } from "../../../services/Clients/clients.service"
 import { useState, useEffect } from "react"
-
-const formatCurrency = value =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value || 0))
+import { formatCurrency } from "@pga/shared"
 
 const ClientNewSale = () => {
   const ctx = getAuthBranchContext()

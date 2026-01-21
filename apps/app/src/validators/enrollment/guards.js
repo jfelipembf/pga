@@ -1,5 +1,5 @@
 import { getClientContracts, getClientEnrollments } from "../../services/Clients/index"
-import { getToday, normalizeDate, parseFirestoreDate, formatDateString, parseDate } from "../../helpers/date"
+import { getToday, normalizeDate, parseFirestoreDate, toISODate, parseDate, addDays, getStartOfWeekSunday } from "@pga/shared"
 import { WEEKDAY_SHORT_LABELS } from "../../constants/weekdays"
 
 
@@ -64,7 +64,7 @@ export const validateEnrollmentRules = async ({ clientId, sessions = [], enrollm
     if (future.length) {
       return {
         ok: false,
-        message: `Contrato só é válido a partir de ${formatDateString(future[0].startDate)}.`,
+        message: `Contrato só é válido a partir de ${toISODate(future[0].startDate)}.`,
       }
     }
 
@@ -74,7 +74,7 @@ export const validateEnrollmentRules = async ({ clientId, sessions = [], enrollm
     if (past.length) {
       return {
         ok: false,
-        message: `Contrato expirou em ${formatDateString(past[0].endDate)}.`,
+        message: `Contrato expirou em ${toISODate(past[0].endDate)}.`,
       }
     }
 
@@ -93,8 +93,6 @@ export const validateEnrollmentRules = async ({ clientId, sessions = [], enrollm
     }
     // 2. Fallback to stored weekday property
     if (s.weekday !== null && s.weekday !== undefined) return Number(s.weekday)
-    // 3. Fallback to weekDays array
-    if (Array.isArray(s.weekDays) && s.weekDays.length > 0) return Number(s.weekDays[0])
     return null
   }
 
@@ -121,21 +119,8 @@ export const validateEnrollmentRules = async ({ clientId, sessions = [], enrollm
   const maxPerWeek = Number(contract.maxWeeklyEnrollments || 0)
 
   if (maxPerWeek > 0) {
-    const todayWeekStart = (() => {
-      const d = getToday()
-      const day = d.getDay()
-      const start = new Date(d)
-      start.setDate(d.getDate() - day)
-      start.setHours(0, 0, 0, 0)
-      return start
-    })()
-
-    const todayWeekEnd = (() => {
-      const end = new Date(todayWeekStart)
-      end.setDate(todayWeekStart.getDate() + 6)
-      end.setHours(0, 0, 0, 0)
-      return end
-    })()
+    const todayWeekStart = getStartOfWeekSunday(getToday())
+    const todayWeekEnd = addDays(todayWeekStart, 6)
 
     let existingEnrollments = []
     try {
@@ -163,7 +148,7 @@ export const validateEnrollmentRules = async ({ clientId, sessions = [], enrollm
           const effectiveToday = (!start || !today || today >= start) && (!end || !today || today <= end)
           if (!effectiveToday) return null
 
-          const w = e.weekday ?? (Array.isArray(e.weekDays) ? e.weekDays[0] : null)
+          const w = e.weekday ?? null
           if (w === null || w === undefined) return null
           const wn = Number(w)
           return Number.isFinite(wn) ? wn : null
@@ -191,14 +176,14 @@ export const validateEnrollmentRules = async ({ clientId, sessions = [], enrollm
   if (contractStartDate && today && today < contractStartDate) {
     return {
       ok: false,
-      message: `Contrato só é válido a partir de ${formatDateString(contractStartDate)}.`,
+      message: `Contrato só é válido a partir de ${toISODate(contractStartDate)}.`,
     }
   }
 
   if (contractEndDate && today && today > contractEndDate) {
     return {
       ok: false,
-      message: `Contrato expirou em ${formatDateString(contractEndDate)}.`,
+      message: `Contrato expirou em ${toISODate(contractEndDate)}.`,
     }
   }
 

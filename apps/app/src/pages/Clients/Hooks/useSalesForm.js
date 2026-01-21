@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from "react"
-import { formatDateString, getToday } from "../../../helpers/date"
+import { getToday, toISODate, addDays, parseDate } from "@pga/shared"
 
 export const useSalesForm = (itemsByTab) => {
     const [saleTab, setSaleTab] = useState("contratos")
     const [selectedItemId, setSelectedItemId] = useState("")
-    const [contractStartDate, setContractStartDate] = useState(() => formatDateString(getToday()))
+    const [contractStartDate, setContractStartDate] = useState(() => toISODate(getToday()))
     const [contractEndDate, setContractEndDate] = useState("")
     const [quantity, setQuantity] = useState(1)
     const [discount, setDiscount] = useState(0)
@@ -46,16 +46,19 @@ export const useSalesForm = (itemsByTab) => {
             setContractEndDate("")
             return
         }
-        const start = new Date(`${contractStartDate}T00:00:00`)
-        const end = new Date(start)
+        const start = parseDate(contractStartDate)
+        if (!start) return
+        
+        let end
         if (durationType === "Dias") {
-            end.setDate(end.getDate() + duration)
+            end = addDays(start, duration)
         } else if (durationType === "Anos") {
-            end.setFullYear(end.getFullYear() + duration)
+            end = new Date(start.getFullYear() + duration, start.getMonth(), start.getDate())
         } else {
-            end.setMonth(end.getMonth() + duration)
+            // Meses
+            end = new Date(start.getFullYear(), start.getMonth() + duration, start.getDate())
         }
-        setContractEndDate(end.toISOString().slice(0, 10))
+        setContractEndDate(toISODate(end))
     }, [saleTab, selectedItem, contractStartDate])
 
     const computedQuantity = saleTab === "produtos" ? Math.max(Number(quantity) || 1, 1) : 1

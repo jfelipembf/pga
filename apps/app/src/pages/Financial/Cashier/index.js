@@ -31,7 +31,7 @@ import ButtonLoader from "../../../components/Common/ButtonLoader"
 import OverlayLoader from "../../../components/Common/OverlayLoader"
 
 import { formatCurrency, formatDateTime } from "./Utils/cashierUtils"
-import { formatDate } from "../../../helpers/date"
+import { formatDate } from "@pga/shared"
 import { useCashierLogic } from "./Hooks/useCashierLogic"
 
 const CashierPage = ({ setBreadcrumbItems }) => {

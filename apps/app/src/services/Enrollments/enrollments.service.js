@@ -2,10 +2,10 @@ import { getDoc, getDocs, query, where } from "firebase/firestore"
 import { httpsCallable } from "firebase/functions"
 import { requireFunctions } from "../_core/functions"
 import { requireBranchContext } from "../_core/context"
-import { normalizeDate, parseFirestoreDate } from "../../helpers/date"
+import { normalizeDate, parseFirestoreDate } from "@pga/shared"
 import { enrollmentsCol, clientDoc, getContext, getDb } from "./enrollments.repository"
 import { logExperimentalScheduling, logExperimentalCancellation } from "../Funnel/index"
-import { buildEnrollmentPayload } from "../payloads"
+import { buildEnrollmentPayload } from "@pga/shared"
 
 export const listEnrollmentsByClient = async (idClient, { ctxOverride = null } = {}) => {
   if (!idClient) return []

@@ -1,6 +1,6 @@
 const { FieldValue } = require("firebase-admin/firestore");
 const { getBranchCollectionRef } = require("../../shared/references");
-const { toISODate } = require("../../helpers/date");
+const { toISODate } = require("../../shared");
 
 /**
  * Remove sessões futuras que excedem a nova Data Fim da turma.

@@ -2,7 +2,7 @@ export const CLASS_FORM_DEFAULTS = {
   idActivity: "",
   idStaff: "",
   idArea: "",
-  weekDays: [],
+  weekday: null,
   startTime: "",
   durationMinutes: "",
   endTime: "",

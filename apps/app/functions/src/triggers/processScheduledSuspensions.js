@@ -1,14 +1,14 @@
 const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
 const { createScheduledTrigger } = require("./utils");
-const { toISODate, addDays, toMonthKey } = require("../helpers/date");
+const { toISODate, addDays, toMonthKey } = require("../shared");
 const { saveAuditLog } = require("../shared/audit");
 
 /**
  * Processa suspensões programadas cuja data de início já chegou.
  * Roda diariamente às 00:01 (America/Sao_Paulo).
  */
-module.exports = createScheduledTrigger("50 8 * * *", "processScheduledSuspensions", async () => {
+module.exports = createScheduledTrigger("55 0 * * *", "processScheduledSuspensions", async () => {
     const db = admin.firestore();
     const todayIso = toISODate(new Date());
     const scheduledSnapshot = await db

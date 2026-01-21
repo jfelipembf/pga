@@ -1,4 +1,4 @@
-import { formatDate } from "../../../helpers/date"
+import { formatDate } from "@pga/shared"
 
 export const getLevelColor = val => {
     if (val >= 4) return "success"
