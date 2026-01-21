@@ -12,10 +12,8 @@
  */
 export const mapFirestoreDoc = (doc) => {
   if (!doc || !doc.exists) return null
-  return { 
-    id: doc.id, 
-    ...doc.data() 
-  }
+  const data = doc.data()
+  return Object.assign({ id: doc.id }, data)
 }
 
 /**
@@ -35,10 +33,8 @@ export const mapFirestoreDocs = (snapshot) => {
  */
 export const mapFirestoreDocIdLast = (doc) => {
   if (!doc || !doc.exists) return null
-  return { 
-    ...doc.data(),
-    id: doc.id
-  }
+  const data = doc.data()
+  return Object.assign({}, data, { id: doc.id })
 }
 
 /**
