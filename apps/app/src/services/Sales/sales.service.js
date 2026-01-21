@@ -13,6 +13,7 @@ import { requireFunctions } from "../_core/functions"
 
 import { requireDb } from "../_core/db"
 import { requireBranchContext } from "../_core/context"
+import { mapFirestoreDocs } from "../_core/mappers"
 
 import { getSaleSortTime } from "./sales.utils"
 import { salesCollectionRef, saleDocRef, saleItemsRef } from "./sales.repository"
@@ -25,7 +26,7 @@ export const listSales = async () => {
   const ctx = requireBranchContext()
   const ref = salesCollectionRef(db, ctx)
   const snap = await getDocs(ref)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return mapFirestoreDocs(snap)
 }
 
 export const listSalesByClient = async clientId => {
@@ -37,7 +38,7 @@ export const listSalesByClient = async clientId => {
   const q = query(ref, where("idClient", "==", clientId))
   const snap = await getDocs(q)
 
-  const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  const rows = mapFirestoreDocs(snap)
   rows.sort((a, b) => getSaleSortTime(b) - getSaleSortTime(a))
   return rows
 }
@@ -61,7 +62,7 @@ export const getSale = async (idSale, { withItems = false } = {}) => {
     void subRef
     const col = (await import("firebase/firestore")).collection(ref, subName)
     const subSnap = await getDocs(col)
-    return subSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+    return mapFirestoreDocs(subSnap)
   }
 
   const [items] = await Promise.all([
@@ -118,5 +119,5 @@ export const listSaleItems = async idSale => {
   const saleRef = saleDocRef(db, ctx, idSale)
   const itemsRef = saleItemsRef(saleRef)
   const snap = await getDocs(itemsRef)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return mapFirestoreDocs(snap)
 }

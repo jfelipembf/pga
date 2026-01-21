@@ -1,6 +1,5 @@
 import React, { useMemo } from "react"
 import { Card, CardBody, CardHeader, Button, Badge } from "reactstrap"
-import { ACTIVITIES } from "../../../pages/Admin/Activities/Constants/activitiesDefaults"
 
 const historyEvents = [
   {
@@ -54,11 +53,6 @@ const historyEvents = [
   },
 ]
 
-const activityById = ACTIVITIES.reduce((acc, act) => {
-  acc[act.id] = act
-  return acc
-}, {})
-
 const ClientEvaluationHistory = ({ onBack }) => {
   const rows = useMemo(() => {
     const chunkSize = 5
@@ -91,8 +85,7 @@ const ClientEvaluationHistory = ({ onBack }) => {
       <CardBody>
         <section id="cd-timeline" className="cd-container">
           {historyEvents.map((evt, idx) => {
-            const act = activityById[evt.activityId]
-            const color = act?.color || "#466b8f"
+            const color = "#466b8f"
             const isEven = idx % 2 === 1
             const label = evt.title.toLowerCase()
             const isStageChange = label.includes("início") || label.includes("subiu")
@@ -111,7 +104,6 @@ const ClientEvaluationHistory = ({ onBack }) => {
                     <h3 className="mb-2">{evt.title}</h3>
                     <span className="badge bg-success text-white px-3 py-2 fs-6">+{improvements}</span>
                   </div>
-                  <p className="mb-2 text-muted">{act?.name || "Nível"}</p>
                   <p className="mb-3 text-muted">{evt.note}</p>
                   <div className="d-flex flex-wrap gap-1 mb-2">
                     {evt.topics.map(topic => (

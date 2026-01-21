@@ -1,5 +1,6 @@
 import { getDocs, query, orderBy, getDoc, addDoc, setDoc, deleteDoc, updateDoc } from "firebase/firestore"
 import { makeCreatePayload, makeUpdatePayload } from "../_core/payload"
+import { mapFirestoreDocs } from "../_core/mappers"
 import { evaluationLevelsCol, evaluationLevelDoc, getContext, getDb } from "./evaluationLevels.repository"
 
 // Busca níveis de avaliação do banco de dados
@@ -10,7 +11,7 @@ export const listEvaluationLevels = async ({ ctxOverride = null } = {}) => {
   const ref = evaluationLevelsCol(db, ctx)
   const q = query(ref, orderBy("value", "asc"))
   const snap = await getDocs(q)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return mapFirestoreDocs(snap)
 }
 
 export const getEvaluationLevel = async (id, { ctxOverride = null } = {}) => {

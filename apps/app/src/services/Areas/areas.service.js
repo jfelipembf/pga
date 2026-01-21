@@ -1,5 +1,6 @@
 import { addDoc, getDocs } from "firebase/firestore"
 import { makeCreatePayload } from "../_core/payload"
+import { mapFirestoreDocs } from "../_core/mappers"
 import { areasCol, getContext, getDb } from "./areas.repository"
 
 export const listAreas = async ({ ctxOverride = null } = {}) => {
@@ -7,7 +8,7 @@ export const listAreas = async ({ ctxOverride = null } = {}) => {
   const ctx = getContext(ctxOverride)
   const ref = areasCol(db, ctx)
   const snap = await getDocs(ref)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return mapFirestoreDocs(snap)
 }
 
 export const createArea = async (data, { ctxOverride = null } = {}) => {

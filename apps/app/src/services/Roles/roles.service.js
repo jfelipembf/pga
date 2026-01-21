@@ -1,5 +1,6 @@
 import { addDoc, deleteDoc, getDocs, setDoc } from "firebase/firestore"
 import { makeCreatePayload } from "../_core/payload"
+import { mapFirestoreDocs } from "../_core/mappers"
 import { rolesCol, roleDoc, getContext, getDb } from "./roles.repository"
 
 export const listRoles = async ({ ctxOverride = null } = {}) => {
@@ -7,7 +8,7 @@ export const listRoles = async ({ ctxOverride = null } = {}) => {
   const ctx = getContext(ctxOverride)
   const ref = rolesCol(db, ctx)
   const snap = await getDocs(ref)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return mapFirestoreDocs(snap)
 }
 
 export const createRole = async (role, { ctxOverride = null } = {}) => {

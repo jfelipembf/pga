@@ -8,18 +8,17 @@ import {
   query,
   serverTimestamp,
   updateDoc,
-  writeBatch, // IMPORTED HERE
+  writeBatch,
 } from "firebase/firestore"
 
 import { requireDb } from "../_core/db"
 import { requireBranchContext } from "../_core/context"
 import { makeCreatePayload, makeUpdatePayload } from "../_core/payload"
+import { mapFirestoreDoc } from "../_core/mappers"
 
 import { activitiesCol, activityDoc } from "./activities.repository"
 import { buildActivityPayload } from "@pga/shared"
 import { listObjectivesWithTopics } from "./activities.objectives.service"
-
-const mapDoc = d => ({ id: d.id, ...d.data() })
 
 /** ===========================
  * READ
@@ -33,7 +32,7 @@ export const listActivities = async ({ ctxOverride = null } = {}) => {
   // FIX: Remove orderBy("order") because it hides docs without this field
   const snap = await getDocs(query(col))
 
-  const docs = snap.docs.map(mapDoc).filter(a => !a?.deleted)
+  const docs = snap.docs.map(mapFirestoreDoc).filter(a => !a?.deleted)
   // Sort in memory: items with 'order' first, then by name
   return docs.sort((a, b) => {
     const orderA = a.order ?? 9999

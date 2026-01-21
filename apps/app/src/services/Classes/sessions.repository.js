@@ -1,8 +1,9 @@
 // src/services/classes/sessions.repository.js
 
-import { collection, getDocs, orderBy, query, where, doc, updateDoc, serverTimestamp } from "firebase/firestore"
+import { collection, getDocs, query, where, orderBy, doc, updateDoc, serverTimestamp } from "firebase/firestore"
 import { requireDb } from "../_core/db"
 import { requireBranchContext } from "../_core/context"
+import { mapFirestoreDocs } from "../_core/mappers"
 
 const getContext = () => requireBranchContext()
 
@@ -42,6 +43,6 @@ export const listSessions = async ({
   const q = query(ref, ...constraints)
   const snap = await getDocs(q)
 
-  const items = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  const items = mapFirestoreDocs(snap)
   return limitCount > 0 ? items.slice(0, limitCount) : items
 }

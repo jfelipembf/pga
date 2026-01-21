@@ -13,9 +13,8 @@ import { toISODate } from "@pga/shared"
 import { requireDb } from "../_core/db"
 import { requireBranchContext } from "../_core/context"
 import { makeCreatePayload, makeUpdatePayload } from "../_core/payload"
+import { mapFirestoreDoc } from "../_core/mappers"
 import { trainingPlansCol, trainingPlanDoc } from "./trainingPlanning.repository"
-
-const mapDoc = d => ({ id: d.id, ...d.data() })
 
 /** ===========================
  * READ
@@ -37,7 +36,7 @@ export const listTrainingPlans = async (dateStr = null, { ctxOverride = null } =
     }
 
     const snap = await getDocs(q)
-    const docs = snap.docs.map(mapDoc)
+    const docs = snap.docs.map(mapFirestoreDoc)
 
     // Client-side sort if needed (though Firestore can do it if composite index exists)
     return docs.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0))

@@ -7,6 +7,7 @@ import {
 } from "firebase/firestore"
 
 import { clientsEvaluationCol, getContext, getDb } from "./clientsEvaluation.repository"
+import { mapFirestoreDocs } from "../_core/mappers"
 
 export const createClientEvaluation = async ({
   idClient,
@@ -130,7 +131,7 @@ export const getClientEvaluations = async ({ idClient, ctxOverride = null }) => 
   const ref = clientsEvaluationCol(db, ctx, idClient)
   const snap = await getDocs(query(ref, orderBy("createdAt", "desc")))
 
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return mapFirestoreDocs(snap)
 }
 
 export const getClientEvaluationByEvent = async ({ idClient, eventPlanId, ctxOverride = null }) => {

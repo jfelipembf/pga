@@ -5,12 +5,13 @@ import { usePhotoUpload } from "../../hooks/usePhotoUpload"
 import { eventsCol, getContext, getDb } from "./events.repository"
 import { buildEventPayload } from "@pga/shared"
 import { getTodayISO } from "../../utils/date"
+import { mapFirestoreDocs } from "../_core/mappers"
 
 export const listEvents = async ({ ctxOverride = null } = {}) => {
   const db = getDb()
   const ctx = getContext(ctxOverride)
   const snap = await getDocs(eventsCol(db, ctx))
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return mapFirestoreDocs(snap)
 }
 
 export const createEvent = async (data, id) => {

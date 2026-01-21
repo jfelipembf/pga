@@ -3,6 +3,7 @@
 import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore"
 import { requireDb } from "../_core/db"
 import { requireBranchContext } from "../_core/context"
+import { mapFirestoreDocs } from "../_core/mappers"
 
 const getContext = () => requireBranchContext()
 
@@ -17,7 +18,7 @@ export const listClasses = async ({ idActivity = null } = {}) => {
   const q = idActivity ? query(ref, where("idActivity", "==", idActivity)) : query(ref)
 
   const snap = await getDocs(q)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return mapFirestoreDocs(snap)
 }
 
 export const getClassById = async idClass => {

@@ -9,6 +9,7 @@ import {
   query,
   where,
 } from "firebase/firestore"
+import { mapFirestoreDocs } from "../_core/mappers"
 
 /**
  * Contratos do CLIENTE (instâncias).
@@ -49,7 +50,7 @@ export const suspensionRef = (db, ctx, idClientContract, idSuspension) =>
 
 export const listClientContracts = async (db, ctx) => {
   const snap = await getDocs(clientContractsCollection(db, ctx))
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return mapFirestoreDocs(snap)
 }
 
 /**
@@ -81,5 +82,5 @@ export const listContractSuspensions = async (db, ctx, idClientContract) => {
   if (!idClientContract) return []
   const ref = suspensionsCollection(db, ctx, idClientContract)
   const snap = await getDocs(query(ref, orderBy("startDate", "desc")))
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return mapFirestoreDocs(snap)
 }

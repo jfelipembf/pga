@@ -2,8 +2,36 @@ import React, { useEffect, useState, useMemo } from "react"
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Table, Row, Col, Input, Badge } from "reactstrap"
 import { getTestResultsByEvent } from "../../../services/Tests/tests.service"
 import { listClientsByIds } from "../../../services/Clients/clients.service"
-import { getCategory, calculateAge, SWIMMING_CATEGORIES } from "../../../utils/swimmingCategories"
 import RankingPrintContent from "./RankingPrint"
+
+// Swimming categories for ranking
+const SWIMMING_CATEGORIES = [
+    { name: "Infantil", minAge: 6, maxAge: 8 },
+    { name: "Petiz", minAge: 9, maxAge: 10 },
+    { name: "Mirim", minAge: 11, maxAge: 12 },
+    { name: "Juvenil", minAge: 13, maxAge: 14 },
+    { name: "Junior", minAge: 15, maxAge: 17 },
+    { name: "Sênior", minAge: 18, maxAge: 24 },
+    { name: "Master", minAge: 25, maxAge: 999 }
+]
+
+const calculateAge = (birthDate) => {
+    if (!birthDate) return 0
+    const birth = birthDate.toDate ? birthDate.toDate() : new Date(birthDate)
+    const today = new Date()
+    let age = today.getFullYear() - birth.getFullYear()
+    const monthDiff = today.getMonth() - birth.getMonth()
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+        age--
+    }
+    return age
+}
+
+const getCategory = (birthDate) => {
+    const age = calculateAge(birthDate)
+    const category = SWIMMING_CATEGORIES.find(c => age >= c.minAge && age <= c.maxAge)
+    return category ? category.name : "Sem categoria"
+}
 
 const RankingModal = ({ isOpen, toggle, eventId, eventTitle }) => {
     const [results, setResults] = useState([])

@@ -1,9 +1,10 @@
 import { useMemo } from "react"
-import { getDocs, orderBy, query, setDoc, where } from "firebase/firestore"
+import { getDocs, query, where, orderBy, setDoc } from "firebase/firestore"
 import { httpsCallable } from "firebase/functions"
 import { usePhotoUpload } from "../../hooks/usePhotoUpload"
 import { makeCreatePayload } from "../_core/payload"
 import { requireFunctions } from "../_core/functions"
+import { mapFirestoreDocs } from "../_core/mappers"
 import { staffCol, staffDoc, getContext, getDb } from "./staff.repository"
 import { buildStaffPayload } from "@pga/shared"
 
@@ -12,7 +13,7 @@ export const listStaff = async ({ ctxOverride = null } = {}) => {
   const ctx = getContext(ctxOverride)
   const ref = staffCol(db, ctx)
   const snap = await getDocs(query(ref, orderBy("createdAt", "desc")))
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return mapFirestoreDocs(snap)
 }
 
 export const listInstructors = async ({ ctxOverride = null } = {}) => {
@@ -22,7 +23,7 @@ export const listInstructors = async ({ ctxOverride = null } = {}) => {
   // We assume there is an index for isInstructor, or it's small enough.
   // Ideally, use: where("isInstructor", "==", true)
   const snap = await getDocs(query(ref, where("isInstructor", "==", true), orderBy("name", "asc")))
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return mapFirestoreDocs(snap)
 }
 
 export const createStaff = async (staff, { ctxOverride = null } = {}) => {

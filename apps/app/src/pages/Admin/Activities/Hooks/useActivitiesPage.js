@@ -10,8 +10,17 @@ import {
 } from "../../../../services/Activity"
 import { normalizeStatusPt } from "../Utils"
 import { buildActivityPayload } from "@pga/shared"
-import { INITIAL_ACTIVITY_FORM } from "../Constants"
 import { useActivitiesData } from "./useActivitiesData"
+
+const INITIAL_ACTIVITY_FORM = {
+    id: "new",
+    name: "",
+    description: "",
+    color: "#3c5068",
+    status: "ativo",
+    active: true,
+    objectives: [],
+}
 
 export const useActivitiesPage = ({ setBreadcrumbItems }) => {
     const toast = useToast()

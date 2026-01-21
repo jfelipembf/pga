@@ -1,7 +1,7 @@
-
 import { collection, doc, setDoc, serverTimestamp, query, where, getDocs } from "firebase/firestore"
 import { requireBranchContext } from "../_core/context"
 import { getDb } from "../_core/db"
+import { mapFirestoreDocs } from "../_core/mappers"
 
 const getContext = () => requireBranchContext()
 
@@ -74,7 +74,7 @@ export const getTestResultsByEvent = async (idTestEvent) => {
     )
 
     const snap = await getDocs(q)
-    const results = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    const results = mapFirestoreDocs(snap)
 
     return results
 }
@@ -94,7 +94,7 @@ export const getTestResultsByClient = async (idClient) => {
     )
 
     const snap = await getDocs(q)
-    const results = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    const results = mapFirestoreDocs(snap)
 
     // Sort in memory to avoid needing a composite index immediately
     return results.sort((a, b) => {

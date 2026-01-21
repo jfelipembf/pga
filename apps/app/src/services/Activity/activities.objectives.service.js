@@ -5,6 +5,7 @@ import { deleteDoc, getDocs, orderBy, query, serverTimestamp, setDoc } from "fir
 import { requireDb } from "../_core/db"
 import { requireBranchContext } from "../_core/context"
 import { newId } from "../_core/ids"
+import { mapFirestoreDoc } from "../_core/mappers"
 
 import {
   activityObjectivesCol,
@@ -12,8 +13,6 @@ import {
   activityTopicsCol,
   activityTopicDoc,
 } from "./activities.repository"
-
-const mapDoc = d => ({ id: d.id, ...d.data() })
 
 export const listObjectives = async (idActivity, { ctxOverride = null } = {}) => {
   if (!idActivity) return []
@@ -24,7 +23,7 @@ export const listObjectives = async (idActivity, { ctxOverride = null } = {}) =>
   const col = activityObjectivesCol(db, ctx, idActivity)
   const snap = await getDocs(query(col, orderBy("order", "asc")))
 
-  return snap.docs.map(mapDoc).filter(o => !o?.deleted)
+  return snap.docs.map(mapFirestoreDoc).filter(o => !o?.deleted)
 }
 
 export const listTopics = async (idActivity, idObjective, { ctxOverride = null } = {}) => {
@@ -36,7 +35,7 @@ export const listTopics = async (idActivity, idObjective, { ctxOverride = null }
   const col = activityTopicsCol(db, ctx, idActivity, idObjective)
   const snap = await getDocs(query(col, orderBy("order", "asc")))
 
-  return snap.docs.map(mapDoc).filter(t => !t?.deleted)
+  return snap.docs.map(mapFirestoreDoc).filter(t => !t?.deleted)
 }
 
 /**
@@ -53,12 +52,12 @@ export const listObjectivesWithTopics = async (idActivity, { ctxOverride = null 
 
   const objectives = await Promise.all(
     objSnap.docs.map(async objDoc => {
-      const obj = mapDoc(objDoc)
+      const obj = mapFirestoreDoc(objDoc)
       if (obj.deleted) return null
 
       const tCol = activityTopicsCol(db, ctx, idActivity, obj.id)
       const tSnap = await getDocs(query(tCol, orderBy("order", "asc")))
-      const topics = tSnap.docs.map(mapDoc).filter(t => !t?.deleted)
+      const topics = tSnap.docs.map(mapFirestoreDoc).filter(t => !t?.deleted)
 
       return { ...obj, topics }
     })

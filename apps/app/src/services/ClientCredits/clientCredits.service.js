@@ -1,11 +1,12 @@
 import { clientCreditsCol, getContext, getDb } from "./clientCredits.repository"
+import { mapFirestoreDocs } from "../_core/mappers"
 
 export const listClientCredits = async (idClient, { ctxOverride = null } = {}) => {
   const db = getDb()
   const ctx = getContext(ctxOverride)
   const ref = clientCreditsCol(db, ctx, idClient)
   const snap = await getDocs(ref)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return mapFirestoreDocs(snap)
 }
 
 export const addClientCredit = async (idClient, data) => {

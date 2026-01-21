@@ -5,6 +5,7 @@ import { requireBranchContext } from "../_core/context"
 import { getToday, toISODate } from "@pga/shared"
 import { financialTransactionsCol, financialTransactionDoc, getContext, getDb } from "./financial.repository"
 import { buildTransactionPayload as buildFinancialTransactionPayload, TransactionType } from "@pga/shared"
+import { mapFirestoreDocsIdLast } from "../_core/mappers"
 
 export const listFinancialTransactions = async ({
   type = null,
@@ -37,10 +38,7 @@ export const listFinancialTransactions = async ({
   const q = query(ref, ...queryConstraints)
   const snap = await getDocs(q)
 
-  let transactions = snap.docs.map(d => ({
-    ...d.data(),
-    id: d.id,
-  }))
+  let transactions = mapFirestoreDocsIdLast(snap)
 
   if (type) {
     transactions = transactions.filter(tx => tx.type === type)

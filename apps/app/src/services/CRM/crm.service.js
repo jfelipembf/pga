@@ -1,5 +1,6 @@
 import { getDocs, query, where, orderBy } from "firebase/firestore"
 import { requireDb } from "../_core/db"
+import { mapFirestoreDocs } from "../_core/mappers"
 import { clientsCol, getContext, listClientsByIdsRepo } from "../Clients/clients.repository"
 import { clientContractsCollection } from "../ClientContracts/clientContracts.repository"
 import { receivablesCol } from "../Financial/receivables.repository"
@@ -87,7 +88,7 @@ export const listBirthdays = async (db, ctx, start, end) => {
     // Busca ativos e leads (aniversário pode ocorrer em ambos)
     const q = query(ref, where("status", "in", ["active", "lead"]), orderBy("name", "asc"))
     const snap = await getDocs(q)
-    const clients = mapDocs(snap)
+    const clients = mapFirestoreDocs(snap)
 
     const isAfterOrEqual = (m1, d1, m2, d2) => m1 > m2 || (m1 === m2 && d1 >= d2)
     const isBeforeOrEqual = (m1, d1, m2, d2) => m1 < m2 || (m1 === m2 && d1 <= d2)
@@ -164,7 +165,7 @@ export const listByStatus = async (db, ctx, status, start, end) => {
     }
 
     const snap = await getDocs(q)
-    const contracts = mapDocs(snap)
+    const contracts = mapFirestoreDocs(snap)
 
     if (!contracts.length) return []
 
@@ -288,7 +289,7 @@ export const listClientsWithDebt = async (db, ctx, start, end) => {
 
     const q = query(ref, ...qArgs);
     const snap = await getDocs(q)
-    const debts = mapDocs(snap)
+    const debts = mapFirestoreDocs(snap)
 
     if (!debts.length) return []
 

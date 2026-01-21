@@ -1,7 +1,9 @@
 import { getDocs, query, where } from "firebase/firestore"
 import { httpsCallable } from "firebase/functions"
+import { getDb } from "../_core/db"
 import { requireFunctions } from "../_core/functions"
-import { receivablesCol, getContext, getDb } from "./receivables.repository"
+import { mapFirestoreDocsIdLast, mapFirestoreDocs } from "../_core/mappers"
+import { receivablesCol, getContext } from "./receivables.repository"
 import { buildReceivablePayload, toISODate } from "@pga/shared"
 
 export const createReceivable = async data => {
@@ -83,7 +85,7 @@ export const listReceivables = async ({ startDate, endDate, status, ctxOverride 
   const ctx = getContext(ctxOverride)
   const ref = receivablesCol(db, ctx)
   const snap = await getDocs(ref)
-  let items = snap.docs.map(d => ({ ...d.data(), id: d.id }))
+  let items = mapFirestoreDocsIdLast(snap)
 
   if (status) {
     items = items.filter(rcv => (rcv.status || "").toLowerCase() === status.toLowerCase())
@@ -128,7 +130,7 @@ export const listReceivablesByClient = async (idClient, { status, ctxOverride = 
   }
 
   const snap = await getDocs(q)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return mapFirestoreDocs(snap)
 }
 
 export const payReceivables = async (data) => {

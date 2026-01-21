@@ -1,5 +1,6 @@
 import { addDoc, deleteDoc, getDocs, updateDoc } from "firebase/firestore"
 import { makeCreatePayload, makeUpdatePayload } from "../_core/payload"
+import { mapFirestoreDocsIdLast } from "../_core/mappers"
 import { acquirersCol, acquirerDoc, getContext, getDb } from "./acquirers.repository"
 
 export const listAcquirers = async ({ ctxOverride = null } = {}) => {
@@ -8,7 +9,7 @@ export const listAcquirers = async ({ ctxOverride = null } = {}) => {
 
   const ref = acquirersCol(db, ctx)
   const snap = await getDocs(ref)
-  return snap.docs.map(d => ({ ...d.data(), id: d.id }))
+  return mapFirestoreDocsIdLast(snap)
 }
 
 export const createAcquirer = async (data, { ctxOverride = null } = {}) => {

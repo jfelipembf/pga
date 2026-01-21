@@ -1,13 +1,8 @@
-import { addDoc, deleteDoc, getDocs, setDoc, updateDoc } from "firebase/firestore"
+import { getDocs, addDoc, updateDoc, deleteDoc, setDoc } from "firebase/firestore"
+import { getDb } from "../_core/db"
 import { makeCreatePayload, makeUpdatePayload } from "../_core/payload"
-import {
-  productsCol,
-  productDoc,
-  servicesCol,
-  serviceDoc,
-  getContext,
-  getDb
-} from "./catalog.repository"
+import { mapFirestoreDocs } from "../_core/mappers"
+import { productsCol, productDoc, servicesCol, serviceDoc, getContext } from "./catalog.repository"
 import { buildServicePayload } from "@pga/shared"
 
 
@@ -18,7 +13,7 @@ export const listProducts = async ({ ctxOverride = null } = {}) => {
   const ctx = getContext(ctxOverride)
   const ref = productsCol(db, ctx)
   const snap = await getDocs(ref)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return mapFirestoreDocs(snap)
 }
 
 export const createProduct = async (data, id = null, { ctxOverride = null } = {}) => {
@@ -67,7 +62,7 @@ export const listServices = async ({ ctxOverride = null } = {}) => {
   const ctx = getContext(ctxOverride)
   const ref = servicesCol(db, ctx)
   const snap = await getDocs(ref)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return mapFirestoreDocs(snap)
 }
 
 export const createService = async (data, id = null, { ctxOverride = null } = {}) => {

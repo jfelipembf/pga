@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore"
 import { requireBranchContext } from "../_core/context"
 import { requireDb } from "../_core/db"
+import { mapFirestoreDocs } from "../_core/mappers"
 
 /**
  * CONTRACT (catálogo / produto / plano)
@@ -38,7 +39,7 @@ export const listContracts = async (db, ctx) => {
   const ref = contractsCol(db, ctx)
   try {
     const snap = await getDocs(query(ref, orderBy("title", "asc")))
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    return mapFirestoreDocs(snap)
   } catch (e) {
     console.error("Erro ao listar contratos:", e)
     return []
