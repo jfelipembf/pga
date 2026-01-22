@@ -36,16 +36,21 @@ const generateSessionsForClass = async ({
     let lastEnrolledCount = 0;
     let lastSessionDate = null;
 
-    const lastSessionSnap = await sessionsCol
-        .where("idClass", "==", String(idClass))
-        .orderBy("sessionDate", "desc")
-        .limit(1)
-        .get();
+    try {
+        const lastSessionSnap = await sessionsCol
+            .where("idClass", "==", String(idClass))
+            .orderBy("sessionDate", "desc")
+            .limit(1)
+            .get();
 
-    if (!lastSessionSnap.empty) {
-        const lastSession = lastSessionSnap.docs[0].data();
-        lastEnrolledCount = Number(lastSession.enrolledCount || 0);
-        lastSessionDate = lastSession.sessionDate;
+        if (!lastSessionSnap.empty) {
+            const lastSession = lastSessionSnap.docs[0].data();
+            lastEnrolledCount = Number(lastSession.enrolledCount || 0);
+            lastSessionDate = lastSession.sessionDate;
+        }
+    } catch (error) {
+        // Se o índice não estiver disponível, continua sem otimização
+        console.warn("Could not fetch last session (index may be building):", error.message);
     }
 
     const startIso = toISODate(fromDate || classData.startDate || new Date());
@@ -83,21 +88,31 @@ const generateSessionsForClass = async ({
     // OTIMIZAÇÃO: Bulk Read das sessões existentes no intervalo
     // Em vez de verificar doc.exists um a um, lemos todas de uma vez.
     // ========================================================================
-    const existingSessionsSnapshot = await sessionsCol
-        .where("idClass", "==", String(idClass))
-        .where("sessionDate", ">=", toISODate(first))
-        .where("sessionDate", "<=", horizonIso) // Limita a busca ao horizonte
-        .get();
-
     const existingDates = new Set();
-    existingSessionsSnapshot.forEach(doc => {
-        const d = doc.data();
-        if (d.sessionDate) existingDates.add(d.sessionDate);
-    });
+    
+    try {
+        const existingSessionsSnapshot = await sessionsCol
+            .where("idClass", "==", String(idClass))
+            .where("sessionDate", ">=", toISODate(first))
+            .where("sessionDate", "<=", horizonIso) // Limita a busca ao horizonte
+            .get();
+
+        existingSessionsSnapshot.forEach(doc => {
+            const d = doc.data();
+            if (d.sessionDate) existingDates.add(d.sessionDate);
+        });
+    } catch (error) {
+        // Se o índice não estiver disponível, cria as sessões usando merge
+        console.warn("Could not fetch existing sessions (index may be building):", error.message);
+        console.log("Will use merge strategy to avoid duplicates");
+    }
 
     let ops = 0;
     let createdCount = 0;
     let batch = db.batch();
+    
+    // Se não conseguimos verificar sessões existentes, usamos merge para evitar sobrescrever
+    const usesMerge = existingDates.size === 0 && lastSessionDate === null;
 
     const commitIfNeeded = async () => {
         if (ops >= 450) {
@@ -144,7 +159,12 @@ const generateSessionsForClass = async ({
             updatedAt: FieldValue.serverTimestamp(),
         };
 
-        batch.set(ref, payload);
+        // Usa merge se não pudemos verificar sessões existentes
+        if (usesMerge) {
+            batch.set(ref, payload, { merge: true });
+        } else {
+            batch.set(ref, payload);
+        }
         ops += 1;
         createdCount += 1;
         await commitIfNeeded();
