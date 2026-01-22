@@ -33,7 +33,16 @@ const Grade = ({ setBreadcrumbItems }) => {
   const weekStart = useMemo(() => getStartOfWeekSunday(referenceDate), [referenceDate])
 
   const schedules = useMemo(() => {
-    return mapToGridFormat({ sessions, activities, areas, instructors: staff })
+    // Grade Operacional: mostrar apenas SESSIONS (aulas agendadas)
+    // Classes (templates) não são mostradas para evitar duplicação
+    // Admin/Turmas tem sua própria grade para gerenciar templates
+    return mapToGridFormat({ 
+      sessions, 
+      classes: [], // Não mostrar templates de turmas aqui
+      activities, 
+      areas, 
+      instructors: staff 
+    })
   }, [sessions, activities, areas, staff])
 
   const handleSelectSchedule = (schedule, iso) => {

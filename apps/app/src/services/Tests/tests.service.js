@@ -1,9 +1,8 @@
 import { collection, doc, setDoc, serverTimestamp, query, where, getDocs } from "firebase/firestore"
-import { requireBranchContext } from "../_core/context"
+import { getContext } from "../_core/context"
 import { getDb } from "../_core/db"
 import { mapFirestoreDocs } from "../_core/mappers"
 
-const getContext = () => requireBranchContext()
 
 /**
  * Salva o resultado de um teste para um aluno.

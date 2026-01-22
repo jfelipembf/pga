@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { toISODate } from "../../../utils/date"
-import { listSessions, listClasses } from "../../../services/Classes"
+import { listSessions } from "../../../services/Classes"
 import { listActivities } from "../../../services/Activity"
 import { listAreas } from "../../../services/Areas/index"
 import { listStaff } from "../../../services/Staff/staff.service"
@@ -40,7 +40,6 @@ export const useGradeData = (referenceDate) => {
                         listActivities(),
                         listAreas(),
                         listStaff(),
-                        listClasses(),
                     ])
 
 

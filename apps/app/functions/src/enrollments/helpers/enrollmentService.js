@@ -89,18 +89,42 @@ const createSingleSessionEnrollmentInternal = async ({ idTenant, idBranch, uid, 
                 return fullName.split(" ")[0];
             };
 
-            let teacherName = data.professionalName || "";
+            let teacherName = "";
             let teacherPhone = "";
 
-            // Pre-fetch Teacher Info
-            const idInstructor = payload.instructorId || payload.idStaff;
-            if (idInstructor) {
+            // 1. Tenta pegar o idStaff do payload ou data
+            let idStaff = payload.idStaff || data.idStaff;
+
+            // 2. Se não tiver, busca idStaff na Sessão
+            if (!idStaff && data.idSession) {
                 try {
-                    const staffRef = getBranchCollectionRef(idTenant, idBranch, "staff").doc(idInstructor);
+                    const sessionRef = getBranchCollectionRef(idTenant, idBranch, "sessions").doc(data.idSession);
+                    const sessionSnap = await sessionRef.get();
+                    if (sessionSnap.exists) {
+                        const sData = sessionSnap.data();
+                        idStaff = sData.idStaff;
+
+                        // 3. Se ainda não tiver na sessão, busca idStaff na Turma
+                        if (!idStaff && sData.idClass) {
+                            const classRef = getBranchCollectionRef(idTenant, idBranch, "classes").doc(sData.idClass);
+                            const classSnap = await classRef.get();
+                            if (classSnap.exists) {
+                                idStaff = classSnap.data().idStaff;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error("Erro ao buscar idStaff na sessão/turma:", e);
+                }
+            }
+
+            if (idStaff) {
+                try {
+                    const staffRef = getBranchCollectionRef(idTenant, idBranch, "staff").doc(idStaff);
                     const staffSnap = await staffRef.get();
                     if (staffSnap.exists) {
                         const staffData = staffSnap.data();
-                        teacherName = staffData.name || staffData.firstName || teacherName;
+                        teacherName = staffData.name || staffData.displayName || staffData.firstName || "";
                         teacherPhone = staffData.phone;
                     }
                 } catch (e) {
@@ -125,9 +149,13 @@ const createSingleSessionEnrollmentInternal = async ({ idTenant, idBranch, uid, 
 
             if (teacherPhone) {
                 const teacherTriggerData = {
-                    ...triggerData,
-                    phone: teacherPhone,
-                    name: teacherFirstName
+                    name: teacherFirstName,
+                    student: studentFirstName,
+                    teacher: teacherFirstName,
+                    professional: teacherFirstName,
+                    date: formattedDate,
+                    time: data.sessionTime || data.startTime || "",
+                    phone: teacherPhone  // Telefone do professor
                 };
                 await processTrigger(idTenant, idBranch, "EXPERIMENTAL_SCHEDULED_TEACHER", teacherTriggerData);
             }

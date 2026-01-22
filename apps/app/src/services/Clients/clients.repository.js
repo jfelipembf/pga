@@ -13,12 +13,9 @@ import {
   documentId,
 } from "firebase/firestore"
 import { requireDb } from "../_core/db"
-import { requireBranchContext } from "../_core/context"
+import { getContext } from "../_core/context"
 
-export const getContext = (override) => {
-  if (override) return override
-  return requireBranchContext()
-}
+export { getContext }
 
 export const clientsCol = (db, ctx) => collection(db, "tenants", ctx.idTenant, "branches", ctx.idBranch, "clients")
 export const clientDoc = (db, ctx, idClient) => doc(db, "tenants", ctx.idTenant, "branches", ctx.idBranch, "clients", idClient)

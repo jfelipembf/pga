@@ -6,6 +6,7 @@ import { requireDb } from "../_core/db"
 import { requireBranchContext } from "../_core/context"
 import { newId } from "../_core/ids"
 import { mapFirestoreDoc } from "../_core/mappers"
+import { softDelete } from "../_core/operations"
 
 import {
   activityObjectivesCol,
@@ -149,7 +150,7 @@ export const deleteTopic = async (
   idActivity,
   idObjective,
   idTopic,
-  { ctxOverride = null, hard = false } = {}
+  { hard = false, ctxOverride = null } = {}
 ) => {
   if (!idActivity || !idObjective || !idTopic) throw new Error("IDs não informados")
 
@@ -163,6 +164,6 @@ export const deleteTopic = async (
     return true
   }
 
-  await setDoc(ref, { deleted: true, updatedAt: serverTimestamp() }, { merge: true })
+  await softDelete(ref)
   return true
 }

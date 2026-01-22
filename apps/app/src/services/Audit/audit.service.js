@@ -1,13 +1,13 @@
-import { getDocs, query, orderBy, limit, where } from "firebase/firestore"
-import { collection, Timestamp } from "firebase/firestore"
-import { requireDb } from "../_core/db"
+import { getDocs, query, orderBy, limit, where, collection, Timestamp } from "firebase/firestore"
+import { getDb } from "../_core/db"
 import { requireBranchContext } from "../_core/context"
+import { timestampToDate } from "../_core/timestamp"
 
 /**
  * Busca os logs de auditoria da unidade atual.
  */
 export const listAuditLogs = async ({ maxResults = 100, date = null } = {}) => {
-    const db = requireDb()
+    const db = getDb()
     const ctx = requireBranchContext()
 
     const ref = collection(db, "tenants", ctx.idTenant, "branches", ctx.idBranch, "auditLog")
@@ -36,6 +36,6 @@ export const listAuditLogs = async ({ maxResults = 100, date = null } = {}) => {
         id: doc.id,
         ...doc.data(),
         // Converter Timestamp para Date para facilitar exibição
-        timestamp: doc.data().timestamp?.toDate() || new Date()
+        timestamp: timestampToDate(doc.data().timestamp) || new Date()
     }))
 }

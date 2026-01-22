@@ -18,7 +18,8 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
-import { getFunctions } from 'firebase/functions'; // Import
+import { getFunctions } from 'firebase/functions';
+
 
 class FirebaseAuthBackend {
   constructor(firebaseConfig) {
@@ -34,8 +35,6 @@ class FirebaseAuthBackend {
       this.db = getFirestore(this.app);
       this.storage = getStorage(this.app);
       this.functions = getFunctions(this.app);
-
-
 
       // Segunda instância para criar usuários sem fazer login automático
       this.secondaryApp = initializeApp(firebaseConfig, 'Secondary');

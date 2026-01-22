@@ -1,12 +1,10 @@
 // src/services/classes/classes.service.js
 
-import { requireBranchContext } from "../_core/context"
-import { listClasses } from "./classes.repository"
 import { httpsCallable } from "firebase/functions"
+import { listClasses } from "./classes.repository"
+import { getContext } from "../_core/context"
 import { requireFunctions } from "../_core/functions"
 import { buildClassPayload } from "@pga/shared"
-
-const getContext = () => requireBranchContext()
 
 /**
  * Cria turmas.

@@ -31,7 +31,16 @@ const AcquirersPage = ({ setBreadcrumbItems }) => {
     handleAddInstallment,
     handleRemoveInstallment,
     handleClear,
-    handleSave
+    handleSave,
+    // Brand Fees
+    getBrandFeeState,
+    initializeBrandFees,
+    removeBrandFees,
+    handleBrandFeeChange,
+    handleBrandToggleAnticipate,
+    handleBrandInstallmentChange,
+    handleBrandAddInstallment,
+    handleBrandRemoveInstallment
   } = useAcquirersLogic()
 
   useEffect(() => {
@@ -81,6 +90,15 @@ const AcquirersPage = ({ setBreadcrumbItems }) => {
             onRemoveInstallment={handleRemoveInstallment}
             brandOptions={BRAND_OPTIONS}
             saving={isLoading('save')}
+            // Brand Fees Logic
+            getBrandFeeState={getBrandFeeState}
+            initializeBrandFees={initializeBrandFees}
+            removeBrandFees={removeBrandFees}
+            onBrandFeeChange={handleBrandFeeChange}
+            onBrandToggleAnticipate={handleBrandToggleAnticipate}
+            onBrandInstallmentChange={handleBrandInstallmentChange}
+            onBrandAddInstallment={handleBrandAddInstallment}
+            onBrandRemoveInstallment={handleBrandRemoveInstallment}
           />
         </Col>
       </Row>

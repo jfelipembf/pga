@@ -11,7 +11,6 @@ import {
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore"
-import { requireBranchContext } from "../_core/context"
 import { requireDb } from "../_core/db"
 import { mapFirestoreDocs } from "../_core/mappers"
 
@@ -28,12 +27,8 @@ export const contractsCol = (db, ctx) =>
 export const contractDoc = (db, ctx, id) =>
   doc(db, "tenants", ctx.idTenant, "branches", ctx.idBranch, "contracts", id)
 
-export const getContext = (ctxOverride) => {
-  if (ctxOverride) return ctxOverride
-  return requireBranchContext()
-}
-
 export const getDb = () => requireDb()
+export { getContext } from "../_core/context"
 
 export const listContracts = async (db, ctx) => {
   const ref = contractsCol(db, ctx)

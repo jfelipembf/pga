@@ -8,7 +8,6 @@ import { validateDuplicateEnrollment } from "../../../validators/enrollment/dupl
 import { createRecurringEnrollment, createSingleSessionEnrollment, listEnrollmentsByClient } from "../../../services/Enrollments/index"
 import { createExperimentalPayload, createRecurringPayload } from "../../../services/Enrollments/enrollment.helpers"
 import { ENROLLMENT_TYPES } from "../../../services/Enrollments/enrollment.types"
-import { getAuthUser } from "../../../helpers/permission_helper"
 
 export const useEnrollmentActions = ({ clientId, clientName, clientPhone, selectedSessionKeys, schedulesForGrid, setSelectedSessionKeys, setExistingEnrollments, enrollmentType = 'regular', reloadPageData, setSessions }) => {
     const { isLoading, withLoading } = useLoading()
@@ -80,7 +79,6 @@ export const useEnrollmentActions = ({ clientId, clientName, clientPhone, select
 
                 // Experimental / Single Session Logic
                 if (enrollmentType === ENROLLMENT_TYPES.EXPERIMENTAL) {
-                    const user = getAuthUser()
                     for (const s of selectedSessions) {
                         const payload = createExperimentalPayload({
                             idClient: clientId,
@@ -89,13 +87,10 @@ export const useEnrollmentActions = ({ clientId, clientName, clientPhone, select
                             status: "active"
                         })
 
-
-
+                        // Adicionar telefone do cliente ao payload
                         await createSingleSessionEnrollment({
                             ...payload,
-                            clientPhone,
-                            idStaff: user?.uid || null,
-                            staffName: user?.displayName || ""
+                            clientPhone
                         })
                     }
                 } else {

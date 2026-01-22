@@ -6,7 +6,7 @@ import { requireFunctions } from "../_core/functions"
 import { buildClientContractPayload } from "@pga/shared"
 
 import { requireDb } from "../_core/db"
-import { requireBranchContext } from "../_core/context"
+import { getContext } from "../_core/context"
 
 import {
   listClientContracts as repoListClientContracts,
@@ -15,8 +15,6 @@ import {
 } from "./clientContracts.repository"
 
 import { logConversion } from "../Funnel/index"
-
-const getContext = () => requireBranchContext()
 
 /** ===== Lists ===== */
 

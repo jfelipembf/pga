@@ -1,11 +1,9 @@
 // src/services/classes/sessions.repository.js
 
-import { collection, getDocs, query, where, orderBy, doc, updateDoc, serverTimestamp } from "firebase/firestore"
+import { collection, doc, getDocs, query, where, orderBy, updateDoc, serverTimestamp } from "firebase/firestore"
 import { requireDb } from "../_core/db"
-import { requireBranchContext } from "../_core/context"
+import { getContext } from "../_core/context"
 import { mapFirestoreDocs } from "../_core/mappers"
-
-const getContext = () => requireBranchContext()
 
 const sessionsColRef = (db, idTenant, idBranch) =>
   collection(db, "tenants", idTenant, "branches", idBranch, "sessions")

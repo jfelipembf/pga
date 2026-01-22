@@ -170,6 +170,128 @@ export const useAcquirersLogic = () => {
         }
     }
 
+    // --- Lógica para Brand Fees (Taxas por Bandeira) ---
+
+    const getBrandFeeState = (brandId) => {
+        return formState.brandFees?.[brandId] || null
+    }
+
+    const initializeBrandFees = (brandId) => {
+        // Copia as taxas atuais padrão para a bandeira específica
+        const currentDefaults = {
+            debitFeePercent: formState.debitFeePercent,
+            creditOneShotFeePercent: formState.creditOneShotFeePercent,
+            receiptDays: formState.receiptDays,
+            anticipationFeePercent: formState.anticipationFeePercent,
+            anticipateReceivables: formState.anticipateReceivables,
+            installmentFees: JSON.parse(JSON.stringify(formState.installmentFees || [])),
+        }
+
+        setFormState(prev => ({
+            ...prev,
+            brandFees: {
+                ...(prev.brandFees || {}),
+                [brandId]: currentDefaults
+            }
+        }))
+    }
+
+    const removeBrandFees = (brandId) => {
+        setFormState(prev => {
+            const nextFees = { ...(prev.brandFees || {}) }
+            delete nextFees[brandId]
+            return { ...prev, brandFees: nextFees }
+        })
+    }
+
+    const handleBrandFeeChange = (brandId, field, value) => {
+        setFormState(prev => ({
+            ...prev,
+            brandFees: {
+                ...(prev.brandFees || {}),
+                [brandId]: {
+                    ...(prev.brandFees?.[brandId] || {}),
+                    [field]: value
+                }
+            }
+        }))
+    }
+
+    const handleBrandToggleAnticipate = (brandId) => {
+        setFormState(prev => {
+            const current = prev.brandFees?.[brandId]
+            if (!current) return prev
+            return {
+                ...prev,
+                brandFees: {
+                    ...prev.brandFees,
+                    [brandId]: {
+                        ...current,
+                        anticipateReceivables: !current.anticipateReceivables
+                    }
+                }
+            }
+        })
+    }
+
+    const handleBrandInstallmentChange = (brandId, index, field, raw) => {
+        const value = Number(raw)
+        setFormState(prev => {
+            const currentFees = prev.brandFees?.[brandId]
+            if (!currentFees) return prev
+
+            const updatedInstallments = [...(currentFees.installmentFees || [])]
+            updatedInstallments[index] = { ...updatedInstallments[index], [field]: Number.isFinite(value) ? value : 0 }
+
+            return {
+                ...prev,
+                brandFees: {
+                    ...prev.brandFees,
+                    [brandId]: {
+                        ...currentFees,
+                        installmentFees: updatedInstallments
+                    }
+                }
+            }
+        })
+    }
+
+    const handleBrandAddInstallment = (brandId) => {
+        setFormState(prev => {
+            const currentFees = prev.brandFees?.[brandId]
+            if (!currentFees) return prev
+
+            return {
+                ...prev,
+                brandFees: {
+                    ...prev.brandFees,
+                    [brandId]: {
+                        ...currentFees,
+                        installmentFees: [...(currentFees.installmentFees || []), { installments: 1, feePercent: 0 }]
+                    }
+                }
+            }
+        })
+    }
+
+    const handleBrandRemoveInstallment = (brandId, index) => {
+        setFormState(prev => {
+            const currentFees = prev.brandFees?.[brandId]
+            if (!currentFees) return prev
+
+            return {
+                ...prev,
+                brandFees: {
+                    ...prev.brandFees,
+                    [brandId]: {
+                        ...currentFees,
+                        installmentFees: currentFees.installmentFees.filter((_, idx) => idx !== index)
+                    }
+                }
+            }
+        })
+    }
+
     const sideMenuItems = useMemo(
         () =>
             acquirers.map(item => ({
@@ -201,6 +323,15 @@ export const useAcquirersLogic = () => {
         handleAddInstallment,
         handleRemoveInstallment,
         handleClear,
-        handleSave
+        handleSave,
+        // Brand Fees
+        getBrandFeeState,
+        initializeBrandFees,
+        removeBrandFees,
+        handleBrandFeeChange,
+        handleBrandToggleAnticipate,
+        handleBrandInstallmentChange,
+        handleBrandAddInstallment,
+        handleBrandRemoveInstallment
     }
 }

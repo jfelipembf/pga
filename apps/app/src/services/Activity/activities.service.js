@@ -151,7 +151,7 @@ export const deleteActivity = async (idActivity, { ctxOverride = null, hard = fa
     return true
   }
 
-  await updateDoc(ref, { deleted: true, updatedAt: serverTimestamp() })
+  await softDelete(ref)
   return true
 }
 /**

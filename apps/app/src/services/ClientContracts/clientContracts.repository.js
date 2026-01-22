@@ -9,6 +9,7 @@ import {
   query,
   where,
 } from "firebase/firestore"
+import { timestampComparator } from "../_core/timestamp"
 import { mapFirestoreDocs } from "../_core/mappers"
 
 /**
@@ -64,11 +65,7 @@ export const listClientContractsByClient = async (db, ctx, clientId) => {
 
   return snap.docs
     .map(d => ({ id: d.id, ...d.data() }))
-    .sort((a, b) => {
-      const aTs = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0
-      const bTs = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0
-      return bTs - aTs
-    })
+    .sort(timestampComparator('createdAt'))
 }
 
 export const getClientContract = async (db, ctx, idClientContract) => {

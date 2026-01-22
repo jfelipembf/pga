@@ -1,11 +1,9 @@
 // src/services/classes/classes.repository.js
 
-import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore"
+import { collection, doc, getDocs, getDoc, query, where } from "firebase/firestore"
 import { requireDb } from "../_core/db"
-import { requireBranchContext } from "../_core/context"
+import { getContext } from "../_core/context"
 import { mapFirestoreDocs } from "../_core/mappers"
-
-const getContext = () => requireBranchContext()
 
 const classesColRef = (db, idTenant, idBranch) =>
   collection(db, "tenants", idTenant, "branches", idBranch, "classes")

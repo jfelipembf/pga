@@ -1,5 +1,4 @@
 import { collection, doc } from "firebase/firestore"
-import { requireBranchContext } from "../_core/context"
 import { requireDb } from "../_core/db"
 
 /**
@@ -24,4 +23,4 @@ export const funnelEventDocRef = (db, ctx, clientId, eventId) => {
 }
 
 export const getDb = () => requireDb()
-export const getContext = () => requireBranchContext()
+export { getContext } from "../_core/context"

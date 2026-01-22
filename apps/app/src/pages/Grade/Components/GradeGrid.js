@@ -57,7 +57,7 @@ const GradeGrid = ({
   const schedulesByCell = useMemo(() => {
     const map = new Map()
       ; (Array.isArray(schedules) ? schedules : []).forEach(s => {
-        if (!s || typeof s !== 'object') return // ← guarda contra undefined/null
+        if (!s || typeof s !== 'object') return
         const startTime = String(s?.startTime || "")
         if (!startTime) return
         if (!isWithinTurn(turn, startTime)) return
