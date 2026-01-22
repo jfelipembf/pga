@@ -13,7 +13,7 @@ const StaffSchema = z.object({
     firstName: z.string().min(1, "Nome é obrigatório"),
     lastName: z.string().optional().nullable(),
     email: z.string().email("Email inválido"),
-    password: z.string().min(6, "Senha curta").default("123456"),
+    password: z.string().min(6, "Senha curta").optional().nullable(),
     role: z.string().optional().nullable(),
     roleId: z.string().min(1, "Cargo é obrigatório"),
     isInstructor: z.boolean().default(false),
@@ -30,13 +30,12 @@ const StaffSchema = z.object({
 }).passthrough();
 
 const buildStaffPayload = (data) => {
-    return {
+    const payload = {
         id: data.id, // Auth UID
         firstName: data.firstName || "",
         lastName: data.lastName || "",
         email: data.email || "",
         phone: data.phone || "",
-        password: data.password || "123456",
         role: data.role || "",
         roleId: data.roleId || "",
         isInstructor: !!data.isInstructor,
@@ -50,6 +49,12 @@ const buildStaffPayload = (data) => {
         photo: data.photo || data.avatar || "",
         address: buildAddress(data)
     };
+
+    if (data.password) {
+        payload.password = data.password;
+    }
+
+    return payload;
 };
 
 module.exports = {

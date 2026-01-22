@@ -79,7 +79,12 @@ exports.buildAuthUpdates = (data, currentData) => {
     }
 
     if (data.photo !== null && data.photo !== undefined) {
-        updates.photoURL = data.photo;
+        // Firebase Auth specifically requires photoURL to be a valid URL (http/https).
+        // If it's a base64 or something else, we only save it to Firestore, not to Auth.
+        const isUrl = typeof data.photo === "string" && (data.photo.startsWith("http://") || data.photo.startsWith("https://"));
+        if (isUrl) {
+            updates.photoURL = data.photo;
+        }
     }
 
     return updates;

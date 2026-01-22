@@ -6,7 +6,7 @@ import { useActiveClientsPool } from "../../../hooks/evaluation/useActiveClients
 import { useClassClients } from "../../../hooks/evaluation/useClassClients"
 
 export const useEvaluationFormLogic = ({ classId }) => {
-    const { isLoading, withLoading } = useLoading()
+    const { isLoading, anyLoading, withLoading } = useLoading()
     const [extraClients, setExtraClients] = useState([])
     const [searchText, setSearchText] = useState("")
     const [excludedClientIds, setExcludedClientIds] = useState(() => new Set())
@@ -124,6 +124,7 @@ export const useEvaluationFormLogic = ({ classId }) => {
 
     return {
         isLoading,
+        anyLoading,
         withLoading,
         searchText,
         setSearchText,

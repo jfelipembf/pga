@@ -9,6 +9,7 @@ const { StaffSchema } = require("../../shared");
 
 const { buildStaffPayload, deriveFullName } = require("../../shared");
 const { getOrCreateAuthUser, updateAuthUser, buildAuthUpdates } = require("../../shared/auth");
+const { getStaffRef } = require("../../shared/references");
 const { resolveRoleData } = require("./roleResolver");
 
 // =========================

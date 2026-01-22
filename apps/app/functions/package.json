@@ -13,7 +13,7 @@
   },
   "main": "index.js",
   "dependencies": {
-    "@pga/shared": "file:./pga-shared-1.0.0.tgz",
+    "@pga/shared": "file:pga-shared-1.0.0.tgz",
     "axios": "^1.6.0",
     "date-fns": "^2.30.0",
     "firebase-admin": "^13.6.0",

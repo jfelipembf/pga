@@ -8,6 +8,8 @@ import ClientAddSearch from "../../../components/Common/ClientAddSearch"
 const EvaluationCard = ({ schedule }) => {
   const {
     isLoading,
+    anyLoading,
+    withLoading,
     searchText,
     setSearchText,
     levels,
@@ -100,6 +102,8 @@ const EvaluationCard = ({ schedule }) => {
             idActivity={schedule.idActivity}
             evaluationLogic={{
               isLoading,
+              anyLoading,
+              withLoading,
               levels,
               activeEvent,
               allClients,

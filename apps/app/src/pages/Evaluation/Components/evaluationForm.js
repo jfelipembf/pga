@@ -8,6 +8,7 @@ import { useSaveEvaluations } from "../../../hooks/evaluation/useSaveEvaluations
 import LevelDropdown from "../../Grade/Components/LevelDropdown"
 import ButtonLoader from "../../../components/Common/ButtonLoader"
 import CenterLoader from "../../../components/Common/CenterLoader"
+import OverlayLoader from "../../../components/Common/OverlayLoader"
 import { useToast } from "../../../components/Common/ToastProvider"
 
 import { PLACEHOLDER_AVATAR as placeholderAvatar } from "../Constants/evaluationDefaults"
@@ -21,6 +22,7 @@ const EvaluationForm = ({
 
   const {
     isLoading,
+    anyLoading,
     withLoading,
     levels,
     activeEvent,
@@ -101,7 +103,8 @@ const EvaluationForm = ({
   const isEvaluationDisabled = !activeEvent
 
   return (
-    <div className="class-clients">
+    <div className="class-clients position-relative">
+      <OverlayLoader show={anyLoading} label="Salvando..." />
 
       {isEvaluationDisabled && (
         <Alert color="warning" className="mb-4" fade={false}>
@@ -264,7 +267,7 @@ const EvaluationForm = ({
           <ButtonLoader
             color="success"
             onClick={saveAll}
-            loading={isLoading("saveAll")}
+            loading={false}
             disabled={isLoading("saveAll") || objectives.length === 0 || dirtyCount === 0 || isEvaluationDisabled}
             className="d-flex align-items-center gap-2"
             type="button"
