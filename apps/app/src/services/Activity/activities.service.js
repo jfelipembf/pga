@@ -15,6 +15,7 @@ import { requireDb } from "../_core/db"
 import { requireBranchContext } from "../_core/context"
 import { makeCreatePayload, makeUpdatePayload } from "../_core/payload"
 import { mapFirestoreDoc } from "../_core/mappers"
+import { softDelete } from "../_core/operations"
 
 import { activitiesCol, activityDoc } from "./activities.repository"
 import { buildActivityPayload } from "@pga/shared"
