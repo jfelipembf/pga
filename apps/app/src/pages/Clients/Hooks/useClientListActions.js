@@ -26,7 +26,10 @@ export const useClientListActions = ({ setClients }) => {
                 await withLoading('submit', async () => {
                     let avatarUrl = data.avatar // or data.photo if form updated... assuming data.avatar for now from legacy form
                     if (data.avatarFile) {
-                        const res = await uploadAvatar(data.avatarFile)
+                        const oldPhotoUrl = data.avatar || data.photo
+                        const res = await uploadAvatar(data.avatarFile, { 
+                            deleteOldPhoto: oldPhotoUrl 
+                        })
                         // Handle both string and object return types from upload service
                         avatarUrl = typeof res === 'object' && res?.url ? res.url : res
                     }

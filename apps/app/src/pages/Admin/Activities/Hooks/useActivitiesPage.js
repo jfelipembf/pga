@@ -79,7 +79,10 @@ export const useActivitiesPage = ({ setBreadcrumbItems }) => {
                 let photo = formValue.photo || ""
                 if (photoFile instanceof File) {
                     try {
-                        photo = await uploadPhoto(photoFile)
+                        const oldPhotoUrl = formValue.photo
+                        photo = await uploadPhoto(photoFile, { 
+                            deleteOldPhoto: oldPhotoUrl 
+                        })
                     } catch (err) {
                         console.error(err)
                         toast.show({ title: "Erro ao enviar foto", description: err?.message || String(err), color: "danger" })

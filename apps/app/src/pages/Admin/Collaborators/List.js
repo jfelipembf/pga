@@ -139,7 +139,10 @@ const CollaboratorsList = ({ setBreadcrumbItems }) => {
       await withLoading('submit', async () => {
         let photo = ""
         if (data.avatarFile) {
-          photo = await uploadPhoto(data.avatarFile)
+          const oldPhotoUrl = data.photo || data.avatar
+          photo = await uploadPhoto(data.avatarFile, { 
+            deleteOldPhoto: oldPhotoUrl 
+          })
         }
 
         const selectedRole = roles.find(r => r.id === data.roleId)

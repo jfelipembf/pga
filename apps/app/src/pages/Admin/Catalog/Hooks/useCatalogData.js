@@ -60,7 +60,11 @@ export const useCatalogData = ({ withLoading, toast }) => {
           if (item.photoFile) {
             const uploader = isProductsTab ? uploadProductPhoto : uploadServicePhoto
             const prefix = isProductsTab ? "prod" : "serv"
-            const res = await uploader(item.photoFile, { filenamePrefix: prefix })
+            const oldPhotoUrl = item.photo
+            const res = await uploader(item.photoFile, { 
+              filenamePrefix: prefix,
+              deleteOldPhoto: oldPhotoUrl 
+            })
             photo = res.url
           }
 

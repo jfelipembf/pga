@@ -94,11 +94,24 @@ const CollaboratorProfile = ({ setBreadcrumbItems }) => {
 
   const handleSave = async () => {
     if (!formData) return
+    
+    // Validate password if provided
+    if (passwordForm.next || passwordForm.confirm) {
+      if (passwordForm.next !== passwordForm.confirm) {
+        toast.show({ title: "Erro", description: "As senhas não conferem.", color: "warning" })
+        return
+      }
+    }
+    
     try {
       await withLoading('save', async () => {
         let photoUrl = formData.photo
         if (formData.avatarFile) {
-          photoUrl = await uploadPhoto(formData.avatarFile)
+          // Upload new photo and delete old one automatically
+          const oldPhotoUrl = formData.photo
+          photoUrl = await uploadPhoto(formData.avatarFile, { 
+            deleteOldPhoto: oldPhotoUrl 
+          })
         }
 
         const rawPayload = { ...formData, photo: photoUrl }
@@ -108,6 +121,11 @@ const CollaboratorProfile = ({ setBreadcrumbItems }) => {
 
         const payload = buildStaffPayload(rawPayload)
         payload.id = staffId // Ensure ID is present from URL param
+        
+        // Add password to payload if provided
+        if (passwordForm.next) {
+          payload.password = passwordForm.next
+        }
 
         await updateStaff(payload)
         
@@ -115,8 +133,15 @@ const CollaboratorProfile = ({ setBreadcrumbItems }) => {
         setFormData(prev => {
           const next = { ...prev, ...payload }
           delete next.avatarFile
+          delete next.password // Don't store password in state
           return next
         })
+        
+        // Clear password fields after successful save
+        if (passwordForm.next) {
+          setPasswordForm({ next: "", confirm: "" })
+        }
+        
         toast.show({ title: "Sucesso", description: "Dados atualizados com sucesso.", color: "success" })
       })
     } catch (e) {
@@ -246,9 +271,8 @@ const CollaboratorProfile = ({ setBreadcrumbItems }) => {
                   onChange={updateField}
                   passwordValue={passwordForm}
                   onPasswordChange={updatePasswordField}
-                  onSave={(action) => action === 'password' ? handlePasswordChange() : handleSave()}
+                  onSave={handleSave}
                   saving={isLoading('save') || uploading}
-                  savingPassword={isLoading('password')}
                   roles={roles}
                 />
               </CardBody>

@@ -34,7 +34,10 @@ export const useProfileActions = ({
             await withLoading('save', async () => {
                 let photoUrl = formData.photo
                 if (formData.avatarFile) {
-                    const res = await uploadAvatar(formData.avatarFile)
+                    const oldPhotoUrl = formData.photo
+                    const res = await uploadAvatar(formData.avatarFile, { 
+                        deleteOldPhoto: oldPhotoUrl 
+                    })
                     photoUrl = res
                 }
 

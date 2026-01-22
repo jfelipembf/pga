@@ -20,13 +20,6 @@ const CollaboratorProfileForm = ({ value, onChange, passwordValue, onPasswordCha
   const updatePwd = (field, val) => onPasswordChange?.(field, val)
 
   const handleSave = () => onSave?.()
-  const handlePasswordSave = () => {
-    if (!passwordValue?.next || passwordValue.next !== passwordValue.confirm) {
-      return
-    }
-    // Chama a função de alterar senha do pai
-    onSave?.('password')
-  }
 
   return (
     <Form>
@@ -87,6 +80,23 @@ const CollaboratorProfileForm = ({ value, onChange, passwordValue, onPasswordCha
           <FormGroup>
             <Label>Telefone</Label>
             <Input value={value.phone} onChange={e => update("phone", e.target.value)} />
+          </FormGroup>
+        </Col>
+        <Col md="6">
+          <FormGroup>
+            <Label>Data de Nascimento</Label>
+            <Input type="date" value={value.birthDate || ""} onChange={e => update("birthDate", e.target.value)} />
+          </FormGroup>
+        </Col>
+        <Col md="6">
+          <FormGroup>
+            <Label>Sexo</Label>
+            <Input type="select" value={value.gender || ""} onChange={e => update("gender", e.target.value)}>
+              <option value="">Selecione</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Feminino">Feminino</option>
+              <option value="Outro">Outro</option>
+            </Input>
           </FormGroup>
         </Col>
       </Row>
@@ -204,12 +214,9 @@ const CollaboratorProfileForm = ({ value, onChange, passwordValue, onPasswordCha
           </FormGroup>
         </Col>
       </Row>
-      <div className="d-flex justify-content-end mt-3 gap-2">
+      <div className="d-flex justify-content-end mt-3">
         <ButtonLoader color="primary" onClick={handleSave} loading={saving}>
-          Salvar alterações
-        </ButtonLoader>
-        <ButtonLoader color="secondary" onClick={handlePasswordSave} loading={savingPassword}>
-          Alterar senha
+          Salvar
         </ButtonLoader>
       </div>
     </Form >
