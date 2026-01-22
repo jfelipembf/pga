@@ -7,7 +7,6 @@ import { useEvaluationFormLogic } from "../Hooks/useEvaluationFormLogic"
 import { PLACEHOLDER_AVATAR as placeholderAvatar } from "../Constants/evaluationDefaults"
 import InputMask from "react-input-mask"
 import ButtonLoader from "../../../components/Common/ButtonLoader"
-import OverlayLoader from "../../../components/Common/OverlayLoader"
 
 
 const TestForm = ({ testEvent, classId }) => {
@@ -37,7 +36,6 @@ const TestForm = ({ testEvent, classId }) => {
 
     const {
         isLoading,
-        anyLoading,
         withLoading,
         evaluationClients,
     } = useEvaluationFormLogic({ classId })
