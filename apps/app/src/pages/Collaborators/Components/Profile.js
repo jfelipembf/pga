@@ -96,6 +96,7 @@ const CollaboratorProfile = ({ setBreadcrumbItems }) => {
     if (!formData) return
     
     // Validate password if provided
+    // Ensure password confirmation matches
     if (passwordForm.next || passwordForm.confirm) {
       if (passwordForm.next !== passwordForm.confirm) {
         toast.show({ title: "Erro", description: "As senhas não conferem.", color: "warning" })
@@ -147,26 +148,6 @@ const CollaboratorProfile = ({ setBreadcrumbItems }) => {
     } catch (e) {
       console.error('Erro ao salvar colaborador', e)
       toast.show({ title: "Erro", description: "Falha ao salvar dados.", color: "danger" })
-    }
-  }
-
-  const handlePasswordChange = async () => {
-    if (!passwordForm.next || passwordForm.next !== passwordForm.confirm) {
-      toast.show({ title: "Erro", description: "As senhas não conferem.", color: "warning" })
-      return
-    }
-    // Note: 'current' password check requires re-auth user, which Admin SDK can't do easily without custom flow.
-    // However, Admin SDK allows admin to OVERRIDE password. We will proceed with override.
-
-    try {
-      await withLoading('password', async () => {
-        await updateStaff({ id: staffId, password: passwordForm.next })
-        setPasswordForm({ next: "", confirm: "" })
-        toast.show({ title: "Sucesso", description: "Senha alterada com sucesso.", color: "success" })
-      })
-    } catch (e) {
-      console.error('Erro ao alterar senha', e)
-      toast.show({ title: "Erro", description: "Falha ao alterar senha.", color: "danger" })
     }
   }
 

@@ -10,6 +10,7 @@
  *     return { idTenant: s.Tenant?.tenant?.idTenant, idBranch: s.Branch?.idBranch }
  *   })
  */
+// eslint-disable-next-line no-unused-vars
 let contextResolver = null
 
 export const setContextResolver = fn => {
@@ -70,17 +71,12 @@ export const getAuthBranchContext = () => {
 }
 
 /**
- * Retorna { idTenant, idBranch } como strings.
- * Prioridade:
- * 1) override (passado pela chamada)
- * 2) resolver (redux)
- * 3) localStorage (authUser/session- + idBranch)
+ * Wrapper padrão: override ou contexto resolvido.
+ * Lança erro se não encontrar.
  */
 export const requireBranchContext = (override = null) => {
   const overrideCtx = override && override?.idTenant && override?.idBranch ? override : null
-  const resolvedCtx = contextResolver ? contextResolver() : null
-  const resolverCtx = resolvedCtx?.idTenant && resolvedCtx?.idBranch ? resolvedCtx : null
-  const ctx = overrideCtx || resolverCtx || getAuthBranchContext()
+  const ctx = overrideCtx || getAuthBranchContext()
 
   if (!ctx?.idTenant || !ctx?.idBranch) {
     throw new Error("Contexto de tenant/unidade não encontrado")
@@ -90,4 +86,16 @@ export const requireBranchContext = (override = null) => {
     idTenant: String(ctx.idTenant),
     idBranch: String(ctx.idBranch),
   }
+}
+
+/**
+ * Wrapper padrão para getContext com override.
+ * Use em todos os repositories para evitar duplicação.
+ * 
+ * @param {Object|null} ctxOverride - Contexto override opcional
+ * @returns {Object} - Contexto com idTenant e idBranch
+ */
+export const getContext = (ctxOverride = null) => {
+  if (ctxOverride) return ctxOverride
+  return requireBranchContext()
 }
