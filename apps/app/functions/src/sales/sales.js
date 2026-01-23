@@ -7,11 +7,13 @@ if (admin.apps.length === 0) {
   admin.initializeApp();
 }
 
+const { withMonitoring } = require("../helpers/monitoringHelper");
+
 /**
  * Cria ou Atualiza uma venda (Sale).
  * Wrapper para o SalesService Logic.
  */
-exports.saveSale = functions.https.onCall(saveSaleLogic);
+exports.saveSale = functions.https.onCall(withMonitoring("saveSale", saveSaleLogic));
 
 // Listener (Trigger) para atualizações pós-venda
 exports.onSaleWrite = functions.firestore

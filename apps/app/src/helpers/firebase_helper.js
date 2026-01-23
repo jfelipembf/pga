@@ -19,6 +19,12 @@ import {
 } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getFunctions } from 'firebase/functions';
+import { getPerformance } from 'firebase/performance';
+import { getAnalytics } from 'firebase/analytics';
+import { connectAuthEmulator } from 'firebase/auth';
+import { connectFirestoreEmulator } from 'firebase/firestore';
+import { connectFunctionsEmulator } from 'firebase/functions';
+import { connectStorageEmulator } from 'firebase/storage';
 
 
 class FirebaseAuthBackend {
@@ -35,6 +41,22 @@ class FirebaseAuthBackend {
       this.db = getFirestore(this.app);
       this.storage = getStorage(this.app);
       this.functions = getFunctions(this.app);
+      this.performance = getPerformance(this.app);
+      this.analytics = getAnalytics(this.app);
+
+      // Connect to Emulators if running locally
+      if (window.location.hostname === "localhost") {
+        // Prevent double connection causing errors
+        try {
+          connectAuthEmulator(this.auth, "http://localhost:9099");
+          connectFirestoreEmulator(this.db, 'localhost', 8080);
+          connectFunctionsEmulator(this.functions, 'localhost', 5001);
+          connectStorageEmulator(this.storage, 'localhost', 9199);
+          console.log("🔥 Connected to Firebase Emulators");
+        } catch (e) {
+          // Ignore "already connected" errors in hot-reload
+        }
+      }
 
       // Segunda instância para criar usuários sem fazer login automático
       this.secondaryApp = initializeApp(firebaseConfig, 'Secondary');

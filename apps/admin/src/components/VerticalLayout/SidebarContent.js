@@ -63,7 +63,7 @@ const SidebarContent = props => {
       }
       if (parent) {
         const parent2El =
-          parent.childNodes && parent.childNodes.lenght && parent.childNodes[1]
+          parent.childNodes && parent.childNodes.length && parent.childNodes[1]
             ? parent.childNodes[1]
             : null;
         if (parent2El && parent2El.id !== "side-menu") {
@@ -119,7 +119,10 @@ const SidebarContent = props => {
   }, []);
 
   useEffect(() => {
-    new MetisMenu("#side-menu");
+    const menuElement = document.getElementById("side-menu");
+    if (menuElement) {
+      new MetisMenu("#side-menu");
+    }
   }, []);
 
   useEffect(() => {
@@ -160,6 +163,16 @@ const SidebarContent = props => {
               <Link to="/academies" className="waves-effect">
                 <i className="mdi mdi-domain"></i>
                 <span>Academias</span>
+              </Link>
+            </li>
+
+            <li className="menu-title">Técnico</li>
+
+            <li>
+              <Link to="/monitoring" className="waves-effect">
+                <i className="mdi mdi-speedometer"></i>
+                <span className="badge rounded-pill bg-success float-end">New</span>
+                <span>Monitoramento</span>
               </Link>
             </li>
           </ul>

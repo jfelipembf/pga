@@ -28,12 +28,14 @@ import Pages500 from "../pages/Extra Pages/pages-500";
 import Users from "../pages/Users";
 import Academies from "../pages/Academies";
 import AcademyProfile from "../pages/Academies/AcademyProfile";
+import TechMonitoring from "../pages/TechMonitoring";
 
 const userRoutes = [
   { path: "/dashboard", component: <Dashboard /> },
   { path: "/users", component: <Users /> },
   { path: "/academies", component: <Academies /> },
   { path: "/academies/:id", component: <AcademyProfile /> },
+  { path: "/monitoring", component: <TechMonitoring /> },
 
   // // //profile
   { path: "/profile", component: <UserProfile /> },

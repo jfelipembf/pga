@@ -16,6 +16,10 @@ import {
   setDoc,
   serverTimestamp,
 } from "firebase/firestore";
+import { getPerformance } from "firebase/performance";
+import { getAnalytics } from "firebase/analytics";
+import { connectAuthEmulator } from 'firebase/auth';
+import { connectFirestoreEmulator } from 'firebase/firestore';
 
 class FirebaseAuthBackend {
   constructor(firebaseConfig) {
@@ -24,6 +28,19 @@ class FirebaseAuthBackend {
       this.app = initializeApp(firebaseConfig);
       this.auth = getAuth(this.app);
       this.firestore = getFirestore(this.app);
+      this.performance = getPerformance(this.app);
+      this.analytics = getAnalytics(this.app);
+
+      // Connect to Emulators if running locally
+      if (window.location.hostname === "localhost") {
+        try {
+          connectAuthEmulator(this.auth, "http://localhost:9099");
+          connectFirestoreEmulator(this.firestore, 'localhost', 8080);
+          console.log("🔥 Admin Connected to Firebase Emulators");
+        } catch (e) {
+          // Ignore "already connected"
+        }
+      }
 
       onAuthStateChanged(this.auth, (user) => {
         if (user) {

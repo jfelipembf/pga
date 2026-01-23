@@ -87,7 +87,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "emulate": "firebase emulators:start --import=./.firebase_data --export-on-exit"
   },
   "eslintConfig": {
     "extends": [

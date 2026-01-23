@@ -10,6 +10,7 @@ import ConversionFunnel from "../../components/Dashbooard/conversion-funnel"
 import { setBreadcrumbItems } from "../../store/actions"
 import PageLoader from "../../components/Common/PageLoader"
 import { useDashboardLogic } from "./Hooks/useDashboardLogic"
+import PerformanceDashboard from "./Components/PerformanceDashboard"
 
 const Dashboard = (props) => {
   document.title = "Dashboard | PGA"
@@ -48,6 +49,8 @@ const Dashboard = (props) => {
               <MonthlyEarnings2 current={monthlyCurrent} previous={monthlyPrevious} data={monthlyData} />
             </Col>
           </Row>
+
+          <PerformanceDashboard />
         </>
       )}
     </React.Fragment>

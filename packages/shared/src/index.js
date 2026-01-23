@@ -89,6 +89,12 @@ const {
 } = require("./attendance");
 
 const {
+    PerformanceLogSchema,
+    getPerformanceCategory,
+    trackPerformance
+} = require("./monitoring");
+
+const {
     mapToGridFormat
 } = require("./mappers");
 
@@ -141,8 +147,9 @@ module.exports = {
     formatRangeLabel,
     formatDayLabel,
     formatDayHeaderLabel,
-    getTodayISO, 
-    getThisMonth, 
+    formatDateDisplay,
+    getTodayISO,
+    getThisMonth,
     getYesterdayISO,
 
     // Classes
@@ -224,5 +231,10 @@ module.exports = {
     formatComparison,
 
     // Mappers
-    mapToGridFormat
+    mapToGridFormat,
+
+    // Monitoring
+    PerformanceLogSchema,
+    getPerformanceCategory,
+    trackPerformance
 };
