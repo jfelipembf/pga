@@ -38,32 +38,21 @@ const Header = ({ title, breadcrumbItems, toggleMenuCallback }) => {
       <header id="page-topbar">
         <div className="navbar-header">
           <div className="d-flex align-items-center flex-wrap">
-            <div className="navbar-brand-box" style={{ backgroundColor: '#ffffff' }}>
-              <div className="logo">
-                <span className="logo-lg">
-                  <img src={pgaLogo} alt="Swim" className="brand-logo" style={{ height: "165px", marginRight: "60px", marginTop: "20px", filter: 'none' }} />
-                </span>
-                <span className="logo-sm">
-                  <img src={logoIcon} alt="Swim" className="brand-logo" style={{ height: "85px", filter: 'none' }} />
-                </span>
-              </div>
+
+            {/* Logo Re-added in Header Area */}
+            <div className="me-4 d-flex align-items-center">
+              <img src={logoIcon} alt="PGA" style={{ height: "120px", width: "auto" }} />
             </div>
 
-            <button
-              type="button"
-              className="btn btn-sm px-3 font-size-16 header-item waves-effect vertical-menu-btn"
-              id="vertical-menu-btn"
-              onClick={toggleMenuCallback}
-            >
-              <i className="fa fa-fw fa-bars" />
-            </button>
-
+            {/* Breadcrumb Removed as requested */}
+            {/* 
             {(title || breadcrumbPath) && (
               <div className="ms-3 d-none d-sm-block">
                 <h5 className="mb-0 fs-5">{title || breadcrumbPath}</h5>
                 {breadcrumbPath && title && <small className="text-muted small">{breadcrumbPath}</small>}
               </div>
-            )}
+            )} 
+            */}
 
           </div>
           <div className="d-flex align-items-center">

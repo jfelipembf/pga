@@ -40,8 +40,41 @@
     bottom: 0;
     margin-top: 0;
     position: fixed;
-    top: $header-height;
+    top: 0;
+    /* Alterado para 0 para ir até o topo */
+    padding-top: $header-height;
+    /* Espaço para o Logo */
     box-shadow: $box-shadow;
+}
+
+/* Ajustes Layout Novo (Sidebar Full Height + Header Offset) */
+@media (min-width: 992px) {
+    #page-topbar {
+        left: $sidebar-width;
+        width: calc(100% - #{$sidebar-width});
+
+        .navbar-brand-box {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: $sidebar-width;
+            z-index: 1002;
+            background-color: var(--#{$prefix}sidebar-bg);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    }
+
+    /* Ajustes quando colapsado */
+    body.vertical-collpsed {
+        #page-topbar {
+            left: $sidebar-collapsed-width;
+            width: calc(100% - #{$sidebar-collapsed-width});
+
+            .navbar-brand-box {
+                width: $sidebar-collapsed-width !important;
+            }
+        }
+    }
 }
 
 .main-content {
@@ -179,6 +212,9 @@
 @media (max-width: 992px) {
     .vertical-menu {
         display: none;
+        top: $header-height;
+        /* No mobile, mantém abaixo do header */
+        padding-top: 0;
     }
 
     .main-content {
@@ -724,19 +760,353 @@ body[data-sidebar="colored"] {
     }
 }
 
-// RTL
-[dir="rtl"] #sidebar-menu {
-    .has-arrow {
-        &:after {
-            content: "\F0141";
+/* ==============================================
+   NOVO LAYOUT: Sidebar Menu "Rail" + Header Offset
+   ============================================== */
+
+$new-sidebar-width: 90px;
+
+.vertical-menu {
+    width: $new-sidebar-width !important;
+    top: 0;
+    padding-top: $header-height;
+
+    /* Remover scroll bar nativo feio, deixar clean */
+    &::-webkit-scrollbar {
+        width: 0px;
+    }
+}
+
+.main-content {
+    margin-left: $new-sidebar-width !important;
+}
+
+/* Ajustar Header para nova largura */
+@media (min-width: 992px) {
+    #page-topbar {
+        left: $new-sidebar-width !important;
+        width: calc(100% - #{$new-sidebar-width}) !important;
+
+        .navbar-brand-box {
+            width: $new-sidebar-width !important;
+        }
+    }
+}
+
+/* Estilização dos Itens do Menu (Ícone em cima, Texto embaixo) */
+#sidebar-menu {
+    padding: 10px 0;
+
+    ul li {
+        a {
+            display: flex !important;
+            /* Forçar Flex */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 10px 0 !important;
+            height: auto;
+            min-height: 70px;
+
+            i {
+                display: block !important;
+                font-size: 24px !important;
+                margin: 0 0 6px 0 !important;
+                padding: 0 !important;
+                width: auto !important;
+                line-height: 1 !important;
+            }
+
+            span {
+                display: block !important;
+                /* Sempre mostrar texto */
+                padding-left: 0 !important;
+                font-size: 11px !important;
+                line-height: 1.2;
+                white-space: normal;
+                /* Permitir quebra se texto longo */
+                max-width: 100%;
+            }
+
+            /* Esconder a seta de expansão */
+            &.has-arrow:after {
+                display: none !important;
+            }
+        }
+
+        /* Esconder submenus no sidebar (serão movidos para header nav) */
+        ul.sub-menu {
+            display: none !important;
+        }
+
+        /* Item Ativo destaque */
+        &.mm-active>a {
+            background-color: rgba(255, 255, 255, 0.1);
+            /* Se for sidebar light, ajustar cor */
+        }
+    }
+}
+
+/* ==============================================
+   ESTILOS DO SUBMENU BAR (Horizontal)
+   ============================================== */
+
+.submenu-bar {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    padding: 0 20px;
+    height: 50px;
+    border-bottom: 1px solid #eef2f7;
+    margin-top: $header-height;
+    /* Compensa o header fixed se não estiver dentro do page-content */
+}
+
+.submenu-title {
+    display: flex;
+    align-items: center;
+    color: #495057;
+    margin-right: 15px;
+    font-size: 14px;
+}
+
+.submenu-nav {
+    display: flex;
+    overflow-x: auto;
+    align-items: center;
+    height: 100%;
+
+    /* Esconder scrollbar */
+    &::-webkit-scrollbar {
+        height: 0px;
+        background: transparent;
+    }
+
+    .submenu-link {
+        display: flex;
+        align-items: center;
+        padding: 6px 12px;
+        margin-right: 5px;
+        border-radius: 4px;
+        color: #555b6d;
+        font-size: 13px;
+        white-space: nowrap;
+        transition: all 0.2s;
+        text-decoration: none;
+
+        i {
+            font-size: 16px;
+        }
+
+        &:hover {
+            background-color: rgba(70, 106, 143, 0.08);
+            /* Usando primary color ajustada */
+            color: #466a8f;
+        }
+
+        &.active {
+            background-color: rgba(70, 106, 143, 0.12);
+            color: #466a8f;
+            font-weight: 500;
+        }
+    }
+}
+
+/* Ajuste do Page Content para não ficar escondido pelo submenu */
+/* Vamos remover margin-top do page-content e deixar o fluxo natural resolver, ou ajustar padding */
+
+/* Ajuste final: Reduzir padding do conteúdo pois o SubmenuBar já ocupa espaço */
+.page-content {
+    padding-top: 20px !important;
+    /* Originalmente era header height + gutter. Como submenu tem margin-top, ele empurra naturalmente */
+}
+
+/* ==============================================
+   LAYOUT CORRIGIDO: Sidebar Full Height + Header Offset
+   ============================================== */
+
+/* 1. SIDEBAR (RAIL) - Altura Total (Top 0) */
+.vertical-menu {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 90px !important;
+    height: 100vh !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    /* Separador sutil se dark */
+    z-index: 1003 !important;
+    /* Base do menu */
+
+    padding-top: 70px !important;
+    /* Espaço reservado para o Logo no topo */
+}
+
+/* 2. LOGO - REMOVIDO */
+.navbar-brand-box {
+    display: none !important;
+}
+
+/* 3. HEADER - Deslocado para a Direita (Começa após sidebar) */
+#page-topbar {
+    position: fixed;
+    top: 0;
+    left: 110px !important;
+    right: 0;
+    width: calc(100% - 110px) !important;
+    height: 70px;
+    z-index: 1002;
+    background-color: #ffffff !important;
+    box-shadow: 0 0.75rem 1.5rem rgba(18, 38, 63, 0.03);
+}
+
+/* 3.1 SIDEBAR - Full Height, Topo 0 */
+.vertical-menu {
+    position: fixed;
+    top: 0 !important;
+    left: 0;
+    bottom: 0;
+    width: 110px !important;
+    z-index: 1001;
+    background-color: #466a8f !important;
+    /* Primary Color */
+    padding-top: 20px !important;
+    /* Espaço no topo já que não tem logo */
+}
+
+/* 4. SUBMENU BAR - Design Premium (Pills) */
+.submenu-bar {
+    position: fixed !important;
+    top: 70px !important;
+    left: 110px !important;
+    right: 0;
+    width: calc(100% - 110px) !important;
+    height: 60px !important;
+    /* Mais alto para elegância */
+    z-index: 1000 !important;
+    /* Atrás do Sidebar mas visível */
+    background: #ffffff;
+    // border-bottom: 1px solid #eef2f7; /* Removido em favor de shadow */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    margin-top: 0 !important;
+    display: flex !important;
+    align-items: center;
+    padding: 0 24px;
+    overflow-x: auto;
+    /* Scroll horizontal se muitos itens */
+
+    /* Hide Scrollbar */
+    &::-webkit-scrollbar {
+        height: 0px;
+        background: transparent;
+    }
+
+    .submenu-nav {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        gap: 8px;
+        /* Espaço entre pills */
+    }
+
+    .submenu-link {
+        display: flex;
+        align-items: center;
+        padding: 8px 16px;
+        border-radius: 30px;
+        /* Pílula */
+        color: #555b6d;
+        font-size: 13px;
+        font-weight: 500;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        background-color: transparent;
+        border: 1px solid transparent;
+
+        i {
+            margin-right: 6px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        &:hover {
+            background-color: #f8f9fa;
+            color: #466a8f;
+        }
+
+        &.active {
+            background-color: #466a8f;
+            /* Primary */
+            color: #ffffff !important;
+            box-shadow: 0 2px 6px rgba(70, 106, 143, 0.3);
+
+            i {
+                color: #ffffff !important;
+            }
+        }
+    }
+}
+
+
+/* 5. CONTEÚDO - Padding Top para não esconder nada */
+/* 70px (Header) + 60px (Submenu) + 24px (Espaço) = 154px */
+.page-content {
+    padding-top: 154px !important;
+    margin-left: 0 !important;
+    transition: all 0.3s ease;
+}
+
+/* Garantir que o main-content também respeite o sidebar se necessário */
+.main-content {
+    margin-left: 110px !important;
+    overflow: visible !important;
+}
+
+/* AJUSTES MOBILE */
+@media (max-width: 991.98px) {
+    /* No mobile, voltamos ao comportamento padrão ou adaptado */
+
+    .vertical-menu {
+        top: 70px !important;
+        /* Abaixo do header no mobile para não sobrepor */
+        height: calc(100vh - 70px) !important;
+        display: none;
+        /* Esconde e deixa o toggle controlar (metismenu controla classe) */
+
+        &.mm-show {
+            display: block !important;
         }
     }
 
-    .mm-active {
-        >.has-arrow {
-            &:after {
-                content: "\F0140";
-            }
-        }
+    .navbar-brand-box {
+        width: 70px !important;
+        z-index: 1005 !important;
+        background-color: #fff;
+        /* Destacar no mobile */
+    }
+
+    #page-topbar {
+        left: 0 !important;
+        width: 100% !important;
+        padding-left: 70px !important;
+        /* Espaço para logo */
+    }
+
+    .submenu-bar {
+        left: 0 !important;
+        width: 100% !important;
+        top: 70px !important;
+        overflow-x: auto;
+        /* Permitir scroll horizontal no menu secundário */
+    }
+
+    .page-content {
+        padding-top: 140px !important;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
     }
 }

@@ -22,6 +22,7 @@ import { createSelector } from 'reselect';
 import Header from "./Header"
 import Sidebar from "./Sidebar"
 import Rightbar from "../CommonForBoth/Rightbar"
+import SubmenuBar from "./SubmenuBar"
 
 import ForcePasswordChangeModal from "../Common/ForcePasswordChangeModal"
 
@@ -158,6 +159,8 @@ const Layout = (props) => {
         </div>
       </div> */}
 
+      {/* // ... (dentro do componente Layout) */}
+
       <div id="layout-wrapper">
         <Header toggleMenuCallback={toggleMenuCallback} />
         <Sidebar
@@ -166,6 +169,7 @@ const Layout = (props) => {
           isMobile={props.isMobile}
         />
         <div className="main-content">
+          <SubmenuBar />
           <div className="page-content">
             <Container fluid>
               {props.children}

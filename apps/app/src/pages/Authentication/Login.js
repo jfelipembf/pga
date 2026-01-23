@@ -14,7 +14,7 @@ import "./Login.css";
 
 const Login = ({ router }) => {
   const dispatch = useDispatch();
-  const { error } = useSelector((state) => state.Login);
+  const { error, loading } = useSelector((state) => state.Login);
 
   const formik = useFormik({
     initialValues: { email: "", password: "" },
@@ -88,8 +88,9 @@ const Login = ({ router }) => {
               </Link>
             </div>
 
-            <button type="submit" className="btn-login-dark">
-              Entrar
+            <button type="submit" className="btn-login-dark" disabled={loading}>
+              {loading ? <i className="bx bx-loader bx-spin font-size-16 align-middle me-2"></i> : null}
+              {loading ? "Entrando..." : "Entrar"}
             </button>
           </form>
 
