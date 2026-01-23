@@ -1,12 +1,3 @@
-/* Zerar scrolls globais indesejados */
-html,
-body {
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
-    /* O App controla o scroll agora */
-}
-
 /* Container Principal - Trava a tela inteira */
 .login-page {
     display: flex;
