@@ -56,7 +56,7 @@ const withMonitoring = (functionName, handler) => {
                 academyId: academyId || null,
                 userId: userId || null,
                 errorMessage,
-                metadata // Include detailed performance metrics
+                metadata, // Include detailed performance metrics (_perf)
             }).catch(err => console.error("Monitor Error:", err));
         }
     };
