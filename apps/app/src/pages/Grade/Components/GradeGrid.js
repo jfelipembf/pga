@@ -80,8 +80,8 @@ const GradeGrid = ({
         className="grade-grid__inner"
         style={{
           display: "grid",
-          gridTemplateColumns: `96px repeat(${days.length}, minmax(180px, 1fr))`,
-          minWidth: "720px",
+          gridTemplateColumns: `96px repeat(${days.length}, minmax(130px, 1fr))`,
+          minWidth: "100%",
           opacity: loading ? 0.45 : 1,
         }}
       >
