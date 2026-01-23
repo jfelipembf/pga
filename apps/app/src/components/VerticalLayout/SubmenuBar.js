@@ -7,7 +7,7 @@ import useMenuConfig from "./menuConfig";
 const SubmenuBar = ({ t }) => {
     const location = useLocation();
     const currentPath = location.pathname;
-    const { hasPermission, hasAnyPermission } = usePermissions();
+    const { hasPermission } = usePermissions();
     const menuConfig = useMenuConfig(t);
 
     // Extrair Tenant/Branch da URL atual

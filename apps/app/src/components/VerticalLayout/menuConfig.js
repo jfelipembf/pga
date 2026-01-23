@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import usePermissions from "../../hooks/usePermissions";
 
 const useMenuConfig = (t) => {
     return useMemo(() => [
