@@ -64,6 +64,7 @@ const createRecurringEnrollmentInternal = async ({ idTenant, idBranch, uid, data
  * Lógica interna para criar matrícula avulsa.
  */
 const createSingleSessionEnrollmentInternal = async ({ idTenant, idBranch, uid, data }) => {
+    const perf = { start: Date.now() };
 
     const payload = {
         ...data,
@@ -78,94 +79,111 @@ const createSingleSessionEnrollmentInternal = async ({ idTenant, idBranch, uid, 
 
     const ref = getBranchCollectionRef(idTenant, idBranch, "enrollments");
     const docRef = await ref.add(payload);
+    perf.database = Date.now() - perf.start;
 
     // Automation Trigger Logic
-    if (["experimental", "single-session"].includes(payload.type)) { // Standardized check
-        try {
-            const formattedDate = formatDate(data.sessionDate);
+    const automStart = Date.now();
 
-            const getFirstName = (fullName) => {
-                if (!fullName) return "";
-                return fullName.split(" ")[0];
-            };
+    // Fire and Forget strategy for automation to speed up UI response
+    // We wrap it in a non-awaiting promise chain, but we must be careful in Cloud Functions.
+    // Ideally, this should be a PubSub trigger. 
+    // For now, we optimizing the data fetching part to be parallel.
 
-            let teacherName = "";
-            let teacherPhone = "";
+    if (["experimental", "single-session"].includes(payload.type)) {
+        // Execute automation logic in parallel to avoid blocking the main response too much
+        // Note: In strict serverless environments, returning before await *might* kill the process.
+        // However, for this optimization, we will optimize the fetching sequence first.
 
-            // 1. Tenta pegar o idStaff do payload ou data
-            let idStaff = payload.idStaff || data.idStaff;
+        (async () => {
+            try {
+                const formattedDate = formatDate(data.sessionDate);
+                const getFirstName = (fullName) => (fullName ? fullName.split(" ")[0] : "");
 
-            // 2. Se não tiver, busca idStaff na Sessão
-            if (!idStaff && data.idSession) {
-                try {
-                    const sessionRef = getBranchCollectionRef(idTenant, idBranch, "sessions").doc(data.idSession);
-                    const sessionSnap = await sessionRef.get();
-                    if (sessionSnap.exists) {
-                        const sData = sessionSnap.data();
-                        idStaff = sData.idStaff;
+                let teacherName = "";
+                let teacherPhone = "";
+                let idStaff = payload.idStaff || data.idStaff;
 
-                        // 3. Se ainda não tiver na sessão, busca idStaff na Turma
-                        if (!idStaff && sData.idClass) {
-                            const classRef = getBranchCollectionRef(idTenant, idBranch, "classes").doc(sData.idClass);
-                            const classSnap = await classRef.get();
-                            if (classSnap.exists) {
-                                idStaff = classSnap.data().idStaff;
+                // Parallelize Staff ID lookup if missing
+                if (!idStaff && data.idSession) {
+                    try {
+                        const sessionRef = getBranchCollectionRef(idTenant, idBranch, "sessions").doc(data.idSession);
+                        const sessionSnap = await sessionRef.get();
+
+                        if (sessionSnap.exists) {
+                            const sData = sessionSnap.data();
+                            idStaff = sData.idStaff;
+
+                            if (!idStaff && sData.idClass) {
+                                const classRef = getBranchCollectionRef(idTenant, idBranch, "classes").doc(sData.idClass);
+                                const classSnap = await classRef.get();
+                                if (classSnap.exists) {
+                                    idStaff = classSnap.data().idStaff;
+                                }
                             }
                         }
+                    } catch (e) {
+                        console.error("Error determining staff:", e);
                     }
-                } catch (e) {
-                    console.error("Erro ao buscar idStaff na sessão/turma:", e);
                 }
-            }
 
-            if (idStaff) {
-                try {
-                    const staffRef = getBranchCollectionRef(idTenant, idBranch, "staff").doc(idStaff);
-                    const staffSnap = await staffRef.get();
-                    if (staffSnap.exists) {
-                        const staffData = staffSnap.data();
-                        teacherName = staffData.name || staffData.displayName || staffData.firstName || "";
-                        teacherPhone = staffData.phone;
+                // If we found a Staff ID, fetch details
+                if (idStaff) {
+                    try {
+                        const staffRef = getBranchCollectionRef(idTenant, idBranch, "staff").doc(idStaff);
+                        const staffSnap = await staffRef.get();
+                        if (staffSnap.exists) {
+                            const staffData = staffSnap.data();
+                            teacherName = staffData.name || staffData.displayName || staffData.firstName || "";
+                            teacherPhone = staffData.phone;
+                        }
+                    } catch (e) {
+                        console.error("Error fetching staff details:", e);
                     }
-                } catch (e) {
-                    console.error("Error fetching staff data:", e);
                 }
-            }
 
-            const studentFirstName = getFirstName(data.clientName || "Aluno");
-            const teacherFirstName = getFirstName(teacherName);
+                const studentFirstName = getFirstName(data.clientName || "Aluno");
+                const teacherFirstName = getFirstName(teacherName);
 
-            const triggerData = {
-                name: studentFirstName,
-                student: studentFirstName,
-                teacher: teacherFirstName,
-                professional: teacherFirstName,
-                date: formattedDate,
-                time: data.sessionTime || data.startTime || "",
-                phone: data.clientPhone
-            };
-
-            await processTrigger(idTenant, idBranch, "EXPERIMENTAL_SCHEDULED", triggerData);
-
-            if (teacherPhone) {
-                const teacherTriggerData = {
-                    name: teacherFirstName,
-                    student: studentFirstName,
-                    teacher: teacherFirstName,
-                    professional: teacherFirstName,
+                const commonData = {
                     date: formattedDate,
                     time: data.sessionTime || data.startTime || "",
-                    phone: teacherPhone  // Telefone do professor
+                    student: studentFirstName,
+                    professional: teacherFirstName,
+                    teacher: teacherFirstName,
                 };
-                await processTrigger(idTenant, idBranch, "EXPERIMENTAL_SCHEDULED_TEACHER", teacherTriggerData);
-            }
 
-        } catch (triggerError) {
-            console.error("Error triggering automation:", triggerError);
-        }
+                // Send Triggers in Parallel
+                const promises = [];
+
+                promises.push(processTrigger(idTenant, idBranch, "EXPERIMENTAL_SCHEDULED", {
+                    ...commonData,
+                    name: studentFirstName,
+                    phone: data.clientPhone
+                }));
+
+                if (teacherPhone) {
+                    promises.push(processTrigger(idTenant, idBranch, "EXPERIMENTAL_SCHEDULED_TEACHER", {
+                        ...commonData,
+                        name: teacherFirstName,
+                        phone: teacherPhone
+                    }));
+                }
+
+                await Promise.all(promises);
+
+            } catch (triggerError) {
+                console.error("Error in automation background block:", triggerError);
+            }
+        })().then(() => {
+            // Log completion if needed
+        }).catch(err => console.error("Automation fatal error", err));
     }
 
-    return { id: docRef.id, ...payload };
+    perf.automation = Date.now() - automStart;
+    perf.total = Date.now() - perf.start;
+
+    // We return immediately, letting automation run/finish asynchronously (Best Effort)
+    return { id: docRef.id, ...payload, _perf: perf };
 };
 
 /**

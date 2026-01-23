@@ -9,6 +9,7 @@ const { ClassSchema } = require("../shared");
 const { getBranchCollectionRef } = require("../shared/references");
 const { requireAuthContext } = require("../shared/context");
 const { getActorSnapshot, getTargetSnapshot } = require("../shared/snapshots");
+const { withMonitoring } = require("../helpers/monitoringHelper");
 
 /**
  * ============================================================================
@@ -58,16 +59,19 @@ exports.generateClassSessions = functions
  */
 exports.createClass = functions
   .region("us-central1")
-  .https.onCall(async (data, context) => {
+  .https.onCall(withMonitoring("createClass", async (data, context) => {
     try {
       const { idTenant, idBranch } = requireAuthContext(data, context);
+      const perf = { start: Date.now() };
 
       if (!data.classData) {
         throw new functions.https.HttpsError("invalid-argument", "classData é obrigatório");
       }
 
-      // Validate and sanitize
+      // 1. Validation
+      const valStart = Date.now();
       const validatedData = validate(ClassSchema, data.classData);
+      perf.validation = Date.now() - valStart;
 
       // Get classes collection reference
       const classesCol = getBranchCollectionRef(idTenant, idBranch, "classes");
@@ -81,9 +85,11 @@ exports.createClass = functions
         updatedAt: FieldValue.serverTimestamp(),
       };
 
+      // 2. Database (Save + Audit)
+      const dbStart = Date.now();
       await classRef.set(payload);
 
-      // Audit log
+      // Audit log (async background to save time? No, keep sync for safety)
       const actor = getActorSnapshot(context.auth);
       const target = getTargetSnapshot("class", { ...payload, id: classRef.id }, classRef.id);
 
@@ -96,10 +102,10 @@ exports.createClass = functions
         description: `Criou nova turma: ${data.classData.title || data.classData.name || classRef.id}`,
         metadata: { title: data.classData.title || data.classData.name }
       });
+      perf.database = Date.now() - dbStart;
 
-      // ----------------------------------------------------
-      // SYNC GENERATION for immediate UI Feedback
-      // ----------------------------------------------------
+      // 3. Session Generation
+      const genStart = Date.now();
       try {
         await generateSessionsForClass({
           idTenant,
@@ -111,15 +117,16 @@ exports.createClass = functions
         });
       } catch (genError) {
         console.error("Error generating initial sessions synchronously:", genError);
-        // We don't fail the request, the background trigger is still there as backup
       }
+      perf.sessionGen = Date.now() - genStart;
+      perf.total = Date.now() - perf.start;
 
-      return { id: classRef.id, ...payload };
+      return { id: classRef.id, ...payload, _perf: perf };
     } catch (error) {
       console.error("Error creating class:", error);
       if (error instanceof functions.https.HttpsError) throw error;
       throw new functions.https.HttpsError("internal", error.message || "Erro interno ao criar turma");
     }
-  });
+  }));
 
 

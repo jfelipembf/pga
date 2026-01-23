@@ -95,8 +95,11 @@ exports.updateClientLogic = async (data, context) => {
             throw new functions.https.HttpsError("invalid-argument", "clientData é obrigatório");
         }
 
-        // Validate and sanitize
+        const perf = { start: Date.now() };
+
+        // 1. Validation Step
         const validatedData = validate(ClientSchema, data.clientData);
+        perf.validation = Date.now() - perf.start;
 
         // Get client reference
         const clientRef = getBranchCollectionRef(idTenant, idBranch, "clients", data.idClient);
@@ -123,7 +126,8 @@ exports.updateClientLogic = async (data, context) => {
         const actor = getActorSnapshot(context.auth);
         const target = getTargetSnapshot("client", { ...payload, id: data.idClient }, data.idClient);
 
-        // Run Update and Audit Log in parallel
+        // 2. Database Step
+        const step2Start = Date.now();
         await Promise.all([
             clientRef.update(payload),
             saveAuditLog({
@@ -136,8 +140,14 @@ exports.updateClientLogic = async (data, context) => {
                 metadata: { updates: Object.keys(payload) }
             }).catch(err => console.error('[updateClient] Audit log failed:', err))
         ]);
+        perf.database = Date.now() - step2Start;
+        perf.total = Date.now() - perf.start;
 
-        return { id: data.idClient, ...payload };
+        return {
+            id: data.idClient,
+            ...payload,
+            _perf: perf
+        };
 
     } catch (error) {
         console.error("[updateClientLogic] Error updating client:", error);

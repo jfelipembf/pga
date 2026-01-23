@@ -40,7 +40,12 @@ exports.deleteEnrollment = functions
 /**
  * Creates a Recurring Enrollment.
  */
-exports.createRecurringEnrollment = functions.region("us-central1").https.onCall(async (data, context) => {
+const { withMonitoring } = require("../helpers/monitoringHelper");
+
+/**
+ * Creates a Recurring Enrollment.
+ */
+exports.createRecurringEnrollment = functions.region("us-central1").https.onCall(withMonitoring("createRecurringEnrollment", async (data, context) => {
   const { idTenant, idBranch } = requireAuthContext(data, context);
   const uid = context.auth.uid;
 
@@ -52,12 +57,12 @@ exports.createRecurringEnrollment = functions.region("us-central1").https.onCall
     if (error instanceof functions.https.HttpsError) throw error;
     throw new functions.https.HttpsError("internal", error.message || "Error creating enrollment");
   }
-});
+}));
 
 /**
  * Creates a Single Session Enrollment.
  */
-exports.createSingleSessionEnrollment = functions.region("us-central1").https.onCall(async (data, context) => {
+exports.createSingleSessionEnrollment = functions.region("us-central1").https.onCall(withMonitoring("createSingleSessionEnrollment", async (data, context) => {
   const { idTenant, idBranch } = requireAuthContext(data, context);
   const uid = context.auth.uid;
 
@@ -69,4 +74,4 @@ exports.createSingleSessionEnrollment = functions.region("us-central1").https.on
     if (error instanceof functions.https.HttpsError) throw error;
     throw new functions.https.HttpsError("internal", error.message || "Error creating enrollment");
   }
-});
+}));
