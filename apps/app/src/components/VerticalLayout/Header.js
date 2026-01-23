@@ -9,7 +9,7 @@ import { Link, useParams } from "react-router-dom"
 import ProfileMenu from "../CommonForBoth/TopbarDropdown/ProfileMenu"
 
 // import megamenuImg from "../../assets/images/megamenu-img.png"
-import pgaLogo from "../../assets/images/pgaLogo.png"
+// import pgaLogo from "../../assets/images/pgaLogo.png"
 import logoIcon from "../../assets/images/logoIcon.png"
 
 // Import Global Search
@@ -21,8 +21,8 @@ import { useClientListActions } from "../../pages/Clients/Hooks/useClientListAct
 
 const Header = ({ title, breadcrumbItems, toggleMenuCallback }) => {
   const { tenant, branch } = useParams()
-  const items = breadcrumbItems || []
-  const breadcrumbPath = items.map(item => item.title).join(" / ")
+  // const items = breadcrumbItems || []
+  // const breadcrumbPath = items.map(item => item.title).join(" / ")
 
 
   const {

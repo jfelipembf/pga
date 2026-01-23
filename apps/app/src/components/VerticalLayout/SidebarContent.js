@@ -1,5 +1,5 @@
 import PropTypes from "prop-types"
-import React, { useCallback, useMemo, useRef, useState } from "react"
+import React, { useMemo, useRef } from "react"
 import SimpleBar from "simplebar-react"
 import withRouter from "components/Common/withRouter"
 import { Link, useLocation } from "react-router-dom"
@@ -10,11 +10,11 @@ import useMenuConfig from "./menuConfig"
 const SidebarContent = props => {
   const { t } = props
   const ref = useRef()
-  const { hasPermission, hasAnyPermission } = usePermissions()
+  const { hasPermission } = usePermissions()
   const location = useLocation();
   const currentPath = location.pathname;
 
-  const [searchText, setSearchText] = useState("")
+  const searchText = "";
 
   const menuConfig = useMenuConfig(t);
 
@@ -48,16 +48,13 @@ const SidebarContent = props => {
     return menuConfig.filter(item => {
       // 1. Permissão Pai
       if (item.permission && !hasPermission(item.permission)) return false
-      if (item.anyPermission && !hasAnyPermission(item.anyPermission)) return false
-
       // 2. Busca
       const matchSelf = item.label.toLowerCase().includes(q);
-      // Opcional: buscar nos filhos também? Sim.
       const matchChild = item.subMenu && item.subMenu.some(sub => sub.label.toLowerCase().includes(q));
 
       return matchSelf || matchChild;
     });
-  }, [searchText, menuConfig, hasPermission, hasAnyPermission])
+  }, [searchText, menuConfig, hasPermission])
 
   // --- Renderização ---
   const renderItem = (item) => {
@@ -106,14 +103,6 @@ const SidebarContent = props => {
 
       <SimpleBar style={{ maxHeight: "100%" }} ref={ref}>
         <div id="sidebar-menu">
-          {/* Busca Simplificada (Opcional, pode ocupar muito espaço no modo Rail) */}
-          {/* Se quiser manter busca no modo Rail, teria que ser um icone que expande. Vou deixar comentado por enquanto para limpar o visual. */}
-          {/* 
-           <div className="px-2 py-3 mb-1">
-               <input ... />
-           </div> 
-           */}
-
           <ul className="metismenu list-unstyled pb-5" id="side-menu">
             {filteredMenu.map(item => {
               if (item.id === 'help') {
