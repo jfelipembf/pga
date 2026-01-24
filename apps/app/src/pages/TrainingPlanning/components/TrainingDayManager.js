@@ -90,6 +90,7 @@ const TrainingDayManager = ({ date }) => {
     const handleSaveWorkout = async (workoutData) => {
         try {
             setLoading(true);
+
             if (workoutData.id && selectedWorkout) {
                 // Update
                 await updateTrainingPlan(workoutData.id, workoutData);
@@ -113,12 +114,13 @@ const TrainingDayManager = ({ date }) => {
             await loadWorkouts(); // Reload list
             setViewMode("LIST");
         } catch (error) {
-            console.error("Error saving workout:", error);
+            console.error("[TrainingDayManager] Error saving workout:", error);
             show({ title: "Erro", description: "Falha ao salvar o treino.", color: "danger" });
         } finally {
             setLoading(false);
         }
     };
+
 
     const handleBack = () => {
         setViewMode("LIST");

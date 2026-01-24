@@ -77,11 +77,12 @@ export const createTrainingPlan = async (data = {}, { ctxOverride = null } = {})
     }
 
     // Prepare payload
-    // We store 'items' (the workout sets) directly as an array of objects
+    // Support both new 'sections' structure and legacy 'items' structure
     const payload = makeCreatePayload({
         description: data.description || "",
         totalDistance: data.totalDistance || 0,
-        items: data.items || [],
+        items: data.items || [], // Legacy support
+        sections: data.sections || [], // New structure
         dateString: data.dateString, // "YYYY-MM-DD"
         date: data.date, // Timestamp usually handled by Firestore if passed as Date, but logic helper might strip it? 
         // Let's rely on standard object, usually Date object translates to Timestamp

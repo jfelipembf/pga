@@ -1,10 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { withTranslation } from "react-i18next";
 import usePermissions from "../../hooks/usePermissions";
 import useMenuConfig from "./menuConfig";
 
-const SubmenuBar = ({ t }) => {
+const SubmenuBar = React.memo(({ t }) => {
     const location = useLocation();
     const currentPath = location.pathname;
     const { hasPermission } = usePermissions();
@@ -12,18 +12,18 @@ const SubmenuBar = ({ t }) => {
 
     // Extrair Tenant/Branch da URL atual
     // Padrão esperado: /tenant/branch/resto...
-    const extractPrefix = (path) => {
+    const extractPrefix = useCallback((path) => {
         const parts = path.split('/').filter(Boolean);
         if (parts.length >= 2) {
             return `/${parts[0]}/${parts[1]}`;
         }
         return "";
-    };
+    }, []);
 
-    const urlPrefix = useMemo(() => extractPrefix(currentPath), [currentPath]);
+    const urlPrefix = useMemo(() => extractPrefix(currentPath), [currentPath, extractPrefix]);
 
     // Função para comparar rotas (ignorando prefixo)
-    const matchPath = (configLink, currentPath) => {
+    const matchPath = useCallback((configLink, currentPath) => {
         if (!configLink || configLink === "#") return false;
         // Se a rota config for absoluta ou igual
         if (configLink === currentPath) return true;
@@ -32,10 +32,10 @@ const SubmenuBar = ({ t }) => {
         if (currentPath.endsWith(configLink)) return true;
         // Se a rota atual contém a rota config como segmento principal (para sub-páginas internas)
         return currentPath.includes(configLink) && configLink !== "/";
-    };
+    }, []);
 
     // Função para construir link final
-    const buildLink = (link) => {
+    const buildLink = useCallback((link) => {
         if (link.startsWith("http") || link === "#") return link;
         // Se já tem prefixo, não adiciona
         if (link.startsWith(urlPrefix)) return link;
@@ -43,7 +43,7 @@ const SubmenuBar = ({ t }) => {
         const cleanPrefix = urlPrefix.endsWith('/') ? urlPrefix.slice(0, -1) : urlPrefix;
         const cleanLink = link.startsWith('/') ? link : '/' + link;
         return `${cleanPrefix}${cleanLink}`;
-    };
+    }, [urlPrefix]);
 
     // Encontrar o menu pai ativo
     const activeParent = useMemo(() => {
@@ -55,7 +55,7 @@ const SubmenuBar = ({ t }) => {
             // Verifica no próprio item
             return matchPath(item.link, currentPath);
         });
-    }, [menuConfig, currentPath]);
+    }, [menuConfig, currentPath, matchPath]);
 
     // Filtrar submenus permitidos
     const subMenuItems = useMemo(() => {
@@ -131,6 +131,6 @@ const SubmenuBar = ({ t }) => {
             )}
         </div>
     );
-};
+});
 
 export default withTranslation()(SubmenuBar);

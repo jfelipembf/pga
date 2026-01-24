@@ -1,5 +1,5 @@
 import PropTypes from "prop-types"
-import React, { useMemo, useRef } from "react"
+import React, { useMemo, useRef, useCallback } from "react"
 import SimpleBar from "simplebar-react"
 import withRouter from "components/Common/withRouter"
 import { Link, useLocation } from "react-router-dom"
@@ -7,7 +7,7 @@ import usePermissions from "../../hooks/usePermissions"
 import { withTranslation } from "react-i18next"
 import useMenuConfig from "./menuConfig"
 
-const SidebarContent = props => {
+const SidebarContent = React.memo((props) => {
   const { t } = props
   const ref = useRef()
   const { hasPermission } = usePermissions()
@@ -19,28 +19,28 @@ const SidebarContent = props => {
   const menuConfig = useMenuConfig(t);
 
   // --- Helpers de Rota (Copiados para consistência) ---
-  const extractPrefix = (path) => {
+  const extractPrefix = useCallback((path) => {
     const parts = path.split('/').filter(Boolean);
     if (parts.length >= 2) return `/${parts[0]}/${parts[1]}`;
     return "";
-  };
+  }, []);
 
-  const urlPrefix = useMemo(() => extractPrefix(currentPath), [currentPath]);
+  const urlPrefix = useMemo(() => extractPrefix(currentPath), [currentPath, extractPrefix]);
 
-  const matchPath = (configLink, currentPath) => {
+  const matchPath = useCallback((configLink, currentPath) => {
     if (!configLink || configLink === "#") return false;
     if (configLink === currentPath) return true;
     if (currentPath.endsWith(configLink)) return true;
     return currentPath.includes(configLink) && configLink !== "/";
-  };
+  }, []);
 
-  const buildLink = (link) => {
+  const buildLink = useCallback((link) => {
     if (link.startsWith("http") || link === "#") return link;
     if (link.startsWith(urlPrefix)) return link;
     const cleanPrefix = urlPrefix.endsWith('/') ? urlPrefix.slice(0, -1) : urlPrefix;
     const cleanLink = link.startsWith('/') ? link : '/' + link;
     return `${cleanPrefix}${cleanLink}`;
-  };
+  }, [urlPrefix]);
 
   // --- Filtragem ---
   const filteredMenu = useMemo(() => {
@@ -57,7 +57,7 @@ const SidebarContent = props => {
   }, [searchText, menuConfig, hasPermission])
 
   // --- Renderização ---
-  const renderItem = (item) => {
+  const renderItem = useCallback((item) => {
     const hasChildren = item.subMenu && item.subMenu.length > 0;
 
     // Determinar Link de Destino
@@ -79,11 +79,16 @@ const SidebarContent = props => {
     const isActive = matchPath(item.link, currentPath) ||
       (hasChildren && item.subMenu.some(sub => matchPath(sub.link, currentPath)));
 
+    const handleClick = () => {
+      // Click handler for menu items
+    };
+
     return (
       <li key={item.id} className={`${isActive ? "mm-active" : ""}`}>
         <Link
           to={targetLink}
           className={`waves-effect ${isActive ? "active" : ""}`}
+          onClick={handleClick}
         >
           {item.icon && <i className={item.icon}></i>}
           <span>{item.label}</span>
@@ -91,7 +96,7 @@ const SidebarContent = props => {
         {/* NÃO RENDERIZAMOS UL.SUB-MENU AQUI - Elas vão para o SubmenuBar no topo */}
       </li>
     )
-  }
+  }, [buildLink, matchPath, currentPath, hasPermission])
 
   return (
     <React.Fragment>
@@ -120,7 +125,7 @@ const SidebarContent = props => {
       </SimpleBar>
     </React.Fragment>
   )
-}
+})
 
 SidebarContent.propTypes = {
   router: PropTypes.object,

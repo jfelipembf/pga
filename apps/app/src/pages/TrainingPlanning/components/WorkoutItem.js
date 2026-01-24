@@ -28,7 +28,7 @@ const WorkoutItem = ({ item, index, onChange, onRemove }) => {
                 </Col>
 
                 {/* DISTANCE */}
-                <Col md={2} xs={3}>
+                <Col md={1} xs={3}>
                     <CreatableSelect
                         isClearable
                         onChange={(newValue) => handleChange("distance", newValue ? newValue.value : "")}
@@ -41,6 +41,17 @@ const WorkoutItem = ({ item, index, onChange, onRemove }) => {
                             control: (base) => ({ ...base, minHeight: '32px', height: '32px' }),
                             menuPortal: (base) => ({ ...base, zIndex: 9999 })
                         }}
+                    />
+                </Col>
+
+                {/* EXERCISE */}
+                <Col md={2} xs={4}>
+                    <Input
+                        type="text"
+                        value={item.exercise || ''}
+                        onChange={(e) => handleChange("exercise", e.target.value)}
+                        className="form-control-sm"
+                        placeholder="Exercício"
                     />
                 </Col>
 
@@ -97,10 +108,10 @@ const WorkoutItem = ({ item, index, onChange, onRemove }) => {
                 </Col>
 
                 {/* INTERVAL */}
-                <Col md={2} xs={6}>
+                <Col md={1} xs={6}>
                     <Input
                         type="text"
-                        placeholder="Int."
+                        placeholder="Int. (s)"
                         value={item.interval}
                         onChange={(e) => handleChange("interval", e.target.value)}
                         className="form-control-sm"

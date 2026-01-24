@@ -92,6 +92,7 @@ const Header = ({ title, breadcrumbItems, toggleMenuCallback }) => {
   )
 }
 
+
 Header.propTypes = {
   breadcrumbItems: PropTypes.array,
   title: PropTypes.string,
@@ -106,4 +107,7 @@ const mapStateToProps = state => {
   }
 }
 
-export default connect(mapStateToProps)(Header)
+// Wrap with React.memo to prevent unnecessary re-renders
+const MemoizedHeader = React.memo(Header);
+
+export default connect(mapStateToProps)(MemoizedHeader)

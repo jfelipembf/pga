@@ -21,7 +21,7 @@ const TrainingPlanning = (props) => {
         <React.Fragment>
             <Row>
                 {/* Left Panel: Calendar */}
-                <Col xl={4} lg={5} md={12} className="mb-4">
+                <Col xl={3} lg={4} md={12} className="mb-4">
                     <TrainingCalendar
                         selectedDate={selectedDate}
                         onChange={setSelectedDate}
@@ -29,7 +29,7 @@ const TrainingPlanning = (props) => {
                 </Col>
 
                 {/* Right Panel: Workout Builder */}
-                <Col xl={8} lg={7} md={12}>
+                <Col xl={9} lg={8} md={12}>
                     <TrainingDayManager date={selectedDate} />
                 </Col>
             </Row>

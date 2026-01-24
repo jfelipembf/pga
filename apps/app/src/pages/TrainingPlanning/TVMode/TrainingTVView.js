@@ -96,117 +96,242 @@ const TrainingTVView = () => {
                         {workouts.map((workout, workoutIndex) => (
                             <div key={workout.id || workoutIndex} className="mb-5 animate-fade-in">
                                 {/* Workout Header - Clean and Minimal */}
-                                <div className="d-flex align-items-baseline gap-3 mb-3 pb-3 border-bottom border-2">
-                                    <h1 className="fw-bold mb-0 text-primary" style={{ fontSize: '3rem' }}>
+                                <div className="d-flex align-items-baseline gap-3 mb-4 pb-3 border-bottom border-3 border-primary">
+                                    <h1 className="fw-bold mb-0 text-primary" style={{ fontSize: 'clamp(2rem, 4vw, 3.5rem)' }}>
                                         {workout.totalDistance}m
                                     </h1>
                                     {workout.description && (
-                                        <span className="fs-4 text-muted">{workout.description}</span>
+                                        <span className="text-muted" style={{ fontSize: 'clamp(1rem, 2vw, 1.5rem)' }}>{workout.description}</span>
                                     )}
                                 </div>
 
-                                {/* Table Header */}
-                                <div className="tv-table-header d-flex align-items-center py-3 px-4 bg-light rounded-top border-bottom border-2 border-primary">
-                                    <div style={{ width: '60px' }} className="text-center fw-bold text-uppercase small text-muted">#</div>
-                                    <div style={{ width: '100px' }} className="text-center fw-bold text-uppercase small text-muted">Séries</div>
-                                    <div style={{ width: '120px' }} className="text-center fw-bold text-uppercase small text-muted">Distância</div>
-                                    <div style={{ flex: '1 1 200px' }} className="fw-bold text-uppercase small text-muted">Estilo</div>
-                                    <div style={{ flex: '1 1 200px' }} className="fw-bold text-uppercase small text-muted">Material</div>
-                                    <div style={{ flex: '1 1 180px' }} className="fw-bold text-uppercase small text-muted">Intensidade</div>
-                                    <div style={{ flex: '1 1 150px' }} className="fw-bold text-uppercase small text-muted">Intervalo</div>
-                                    <div style={{ flex: '2 1 300px' }} className="fw-bold text-uppercase small text-muted">Observação</div>
-                                </div>
+                                {/* Render Sections or Legacy Items */}
+                                {workout.sections && workout.sections.length > 0 ? (
+                                    // NEW: Section-based rendering
+                                    workout.sections.map((section, sectionIdx) => {
+                                        const sectionDistance = section.items.reduce((acc, item) => {
+                                            const reps = parseInt(item.reps) || 0;
+                                            const distance = parseInt(item.distance) || 0;
+                                            return acc + (reps * distance);
+                                        }, 0);
 
-                                {/* Table Rows */}
-                                <div className="bg-white rounded-bottom shadow-sm">
-                                    {workout.items?.map((item, idx) => (
-                                        <div
-                                            key={idx}
-                                            className="tv-table-row d-flex align-items-center py-4 px-4 border-bottom"
-                                            style={{
-                                                transition: 'background-color 0.2s',
-                                                backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f8f9fa'
-                                            }}
-                                        >
-                                            {/* Item Number */}
-                                            <div style={{ width: '60px' }} className="text-center">
-                                                <span className="fw-bold text-muted" style={{ fontSize: '1.5rem' }}>
-                                                    {idx + 1}
-                                                </span>
-                                            </div>
-
-                                            {/* Reps */}
-                                            <div style={{ width: '100px' }} className="text-center">
-                                                <span className="fw-bold text-primary" style={{ fontSize: '1.8rem' }}>
-                                                    {item.reps}x
-                                                </span>
-                                            </div>
-
-                                            {/* Distance */}
-                                            <div style={{ width: '120px' }} className="text-center">
-                                                <span className="fw-semibold text-dark" style={{ fontSize: '1.5rem' }}>
-                                                    {item.distance}m
-                                                </span>
-                                            </div>
-
-                                            {/* Style */}
-                                            <div style={{ flex: '1 1 200px' }}>
-                                                <span className="fw-semibold text-dark" style={{ fontSize: '1.3rem' }}>
-                                                    {item.style?.label || '-'}
-                                                </span>
-                                            </div>
-
-                                            {/* Equipment/Material */}
-                                            <div style={{ flex: '1 1 200px' }}>
-                                                {item.equipment && item.equipment.length > 0 ? (
-                                                    <div className="d-flex flex-wrap gap-1">
-                                                        {item.equipment.map((eq, eqIdx) => (
-                                                            <Badge key={eqIdx} color="secondary" className="fs-6 px-2 py-1">
-                                                                {eq.label || eq.value || eq}
-                                                            </Badge>
-                                                        ))}
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-muted">-</span>
-                                                )}
-                                            </div>
-
-                                            {/* Intensity */}
-                                            <div style={{ flex: '1 1 180px' }}>
-                                                {item.intensity ? (
-                                                    <Badge color="info" className="fs-6 px-3 py-2">
-                                                        {item.intensity.label || item.intensity.value || item.intensity}
+                                        return (
+                                            <div key={section.id || sectionIdx} className="mb-4">
+                                                {/* Section Header */}
+                                                <div className="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom border-2">
+                                                    <h2 className="fw-bold mb-0 text-dark" style={{ fontSize: 'clamp(1.2rem, 2.5vw, 2rem)' }}>
+                                                        {section.name}
+                                                    </h2>
+                                                    <Badge color="primary" className="px-3 py-1" style={{ fontSize: 'clamp(0.9rem, 1.5vw, 1.2rem)' }}>
+                                                        {sectionDistance}m
                                                     </Badge>
-                                                ) : (
-                                                    <span className="text-muted">-</span>
-                                                )}
-                                            </div>
+                                                </div>
 
-                                            {/* Interval */}
-                                            <div style={{ flex: '1 1 150px' }}>
-                                                {item.interval ? (
-                                                    <div className="d-flex align-items-center text-primary">
-                                                        <i className="mdi mdi-timer-outline me-2" style={{ fontSize: '1.2rem' }}></i>
-                                                        <span className="fw-semibold">{item.interval}</span>
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-muted">-</span>
-                                                )}
-                                            </div>
+                                                {/* Table Header */}
+                                                <div className="tv-table-header d-flex align-items-center py-2 px-3 bg-light rounded-top border-bottom border-2 border-primary">
+                                                    <div style={{ width: '40px', fontSize: 'clamp(0.6rem, 1vw, 0.75rem)' }} className="text-center fw-bold text-uppercase text-muted">#</div>
+                                                    <div style={{ width: '80px', fontSize: 'clamp(0.6rem, 1vw, 0.75rem)' }} className="text-center fw-bold text-uppercase text-muted">Séries</div>
+                                                    <div style={{ width: '100px', fontSize: 'clamp(0.6rem, 1vw, 0.75rem)' }} className="text-center fw-bold text-uppercase text-muted">Distância</div>
+                                                    <div style={{ flex: '1 1 150px', fontSize: 'clamp(0.6rem, 1vw, 0.75rem)' }} className="fw-bold text-uppercase text-muted">Exercício</div>
+                                                    <div style={{ flex: '1 1 150px', fontSize: 'clamp(0.6rem, 1vw, 0.75rem)' }} className="fw-bold text-uppercase text-muted">Estilo</div>
+                                                    <div style={{ flex: '1 1 150px', fontSize: 'clamp(0.6rem, 1vw, 0.75rem)' }} className="fw-bold text-uppercase text-muted">Material</div>
+                                                    <div style={{ flex: '1 1 120px', fontSize: 'clamp(0.6rem, 1vw, 0.75rem)' }} className="fw-bold text-uppercase text-muted">Intensidade</div>
+                                                    <div style={{ flex: '1 1 100px', fontSize: 'clamp(0.6rem, 1vw, 0.75rem)' }} className="fw-bold text-uppercase text-muted">Int. (s)</div>
+                                                    <div style={{ flex: '2 1 200px', fontSize: 'clamp(0.6rem, 1vw, 0.75rem)' }} className="fw-bold text-uppercase text-muted">Observação</div>
+                                                </div>
 
-                                            {/* Observation */}
-                                            <div style={{ flex: '2 1 300px' }}>
-                                                {item.observation ? (
-                                                    <span className="text-muted fst-italic" style={{ fontSize: '0.95rem' }}>
-                                                        {item.observation}
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-muted">-</span>
-                                                )}
+                                                {/* Table Rows */}
+                                                <div className="bg-white rounded-bottom shadow-sm mb-4">
+                                                    {section.items?.map((item, idx) => (
+                                                        <div
+                                                            key={idx}
+                                                            className="tv-table-row d-flex align-items-center py-2 px-3 border-bottom"
+                                                            style={{
+                                                                transition: 'background-color 0.2s',
+                                                                backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f8f9fa'
+                                                            }}
+                                                        >
+                                                            {/* Item Number */}
+                                                            <div style={{ width: '40px' }} className="text-center">
+                                                                <span className="fw-bold text-muted" style={{ fontSize: 'clamp(0.9rem, 1.5vw, 1.2rem)' }}>
+                                                                    {idx + 1}
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Reps */}
+                                                            <div style={{ width: '80px' }} className="text-center">
+                                                                <span className="fw-bold text-primary" style={{ fontSize: 'clamp(1rem, 2vw, 1.5rem)' }}>
+                                                                    {item.reps}x
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Distance */}
+                                                            <div style={{ width: '100px' }} className="text-center">
+                                                                <span className="fw-semibold text-dark" style={{ fontSize: 'clamp(0.9rem, 1.8vw, 1.3rem)' }}>
+                                                                    {item.distance}m
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Exercise */}
+                                                            <div style={{ flex: '1 1 150px' }}>
+                                                                <span className="text-dark" style={{ fontSize: 'clamp(0.8rem, 1.5vw, 1.1rem)' }}>
+                                                                    {item.exercise || '-'}
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Style */}
+                                                            <div style={{ flex: '1 1 150px' }}>
+                                                                <span className="fw-semibold text-dark" style={{ fontSize: 'clamp(0.8rem, 1.5vw, 1.1rem)' }}>
+                                                                    {item.style?.label || '-'}
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Equipment/Material */}
+                                                            <div style={{ flex: '1 1 150px' }}>
+                                                                {item.equipment && item.equipment.length > 0 ? (
+                                                                    <div className="d-flex flex-wrap gap-1">
+                                                                        {item.equipment.map((eq, eqIdx) => (
+                                                                            <Badge key={eqIdx} color="secondary" className="px-2 py-1" style={{ fontSize: 'clamp(0.65rem, 1.2vw, 0.85rem)' }}>
+                                                                                {eq.label || eq.value || eq}
+                                                                            </Badge>
+                                                                        ))}
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="text-muted">-</span>
+                                                                )}
+                                                            </div>
+
+                                                            {/* Intensity */}
+                                                            <div style={{ flex: '1 1 120px' }}>
+                                                                {item.intensity ? (
+                                                                    <Badge color="info" className="px-2 py-1" style={{ fontSize: 'clamp(0.65rem, 1.2vw, 0.85rem)' }}>
+                                                                        {item.intensity.label || item.intensity.value || item.intensity}
+                                                                    </Badge>
+                                                                ) : (
+                                                                    <span className="text-muted">-</span>
+                                                                )}
+                                                            </div>
+
+                                                            {/* Interval */}
+                                                            <div style={{ flex: '1 1 100px' }}>
+                                                                {item.interval ? (
+                                                                    <div className="d-flex align-items-center text-primary">
+                                                                        <span className="fw-semibold" style={{ fontSize: 'clamp(0.75rem, 1.3vw, 0.95rem)' }}>{item.interval}</span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="text-muted">-</span>
+                                                                )}
+                                                            </div>
+
+                                                            {/* Observation */}
+                                                            <div style={{ flex: '2 1 200px' }}>
+                                                                {item.observation ? (
+                                                                    <span className="text-muted fst-italic" style={{ fontSize: 'clamp(0.7rem, 1.2vw, 0.85rem)' }}>
+                                                                        {item.observation}
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-muted">-</span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
+                                        );
+                                    })
+                                ) : (
+                                    // LEGACY: Flat items rendering (for backwards compatibility)
+                                    <>
+                                        {/* Table Header */}
+                                        <div className="tv-table-header d-flex align-items-center py-3 px-4 bg-light rounded-top border-bottom border-2 border-primary">
+                                            <div style={{ width: '60px' }} className="text-center fw-bold text-uppercase small text-muted">#</div>
+                                            <div style={{ width: '100px' }} className="text-center fw-bold text-uppercase small text-muted">Séries</div>
+                                            <div style={{ width: '120px' }} className="text-center fw-bold text-uppercase small text-muted">Distância</div>
+                                            <div style={{ flex: '1 1 200px' }} className="fw-bold text-uppercase small text-muted">Estilo</div>
+                                            <div style={{ flex: '1 1 200px' }} className="fw-bold text-uppercase small text-muted">Material</div>
+                                            <div style={{ flex: '1 1 180px' }} className="fw-bold text-uppercase small text-muted">Intensidade</div>
+                                            <div style={{ flex: '1 1 150px' }} className="fw-bold text-uppercase small text-muted">Intervalo</div>
+                                            <div style={{ flex: '2 1 300px' }} className="fw-bold text-uppercase small text-muted">Observação</div>
                                         </div>
-                                    ))}
-                                </div>
+
+                                        {/* Table Rows */}
+                                        <div className="bg-white rounded-bottom shadow-sm">
+                                            {workout.items?.map((item, idx) => (
+                                                <div
+                                                    key={idx}
+                                                    className="tv-table-row d-flex align-items-center py-4 px-4 border-bottom"
+                                                    style={{
+                                                        transition: 'background-color 0.2s',
+                                                        backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f8f9fa'
+                                                    }}
+                                                >
+                                                    {/* Same item rendering as above */}
+                                                    <div style={{ width: '60px' }} className="text-center">
+                                                        <span className="fw-bold text-muted" style={{ fontSize: '1.5rem' }}>
+                                                            {idx + 1}
+                                                        </span>
+                                                    </div>
+                                                    <div style={{ width: '100px' }} className="text-center">
+                                                        <span className="fw-bold text-primary" style={{ fontSize: '1.8rem' }}>
+                                                            {item.reps}x
+                                                        </span>
+                                                    </div>
+                                                    <div style={{ width: '120px' }} className="text-center">
+                                                        <span className="fw-semibold text-dark" style={{ fontSize: '1.5rem' }}>
+                                                            {item.distance}m
+                                                        </span>
+                                                    </div>
+                                                    <div style={{ flex: '1 1 200px' }}>
+                                                        <span className="fw-semibold text-dark" style={{ fontSize: '1.3rem' }}>
+                                                            {item.style?.label || '-'}
+                                                        </span>
+                                                    </div>
+                                                    <div style={{ flex: '1 1 200px' }}>
+                                                        {item.equipment && item.equipment.length > 0 ? (
+                                                            <div className="d-flex flex-wrap gap-1">
+                                                                {item.equipment.map((eq, eqIdx) => (
+                                                                    <Badge key={eqIdx} color="secondary" className="fs-6 px-2 py-1">
+                                                                        {eq.label || eq.value || eq}
+                                                                    </Badge>
+                                                                ))}
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-muted">-</span>
+                                                        )}
+                                                    </div>
+                                                    <div style={{ flex: '1 1 180px' }}>
+                                                        {item.intensity ? (
+                                                            <Badge color="info" className="fs-6 px-3 py-2">
+                                                                {item.intensity.label || item.intensity.value || item.intensity}
+                                                            </Badge>
+                                                        ) : (
+                                                            <span className="text-muted">-</span>
+                                                        )}
+                                                    </div>
+                                                    <div style={{ flex: '1 1 150px' }}>
+                                                        {item.interval ? (
+                                                            <div className="d-flex align-items-center text-primary">
+                                                                <i className="mdi mdi-timer-outline me-2" style={{ fontSize: '1.2rem' }}></i>
+                                                                <span className="fw-semibold">{item.interval}</span>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-muted">-</span>
+                                                        )}
+                                                    </div>
+                                                    <div style={{ flex: '2 1 300px' }}>
+                                                        {item.observation ? (
+                                                            <span className="text-muted fst-italic" style={{ fontSize: '0.95rem' }}>
+                                                                {item.observation}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-muted">-</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         ))}
                     </div>

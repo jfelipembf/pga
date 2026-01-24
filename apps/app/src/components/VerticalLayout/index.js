@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types'
-import React, { useEffect } from "react"
+import React, { useEffect, useCallback } from "react"
 
 import { connect } from "react-redux"
 import { Container } from "reactstrap";
@@ -26,10 +26,19 @@ import SubmenuBar from "./SubmenuBar"
 
 import ForcePasswordChangeModal from "../Common/ForcePasswordChangeModal"
 
+// Move selector outside component to preserve memoization
+const selectLayoutState = (state) => state.Layout;
+
+const selectLayoutProperties = createSelector(
+  selectLayoutState,
+  (layout) => ({
+    leftSideBarType: layout.leftSideBarType,
+  })
+);
+
 const Layout = (props) => {
 
   const dispatch = useDispatch();
-  const selectLayoutState = (state) => state.Layout;
 
   // Pegar dados do usuário do localStorage (padrão do projeto)
   const getUserData = () => {
@@ -44,24 +53,8 @@ const Layout = (props) => {
   const userData = getUserData()
   const isFirstAccess = userData?.staff?.isFirstAccess === true;
 
-  const selectLayoutProperties = createSelector(
-    selectLayoutState,
-    (layout) => ({
-      leftSideBarTheme: layout.leftSideBarTheme,
-      layoutWidth: layout.layoutWidth,
-      leftSideBarType: layout.leftSideBarType,
-      topbarTheme: layout.topbarTheme,
-      layoutColor: layout.layoutColor,
-      layoutMode: layout.layoutMode
-    }));
-
   const {
-    leftSideBarTheme,
-    layoutWidth,
     leftSideBarType,
-    topbarTheme,
-    layoutColor,
-    layoutMode
   } = useSelector(selectLayoutProperties);
 
   useEffect(() => {
@@ -89,58 +82,21 @@ const Layout = (props) => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Only initialize layout type once on mount
   useEffect(() => {
     dispatch(changeLayout("vertical"));
   }, [dispatch]);
 
-  useEffect(() => {
-    if (leftSideBarTheme) {
-      dispatch(changeSidebarTheme(leftSideBarTheme));
-    }
-  }, [leftSideBarTheme, dispatch]);
-
-  useEffect(() => {
-    if (layoutWidth) {
-      dispatch(changeLayoutWidth(layoutWidth));
-    }
-  }, [layoutWidth, dispatch]);
-
-  useEffect(() => {
-    if (layoutMode) {
-      dispatch(changeMode(layoutMode));
-    }
-  }, [layoutMode, dispatch]);
-
-  useEffect(() => {
-    if (leftSideBarType) {
-      dispatch(changeSidebarType(leftSideBarType));
-    }
-  }, [leftSideBarType, dispatch]);
-
-  useEffect(() => {
-    if (topbarTheme) {
-      dispatch(changeTopbarTheme(topbarTheme));
-    }
-  }, [topbarTheme, dispatch]);
-
-  useEffect(() => {
-    if (layoutColor) {
-      dispatch(changeColor(layoutColor));
-    }
-  }, [layoutColor, dispatch]);
-
-
-
 
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-  const toggleMenuCallback = () => {
+  const toggleMenuCallback = useCallback(() => {
     if (leftSideBarType === "default") {
       dispatch(changeSidebarType("condensed", isMobile));
     } else if (leftSideBarType === "condensed") {
       dispatch(changeSidebarType("default", isMobile));
     }
-  };
+  }, [leftSideBarType, isMobile, dispatch]);
 
 
   return (
@@ -201,10 +157,22 @@ Layout.propTypes = {
 }
 
 const mapStatetoProps = state => {
+  // Return explicit properties instead of spread to ensure stable references
   return {
-    ...state.Layout,
+    leftSideBarTheme: state.Layout.leftSideBarTheme,
+    leftSideBarType: state.Layout.leftSideBarType,
+    layoutWidth: state.Layout.layoutWidth,
+    topbarTheme: state.Layout.topbarTheme,
+    layoutColor: state.Layout.layoutColor,
+    layoutMode: state.Layout.layoutMode,
+    isPreloader: state.Layout.isPreloader,
+    showRightSidebar: state.Layout.showRightSidebar,
+    isMobile: state.Layout.isMobile,
+    showSidebar: state.Layout.showSidebar,
+    leftMenu: state.Layout.leftMenu,
   }
 }
+
 export default connect(mapStatetoProps, {
   changeLayout,
   changeColor,

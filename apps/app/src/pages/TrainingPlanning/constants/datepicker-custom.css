@@ -17,27 +17,51 @@
 .training-calendar .react-datepicker__day-name,
 .training-calendar .react-datepicker__day,
 .training-calendar .react-datepicker__time-name {
-    width: 2.5rem !important;
-    line-height: 2.5rem !important;
-    margin: 0.15rem !important;
-    font-size: 0.9rem;
+    width: calc((100% - 1.4rem) / 7) !important;
+    max-width: 2rem !important;
+    min-width: 1.5rem !important;
+    line-height: 2rem !important;
+    margin: 0.08rem !important;
+    font-size: clamp(0.7rem, 1.8vw, 0.8rem);
 }
 
+/* Small screens */
 @media (max-width: 576px) {
 
     .training-calendar .react-datepicker__day-name,
     .training-calendar .react-datepicker__day,
     .training-calendar .react-datepicker__time-name {
-        width: 2rem !important;
-        line-height: 2rem !important;
-        margin: 0.1rem !important;
-        font-size: 0.8rem;
+        line-height: 1.6rem !important;
+        font-size: 0.65rem;
+    }
+}
+
+/* Medium screens */
+@media (min-width: 768px) and (max-width: 991px) {
+
+    .training-calendar .react-datepicker__day-name,
+    .training-calendar .react-datepicker__day,
+    .training-calendar .react-datepicker__time-name {
+        line-height: 1.8rem !important;
+        font-size: 0.75rem;
+    }
+}
+
+/* Large screens */
+@media (min-width: 1200px) {
+
+    .training-calendar .react-datepicker__day-name,
+    .training-calendar .react-datepicker__day,
+    .training-calendar .react-datepicker__time-name {
+        max-width: 2.2rem !important;
+        line-height: 2.2rem !important;
+        font-size: 0.85rem;
     }
 }
 
 .training-calendar .react-datepicker__current-month {
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
+    font-size: clamp(0.9rem, 2.2vw, 1rem);
+    margin-bottom: 0.8rem;
 }
 
 .training-calendar .react-datepicker__day--selected,
@@ -45,6 +69,11 @@
     background-color: var(--bs-primary) !important;
     border-radius: 50% !important;
     color: white !important;
+    width: 2rem !important;
+    height: 2rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 .training-calendar .react-datepicker__day:hover {
