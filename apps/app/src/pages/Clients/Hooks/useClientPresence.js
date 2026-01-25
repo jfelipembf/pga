@@ -1,9 +1,10 @@
 import { useState, useMemo } from "react"
-import { calculatePresenceStats } from "@pga/shared"
+import { calculatePresenceStats } from "../Utils/presenceCalculations"
 import { isPresent } from "../Utils/presenceUtils"
 
 export const useClientPresence = (presences = []) => {
     const [range, setRange] = useState([null, null])
+    // Force rebuild - cache bust
     const [startDate, endDate] = range
 
     // Calcular estatísticas mensais

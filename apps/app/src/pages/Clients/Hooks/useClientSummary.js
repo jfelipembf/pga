@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { calculateClientPresenceCardStats } from "@pga/shared"
+import { calculateClientPresenceCardStats } from "../Utils/presenceCalculations"
 import { toISODate, toMonthKey } from "../../../utils/date"
 import { isPresent } from "../Utils/presenceUtils"
 
@@ -22,9 +22,14 @@ export const useClientSummary = ({
 
         const stats = months.map(d => {
             const mStats = calculateClientPresenceCardStats({ presences, enrollments: [] }, d)
-            const label = mStats.current.monthLabel.split(' de ')
+            const labelParts = mStats.current.monthLabel.split(' de ')
             // Short label logic: Jan/26
-            const shortLabel = `${label[0].substring(0, 3)}/${label[1].slice(-2)}`
+            let shortLabel = "—";
+            if (labelParts.length >= 2) {
+                shortLabel = `${labelParts[0].substring(0, 3)}/${labelParts[1].slice(-2)}`
+            } else {
+                shortLabel = mStats.current.monthLabel
+            }
 
             return {
                 id: toMonthKey(toISODate(d)), // YYYY-MM

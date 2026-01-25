@@ -1,7 +1,7 @@
 import React from "react"
 import { Badge, Card, CardBody, CardHeader } from "reactstrap"
 
-const CollaboratorClasses = ({ classes = [] }) => {
+const StaffClasses = ({ classes = [] }) => {
   return (
     <Card className="shadow-sm">
       <CardHeader>
@@ -48,4 +48,4 @@ const CollaboratorClasses = ({ classes = [] }) => {
   )
 }
 
-export default CollaboratorClasses
+export default StaffClasses

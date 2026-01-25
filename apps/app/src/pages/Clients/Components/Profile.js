@@ -1,6 +1,6 @@
 import React from "react"
 import { connect } from "react-redux"
-import { Badge, Button, Col, Container, Row } from "reactstrap"
+import { Badge, Button, Col, Container, Row, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from "reactstrap"
 import { useLocation } from "react-router-dom"
 
 import { setBreadcrumbItems } from "../../../store/actions"
@@ -17,6 +17,7 @@ import { useClientData } from "../../../hooks/useClientData"
 import StatusBadge from "../../../components/Common/StatusBadge"
 import PageLoader from "../../../components/Common/PageLoader"
 import ButtonLoader from "../../../components/Common/ButtonLoader"
+import ConfirmDialog from "../../../components/Common/ConfirmDialog"
 
 import { PROFILE_TABS as TABS } from "../Constants/defaults"
 import { useProfileLogic } from "../Hooks/useProfileLogic"
@@ -26,6 +27,9 @@ const ClientProfile = ({ setBreadcrumbItems }) => {
   const location = useLocation()
   const searchParams = new URLSearchParams(location.search)
   const clientId = searchParams.get("id")
+
+  const [menuOpen, setMenuOpen] = React.useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false)
 
   const {
     client,
@@ -68,6 +72,7 @@ const ClientProfile = ({ setBreadcrumbItems }) => {
     handleAvatarChange,
     handleSave,
     handleRemoveEnrollment,
+    handleDeleteClient,
     isLoading,
     uploading,
     navigate
@@ -154,6 +159,20 @@ const ClientProfile = ({ setBreadcrumbItems }) => {
                   <i className="mdi mdi-content-save" />
                   Salvar
                 </ButtonLoader>
+
+                <div className="ms-2 border-start ps-3">
+                  <Dropdown isOpen={menuOpen} toggle={() => setMenuOpen(!menuOpen)}>
+                    <DropdownToggle color="transparent" className="p-0 border-0 text-white">
+                      <i className="mdi mdi-dots-vertical fs-4 text-white" />
+                    </DropdownToggle>
+                    <DropdownMenu end>
+                      <DropdownItem onClick={() => setDeleteModalOpen(true)} className="text-danger">
+                        <i className="mdi mdi-trash-can-outline me-2" />
+                        Excluir {profile.status === 'lead' ? 'Lead' : 'Cliente'}
+                      </DropdownItem>
+                    </DropdownMenu>
+                  </Dropdown>
+                </div>
               </div>
             </div>
 
@@ -170,6 +189,17 @@ const ClientProfile = ({ setBreadcrumbItems }) => {
               ))}
             </div>
           </div>
+
+          <ConfirmDialog
+            isOpen={deleteModalOpen}
+            title={`Excluir ${profile.status === 'lead' ? 'Lead' : 'Cliente'}`}
+            description={`Tem certeza que deseja excluir ${profile.name}? Esta ação não pode ser desfeita imediatamente (soft delete).`}
+            confirmColor="danger"
+            confirmText="Sim, excluir"
+            onConfirm={handleDeleteClient}
+            onCancel={() => setDeleteModalOpen(false)}
+            loading={isLoading('delete')}
+          />
 
           <Row className="g-4 mt-3">
             {activeTab === "Perfil" && (

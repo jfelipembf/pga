@@ -15,7 +15,7 @@ import {
 
 import { listEnrollmentsByClass } from "../../../services/Enrollments/enrollments.service"
 import { listClients } from "../../../services/Clients"
-import { addExtraParticipantToSession, getSessionAttendanceSnapshot, saveSessionSnapshot } from "../../../services/Attendance/attendance.service"
+import { addExtraParticipantToSession, getSessionAttendanceSnapshot, saveSessionSnapshot, markAttendance } from "../../../services/Attendance/attendance.service"
 import ButtonLoader from "../../../components/Common/ButtonLoader"
 import { useLoading } from "../../../hooks/useLoading"
 import { useToast } from "../../../components/Common/ToastProvider"
@@ -237,8 +237,11 @@ const AttendanceModal = ({ isOpen, onClose, schedule, onAttendanceSaved, onEnrol
         const presentCount = presentList.length
         const absentCount = absentList.length
 
-        // Salvar snapshot completo (assinatura do service: { clients, presentCount, absentCount })
-        await saveSessionSnapshot(schedule.id, {
+        const sessionDate = schedule.sessionDate || schedule.startDate || schedule.date || new Date().toISOString()
+        const idClass = schedule.idClass
+
+        // 1. Salvar snapshot da sessão (Visão da Grade/Professor)
+        const snapshotPromise = saveSessionSnapshot(schedule.id, {
           clients: clients.map(s => ({
             idClient: s.id,
             enrollmentId: s.enrollmentId || null,
@@ -254,6 +257,25 @@ const AttendanceModal = ({ isOpen, onClose, schedule, onAttendanceSaved, onEnrol
           description: `${presentCount} presentes, ${absentCount} ausentes`,
           color: "success"
         })
+
+        // 2. Salvar histórico individual de cada aluno (Visão do Perfil do Aluno)
+        const individualPromises = clients.map(client => {
+          return markAttendance({
+            idClient: client.id,
+            idSession: schedule.id,
+            idClass: idClass,
+            sessionDate: sessionDate,
+            status: client.status || "present",
+            justification: client.justification || "",
+            type: client.type || null
+          }).catch(err => {
+            console.error(`Falha ao salvar presença individual para ${client.name}`, err)
+            // Não quebramos o Promise.all para não falhar o processo todo por um aluno
+            return null
+          })
+        })
+
+        await Promise.all([snapshotPromise, ...individualPromises])
 
         onAttendanceSaved?.({
           idSession: schedule.id,

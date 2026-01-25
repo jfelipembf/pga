@@ -21,9 +21,9 @@ const useMenuConfig = (t) => {
             label: "Administrativos",
             icon: "mdi mdi-office-building-outline",
             link: "#",
-            anyPermission: ["collaborators_manage", "admin_activities", "admin_contracts", "admin_areas", "admin_roles", "admin_catalog", "admin_classes", "admin_settings"],
+            anyPermission: ["staff_manage", "admin_activities", "admin_contracts", "admin_areas", "admin_roles", "admin_catalog", "admin_classes", "admin_settings"],
             subMenu: [
-                { id: "collabs", label: "Colaboradores", link: "/collaborators/list", icon: "mdi mdi-account-multiple-check", permission: "collaborators_manage" },
+                { id: "collabs", label: "Colaboradores", link: "/Staff/list", icon: "mdi mdi-account-multiple-check", permission: "staff_manage" },
                 { id: "activities", label: "Atividades", link: "/admin/activity", icon: "mdi mdi-clipboard-text-outline", permission: "admin_activities" },
                 { id: "contracts", label: "Contratos", link: "/admin/contracts", icon: "mdi mdi-file-document-outline", permission: "admin_contracts" },
                 { id: "classes", label: "Turmas", link: "/admin/classes", icon: "mdi mdi-account-clock-outline", permission: "admin_classes" },

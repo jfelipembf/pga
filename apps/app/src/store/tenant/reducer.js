@@ -1,6 +1,6 @@
 import { RESET_TENANT_CONTEXT, SET_TENANT_CONTEXT, SET_TENANT_ROLES } from "./actionTypes"
 
-const DEFAULT_ROLES = ["owner", "manager", "collaborator", "viewer"]
+const DEFAULT_ROLES = ["owner", "manager", "Staff", "viewer"]
 
 const INIT_STATE = {
   tenant: null,

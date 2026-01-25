@@ -115,6 +115,7 @@ exports.deleteEvent = require("./src/events/events").deleteEvent;
 // Clients
 exports.createClient = require("./src/clients/clients").createClient;
 exports.updateClient = require("./src/clients/clients").updateClient;
+exports.deleteClient = require("./src/clients/clients").deleteClient;
 exports.onClientCreate = require("./src/clients/clientTriggers").onClientCreate;
 
 // Enrollments
@@ -131,6 +132,7 @@ exports.createContract = require("./src/contracts/contracts").createContract;
 exports.updateContract = require("./src/contracts/contracts").updateContract;
 exports.staffCriarUsuario = require("./src/staff/staff").criarUsuarioEquipe;
 exports.staffAtualizarUsuario = require("./src/staff/staff").atualizarUsuarioEquipe;
+exports.staffDeleteUsuario = require("./src/staff/staff").deleteStaff;
 
 // Integrations
 exports.saveIntegrationConfig = require("./src/integrations/integrations").saveIntegrationConfig;

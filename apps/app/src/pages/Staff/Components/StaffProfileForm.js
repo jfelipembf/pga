@@ -3,7 +3,7 @@ import { Col, Form, FormGroup, Input, Label, Row } from "reactstrap"
 import ButtonLoader from "../../../components/Common/ButtonLoader"
 import { formatTitleCase } from "../../../helpers/string"
 
-const CollaboratorProfileForm = ({ value, onChange, passwordValue, onPasswordChange, onSave, saving, savingPassword, roles = [] }) => {
+const StaffProfileForm = ({ value, onChange, passwordValue, onPasswordChange, onSave, saving, savingPassword, roles = [] }) => {
   const update = (field, val) => {
     let finalValue = val;
     const fieldsToFormat = [
@@ -223,4 +223,4 @@ const CollaboratorProfileForm = ({ value, onChange, passwordValue, onPasswordCha
   )
 }
 
-export default CollaboratorProfileForm
+export default StaffProfileForm

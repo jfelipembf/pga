@@ -13,9 +13,9 @@ import { useToast } from "components/Common/ToastProvider"
 import { PLACEHOLDER_AVATAR as placeholderAvatar } from "../../Clients/Constants/defaults"
 import PageLoader from "../../../components/Common/PageLoader"
 import { useLoading } from "../../../hooks/useLoading"
-import CollaboratorAddModal from "./Components/CollaboratorAddModal"
+import StaffAddModal from "./Components/StaffAddModal"
 
-const CollaboratorsList = ({ setBreadcrumbItems }) => {
+const StaffList = ({ setBreadcrumbItems }) => {
   const [modalOpen, setModalOpen] = useState(false)
   const [staff, setStaff] = useState([])
   const [roles, setRoles] = useState([])
@@ -27,9 +27,9 @@ const CollaboratorsList = ({ setBreadcrumbItems }) => {
 
   const profilePath = useMemo(() => {
     if (tenant && branch) {
-      return `/${tenant}/${branch}/collaborators/profile`
+      return `/${tenant}/${branch}/Staff/profile`
     }
-    return "/collaborators/profile"
+    return "/Staff/profile"
   }, [tenant, branch])
 
   const computeAge = birthDate => {
@@ -99,7 +99,7 @@ const CollaboratorsList = ({ setBreadcrumbItems }) => {
   useEffect(() => {
     const breadcrumbItems = [
       { title: "Administrativo", link: "/admin" },
-      { title: "Colaboradores", link: "/collaborators/list" },
+      { title: "Colaboradores", link: "/Staff/list" },
     ]
     setBreadcrumbItems("Colaboradores", breadcrumbItems)
   }, [setBreadcrumbItems])
@@ -140,8 +140,8 @@ const CollaboratorsList = ({ setBreadcrumbItems }) => {
         let photo = ""
         if (data.avatarFile) {
           const oldPhotoUrl = data.photo || data.avatar
-          photo = await uploadPhoto(data.avatarFile, { 
-            deleteOldPhoto: oldPhotoUrl 
+          photo = await uploadPhoto(data.avatarFile, {
+            deleteOldPhoto: oldPhotoUrl
           })
         }
 
@@ -189,7 +189,7 @@ const CollaboratorsList = ({ setBreadcrumbItems }) => {
             onNewClick={() => setModalOpen(true)}
             loading={isLoading('page')}
           />
-          <CollaboratorAddModal
+          <StaffAddModal
             isOpen={modalOpen}
             toggle={() => setModalOpen(false)}
             onSubmit={handleModalSubmit}
@@ -203,4 +203,4 @@ const CollaboratorsList = ({ setBreadcrumbItems }) => {
   )
 }
 
-export default connect(null, { setBreadcrumbItems })(CollaboratorsList)
+export default connect(null, { setBreadcrumbItems })(StaffList)

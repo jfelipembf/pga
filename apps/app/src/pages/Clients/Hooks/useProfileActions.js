@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom"
-import { useClientAvatarUpload, updateClient as updateClientAction } from "../../../services/Clients/index"
+import { useClientAvatarUpload, updateClient as updateClientAction, deleteClient } from "../../../services/Clients/index"
 import { buildClientPayload } from "@pga/shared"
 import { deleteEnrollment } from "../../../services/Enrollments/index"
 import { useToast } from "../../../components/Common/ToastProvider"
@@ -35,8 +35,8 @@ export const useProfileActions = ({
                 let photoUrl = formData.photo
                 if (formData.avatarFile) {
                     const oldPhotoUrl = formData.photo
-                    const res = await uploadAvatar(formData.avatarFile, { 
-                        deleteOldPhoto: oldPhotoUrl 
+                    const res = await uploadAvatar(formData.avatarFile, {
+                        deleteOldPhoto: oldPhotoUrl
                     })
                     photoUrl = res
                 }
@@ -93,10 +93,31 @@ export const useProfileActions = ({
         }
     }
 
+    const handleDeleteClient = async () => {
+        if (!clientId) return
+        try {
+            await withLoading('delete', async () => {
+                await deleteClient(clientId)
+                toast.show({ title: "Cliente excluído", color: "success" })
+                // Extract prefix (/:tenant/:branch) from current path to return to list
+                const match = window.location.pathname.match(/^\/[^/]+\/[^/]+/)
+                const prefix = match ? match[0] : ""
+                navigate(`${prefix}/clients/list`)
+            })
+        } catch (e) {
+            console.error("Erro ao excluir cliente", e)
+            const message = e?.message || "Ocorreu um erro ao tentar excluir o cliente."
+            // Try to extract clean message if it comes from Firebase "Error: ..."
+            const cleanMessage = message.replace("FirebaseError: ", "")
+            toast.show({ title: "Não é possível excluir", description: cleanMessage, color: "warning" })
+        }
+    }
+
     return {
         handleAvatarChange,
         handleSave,
         handleRemoveEnrollment,
+        handleDeleteClient,
         isLoading,
         uploading,
         navigate

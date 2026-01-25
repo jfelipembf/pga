@@ -1,7 +1,6 @@
-const { startOfMonth, endOfMonth, subMonths, isWithinInterval } = require("date-fns");
+import { startOfMonth, endOfMonth, subMonths, isWithinInterval } from "date-fns"
 
-
-const isPresentStatus = (status) => {
+export const isPresent = (status) => {
     // Compat:
     // - attendance: "present" | "absent" | "late" | "justified"
     // - legacy numeric: 0 = presente
@@ -18,7 +17,7 @@ const isPresentStatus = (status) => {
  * @param {Date} referenceDate - Data de referência (padrão: hoje)
  * @returns {Object} { current, previous, comparison }
  */
-const calculatePresenceStats = (presences = [], referenceDate = new Date()) => {
+export const calculatePresenceStats = (presences = [], referenceDate = new Date()) => {
     const current = calculateMonthStats(presences, referenceDate);
     const previous = calculateMonthStats(presences, subMonths(referenceDate, 1));
     const comparison = {
@@ -32,7 +31,7 @@ const calculatePresenceStats = (presences = [], referenceDate = new Date()) => {
     return { current, previous, comparison };
 };
 
-const calculateClientPresenceCardStats = ({ presences = [], enrollments = [] } = {}, referenceDate = new Date()) => {
+export const calculateClientPresenceCardStats = ({ presences = [], enrollments = [] } = {}, referenceDate = new Date()) => {
     const currentMonth = calculateMonthStats(presences, referenceDate);
     const previousMonth = calculateMonthStats(presences, subMonths(referenceDate, 1));
 
@@ -59,10 +58,7 @@ const calculateClientPresenceCardStats = ({ presences = [], enrollments = [] } =
  * @param {Date} monthDate 
  * @returns {Object} { expected, attended, frequency, monthLabel }
  */
-const calculateMonthStats = (presences, monthDate) => {
-    // DEBUG LOGS
-    console.log('[DEBUG] calculateMonthStats', { presencesCount: presences?.length, monthDate });
-
+export const calculateMonthStats = (presences, monthDate) => {
     // Validate date to avoid crashes
     if (!monthDate || isNaN(new Date(monthDate).getTime())) {
         return {
@@ -92,7 +88,7 @@ const calculateMonthStats = (presences, monthDate) => {
     });
 
     // Presenças realizadas (status === 0 ou "present")
-    const attended = effectiveDetails.filter(p => isPresentStatus(p.status)).length;
+    const attended = effectiveDetails.filter(p => isPresent(p.status)).length;
 
     // Total de registros efetivos (Presente + Falta)
     const expected = effectiveDetails.length;
@@ -118,98 +114,4 @@ const calculateMonthStats = (presences, monthDate) => {
         monthEnd,
         presences: monthPresences
     };
-};
-
-const normalizeWeekday = (weekday) => {
-    if (weekday === null || weekday === undefined) return null;
-    const n = Number(weekday);
-    if (Number.isNaN(n)) return null;
-    if (n === 7) return 0;
-    if (n < 0 || n > 6) return null;
-    return n;
-};
-
-const parseDateSafe = (value) => {
-    if (!value) return null;
-    const d = value instanceof Date ? value : new Date(value);
-    if (Number.isNaN(d.getTime())) return null;
-    return d;
-};
-
-const maxDate = (a, b) => (a.getTime() >= b.getTime() ? a : b);
-const minDate = (a, b) => (a.getTime() <= b.getTime() ? a : b);
-
-const countWeekdayOccurrencesInRange = (rangeStart, rangeEnd, weekday) => {
-    const wd = normalizeWeekday(weekday);
-    if (wd === null) return 0;
-    if (!rangeStart || !rangeEnd) return 0;
-    if (rangeStart.getTime() > rangeEnd.getTime()) return 0;
-
-    const start = new Date(rangeStart);
-    const end = new Date(rangeEnd);
-
-    const startDow = start.getDay();
-    const delta = (wd - startDow + 7) % 7;
-    const first = new Date(start);
-    first.setDate(first.getDate() + delta);
-
-    if (first.getTime() > end.getTime()) return 0;
-    const diffDays = Math.floor((end.getTime() - first.getTime()) / (1000 * 60 * 60 * 24));
-    return 1 + Math.floor(diffDays / 7);
-};
-
-const calculateExpectedAttendancesFromEnrollments = (enrollments = [], referenceDate = new Date()) => {
-    const monthStart = startOfMonth(referenceDate);
-    const monthEnd = endOfMonth(referenceDate);
-
-    const list = Array.isArray(enrollments) ? enrollments : [];
-    const recurringActive = list.filter(e => (e?.type || "").toLowerCase() === "recurring" && (e?.status || "").toLowerCase() === "active");
-
-    let expected = 0;
-    for (const e of recurringActive) {
-        const weekday = normalizeWeekday(e?.weekday);
-        if (weekday === null) continue;
-
-        const startDate = parseDateSafe(e?.startDate) || monthStart;
-        const endDate = parseDateSafe(e?.endDate) || monthEnd;
-
-        const rangeStart = maxDate(monthStart, startDate);
-        const rangeEnd = minDate(monthEnd, endDate);
-        if (rangeStart.getTime() > rangeEnd.getTime()) continue;
-
-        expected += countWeekdayOccurrencesInRange(rangeStart, rangeEnd, weekday);
-    }
-
-    return expected;
-};
-
-/**
- * Formata o valor de comparação para exibição
- * @param {number} value 
- * @returns {Object} { formatted, color, icon }
- */
-const formatComparison = (value) => {
-    const formatted = value > 0 ? `+${Math.round(value)}` : `${Math.round(value)}`;
-    let color = "secondary";
-    let icon = "mdi-minus";
-
-    if (value > 0) {
-        color = "success";
-        icon = "mdi-trending-up";
-    } else if (value < 0) {
-        color = "danger";
-        icon = "mdi-trending-down";
-    }
-
-    return { formatted, color, icon };
-};
-
-module.exports = {
-    isPresentStatus,
-    calculatePresenceStats,
-    calculateClientPresenceCardStats,
-    calculateMonthStats,
-    countWeekdayOccurrencesInRange,
-    calculateExpectedAttendancesFromEnrollments,
-    formatComparison
 };

@@ -155,3 +155,86 @@ exports.updateClientLogic = async (data, context) => {
         throw new functions.https.HttpsError("internal", error.message || "Erro interno ao atualizar cliente");
     }
 };
+
+/**
+ * Logic: Delete (Soft) a Client
+ */
+exports.deleteClientLogic = async (data, context) => {
+    try {
+        const { idTenant, idBranch } = requireAuthContext(data, context);
+
+        if (!data.idClient) {
+            throw new functions.https.HttpsError("invalid-argument", "idClient é obrigatório");
+        }
+
+        const idClient = data.idClient;
+        const db = require("firebase-admin").firestore();
+
+        // Check for active ENROLLMENTS
+        const enrollmentsRef = db.collection("tenants").doc(idTenant).collection("branches").doc(idBranch).collection("enrollments");
+        const activeEnrollmentsSnap = await enrollmentsRef
+            .where("idClient", "==", idClient)
+            .where("status", "==", "active")
+            .limit(1)
+            .get();
+
+        if (!activeEnrollmentsSnap.empty) {
+            throw new functions.https.HttpsError(
+                "failed-precondition",
+                "Não é possível excluir o cliente pois ele possui matrículas ativas em turmas."
+            );
+        }
+
+        // Check for active CONTRACTS (Global contracts collection normally used for linking)
+        const contractsRef = db.collection("tenants").doc(idTenant).collection("branches").doc(idBranch).collection("contracts");
+        const activeContractsSnap = await contractsRef
+            .where("idClient", "==", idClient)
+            .where("status", "==", "active")
+            .limit(1)
+            .get();
+
+        if (!activeContractsSnap.empty) {
+            throw new functions.https.HttpsError(
+                "failed-precondition",
+                "Não é possível excluir o cliente pois ele possui contratos ativos."
+            );
+        }
+
+        // Perform Soft Delete
+        const clientRef = getBranchCollectionRef(idTenant, idBranch, "clients", idClient);
+
+        // Fetch client name for audit log
+        const clientDoc = await clientRef.get();
+        const clientName = clientDoc.exists ? (clientDoc.data().name || "Cliente") : "Cliente";
+
+        const updateData = {
+            deleted: true,
+            deletedAt: FieldValue.serverTimestamp(),
+            status: "deleted",
+            updatedAt: FieldValue.serverTimestamp()
+        };
+
+        const actor = getActorSnapshot(context.auth);
+        const target = getTargetSnapshot("client", { id: idClient, name: clientName }, idClient);
+
+        await Promise.all([
+            clientRef.update(updateData),
+            saveAuditLog({
+                idTenant,
+                idBranch,
+                action: "CLIENT_DELETE",
+                actor,
+                target,
+                description: `Excluiu (soft delete) o cliente ${clientName}`,
+                metadata: { deleted: true }
+            }).catch(err => console.error('[deleteClient] Audit log failed:', err))
+        ]);
+
+        return { success: true, id: idClient };
+
+    } catch (error) {
+        console.error("[deleteClientLogic] Error deleting client:", error);
+        if (error instanceof functions.https.HttpsError) throw error;
+        throw new functions.https.HttpsError("internal", error.message || "Erro interno ao excluir cliente");
+    }
+};

@@ -42,13 +42,20 @@ export const ensureDefaultRoles = async (defaultRoles, { ctxOverride = null } = 
   const existing = await listRoles({ ctxOverride })
   const existingIds = new Set(existing.map(r => r.id))
 
+  // 1. Create missing roles
   const missing = defaultRoles.filter(role => !existingIds.has(role.id))
-  if (missing.length > 0 || existing.length === 0) {
-    for (const role of defaultRoles) {
-      await createRole(role, { ctxOverride })
-    }
-    return listRoles({ ctxOverride })
+  for (const role of missing) {
+    await createRole(role, { ctxOverride })
   }
 
-  return existing
+  // 2. Update existing default roles to ensure permissions are in sync (e.g. key migrations)
+  // We only update roles that match IDs in defaultRoles list (system roles)
+  const existingSystemRoles = defaultRoles.filter(role => existingIds.has(role.id))
+  for (const role of existingSystemRoles) {
+    // Force update permissions and labels for system roles
+    await createRole(role, { ctxOverride })
+    // createRole with an ID performs a setDoc with { merge: true }, so this updates permissions safely
+  }
+
+  return listRoles({ ctxOverride })
 }

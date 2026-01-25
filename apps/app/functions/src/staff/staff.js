@@ -11,3 +11,8 @@ exports.criarUsuarioEquipe = functions.region("us-central1").https.onCall(create
  * Atualiza um usuário da equipe.
  */
 exports.atualizarUsuarioEquipe = functions.region("us-central1").https.onCall(updateStaffUserLogic);
+
+/**
+ * Exclui logicamente um colaborador (Soft Delete).
+ */
+exports.deleteStaff = functions.region("us-central1").https.onCall(require("./helpers/staff.service").deleteStaffUserLogic);

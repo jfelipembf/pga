@@ -18,7 +18,7 @@ export const PERMISSIONS = [
     category: "CADASTROS",
   },
   {
-    id: "collaborators_manage",
+    id: "staff_manage",
     label: "Colaboradores",
     description: "Gerenciar colaboradores e perfis de acesso.",
     category: "CADASTROS",
@@ -185,7 +185,7 @@ export const DEFAULT_ROLES = [
       dashboards_management_view: true,
       dashboards_commercial_view: true,
       members_manage: true,
-      collaborators_manage: true,
+      staff_manage: true,
       crm_view: true,
       admin_activities: true,
       admin_classes: true,

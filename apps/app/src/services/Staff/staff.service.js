@@ -13,7 +13,8 @@ export const listStaff = async ({ ctxOverride = null } = {}) => {
   const ctx = getContext(ctxOverride)
   const ref = staffCol(db, ctx)
   const snap = await getDocs(query(ref, orderBy("createdAt", "desc")))
-  return mapFirestoreDocs(snap)
+  // Filter out soft-deleted staff
+  return mapFirestoreDocs(snap).filter(s => !s.deleted && s.status !== "deleted")
 }
 
 export const listInstructors = async ({ ctxOverride = null } = {}) => {
@@ -94,6 +95,22 @@ export const updateStaff = async (staff, { ctxOverride = null } = {}) => {
     return staff
   } catch (error) {
     console.error("Erro ao atualizar colaborador:", error)
+    throw error
+  }
+}
+
+export const deleteStaff = async (id, { ctxOverride = null } = {}) => {
+  const ctx = getContext(ctxOverride)
+  const functions = requireFunctions()
+  const deleteStaffFn = httpsCallable(functions, "staffDeleteUsuario")
+
+  try {
+    if (!id) throw new Error("ID do colaborador é obrigatório");
+
+    await deleteStaffFn({ idStaff: id, idTenant: ctx.idTenant, idBranch: ctx.idBranch })
+    return true
+  } catch (error) {
+    console.error("Erro ao excluir colaborador:", error)
     throw error
   }
 }

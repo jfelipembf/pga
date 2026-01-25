@@ -27,7 +27,9 @@ export const listClientsRepo = async (ctxOverride = null) => {
   const ref = clientsCol(db, ctx)
   const snap = await getDocs(query(ref, orderBy("createdAt", "desc")))
 
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  const all = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  // Filter out soft-deleted clients
+  return all.filter(c => !c.deleted && c.status !== "deleted")
 }
 
 export const listClientsByIdsRepo = async (clientIds, ctxOverride = null) => {

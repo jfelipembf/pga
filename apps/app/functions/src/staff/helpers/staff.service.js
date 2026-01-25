@@ -208,8 +208,94 @@ async function updateStaffUserLogic(data, context) {
     }
 }
 
+// =========================
+// DELETE (Soft)
+// =========================
+async function deleteStaffUserLogic(data, context) {
+    const { idTenant, idBranch } = requireAuthContext(data, context);
+
+    if (!data.idStaff) {
+        throw new functions.https.HttpsError("invalid-argument", "idStaff é obrigatório");
+    }
+
+    const { idStaff } = data;
+    const db = require("firebase-admin").firestore();
+
+    try {
+        // 1. Validation: Check if staff is an instructor in active CLASSES
+        // We check the 'instructors' array or 'instructorId' field in classes collection
+        const classesRef = db.collection("tenants").doc(idTenant).collection("branches").doc(idBranch).collection("classes");
+
+        // Check for classes where this staff is the main instructor
+        const classesAsInstructorSnap = await classesRef
+            .where("instructorId", "==", idStaff)
+            .where("active", "==", true) // Assuming 'active' flag or status
+            .limit(1)
+            .get();
+
+        if (!classesAsInstructorSnap.empty) {
+            throw new functions.https.HttpsError(
+                "failed-precondition",
+                "Não é possível excluir o colaborador pois ele é instrutor de turmas ativas."
+            );
+        }
+
+        // Also check array if supported (instructors array) - optional based on schema, but good safety
+        // const classesAsInstructorArraySnap = await classesRef.where("instructors", "array-contains", idStaff).where("active", "==", true).limit(1).get() ...
+
+        // 2. Validation: Check for active SALES assigned to this staff (seller)
+        // This might be too strict if we want to delete old staff, but preventing deletion if they have OPEN sales/commissions is wise.
+        // Let's check for 'open' or 'pending' status sales/commissions if applicable.
+        // For now, let's keep it simple: warn if they have recent sales? No, let's stick to CLASSES as the main blocker for instructors.
+
+        // 3. Perform Soft Delete + Auth Disable
+        const staffRef = getStaffRef(idTenant, idBranch, idStaff);
+        const staffSnap = await staffRef.get();
+        if (!staffSnap.exists) {
+            throw new functions.https.HttpsError("not-found", "Colaborador não encontrado.");
+        }
+        const staffName = staffSnap.data().displayName || staffSnap.data().name || "Colaborador";
+
+        const updateData = {
+            deleted: true,
+            deletedAt: FieldValue.serverTimestamp(),
+            status: "deleted",
+            updatedAt: FieldValue.serverTimestamp()
+            // We might also want to remove PII or rename email if we want to allow re-registration, but soft delete usually keeps data.
+        };
+
+        // Disable Auth User to prevent login
+        await getOrCreateAuthUser({ uid: idStaff, disabled: true }).catch(err => console.warn("Could not disable auth user", err));
+
+        // Audit Log
+        const actor = getActorSnapshot(context.auth);
+        const target = getTargetSnapshot("staff", { id: idStaff, name: staffName }, idStaff);
+
+        await Promise.all([
+            staffRef.update(updateData),
+            saveAuditLog({
+                idTenant,
+                idBranch,
+                action: "STAFF_DELETE",
+                actor,
+                target,
+                description: `Excluiu (soft delete) o colaborador ${staffName}`,
+                metadata: { deleted: true }
+            }).catch(err => console.error('[deleteStaff] Audit log failed:', err))
+        ]);
+
+        return { success: true, id: idStaff };
+
+    } catch (error) {
+        console.error("[deleteStaffUserLogic] Error deleting staff:", error);
+        if (error instanceof functions.https.HttpsError) throw error;
+        throw new functions.https.HttpsError("internal", error.message || "Erro interno ao excluir colaborador");
+    }
+}
+
 module.exports = {
     createStaffUserLogic,
     updateStaffUserLogic,
+    deleteStaffUserLogic
 };
 

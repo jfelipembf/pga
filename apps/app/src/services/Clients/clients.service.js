@@ -77,7 +77,12 @@ export const createClient = async (data, { ctxOverride = null } = {}) => {
 export const updateClient = async (idClient, data) => {
   return await callFunction("updateClient", { idClient, clientData: data })
 }
-
+/**
+ * Deletes a client (Soft Delete) after checking validations.
+ */
+export const deleteClient = async (idClient) => {
+  return await callFunction("deleteClient", { idClient })
+}
 /* =========================================================================
    SUB-COLLECTIONS & AGGREGATED DATA
    ========================================================================= */

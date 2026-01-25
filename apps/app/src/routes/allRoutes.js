@@ -4,7 +4,7 @@ import UserProfile from "../pages/Authentication/user-profile"
 import ActivitiesList from "../pages/Admin/Activities"
 import AreasPage from "../pages/Admin/Areas"
 import CatalogPage from "../pages/Admin/Catalog"
-import CollaboratorsList from "../pages/Admin/Collaborators/List"
+import StaffList from "../pages/Admin/Staff/List"
 import ClassesPage from "../pages/Admin/Classes"
 import CashierPage from "../pages/Financial/Cashier"
 import CashierPrintPage from "../pages/Financial/Cashier/Components/Print"
@@ -23,7 +23,7 @@ import PlanningEventsPage from "../pages/Events/Planning"
 import EvaluationLevelsPage from "../pages/Management/EvaluationLevels"
 import Evaluation from "../pages/Evaluation"
 import SettingsPage from "../pages/Settings"
-import CollaboratorProfile from "../pages/Collaborators/Components/Profile"
+import StaffProfile from "../pages/Staff/Components/Profile"
 import CRMPage from "../pages/CRM"
 import IntegrationsPage from "../pages/Management/Integrations"
 import AutomationsPage from "../pages/Management/Automations"
@@ -79,7 +79,7 @@ const userRoutes = [
   { path: "/clients/:clientId/enroll", component: <ClientEnrollPage />, permissions: ["sales_purchase"] },
   { path: "/clients/enroll", component: <ClientEnrollPage />, permissions: ["sales_purchase"] },
   { path: "/clients/sales", component: <ClientSalesPage />, permissions: ["sales_purchase"] },
-  { path: "/collaborators/profile", component: <CollaboratorProfile />, permissions: ["collaborators_manage"] },
+  { path: "/Staff/profile", component: <StaffProfile />, permissions: ["staff_manage", "Staff_manage"] },
   { path: "/crm", component: <CRMPage />, permissions: ["crm_view"] },
   { path: "/events/planning", component: <PlanningEventsPage />, permissions: ["management_event_plan"] },
   { path: "/management/evaluation-levels", component: <EvaluationLevelsPage />, permissions: ["management_evaluation_levels"] },
@@ -94,7 +94,7 @@ const userRoutes = [
   { path: "/profile", component: <UserProfile /> }, // pública para logados
   { path: "/clients", component: <Navigate to="/clients/list" replace />, permissions: ["members_manage"] },
   { path: "/clients/list", component: <ClientsList />, permissions: ["members_manage"] },
-  { path: "/collaborators/list", component: <CollaboratorsList />, permissions: ["collaborators_manage"] },
+  { path: "/Staff/list", component: <StaffList />, permissions: ["staff_manage", "Staff_manage"] },
 
   // Help Center
   { path: "/help", component: <HelpPage /> },

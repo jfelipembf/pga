@@ -41,7 +41,7 @@ const initialState = {
     salary: "",
 }
 
-const CollaboratorAddModal = ({
+const StaffAddModal = ({
     isOpen,
     toggle,
     onSubmit,
@@ -404,4 +404,4 @@ const CollaboratorAddModal = ({
     )
 }
 
-export default CollaboratorAddModal
+export default StaffAddModal
