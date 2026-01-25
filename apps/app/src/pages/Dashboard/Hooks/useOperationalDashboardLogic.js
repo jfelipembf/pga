@@ -21,6 +21,8 @@ export const useOperationalDashboardLogic = () => {
     const [expirations, setExpirations] = useState([]) // [NEW] Expiration State
     const [completedAlertIds, setCompletedAlertIds] = useState([]) // [NEW] Tracks completed birthdays/expirations for today
 
+    const [dataLoaded, setDataLoaded] = useState(false)
+
     const load = React.useCallback(async () => {
         const user = getAuthUser()
         if (!user?.uid) return
@@ -56,6 +58,7 @@ export const useOperationalDashboardLogic = () => {
                 setBirthdays(bdayList)
                 setExpirations(expSummaryList)
                 setCompletedAlertIds(completedIds)
+                setDataLoaded(true)
             })
         } catch (e) {
             console.error("Failed to load operational stats", e)
@@ -170,7 +173,7 @@ export const useOperationalDashboardLogic = () => {
     }, [stats, experimentals, activeExpirations])
 
     return {
-        isLoading: isLoading('page'),
+        isLoading: isLoading('page') || !dataLoaded,
         reports,
         experimentals,
         tasks,

@@ -188,6 +188,7 @@ export const useFinancialDashboardLogic = () => {
         isLoading,
         reports,
         revenueHistory,
-        forecast
+        forecast,
+        monthly
     }
 }

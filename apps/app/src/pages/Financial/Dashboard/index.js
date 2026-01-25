@@ -11,6 +11,7 @@ import Miniwidget from "../../../components/Dashbooard/Miniwidget"
 import ReactApexChart from "react-apexcharts"
 import { formatCurrency } from "../../Dashboard/Utils/dashboardUtils"
 import { useFinancialDashboardLogic } from "./Hooks/useFinancialDashboardLogic"
+import PageLoader from "../../../components/Common/PageLoader"
 
 const FinancialDashboardContent = ({ data }) => {
     const { reports, forecast, revenueHistory } = data || { reports: [], forecast: [], revenueHistory: [] }
@@ -121,8 +122,9 @@ const FinancialDashboardContent = ({ data }) => {
     )
 }
 
+
 const FinancialDashboard = () => {
-    const { isLoading, reports, revenueHistory, forecast } = useFinancialDashboardLogic()
+    const { isLoading, reports, revenueHistory, forecast, monthly } = useFinancialDashboardLogic()
 
     // Pass the fetched data to the content component
     const data = {
@@ -131,8 +133,8 @@ const FinancialDashboard = () => {
         forecast
     }
 
-    if (isLoading('page') && !reports.length) {
-        return null // or a loading spinner
+    if (isLoading('page') || !monthly) {
+        return <PageLoader />
     }
 
     return <FinancialDashboardContent data={data} />

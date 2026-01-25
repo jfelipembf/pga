@@ -34,7 +34,7 @@ const Dashboard = ({ setBreadcrumbItems }) => {
 
   return (
     <React.Fragment>
-      {isLoading('page') ? (
+      {isLoading('page') || !monthly ? (
         <PageLoader />
       ) : (
         <div className="dashboard-wrapper">
