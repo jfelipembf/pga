@@ -94,13 +94,13 @@ const Register = props => {
                       }}
                     >
                       {user && user ? (
-                        <Alert color="success">
+                        <Alert color="success" fade={false}>
                           Register User Successfully
                         </Alert>
                       ) : null}
 
                       {registrationError && registrationError ? (
-                        <Alert color="danger">{registrationError}</Alert>
+                        <Alert color="danger" fade={false}>{registrationError}</Alert>
                       ) : null}
 
                       <div className="mb-3">

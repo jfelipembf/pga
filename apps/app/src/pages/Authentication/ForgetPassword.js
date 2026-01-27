@@ -88,12 +88,12 @@ const ForgetPasswordPage = props => {
                       Informe seu e-mail para receber o link de recuperação.
                     </p>
                     {forgetError ? (
-                      <Alert color="danger" style={{ marginTop: "13px" }}>
+                      <Alert color="danger" style={{ marginTop: "13px" }} fade={false}>
                         {forgetError}
                       </Alert>
                     ) : null}
                     {forgetSuccessMsg ? (
-                      <Alert color="success" style={{ marginTop: "13px" }}>
+                      <Alert color="success" style={{ marginTop: "13px" }} fade={false}>
                         {forgetSuccessMsg}
                       </Alert>
                     ) : null}

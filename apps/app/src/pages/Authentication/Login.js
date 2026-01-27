@@ -45,7 +45,7 @@ const Login = ({ router }) => {
           </header>
 
           {error && (
-            <Alert color="danger" className="py-2 small border-0 shadow-sm">
+            <Alert color="danger" className="py-2 small border-0 shadow-sm" fade={false}>
               {typeof error === "string" ? error : "Erro de autenticação"}
             </Alert>
           )}

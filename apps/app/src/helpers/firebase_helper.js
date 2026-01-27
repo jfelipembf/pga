@@ -45,7 +45,7 @@ class FirebaseAuthBackend {
       this.analytics = getAnalytics(this.app);
 
       // Connect to Emulators if running locally
-      if (window.location.hostname === "localhost") {
+      if (window.location.hostname === "localhost" && process.env.REACT_APP_USE_EMULATORS === "true") {
         // Prevent double connection causing errors
         try {
           connectAuthEmulator(this.auth, "http://localhost:9099");

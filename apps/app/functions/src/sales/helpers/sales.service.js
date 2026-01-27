@@ -90,7 +90,7 @@ async function saveSaleLogic(data, context) {
             totals: {
                 ...validatedData.totals,
                 paid: calculatedPaid, // Enforce backend calculation
-                pending: Math.max(0, validatedData.totals.net - calculatedPaid), // Enforce pending
+                pending: Math.max(0, (validatedData.totals?.net || validatedData.netAmount || 0) - calculatedPaid), // Enforce pending
             },
 
             notes: validatedData.notes || "",
