@@ -1,9 +1,6 @@
 import { getFirebaseBackend } from '../../helpers/firebase_helper'
 import { collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/firestore'
 
-const firebaseBackend = getFirebaseBackend()
-const db = firebaseBackend.db
-
 /**
  * Repositório para Lançamentos Contábeis (Ledger Entries)
  * Sistema de Partidas Dobradas
@@ -26,9 +23,20 @@ export class LedgerRepository {
         this.collectionName = 'ledger_entries'
     }
 
+    /**
+     * Getter para o banco de dados (lazy loading)
+     */
+    get db() {
+        const backend = getFirebaseBackend()
+        if (!backend) {
+            throw new Error("Firebase Backend não inicializado. Verifique a configuração.")
+        }
+        return backend.db
+    }
+
     getCollectionRef(idTenant, idBranch) {
         return collection(
-            db,
+            this.db,
             'tenants',
             idTenant,
             'branches',

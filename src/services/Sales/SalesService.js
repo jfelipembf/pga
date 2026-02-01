@@ -5,6 +5,7 @@ import { contractRepository } from '../../data/repositories/ContractRepository'
 import { clientContractRepository } from '../../data/repositories/ClientContractRepository'
 import { CashierService } from '../Financial/CashierService'
 import { AuditService } from '../Audit/AuditService'
+import { LedgerService } from '../Ledger/LedgerService'
 import { SaleSchema } from '../../data/schemas/Financial/SaleSchema'
 import { generateSaleNumber, generateDailySequential } from '../../utils/idGenerators'
 import moment from 'moment'
@@ -58,7 +59,8 @@ export const SalesService = {
             createdAt: new Date()
         })
 
-        // 4. Processar cada pagamento recebido
+
+        // 5. Processar cada pagamento recebido
         if (saleData.payments && saleData.payments.length > 0) {
             for (const payment of saleData.payments) {
                 const pValue = parseFloat(payment.value) || 0;
@@ -76,6 +78,14 @@ export const SalesService = {
                         saleNumber: newSale.saleNumber
                     })
 
+                    // CONTABILIDADE: Baixar Recebível "A Vista" (D: Caixa, C: Recebível)
+                    await LedgerService.registerSalePayment(idTenant, idBranch, {
+                        saleId: newSale.id,
+                        saleNumber: newSale.saleNumber,
+                        paymentMethod: 'dinheiro',
+                        amount: pValue
+                    });
+
                 } else if (payment.methodId === 'pix') {
                     // PIX: Vai direto para conta bancária, NÃO para caixa físico
                     // TODO: Implementar BankAccountService.registerTransaction
@@ -91,6 +101,14 @@ export const SalesService = {
                         saleNumber: newSale.saleNumber,
                         metadata: { shouldBeBankTransaction: true } // Flag para migração futura
                     })
+
+                    // CONTABILIDADE: Baixar Recebível "A Vista" (D: Banco/Caixa, C: Recebível)
+                    await LedgerService.registerSalePayment(idTenant, idBranch, {
+                        saleId: newSale.id,
+                        saleNumber: newSale.saleNumber,
+                        paymentMethod: 'pix',
+                        amount: pValue
+                    });
 
                 } else if (['cartao_debito', 'cartao_credito'].includes(payment.methodId)) {
                     // CARTÃO: Regime de Competência -> Recebíveis com Taxas
@@ -265,6 +283,40 @@ export const SalesService = {
             }
         }
 
+        // 8. ✅ LANÇAMENTO CONTÁBIL (Partidas Dobradas)
+        // Classificar receita baseada nos itens
+        let revenueId = '1.1.2' // Default: Serviços
+        let revenueName = 'Prestação de Serviços'
+
+        const hasProduct = saleData.items?.some(i => i.type === 'product' || i.type === 'produto')
+        const hasService = saleData.items?.some(i => i.type === 'service' || i.type === 'servico' || i.type === 'contract' || i.type === 'contrato')
+
+        if (hasProduct && !hasService) {
+            revenueId = '1.1.1'
+            revenueName = 'Venda de Produtos'
+        } else if (hasService) {
+            // Se for contrato recorrente é Mensalidade
+            if (saleData.items?.some(i => i.type === 'contract' || i.type === 'contrato')) {
+                revenueId = '1.1.3'
+                revenueName = 'Mensalidades/Assinaturas'
+            } else {
+                revenueId = '1.1.2'
+                revenueName = 'Prestação de Serviços'
+            }
+        }
+        // Se for misto, mantém o default (Serviços) ou poderíamos criar rateio (futuro)
+
+        try {
+            await LedgerService.createSaleEntry(idTenant, idBranch, {
+                ...newSale,
+                total: saleData.total, // Garantir total correto
+                revenueAccountId: revenueId,
+                revenueAccountName: revenueName
+            })
+        } catch (ledgerError) {
+            console.error("Erro ao criar lançamento contábil de venda:", ledgerError)
+        }
+
         // 6. Auditoria (Rastreabilidade total)
         await AuditService.log({
             idTenant, idBranch, userId,
@@ -280,5 +332,15 @@ export const SalesService = {
         })
 
         return newSale
+    },
+
+    /**
+     * Lista o histórico de vendas de um cliente.
+     */
+    listByClient: async (idTenant, idBranch, idClient) => {
+        return await salesRepository.findWhere(idTenant, idBranch,
+            [['idClient', '==', idClient], ['deleted', '==', false]],
+            { field: 'saleDate', direction: 'desc' }
+        );
     }
 }

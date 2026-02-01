@@ -1,15 +1,19 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTenant } from '../../../../hooks/useTenant'
-import { FinancialService } from '../../../../services/Financial/FinancialService'
+import { LedgerService } from '../../../../services/Ledger/LedgerService'
 import { toast } from 'react-toastify'
 import moment from 'moment'
 
 /**
- * Hook para gerenciar a lógica da DRE por Regime de Competência
+ * Hook para gerenciar a DRE (Demonstração do Resultado do Exercício)
+ * AGORA USANDO PARTIDAS DOBRADAS (LedgerService)
+ * 
+ * Este hook busca os lançamentos contábeis do período e gera o DRE
+ * a partir do BALANCETE (verdade contábil).
  */
 export const useDRE = () => {
     const { tenantId: idTenant, branchId: idBranch } = useTenant()
-    const [data, setData] = useState({ sales: [], payables: [], transactions: [] })
+    const [balancete, setBalancete] = useState([])
     const [loading, setLoading] = useState(true)
     const [period, setPeriod] = useState('month')
 
@@ -30,9 +34,17 @@ export const useDRE = () => {
                 endDate = moment().endOf('month').toDate();
             }
 
-            console.log("DRE: Carregando período", { startDate, endDate, period });
-            const result = await FinancialService.getDREAccrualData(idTenant, idBranch, startDate, endDate)
-            setData(result)
+            console.log("DRE: Carregando balancete do período", { startDate, endDate, period });
+
+            // ✅ NOVA ABORDAGEM: Busca VERDADE CONTÁBIL do Ledger
+            const trialBalance = await LedgerService.getTrialBalance(
+                idTenant,
+                idBranch,
+                startDate,
+                endDate
+            )
+
+            setBalancete(trialBalance)
         } catch (error) {
             console.error("Erro ao carregar DRE:", error)
             toast.error("Erro ao carregar dados da DRE")
@@ -46,68 +58,70 @@ export const useDRE = () => {
     }, [loadData])
 
     /**
-     * Normaliza os dados para o formato que o componente CashFlowDRE espera.
-     * Transforma Vendas, Contas a Pagar e Transações Avulsas em uma lista única.
+     * Processa o balancete e gera dados para o DRE
+     * Formato compatível com CashFlowDRE component
      */
     const normalizedTransactions = useMemo(() => {
         const net = [];
 
-        // 1. Vendas (Receita por Competência)
-        if (data.sales && Array.isArray(data.sales)) {
-            data.sales
-                .filter(s => s.deleted !== true)
-                .forEach(s => {
+        balancete.forEach(conta => {
+            // RECEITAS (crédito > débito)
+            if (conta.account.startsWith('RECEITA_')) {
+                const valor = conta.credit - conta.debit
+                if (valor > 0) {
                     net.push({
-                        id: s.id,
+                        id: conta.account,
                         type: 'income',
-                        amount: parseFloat(s.total) || 0,
-                        category: 'Vendas de Planos/Produtos',
-                        date: s.saleDate,
-                        description: `Venda #${s.saleNumber || s.id?.substring(0, 6)} - ${s.clientName || 'Cliente'}`
-                    });
-                });
-        }
+                        amount: valor,
+                        category: conta.accountName,
+                        description: `Receitas: ${conta.accountName}`,
+                        date: new Date() // Data do período
+                    })
+                }
+            }
 
-        // 2. Contas a Pagar (Despesa por Competência)
-        if (data.payables && Array.isArray(data.payables)) {
-            data.payables
-                .filter(p => p.deleted !== true)
-                .forEach(p => {
+            // DESPESAS (débito > crédito)
+            if (conta.account.startsWith('DESPESA_')) {
+                const valor = conta.debit - conta.credit
+                if (valor > 0) {
                     net.push({
-                        id: p.id,
+                        id: conta.account,
                         type: 'expense',
-                        amount: parseFloat(p.amount) || 0,
-                        category: p.chartOfAccountName || 'Despesas Gerais',
-                        date: p.dueDate,
-                        description: p.description || 'Despesa'
-                    });
-                });
-        }
-
-        // 3. Outras Transações (que não são vinculadas a vendas ou contas a pagar)
-        if (data.transactions && Array.isArray(data.transactions)) {
-            data.transactions
-                .filter(t => t.deleted !== true && t.category !== 'Movimentação Interna (Antecipação)')
-                .forEach(t => {
-                    const isSaleLinked = !!t.idSale;
-                    const isPayableLinked = !!t.idPayable;
-
-                    // Se for uma movimentação avulsa (ex: suprimento manual, despesa rápida sem CP)
-                    if (!isSaleLinked && !isPayableLinked) {
-                        net.push({
-                            ...t,
-                            amount: parseFloat(t.amount) || 0,
-                            category: t.category || (t.type === 'income' ? 'Outras Receitas' : 'Outras Despesas')
-                        });
-                    }
-                });
-        }
+                        amount: valor,
+                        category: conta.accountName,
+                        description: `Despesas: ${conta.accountName}`,
+                        date: new Date() // Data do período
+                    })
+                }
+            }
+        })
 
         return net;
-    }, [data])
+    }, [balancete])
+
+    /**
+     * Totalizadores do DRE
+     */
+    const summary = useMemo(() => {
+        const totalReceitas = balancete
+            .filter(c => c.account.startsWith('RECEITA_'))
+            .reduce((sum, c) => sum + (c.credit - c.debit), 0)
+
+        const totalDespesas = balancete
+            .filter(c => c.account.startsWith('DESPESA_'))
+            .reduce((sum, c) => sum + (c.debit - c.credit), 0)
+
+        return {
+            receitas: totalReceitas,
+            despesas: totalDespesas,
+            lucro: totalReceitas - totalDespesas
+        }
+    }, [balancete])
 
     return {
         transactions: normalizedTransactions,
+        summary,
+        balancete,
         loading,
         period,
         setPeriod,

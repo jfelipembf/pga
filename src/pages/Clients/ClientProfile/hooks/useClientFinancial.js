@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react"
 import { useParams } from "react-router-dom"
 import { useTenant } from "../../../../hooks/useTenant"
-import { FinancialService } from "../../../../services/Financial/FinancialService"
+import { ReceivableService } from "../../../../services/Financial/ReceivableService"
+import { SalesService } from "../../../../services/Sales/SalesService"
 import { toast } from "react-toastify"
 
 /**
@@ -26,9 +27,9 @@ export const useClientFinancial = () => {
 
             // Buscar dados em paralelo para melhor performance
             const [summaryData, receivablesData, salesData] = await Promise.all([
-                FinancialService.getClientFinancialSummary(tenantId, branchId, id),
-                FinancialService.getClientReceivables(tenantId, branchId, id),
-                FinancialService.getClientSales(tenantId, branchId, id)
+                ReceivableService.getSummaryByClient(tenantId, branchId, id),
+                ReceivableService.listByClient(tenantId, branchId, id),
+                SalesService.listByClient(tenantId, branchId, id)
             ])
 
             setSummary(summaryData)

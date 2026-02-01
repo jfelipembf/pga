@@ -4,7 +4,7 @@ import { FormSwitch } from "../../../components/Common/FormSwitch"
 import { useFormik } from "formik"
 import { BankAccountSchema } from "../../../data/schemas/Financial/BankAccountSchema"
 
-export const BankAccountFormVisual = ({ initialData, onSave, onCancel }) => {
+export const BankAccountFormVisual = ({ initialData, onSave, onCancel, onDelete }) => {
 
     const formik = useFormik({
         initialValues: {
@@ -38,7 +38,11 @@ export const BankAccountFormVisual = ({ initialData, onSave, onCancel }) => {
             '260': 'Nubank',
             '077': 'Inter'
         }
-        formik.setFieldValue('bank', banks[value] || 'Outro')
+        if (value === '999') {
+            formik.setFieldValue('bank', '')
+        } else {
+            formik.setFieldValue('bank', banks[value] || 'Outro')
+        }
     }
 
     return (
@@ -48,6 +52,15 @@ export const BankAccountFormVisual = ({ initialData, onSave, onCancel }) => {
                     {initialData ? `Editar: ${initialData.name}` : 'Nova Conta Bancária'}
                 </h4>
                 <div>
+                    {initialData && onDelete && (
+                        <Button color="danger" outline className="me-2 waves-effect" onClick={() => {
+                            if (window.confirm("Tem certeza que deseja excluir esta conta?")) {
+                                onDelete();
+                            }
+                        }}>
+                            <i className="mdi mdi-trash-can-outline me-1"></i> Excluir
+                        </Button>
+                    )}
                     <Button color="secondary" outline className="me-2 waves-effect" onClick={onCancel}>
                         Cancelar
                     </Button>
@@ -93,9 +106,24 @@ export const BankAccountFormVisual = ({ initialData, onSave, onCancel }) => {
                             <option value="104">104 - Caixa Econômica</option>
                             <option value="260">260 - Nubank</option>
                             <option value="077">077 - Inter</option>
+                            <option value="999">999 - Outro Banco</option>
                         </Input>
                         {formik.errors.bankCode && <FormFeedback>{formik.errors.bankCode}</FormFeedback>}
                     </Col>
+
+                    {formik.values.bankCode === '999' && (
+                        <Col md={4} className="mb-3">
+                            <Label>Nome do Banco</Label>
+                            <Input
+                                name="bank"
+                                type="text"
+                                placeholder="Digite o nome do banco"
+                                value={formik.values.bank}
+                                onChange={formik.handleChange}
+                            />
+                        </Col>
+                    )}
+
                     <Col md={4} className="mb-3">
                         <Label>Tipo de Conta</Label>
                         <Input
@@ -106,6 +134,8 @@ export const BankAccountFormVisual = ({ initialData, onSave, onCancel }) => {
                         >
                             <option value="checking">Conta Corrente</option>
                             <option value="savings">Conta Poupança</option>
+                            <option value="investment">Conta Investimento</option>
+                            <option value="cashier">Caixa Físico</option>
                         </Input>
                     </Col>
                     <Col md={4} className="mb-3">
@@ -114,14 +144,25 @@ export const BankAccountFormVisual = ({ initialData, onSave, onCancel }) => {
                             <InputGroupText>R$</InputGroupText>
                             <Input
                                 name="currentBalance"
-                                type="number"
-                                step="0.01"
+                                type="text"
                                 placeholder="0,00"
-                                value={formik.values.currentBalance}
-                                onChange={formik.handleChange}
-                                disabled={!!initialData} // Saldo não deve ser editado diretamente após criado
+                                value={
+                                    formik.values.currentBalance !== undefined && formik.values.currentBalance !== null
+                                        ? new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(formik.values.currentBalance)
+                                        : ''
+                                }
+                                onChange={(e) => {
+                                    const rawValue = e.target.value.replace(/\D/g, '');
+                                    const numberValue = rawValue ? parseFloat(rawValue) / 100 : 0;
+                                    formik.setFieldValue('currentBalance', numberValue);
+                                }}
                             />
                         </InputGroup>
+                        <small className="text-warning d-block mt-1" style={{ fontSize: '11px', lineHeight: '1.2' }}>
+                            <i className="mdi mdi-alert-outline me-1"></i>
+                            Alterar aqui não gera histórico. Para auditoria correta, ajuste via Transação.
+                        </small>
+                        <small className="text-muted">Ajuste o saldo para corresponder ao real.</small>
                     </Col>
                 </Row>
 

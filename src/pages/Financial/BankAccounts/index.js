@@ -15,7 +15,8 @@ const BankAccountList = () => {
         selectedAccount,
         handleAddClick,
         handleItemClick,
-        handleSave
+        handleSave,
+        handleDelete
     } = useBankAccounts()
 
     // Sidebar Content
@@ -43,6 +44,7 @@ const BankAccountList = () => {
             initialData={selectedAccount}
             onSave={handleSave}
             onCancel={() => { }}
+            onDelete={selectedAccount ? () => handleDelete(selectedAccount.id) : undefined}
         />
     ) : (
         <div className="d-flex flex-column align-items-center justify-content-center h-100 text-muted" style={{ minHeight: '400px' }}>

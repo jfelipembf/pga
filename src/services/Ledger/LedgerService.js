@@ -24,6 +24,9 @@ export const STANDARD_ACCOUNTS = {
     OPERATIONAL_EXPENSES: 'DESPESA_OPERACIONAL',
     CARD_FEES: 'DESPESA_TAXAS_CARTAO',
     SALARY_EXPENSES: 'DESPESA_SALARIOS',
+
+    // PATRIMÔNIO
+    EQUITY_ADJUSTMENTS: 'PATRIMONIO_AJUSTES',
 }
 
 /**
@@ -114,6 +117,10 @@ export const LedgerService = {
      * Quando: Ao CRIAR uma venda
      */
     createSaleEntry: async (idTenant, idBranch, sale) => {
+        // Determinar conta de receita (Padrão: 1.1.2 Prestação de Serviços se não especificado)
+        const revenueAccount = sale.revenueAccountId || '1.1.2';
+        const revenueName = sale.revenueAccountName || 'Prestação de Serviços';
+
         return await ledgerRepository.create(idTenant, idBranch, {
             date: sale.createdAt || new Date(),
             description: `Venda: ${sale.saleNumber}`,
@@ -130,8 +137,8 @@ export const LedgerService = {
                 },
                 {
                     // CRÉDITO: Aumenta a receita (vai para o DRE)
-                    account: STANDARD_ACCOUNTS.SALES_REVENUE,
-                    accountName: 'Receita de Vendas',
+                    account: revenueAccount,
+                    accountName: revenueName,
                     debit: 0,
                     credit: sale.total
                 }
@@ -210,5 +217,187 @@ export const LedgerService = {
         })
 
         return Object.values(balances)
+    },
+
+    /**
+     * Lançamento: Movimentação de Caixa (Sangria/Suprimento)
+     * Quando: Sangria (retirar dinheiro) ou Suprimento (adicionar dinheiro)
+     * 
+     * Sangria (withdrawal):
+     * D - Banco  R$ 500
+     * C - Caixa  R$ 500
+     * 
+     * Suprimento (supply):
+     * D - Caixa  R$ 500
+     * C - Banco  R$ 500
+     */
+    createCashierMovement: async (idTenant, idBranch, movement) => {
+        const isWithdrawal = movement.type === 'withdrawal'
+
+        return await ledgerRepository.create(idTenant, idBranch, {
+            date: movement.date || new Date(),
+            description: isWithdrawal
+                ? `Sangria de caixa: ${movement.description}`
+                : `Suprimento de caixa: ${movement.description}`,
+            sourceType: 'cashier_movement',
+            sourceId: movement.id,
+            entries: [
+                {
+                    account: isWithdrawal ? movement.idBankAccount : STANDARD_ACCOUNTS.CASH,
+                    accountName: isWithdrawal ? movement.bankAccountName : 'Caixa',
+                    debit: movement.amount,
+                    credit: 0
+                },
+                {
+                    account: isWithdrawal ? STANDARD_ACCOUNTS.CASH : movement.idBankAccount,
+                    accountName: isWithdrawal ? 'Caixa' : movement.bankAccountName,
+                    debit: 0,
+                    credit: movement.amount
+                }
+            ]
+        })
+    },
+
+    /**
+     * Lançamento: Transferência entre Contas Bancárias
+     * Quando: Transferir dinheiro de um banco para outro
+     * 
+     * D - Banco Destino   R$ 1.000
+     * C - Banco Origem    R$ 1.000
+     */
+    createBankTransfer: async (idTenant, idBranch, transfer) => {
+        return await ledgerRepository.create(idTenant, idBranch, {
+            date: transfer.date || new Date(),
+            description: `Transferência: ${transfer.fromBankName} → ${transfer.toBankName}`,
+            sourceType: 'bank_transfer',
+            sourceId: transfer.id,
+            entries: [
+                {
+                    // DÉBITO: Aumenta saldo do banco destino
+                    account: transfer.idBankAccountTo,
+                    accountName: transfer.toBankName,
+                    debit: transfer.amount,
+                    credit: 0
+                },
+                {
+                    // CRÉDITO: Diminui saldo do banco origem
+                    account: transfer.idBankAccountFrom,
+                    accountName: transfer.fromBankName,
+                    debit: 0,
+                    credit: transfer.amount
+                }
+            ]
+        })
+    },
+
+    /**
+     * Lançamento: Tarifa Bancária
+     * Quando: Banco cobra tarifa
+     * 
+     * D - Despesa com Tarifas  R$ 15
+     * C - Banco                R$ 15
+     */
+    createBankFee: async (idTenant, idBranch, fee) => {
+        return await ledgerRepository.create(idTenant, idBranch, {
+            date: fee.date || new Date(),
+            description: `Tarifa bancária: ${fee.description}`,
+            sourceType: 'bank_fee',
+            sourceId: fee.id,
+            entries: [
+                {
+                    // DÉBITO: Despesa com tarifas (vai para DRE)
+                    account: 'DESPESA_TARIFAS_BANCARIAS',
+                    accountName: 'Despesa com Tarifas Bancárias',
+                    debit: fee.amount,
+                    credit: 0
+                },
+                {
+                    // CRÉDITO: Diminui saldo do banco
+                    account: fee.idBankAccount,
+                    accountName: fee.bankAccountName,
+                    debit: 0,
+                    credit: fee.amount
+                }
+            ]
+        })
+    },
+
+    /**
+     * Lançamento: Saldo Inicial ou Ajuste de Conta Bancária
+     * Quando: Ao cadastrar uma conta com saldo ou ajustar manualmente
+     */
+    createOpeningBalanceEntry: async (idTenant, idBranch, idAccount, accountName, amount, isAdjustment = false) => {
+        const isPositive = amount >= 0;
+        const absAmount = Math.abs(amount);
+
+        return await ledgerRepository.create(idTenant, idBranch, {
+            date: new Date(),
+            description: isAdjustment ? `Ajuste de Saldo - ${accountName}` : `Saldo Inicial - ${accountName}`,
+            sourceType: isAdjustment ? 'balance_adjustment' : 'opening_balance',
+            sourceId: idAccount,
+            entries: [
+                {
+                    // DÉBITO: Se positivo, aumenta o banco. Se negativo, diminui (Crédito).
+                    // Aqui inverte a lógica pois o Ledger espera Debit/Credit colunas
+                    account: STANDARD_ACCOUNTS.BANK_ACCOUNTS,
+                    accountName: accountName,
+                    debit: isPositive ? absAmount : 0,
+                    credit: !isPositive ? absAmount : 0,
+                },
+                {
+                    // CONTRA-PARTIDA: PL
+                    account: STANDARD_ACCOUNTS.EQUITY_ADJUSTMENTS,
+                    accountName: 'Ajustes de Saldo / Capital',
+                    debit: !isPositive ? absAmount : 0, // Se banco diminuiu, PL diminui (Débito)
+                    credit: isPositive ? absAmount : 0, // Se banco aumentou, PL aumenta (Crédito)
+                }
+            ]
+        })
+    },
+
+    /**
+     * Lançamento: Recebimento de Venda à Vista (Dinheiro/PIX)
+     * Quando: Pagamento imediato no PDV
+     * 
+     * D - Caixa/Banco
+     * C - Contas a Receber (baixa o direito criado na Venda)
+     */
+    registerSalePayment: async (idTenant, idBranch, { saleId, saleNumber, paymentMethod, amount, bankAccountId, bankAccountName }) => {
+        let debitAccount = STANDARD_ACCOUNTS.CASH;
+        let debitAccountName = 'Caixa';
+
+        // Se for PIX ou Transferência, idealmente iria para o Banco
+        // Mas se o sistema ainda joga PIX no "Caixa" (CashierService), mantemos Caixa aqui ou ajustamos no futuro.
+        // O SalesService atual joga PIX no CashierService, então contabilmente é "Caixa" (Gaveta Virtual de PIX) ou Banco?
+        // Vamos assumir que PIX cai na conta bancária se tiver o ID, senão cai no "Banco Genérico"
+        if (paymentMethod === 'pix' || paymentMethod === 'transferencia' || bankAccountId) {
+            // Se tiver bankAccountId real, usa. Se não, usa o Genérico de Ativo Circulante Bancos
+            // ATENÇÃO: Se não tiver conta bancária cadastrada para o PIX, isso gera uma pendência de conciliação.
+            debitAccount = bankAccountId || STANDARD_ACCOUNTS.BANK_ACCOUNTS;
+            debitAccountName = bankAccountName || 'Conta Bancária (PIX)';
+        }
+
+        return await ledgerRepository.create(idTenant, idBranch, {
+            date: new Date(),
+            description: `Recebimento à Vista (${paymentMethod}): Venda #${saleNumber}`,
+            sourceType: 'sale_payment_instant',
+            sourceId: saleId,
+            entries: [
+                {
+                    // DÉBITO: Entrada no Caixa/Banco
+                    account: debitAccount,
+                    accountName: debitAccountName,
+                    debit: amount,
+                    credit: 0
+                },
+                {
+                    // CRÉDITO: Baixa do Contas a Receber (criado na venda)
+                    account: STANDARD_ACCOUNTS.ACCOUNTS_RECEIVABLE,
+                    accountName: 'Contas a Receber',
+                    debit: 0,
+                    credit: amount
+                }
+            ]
+        })
     }
 }

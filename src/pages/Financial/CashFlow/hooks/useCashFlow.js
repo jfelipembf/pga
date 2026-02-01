@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTenant } from '../../../../hooks/useTenant'
-import { FinancialService } from '../../../../services/Financial/FinancialService'
+import { CashierService } from '../../../../services/Financial/CashierService'
 import { toast } from 'react-toastify'
 import moment from 'moment'
 
@@ -16,7 +16,7 @@ export const useCashFlow = () => {
     const loadData = useCallback(async () => {
         try {
             setLoading(true)
-            const txs = await FinancialService.listTransactions(idTenant, idBranch)
+            const txs = await CashierService.listTransactions(idTenant, idBranch)
             setTransactions(txs)
         } catch (error) {
             console.error("Erro ao carregar fluxo de caixa:", error)

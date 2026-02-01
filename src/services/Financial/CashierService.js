@@ -2,6 +2,7 @@ import { cashierRepository } from '../../data/repositories/CashierRepository'
 import { transactionRepository } from '../../data/repositories/TransactionRepository'
 import { AuditService } from '../Audit/AuditService'
 import { CashierSessionSchema, TransactionSchema } from '../../data/schemas/FinancialSchemas'
+import { LedgerService } from '../Ledger/LedgerService'
 
 /**
  * Serviço responsável por gerenciar a "Gaveta de Caixa" (Sessões e Movimentações).
@@ -114,6 +115,24 @@ export const CashierService = {
 
         await cashierRepository.update(idTenant, idBranch, cashierSession.id, updates);
 
+        // ✅ LANÇAMENTO CONTÁBIL (se for sangria/suprimento com banco vinculado)
+        if ((fullMovement.category === 'withdrawal' || fullMovement.category === 'supply')
+            && fullMovement.idBankAccount) {
+            try {
+                await LedgerService.createCashierMovement(idTenant, idBranch, {
+                    id: newMovement.id,
+                    type: fullMovement.category,
+                    amount: fullMovement.amount,
+                    idBankAccount: fullMovement.idBankAccount,
+                    bankAccountName: fullMovement.bankAccountName || 'Banco',
+                    description: fullMovement.description,
+                    date: new Date()
+                })
+            } catch (ledgerError) {
+                console.error("Erro ao criar lançamento contábil de movimentação de caixa:", ledgerError)
+            }
+        }
+
         await AuditService.log({
             idTenant, idBranch, userId,
             action: fullMovement.type === 'income' ? 'CASHIER_INCOME' : 'CASHIER_EXPENSE',
@@ -124,5 +143,15 @@ export const CashierService = {
         });
 
         return newMovement;
+    },
+
+    /**
+     * Lista as transações financeiras (Movimentações de Caixa)
+     */
+    listTransactions: async (idTenant, idBranch, limitCount = 50) => {
+        return await transactionRepository.findWhere(idTenant, idBranch,
+            [],
+            { field: 'date', direction: 'desc' }
+        );
     }
 }

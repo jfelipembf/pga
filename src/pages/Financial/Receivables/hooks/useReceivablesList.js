@@ -84,21 +84,21 @@ export const useReceivablesList = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [idTenant, idBranch, fetchLimit]); // Removido statusFilter, paymentFilter e dateRange para busca manual
+    }, [idTenant, idBranch, fetchLimit, statusFilter, paymentFilter, dateRange]);
 
     const handleLoadMore = useCallback(() => {
         setFetchLimit(prev => prev + 50);
     }, []);
 
-    // Reset fetchLimit ao mudar filtros (opcional, mas bom manter)
+    // Reset fetchLimit ao mudar filtros
     useEffect(() => {
         setFetchLimit(50);
     }, [statusFilter, paymentFilter, dateRange]);
 
-    // Initial load only
+    // Carregar dados quando houver mudanças (Filtros ou Tenant)
     useEffect(() => {
         loadReceivables();
-    }, [idTenant, idBranch]); // Só carrega no mount ou mudança de unidade
+    }, [loadReceivables]);
 
     // 3. Lógica de Seleção
     const toggleSelect = useCallback((id) => {

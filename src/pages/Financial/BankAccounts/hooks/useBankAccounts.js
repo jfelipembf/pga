@@ -58,6 +58,20 @@ export const useBankAccounts = () => {
         }
     }
 
+    const handleDelete = async (id) => {
+        try {
+            await BankAccountService.delete(idTenant, idBranch, id)
+            toast.success("Conta excluída com sucesso")
+
+            setIsAddingNew(false)
+            setSelectedId(null)
+            await loadAccounts()
+        } catch (error) {
+            console.error("Erro ao excluir conta:", error)
+            toast.error("Erro ao excluir conta")
+        }
+    }
+
     const selectedAccount = useMemo(() => {
         return accounts.find(a => a.id === selectedId) || null
     }, [accounts, selectedId])
@@ -71,6 +85,7 @@ export const useBankAccounts = () => {
         handleAddClick,
         handleItemClick,
         handleSave,
+        handleDelete,
         refresh: loadAccounts
     }
 }
