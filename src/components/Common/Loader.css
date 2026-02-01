@@ -1,0 +1,130 @@
+.page-loader-wrapper {
+    width: 100%;
+    min-height: calc(100vh - 180px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.full-screen-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.component-loader-wrapper {
+    width: 100%;
+    min-height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+
+.page-loader-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.loader-logo {
+    width: 80px;
+    height: auto;
+    animation: pulse 2s infinite ease-in-out;
+}
+
+.loader-spinner {
+    display: flex;
+    gap: 6px;
+}
+
+.loader-spinner>div {
+    width: 12px;
+    height: 12px;
+    background-color: var(--bs-primary, #3c5068);
+    border-radius: 100%;
+    display: inline-block;
+    animation: sk-bouncedelay 1.4s infinite ease-in-out both;
+}
+
+.loader-spinner .bounce1 {
+    animation-delay: -0.32s;
+}
+
+.loader-spinner .bounce2 {
+    animation-delay: -0.16s;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+}
+
+.overlay-loader-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(2px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+
+@keyframes sk-bouncedelay {
+
+    0%,
+    80%,
+    100% {
+        transform: scale(0);
+    }
+
+    40% {
+        transform: scale(1.0);
+    }
+}
+
+/* Photo Preview Styles */
+.basic-modal__photo {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.basic-modal__photo:hover {
+    border-color: var(--bs-primary) !important;
+    opacity: 0.9;
+}
+
+.basic-modal__camera {
+    transition: all 0.2s ease;
+    z-index: 5;
+}
+
+.basic-modal__camera:hover {
+    transform: scale(1.1);
+}

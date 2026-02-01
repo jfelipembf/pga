@@ -1,0 +1,157 @@
+.client-profile {
+    &__hero {
+        position: relative;
+        min-height: 320px;
+        border-radius: 12px;
+        background-size: cover;
+        background-position: center;
+        padding: 2rem 2.5rem 5rem 2.5rem; // Mais padding embaixo para as tabs
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center; // Centraliza verticalmente o conteúdo principal
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.6) 100%);
+            z-index: 1;
+        }
+    }
+
+    &__content {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+    }
+
+    &__avatar-wrapper {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        flex-shrink: 0;
+    }
+
+    &__avatar {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background-size: cover;
+        background-position: center;
+        border: 4px solid #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    &__camera {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: #fff;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        transition: all 0.2s ease;
+
+        &:hover {
+            transform: scale(1.1);
+            background: #f8f9fa;
+        }
+
+        i {
+            color: #495057;
+            font-size: 1.1rem;
+        }
+    }
+
+    &__tabs {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(8px);
+        display: flex;
+        padding: 0 2.5rem;
+        z-index: 2;
+    }
+
+    &__tab {
+        padding: 1rem 1.5rem;
+        color: rgba(255, 255, 255, 0.8);
+        border: none;
+        background: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+        cursor: pointer;
+
+        &:hover {
+            color: #fff;
+        }
+
+        &--active {
+            color: #fff;
+            border-bottom-color: #fff;
+        }
+    }
+
+    .info-card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border-radius: 12px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+        &:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+
+        &__icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+    }
+
+    .profile-section {
+        background: #fff;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+        &__title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #343a40;
+
+            i {
+                color: #5b73e8;
+            }
+        }
+    }
+}

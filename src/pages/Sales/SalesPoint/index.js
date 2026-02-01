@@ -1,0 +1,102 @@
+import React from 'react';
+import { Row, Col, Button } from 'reactstrap';
+import SalesSelectionPanel from './components/SalesSelectionPanel';
+import SalesCartPanel from './components/SalesCartPanel';
+import { useNavigate } from 'react-router-dom';
+import { useSalesPoint } from './hooks/useSalesPoint';
+import OverlayLoader from '../../../components/Common/OverlayLoader';
+
+/**
+ * Página de Ponto de Venda.
+ * Segue o padrão de ser uma "View" limpa, delegando a lógica para o hook useSalesPoint.
+ */
+const SalesPoint = () => {
+    const navigate = useNavigate();
+
+    // Toda a lógica de estado e processamento extraída para o hook
+    const {
+        clientName,
+        activeTab,
+        cartItems,
+        payments,
+        isProcessing,
+        isLoadingData,
+        data,
+        totals,
+        toggleTab,
+        handleAddItem,
+        handleAddPayment,
+        handleRemoveItem,
+        handleRemovePayment,
+        handleFinalizeSale
+    } = useSalesPoint();
+
+    return (
+        <React.Fragment>
+            {/* Cabeçalho da Venda */}
+            <div className="d-flex align-items-center justify-content-between px-4 py-3 bg-dark text-white mb-4 rounded shadow-sm">
+                <div className="d-flex align-items-center">
+                    <Button
+                        color="link"
+                        className="text-white p-0 me-3"
+                        onClick={() => navigate(-1)}
+                    >
+                        <i className="mdi mdi-arrow-left font-size-22"></i>
+                    </Button>
+                    <div className="avatar-xs me-3">
+                        <span className="avatar-title rounded-circle bg-light text-dark font-size-16">
+                            {clientName.charAt(0)}
+                        </span>
+                    </div>
+                    <h5 className="mb-0 text-white font-size-16 text-uppercase">{clientName}</h5>
+                </div>
+
+                <div className="d-flex align-items-center gap-4">
+                    <div className="d-flex align-items-center">
+                        <span className="badge rounded-pill bg-white text-dark font-size-12 me-2">1</span>
+                        <span className="font-size-13 text-white">Venda em Aberto</span>
+                    </div>
+                    <div className="text-end">
+                        <span className="d-block font-size-10 text-white-50">Total</span>
+                        <h5 className="m-0 text-white font-size-16">
+                            {totals?.subtotal ? `R$ ${totals.subtotal.toFixed(2)}` : 'R$ 0,00'}
+                        </h5>
+                    </div>
+                </div>
+            </div>
+
+            <Row className="align-items-start g-3">
+                {/* Painel de Seleção (Esquerda) */}
+                <Col lg={8}>
+                    <SalesSelectionPanel
+                        activeTab={activeTab}
+                        toggleTab={toggleTab}
+                        onAddPayment={handleAddPayment}
+                        onAddItem={handleAddItem}
+                        contracts={data.contracts}
+                        acquirers={data.acquirers}
+                        suggestedValue={totals.balance > 0 ? totals.balance : 0}
+                    />
+                </Col>
+
+                {/* Resumo da Venda (Direita) */}
+                <Col lg={4}>
+                    <SalesCartPanel
+                        cartItems={cartItems}
+                        payments={payments}
+                        totals={totals}
+                        onRemoveItem={handleRemoveItem}
+                        onRemovePayment={handleRemovePayment}
+                        onProceed={handleFinalizeSale}
+                    />
+                </Col>
+            </Row>
+
+            {/* Loading States */}
+            <OverlayLoader show={isLoadingData} label="Carregando dados..." zIndex={1050} />
+            <OverlayLoader show={isProcessing} label="Finalizando venda..." zIndex={1051} />
+        </React.Fragment>
+    );
+};
+
+export default SalesPoint;
