@@ -6,7 +6,7 @@ import { CashierService } from '../Financial/CashierService'
 import { AuditService } from '../Audit/AuditService'
 import { LedgerService } from '../Ledger/LedgerService'
 import { SaleSchema } from '../../data/schemas/Financial/SaleSchema'
-import { generateSaleNumber, generateDailySequential } from '../../utils/idGenerators'
+import { generateSaleId } from '../../utils/sequence'
 import moment from 'moment'
 
 /**
@@ -45,18 +45,18 @@ export const SalesService = {
             }
         }
 
-        // 3. Gerar número de venda amigável (ex: V20250131-143025)
-        const saleDate = saleData.saleDate ? new Date(saleData.saleDate) : new Date();
-        const saleNumber = generateSaleNumber(saleDate, generateDailySequential(new Date()));
+        // 3. Gerar número de venda amigável sequencial (ex: V00001, V00002)
+        const saleNumber = await generateSaleId(idTenant, idBranch);
 
         // 4. Salvar o documento principal da Venda
         const newSale = await salesRepository.create(idTenant, idBranch, {
             ...saleData,
             saleNumber: saleNumber,
-            friendlyId: saleData.friendlyId || '',
+            friendlyId: saleNumber, // friendlyId = saleNumber
             status: saleData.balance > 0 ? 'partial' : 'completed',
             createdAt: new Date()
         })
+
 
 
         // 5. Processar cada pagamento recebido

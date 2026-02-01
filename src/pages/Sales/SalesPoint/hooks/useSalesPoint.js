@@ -67,14 +67,21 @@ export const useSalesPoint = () => {
     }, [activeTab]);
 
     const handleAddItem = useCallback((item) => {
-        const originalId = item.id; // Preserva o ID original do Firestore
+        // Preserva o ID original do Firestore ANTES do spread
+        const firestoreId = item.id;
+
         setCartItems(prev => [...prev, {
-            ...item,
-            id: Date.now(), // ID único do item no carrinho (para remoção)
-            idItem: originalId || 'custom', // ID do documento original no Firestore
-            quantity: 1,
+            // Dados do item (name, price, type, etc)
+            name: item.name || item.title,
+            type: item.type, // contract, product, service
             unitPrice: parseFloat(item.price) || 0,
-            totalPrice: parseFloat(item.price) || 0
+            quantity: 1,
+            totalPrice: parseFloat(item.price) || 0,
+
+            // IDs: SEPARAR CLARAMENTE!
+            cartId: Date.now(), // ID único no carrinho (para remoção)
+            id: firestoreId, // ID original do Firestore (para busca)
+            idItem: firestoreId, // Compatibilidade com backend
         }]);
     }, []);
 
@@ -86,8 +93,8 @@ export const useSalesPoint = () => {
         }]);
     }, []);
 
-    const handleRemoveItem = useCallback((id) => {
-        setCartItems(prev => prev.filter(i => i.id !== id));
+    const handleRemoveItem = useCallback((cartId) => {
+        setCartItems(prev => prev.filter(i => i.cartId !== cartId));
     }, []);
 
     const handleRemovePayment = useCallback((id) => {

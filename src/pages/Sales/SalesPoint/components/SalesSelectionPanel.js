@@ -116,12 +116,8 @@ const SalesSelectionPanel = ({ activeTab, toggleTab, onAddPayment, onAddItem, co
     const handleSelectionChange = (list, id) => {
         const selected = list.find(item => item.id === id);
         if (selected) {
-            onAddItem({
-                ...selected,
-                id: Date.now(),
-                name: selected.title || selected.name, // Contratos usam 'title'
-                idItem: selected.id // Importante para o backend
-            });
+            // Passa o item COMPLETO, preservando o ID original do Firestore
+            onAddItem(selected);
         }
     };
 

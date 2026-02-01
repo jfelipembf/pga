@@ -1,7 +1,7 @@
 import { clientRepository } from '../../data/repositories/ClientRepository'
 import { AuditService } from '../Audit/AuditService'
 import { ClientSchema } from '../../data/schemas/ClientSchema'
-import { generateFriendlyId } from '../../utils/sequence'
+import { generateClientId } from '../../utils/sequence'
 
 /**
  * Serviço de Clientes que orquestra Negócio, Persistência e Auditoria.
@@ -15,9 +15,9 @@ export const ClientService = {
             // 1. Validação (Business Logic)
             await ClientSchema.validate(clientData, { abortEarly: false })
 
-            // 2. Gerar ID Amigável
-            // Formato solicitado: 0001 (sem prefixo CLI)
-            const friendlyId = await generateFriendlyId(idTenant, idBranch, 'clients', { prefix: '', padding: 4 })
+            // 2. Gerar ID Amigável (GYM ID)
+            // Formato: 0001, 0002, 0003...
+            const friendlyId = await generateClientId(idTenant, idBranch)
 
             // 3. Persistência (Data Layer)
             const newClient = await clientRepository.create(idTenant, idBranch, {

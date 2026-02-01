@@ -4,7 +4,7 @@ import { clientContractRepository } from '../../data/repositories/ClientContract
 import { ClientContractSchema } from '../../data/schemas/ClientContractSchema'
 import { AuditService } from '../Audit/AuditService'
 import { DashboardSummaryService } from '../Dashboard/DashboardSummaryService'
-import { generateFriendlyId } from '../../utils/sequence'
+import { generateContractId } from '../../utils/sequence'
 import moment from 'moment'
 
 /**
@@ -32,8 +32,8 @@ export const ClientContractService = {
         // 1. Validação
         await ClientContractSchema.validate(contractData)
 
-        // 2. Gera ID amigável
-        const friendlyId = await generateFriendlyId(idTenant, idBranch, 'clientContracts', { prefix: 'C', padding: 5 })
+        // 2. Gera ID amigável (ex: C00001, C00002)
+        const friendlyId = await generateContractId(idTenant, idBranch)
 
         // 3. Prepara dados
         const contract = {

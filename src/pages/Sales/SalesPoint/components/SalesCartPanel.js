@@ -36,14 +36,14 @@ const SalesCartPanel = ({ cartItems, payments, totals, onRemoveItem, onRemovePay
                         ) : (
                             <div className="d-flex flex-column gap-2 mb-3">
                                 {cartItems.map((item) => (
-                                    <div key={item.id} className="p-2 border rounded bg-white shadow-sm d-flex justify-content-between align-items-center animate__animated animate__fadeIn">
+                                    <div key={item.cartId} className="p-2 border rounded bg-white shadow-sm d-flex justify-content-between align-items-center animate__animated animate__fadeIn">
                                         <div>
                                             <span className="fw-bold text-dark font-size-13 d-block">{item.name}</span>
-                                            <Badge color="light" className="text-muted font-size-10">{item.category}</Badge>
+                                            <Badge color="light" className="text-muted font-size-10">{item.type}</Badge>
                                         </div>
                                         <div className="text-end d-flex align-items-center">
-                                            <span className="fw-bold text-dark me-2">{formatCurrency(item.price)}</span>
-                                            <Button color="link" size="sm" className="p-0 text-danger" onClick={() => onRemoveItem(item.id)}>
+                                            <span className="fw-bold text-dark me-2">{formatCurrency(item.price || item.unitPrice)}</span>
+                                            <Button color="link" size="sm" className="p-0 text-danger" onClick={() => onRemoveItem(item.cartId)}>
                                                 <i className="mdi mdi-close-circle-outline font-size-16"></i>
                                             </Button>
                                         </div>
