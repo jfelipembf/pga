@@ -22,7 +22,8 @@ export const ClientService = {
             // 3. Persistência (Data Layer)
             const newClient = await clientRepository.create(idTenant, idBranch, {
                 ...clientData,
-                friendlyId
+                friendlyId,
+                lifecycleStatus: clientData.lifecycleStatus || 'lead' // Status inicial
             })
 
             // 3. Auditoria (Audit Service)
@@ -83,5 +84,67 @@ export const ClientService = {
         })
 
         return id
+    },
+
+    /**
+     * ÚNICA função autorizada a mudar o lifecycleStatus do cliente.
+     * Valida transições e registra auditoria.
+     */
+    updateLifecycleStatus: async (idTenant, idBranch, idClient, newStatus, metadata = {}) => {
+        const { VALID_TRANSITIONS } = await import('../../data/schemas/ClientSchema')
+
+        // 1. Busca cliente atual
+        const client = await clientRepository.findById(idTenant, idBranch, idClient)
+        const currentStatus = client.lifecycleStatus || 'lead'
+
+        // 2. Valida transição
+        if (!VALID_TRANSITIONS[currentStatus]?.includes(newStatus)) {
+            throw new Error(
+                `Transição inválida: ${currentStatus} → ${newStatus}. ` +
+                `Transições válidas: ${VALID_TRANSITIONS[currentStatus]?.join(', ') || 'nenhuma'}`
+            )
+        }
+
+        // 3. Prepara atualização
+        const updates = {
+            lifecycleStatus: newStatus,
+            updatedAt: new Date()
+        }
+
+        // 4. Campos específicos por status
+        if (newStatus === 'active' && !client.lifecycle?.convertedAt) {
+            updates['lifecycle.convertedAt'] = new Date()
+            updates['lifecycle.convertedBy'] = metadata.userId
+            if (metadata.contractId) {
+                updates['lifecycle.firstContractId'] = metadata.contractId
+            }
+        }
+
+        if (newStatus === 'lost') {
+            updates['lifecycle.lostAt'] = new Date()
+            updates['lifecycle.lostReason'] = metadata.reason || 'not_specified'
+            updates['lifecycle.lostNotes'] = metadata.notes || null
+        }
+
+        // 5. Atualiza cliente
+        await clientRepository.update(idTenant, idBranch, idClient, updates)
+
+        // 6. Registra auditoria
+        await AuditService.log({
+            idTenant,
+            idBranch,
+            userId: metadata.userId,
+            action: 'UPDATE_LIFECYCLE_STATUS',
+            entityType: 'client',
+            entityId: idClient,
+            details: {
+                from: currentStatus,
+                to: newStatus,
+                reason: metadata.reason,
+                ...metadata
+            }
+        })
+
+        return { from: currentStatus, to: newStatus }
     }
 }

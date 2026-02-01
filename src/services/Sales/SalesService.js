@@ -2,7 +2,6 @@ import { salesRepository } from '../../data/repositories/SalesRepository'
 import { receivableRepository } from '../../data/repositories/ReceivableRepository'
 import { acquirerRepository } from '../../data/repositories/AcquirerRepository'
 import { contractRepository } from '../../data/repositories/ContractRepository'
-import { clientContractRepository } from '../../data/repositories/ClientContractRepository'
 import { CashierService } from '../Financial/CashierService'
 import { AuditService } from '../Audit/AuditService'
 import { LedgerService } from '../Ledger/LedgerService'
@@ -229,58 +228,78 @@ export const SalesService = {
             })
         }
 
-        // 7. Gerar Contratos do Aluno (MemberMembership) - EVO API Pattern
-        // Itera sobre os itens vendidos para ativar os contratos correspondentes
+
+        // 7. Gerar Contratos do Cliente e Atualizar Status (Nova Arquitetura)
+        // Usa ClientContractService para garantir transações atômicas
+        console.log('🔍 [DEBUG] Verificando items da venda:', saleData.items)
+
         if (saleData.items && saleData.items.length > 0) {
+            const { ClientContractService } = await import('../Clients/ClientContractService')
+
             for (const item of saleData.items) {
-                if (item.type === 'contract' || item.type === 'contrato') { // Aceita ambas nomenclaturas por segurança
+                console.log(`🔍 [DEBUG] Item: ${item.name}, Tipo: "${item.type}"`)
+
+                // Aceita: contract, contrato, service (contratos vêm como "service" do banco)
+                if (item.type === 'contract' || item.type === 'contrato') {
+                    console.log(`✅ [DEBUG] Item identificado como contrato! Criando...`)
                     try {
-                        // Buscar detalhes do template do contrato (duranção, regras, etc)
-                        // Precisamos do ID original do template. Supomos que item.idItem seja esse ID.
-                        const contractTemplate = await contractRepository.findById(idTenant, idBranch, item.idItem);
+                        // Buscar detalhes do template do contrato
+                        const contractTemplate = await contractRepository.findById(idTenant, idBranch, String(item.idItem))
 
                         if (contractTemplate) {
-                            const startDate = moment().toDate();
-                            let endDate = moment().toDate();
+                            // Calcular datas com base no template
+                            const startDate = moment().toDate()
+                            const duration = parseInt(contractTemplate.duration) || 12
+                            const durationType = contractTemplate.durationType || 'months'
 
-                            // Calcular validade baseada no template
-                            const duration = parseInt(contractTemplate.duration) || 12;
-                            const durationType = contractTemplate.durationType || 'months';
+                            let endDate
+                            let planType = 'monthly' // Default
 
                             if (durationType === 'days' || durationType === 'Dias') {
-                                endDate = moment().add(duration, 'days').toDate();
+                                endDate = moment().add(duration, 'days').toDate()
+                                planType = 'single'
                             } else if (durationType === 'weeks' || durationType === 'Semanas') {
-                                endDate = moment().add(duration, 'weeks').toDate();
+                                endDate = moment().add(duration, 'weeks').toDate()
                             } else if (durationType === 'years' || durationType === 'Anos') {
-                                endDate = moment().add(duration, 'years').toDate();
+                                endDate = moment().add(duration, 'years').toDate()
+                                planType = 'annual'
                             } else {
-                                endDate = moment().add(duration, 'months').toDate();
+                                endDate = moment().add(duration, 'months').toDate()
+                                // Determina tipo baseado na duração
+                                if (duration === 1) planType = 'monthly'
+                                else if (duration === 3) planType = 'quarterly'
+                                else if (duration === 6) planType = 'semiannual'
+                                else if (duration === 12) planType = 'annual'
                             }
 
-                            await clientContractRepository.create(idTenant, idBranch, {
-                                idTenant,
-                                idBranch,
+                            // Usa o novo ClientContractService (com transações)
+                            await ClientContractService.create(idTenant, idBranch, userId, {
                                 idClient: saleData.idClient,
                                 idSale: newSale.id,
-                                idContractTemplate: item.idItem,
-                                title: item.name || contractTemplate.title,
-                                startDate: startDate,
-                                endDate: endDate,
-                                price: item.unitPrice,
-                                status: 'active',
-                                accessRules: {
-                                    allowedWeekDays: contractTemplate.allowedWeekDays || [],
-                                    accessLimitType: contractTemplate.accessLimitType,
-                                    accessLimitQuantity: contractTemplate.accessLimitQuantity
-                                }
-                            });
+                                idPlan: item.idItem,
+                                planName: item.name || contractTemplate.title,
+                                planType,
+                                startDate,
+                                endDate,
+                                value: parseFloat(item.unitPrice) || 0,
+                                installments: 1,
+                                status: 'active'
+                            })
+
+                            console.log(`✅ Contrato criado e cliente atualizado para 'active'`)
+                        } else {
+                            console.warn(`⚠️ [DEBUG] Template de contrato não encontrado para idItem: ${item.idItem}`)
                         }
                     } catch (err) {
-                        console.error(`Erro ao gerar contrato para o item ${item.name}:`, err);
-                        // Não abortamos a venda se falhar a criação do contrato, mas logamos o erro crítico.
+                        console.error(`❌ Erro ao criar contrato para ${item.name}:`, err)
+                        // Não aborta a venda, mas registra o erro
                     }
+                } else {
+                    console.log(`⏭️ [DEBUG] Item "${item.name}" NÃO é contrato (tipo: "${item.type}")`)
                 }
             }
+        } else {
+            console.warn('⚠️ [DEBUG] Nenhum item encontrado na venda!')
         }
 
         // 8. ✅ LANÇAMENTO CONTÁBIL (Partidas Dobradas)

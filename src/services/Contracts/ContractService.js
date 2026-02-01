@@ -21,6 +21,7 @@ export const ContractService = {
             // 2. Preparação dos dados
             const payload = {
                 ...validatedData,
+                type: 'contract', // ✅ Define tipo para identificação nas vendas
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 deleted: false

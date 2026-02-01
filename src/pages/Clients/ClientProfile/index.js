@@ -72,7 +72,7 @@ const ClientProfile = () => {
                                 <h3 className="mb-1 text-white">{profileDisplay.name}</h3>
                                 <div className="d-flex align-items-center gap-2 flex-wrap">
                                     <span className="fw-semibold">ID: {profileDisplay.id}</span>
-                                    <StatusBadge status={client?.status} />
+                                    <StatusBadge status={client?.lifecycleStatus} />
                                 </div>
                             </div>
                         </div>
@@ -108,7 +108,7 @@ const ClientProfile = () => {
                                     <DropdownMenu end>
                                         <DropdownItem onClick={() => setConfirmDeleteOpen(true)} className="text-danger">
                                             <i className="mdi mdi-trash-can-outline me-2" />
-                                            Excluir {client?.status === 'lead' ? 'Lead' : 'Cliente'}
+                                            Excluir {client?.lifecycleStatus === 'lead' ? 'Lead' : 'Cliente'}
                                         </DropdownItem>
                                     </DropdownMenu>
                                 </Dropdown>
@@ -149,7 +149,7 @@ const ClientProfile = () => {
             <ConfirmDialog
                 isOpen={confirmDeleteOpen}
                 toggle={() => setConfirmDeleteOpen(!confirmDeleteOpen)}
-                title={`Excluir ${client?.status === 'lead' ? 'Lead' : 'Cliente'}`}
+                title={`Excluir ${client?.lifecycleStatus === 'lead' ? 'Lead' : 'Cliente'}`}
                 description={`Tem certeza que deseja excluir ${profileDisplay.name}? Esta ação não pode ser desfeita.`}
                 confirmText="Sim, excluir"
                 confirmColor="danger"

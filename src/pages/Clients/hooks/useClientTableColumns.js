@@ -56,24 +56,33 @@ export const useClientTableColumns = () => {
             label: "Status",
             key: "status",
             render: (client) => {
+                const status = client.lifecycleStatus || 'lead'
+
                 const statusColors = {
+                    lead: "warning",
+                    scheduled: "info",
+                    attended: "primary",
                     active: "success",
+                    suspended: "secondary",
                     inactive: "danger",
-                    lead: "info",
-                    pending: "warning"
+                    lost: "dark"
                 }
-                const color = statusColors[client.status] || "secondary"
 
                 const labels = {
-                    active: "Ativo",
-                    inactive: "Inativo",
                     lead: "Lead",
-                    pending: "Pendente"
+                    scheduled: "Agendado",
+                    attended: "Compareceu",
+                    active: "Ativo",
+                    suspended: "Suspenso",
+                    inactive: "Inativo",
+                    lost: "Perdido"
                 }
+
+                const color = statusColors[status] || "secondary"
 
                 return (
                     <span className={`badge bg-${color} font-size-12`}>
-                        {labels[client.status] || client.status}
+                        {labels[status] || status}
                     </span>
                 )
             }

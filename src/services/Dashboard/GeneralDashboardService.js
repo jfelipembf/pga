@@ -101,8 +101,24 @@ export const GeneralDashboardService = {
 
         const ticketAverage = salesCount > 0 ? (salesMonth / salesCount) : 0;
 
+        // ✅ NOVO: Busca dados de alunos do DashboardSummary
+        const { DashboardSummaryService } = await import('./DashboardSummaryService');
+        let studentsData = { active: 0, new: 0, canceled: 0, suspended: 0 };
+
+        try {
+            const summary = await DashboardSummaryService.getCurrent(idTenant, idBranch);
+            studentsData = {
+                active: summary.activeStudents || 0,
+                new: summary.newStudents || 0,
+                canceled: summary.canceledStudents || 0,
+                suspended: summary.suspendedStudents || 0
+            };
+        } catch (err) {
+            console.warn("Erro ao buscar summary de alunos:", err);
+        }
+
         return {
-            students: { active: 0, new: 0, canceled: 0, suspended: 0 },
+            students: studentsData,
             sales: { today: salesToday, month: salesMonth, ticket: ticketAverage }
         };
     }

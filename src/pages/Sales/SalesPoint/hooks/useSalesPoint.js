@@ -67,10 +67,11 @@ export const useSalesPoint = () => {
     }, [activeTab]);
 
     const handleAddItem = useCallback((item) => {
+        const originalId = item.id; // Preserva o ID original do Firestore
         setCartItems(prev => [...prev, {
             ...item,
-            id: Date.now(),
-            idItem: item.id || 'custom',
+            id: Date.now(), // ID único do item no carrinho (para remoção)
+            idItem: originalId || 'custom', // ID do documento original no Firestore
             quantity: 1,
             unitPrice: parseFloat(item.price) || 0,
             totalPrice: parseFloat(item.price) || 0
@@ -125,7 +126,7 @@ export const useSalesPoint = () => {
                 idSeller: user.uid,
                 sellerName: user.displayName || user.email || 'Vendedor',
                 items: cartItems.map(item => ({
-                    type: item.category?.toLowerCase() === 'contrato' ? 'contract' : (item.category?.toLowerCase() === 'produto' ? 'product' : 'service'),
+                    type: item.type, // Usa o type do item (contract, product, service)
                     idItem: item.idItem,
                     name: item.name,
                     quantity: item.quantity || 1,

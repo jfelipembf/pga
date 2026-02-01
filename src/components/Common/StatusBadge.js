@@ -7,12 +7,18 @@ import PropTypes from "prop-types"
  */
 const StatusBadge = ({ status, customLabels = {} }) => {
     const statusConfig = {
+        // Lifecycle Status (novo)
+        lead: { color: "warning", label: "Lead" },
+        scheduled: { color: "info", label: "Agendado" },
+        attended: { color: "primary", label: "Compareceu" },
         active: { color: "success", label: "Ativo" },
+        suspended: { color: "secondary", label: "Suspenso" },
         inactive: { color: "danger", label: "Inativo" },
-        lead: { color: "info", label: "Lead" },
+        lost: { color: "dark", label: "Perdido" },
+
+        // Status antigos (manter compatibilidade temporária)
         pending: { color: "warning", label: "Pendente" },
-        expired: { color: "secondary", label: "Expirado" },
-        suspended: { color: "dark", label: "Suspenso" }
+        expired: { color: "secondary", label: "Expirado" }
     }
 
     const config = statusConfig[status] || { color: "secondary", label: status }
