@@ -1,103 +1,82 @@
-import React , {useEffect} from "react"
-
-import { connect } from "react-redux";
-import {
-  Row,
-  Col,
-} from "reactstrap"
-
-// Pages Components
+import React from "react"
+import { Row, Col, Card, CardBody } from "reactstrap"
 import Miniwidget from "./Miniwidget"
-import MonthlyEarnings from "./montly-earnings";
-import EmailSent from "./email-sent";
-import MonthlyEarnings2 from "./montly-earnings2";
-import Inbox from "./inbox";
-import RecentActivity from "./recent-activity";
-import WidgetUser from "./widget-user";
-import YearlySales from "./yearly-sales";
-import LatestTransactions from "./latest-transactions";
-import LatestOrders from "./latest-orders";
+import { useGeneralDashboard } from "./hooks/useGeneralDashboard"
+import { formatCurrency } from "../../utils/format"
 
-//Import Action to copy breadcrumb items from local state to redux state
-import { setBreadcrumbItems } from "../../store/actions";
+const Dashboard = () => {
+  document.title = "Dashboard Geral | Lexa Admin"
 
-const Dashboard = (props) => {
+  const { loading, data } = useGeneralDashboard('manager')
 
-  document.title = "Dashboard | Lexa - Responsive Bootstrap 5 Admin Dashboard";
-
-
-  const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
-    { title: "Dashboard", link: "#" }
-  ]
-
-  useEffect(() => {
-    props.setBreadcrumbItems('Dashboard' , breadcrumbItems)
-  },)
-
+  // Organizando os 6 cards desejados: 3 em cima, 3 embaixo
   const reports = [
-    { title: "Orders", iconClass: "cube-outline", total: "1,587", average: "+11%", badgecolor: "info" },
-    { title: "Revenue", iconClass: "buffer", total: "$46,782", average: "-29%", badgecolor: "danger" },
-    { title: "Average Price", iconClass: "tag-text-outline", total: "$15.9", average: "0%", badgecolor: "warning" },
-    { title: "Product Sold", iconClass: "briefcase-check", total: "1890", average: "+89%", badgecolor: "info" },
-  ]
+    // Topo: Foco em Vendas e Ativos Principais
+    {
+      title: "Vendas (Hoje)",
+      iconClass: "point-of-sale",
+      total: loading ? "..." : formatCurrency(data?.sales?.today || 0),
+      average: "Diário",
+      badgecolor: "primary"
+    },
+    {
+      title: "Vendas (Mês)",
+      iconClass: "calendar-month",
+      total: loading ? "..." : formatCurrency(data?.sales?.month || 0),
+      average: "Acumulado",
+      badgecolor: "success"
+    },
+    {
+      title: "Alunos Ativos",
+      iconClass: "account-group",
+      total: loading ? "..." : (data?.students?.active || 0),
+      average: "Base Atual",
+      badgecolor: "info"
+    },
+    // Baixo: Foco em Movimentação da Base
+    {
+      title: "Novas Matrículas",
+      iconClass: "account-plus",
+      total: loading ? "..." : (data?.students?.new || 0),
+      average: "Este Mês",
+      badgecolor: "success"
+    },
+    {
+      title: "Cancelamentos",
+      iconClass: "account-remove",
+      total: loading ? "..." : (data?.students?.canceled || 0),
+      average: "Churn Mês",
+      badgecolor: "danger"
+    },
+    {
+      title: "Suspensos",
+      iconClass: "pause-circle-outline",
+      total: loading ? "..." : (data?.students?.suspended || 0),
+      average: "Trancados",
+      badgecolor: "warning"
+    }
+  ];
 
   return (
     <React.Fragment>
+      {/* 
+          Exibindo os 6 cards com colSize=4. 
+          O sistema de grid do Bootstrap automaticamente quebrará a linha a cada 3 cards (4+4+4 = 12).
+      */}
+      <Miniwidget reports={reports} colSize={4} />
 
-      {/*mimi widgets */}
-      <Miniwidget reports={reports} />
-
-      <Row>
-        <Col xl="3">
-          {/* Monthly Earnings */}
-          <MonthlyEarnings />
-        </Col>
-
-        <Col xl="6">
-          {/* Email sent */}
-          <EmailSent />
-        </Col>
-
-        <Col xl="3">
-          <MonthlyEarnings2 />
-        </Col>
-
-      </Row>
-      <Row>
-
-        <Col xl="4" lg="6">
-          {/* inbox */}
-          <Inbox />
-        </Col>
-        <Col xl="4" lg="6">
-          {/* recent activity */}
-          <RecentActivity />
-
-        </Col>
-        <Col xl="4">
-          {/* widget user */}
-          <WidgetUser />
-
-          {/* yearly sales */}
-          <YearlySales />
+      {/* Espaço para Gráficos Futuros */}
+      <Row className="mt-4">
+        <Col lg={12}>
+          <Card>
+            <CardBody style={{ minHeight: '300px' }} className="d-flex align-items-center justify-content-center">
+              <p className="text-muted">Gráficos de evolução da base em desenvolvimento...</p>
+            </CardBody>
+          </Card>
         </Col>
       </Row>
-
-      <Row>
-        <Col xl="6">
-          {/* latest transactions */}
-          <LatestTransactions />
-        </Col>
-
-        <Col xl="6">
-          {/* latest orders */}
-          <LatestOrders />
-        </Col>
-      </Row>
-
     </React.Fragment>
   )
 }
 
-export default connect(null, { setBreadcrumbItems })(Dashboard);
+export default Dashboard

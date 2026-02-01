@@ -153,11 +153,21 @@ const SidebarContent = props => {
           <ul className="metismenu list-unstyled" id="side-menu">
             <li className="menu-title">{props.t("Main")} </li>
             <li>
-              <Link to={linkTo("/dashboard")} className="waves-effect">
+              <Link to="/#" className="has-arrow waves-effect">
                 <i className="mdi mdi-view-dashboard"></i>
-                <span className="badge rounded-pill bg-primary float-end">2</span>
                 <span>{props.t("Dashboard")}</span>
               </Link>
+              <ul className="sub-menu">
+                <li>
+                  <Link to={linkTo("/dashboard")}>{props.t("Gerencial")}</Link>
+                </li>
+                <li>
+                  <Link to={linkTo("/dashboard-operational")}>{props.t("Operacional")}</Link>
+                </li>
+                <li>
+                  <Link to={linkTo("/financial/dashboard")}>{props.t("Financeiro")}</Link>
+                </li>
+              </ul>
             </li>
 
             <li>

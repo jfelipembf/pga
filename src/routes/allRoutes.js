@@ -37,6 +37,7 @@ import BankAccountsList from "../pages/Financial/BankAccounts/index"
 import PayablesList from "../pages/Financial/Payables/index"
 import ReceivablesPage from "../pages/Financial/Receivables/index"
 import SalesPoint from "../pages/Sales/SalesPoint/index"
+import FinancialDashboard from "../pages/Financial/Dashboard/index"
 
 // Clients
 import ClientsList from "../pages/Clients/ClientList"
@@ -105,8 +106,14 @@ import UiOffcanvas from "pages/Ui/UiOffcanvas"
 import Chat from "pages/Chat/Chat";
 import Kanban from "pages/Kanban"
 
+import OperationalDashboard from "../pages/Dashboard/Operational/index"
+
+// ...
+
 const userRoutes = [
   { path: "/dashboard", component: <Dashboard /> },
+  { path: "/dashboard-operational", component: <OperationalDashboard /> },
+  { path: "/financial/dashboard", component: <FinancialDashboard /> },
   { path: "/financial/cashier", component: <CashierPage /> },
   { path: "/financial/cash-flow", component: <CashFlowPage /> },
   { path: "/financial/dre", component: <DREPage /> },
