@@ -41,7 +41,7 @@ export class BaseRepository {
             throw new Error("Contexto de idTenant/idBranch é obrigatório para esta operação.")
         }
 
-        return collection(
+        const colRef = collection(
             this.db,
             'tenants',
             idTenant,
@@ -49,6 +49,7 @@ export class BaseRepository {
             idBranch,
             this.collectionName
         )
+        return colRef;
     }
 
     async findAll(idTenant, idBranch) {

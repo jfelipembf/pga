@@ -27,10 +27,27 @@ export const usePayables = () => {
     const [filterEndDate, setFilterEndDate] = useState('')
     const [searchTerm, setSearchTerm] = useState('')
 
+    // Paginação
+    const [fetchLimit, setFetchLimit] = useState(50)
+
+    // Reset do limite ao mudar filtros
+    useEffect(() => {
+        setFetchLimit(50);
+    }, [filterStatus, filterCategory, filterStartDate, filterEndDate]);
+
     const loadPayables = useCallback(async () => {
         try {
             setLoading(true)
-            const data = await PayableService.listAll(idTenant, idBranch)
+
+            const filters = {
+                status: filterStatus,
+                category: filterCategory,
+                startDate: filterStartDate,
+                endDate: filterEndDate
+            }
+
+            // Usando limite dinâmico
+            const data = await PayableService.listWithFilters(idTenant, idBranch, filters, fetchLimit)
             setPayables(data)
         } catch (error) {
             console.error("Erro ao carregar contas a pagar:", error)
@@ -38,7 +55,7 @@ export const usePayables = () => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch])
+    }, [idTenant, idBranch, filterStatus, filterCategory, filterStartDate, filterEndDate, fetchLimit])
 
     useEffect(() => {
         loadPayables()
@@ -55,14 +72,11 @@ export const usePayables = () => {
     }
 
     const handleSave = async (data) => {
-        console.log("usePayables: handleSave chamado", data);
         try {
             if (selectedPayable) {
-                console.log("usePayables: Atualizando...");
                 await PayableService.updatePayable(idTenant, idBranch, user.uid, selectedPayable.id, data)
                 toast.success("Conta atualizada com sucesso")
             } else {
-                console.log("usePayables: Criando...", { idTenant, idBranch, uid: user?.uid });
                 await PayableService.createPayable(idTenant, idBranch, user.uid, data)
                 toast.success("Conta registrada com sucesso")
             }
@@ -85,38 +99,22 @@ export const usePayables = () => {
         }
     }
 
-    // Lógica de Filtro
+    const handleLoadMore = useCallback(() => {
+        setFetchLimit(prev => prev + 50);
+    }, []);
+
+    // Lógica de Filtro (Frontend: Apenas Busca Textual, pois o resto já veio filtrado do back)
     const filteredPayables = useMemo(() => {
         return payables.filter(item => {
+            if (!searchTerm) return true;
+
             const description = item.description || item.title || ''
             const supplier = item.supplier || ''
-            const category = item.category || 'Geral'
-            const dueDate = item.dueDate ? new Date(item.dueDate) : null
 
-            // 1. Busca textual (Descrição ou Fornecedor)
-            const matchesSearch = description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            return description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 supplier.toLowerCase().includes(searchTerm.toLowerCase())
-
-            // 2. Status
-            const matchesStatus = filterStatus === 'all' || item.status === filterStatus
-
-            // 3. Categoria
-            const matchesCategory = filterCategory === 'all' || category === filterCategory
-
-            // 4. Intervalo de Datas (Vencimento)
-            let matchesDate = true
-            if (dueDate) {
-                if (filterStartDate) {
-                    matchesDate = matchesDate && new Date(dueDate) >= new Date(filterStartDate)
-                }
-                if (filterEndDate) {
-                    matchesDate = matchesDate && new Date(dueDate) <= new Date(filterEndDate)
-                }
-            }
-
-            return matchesSearch && matchesStatus && matchesCategory && matchesDate
         })
-    }, [payables, searchTerm, filterStatus, filterCategory, filterStartDate, filterEndDate])
+    }, [payables, searchTerm])
 
     // Totais
     const totals = useMemo(() => {
@@ -151,6 +149,8 @@ export const usePayables = () => {
         handleEdit,
         handleSave,
         handlePay,
+        handleLoadMore,
+        hasMore: payables.length >= fetchLimit && payables.length > 0, // Verifica se carregou o limite (sinal de que tem mais), e se tem dados
         refresh: loadPayables
     }
 }

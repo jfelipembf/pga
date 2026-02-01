@@ -148,9 +148,33 @@ export const CashierService = {
     /**
      * Lista as transações financeiras (Movimentações de Caixa)
      */
-    listTransactions: async (idTenant, idBranch, limitCount = 50) => {
+    listTransactions: async (idTenant, idBranch, filters = {}, limitCount = 50) => {
+        const whereClauses = [];
+
+        if (filters.startDate) whereClauses.push(['date', '>=', filters.startDate]);
+        if (filters.endDate) whereClauses.push(['date', '<=', filters.endDate]);
+
         return await transactionRepository.findWhere(idTenant, idBranch,
-            [],
+            whereClauses,
+            { field: 'date', direction: 'desc' },
+            limitCount
+        );
+    },
+
+    /**
+     * Lista transações por período (Filtro Real no Banco de Dados)
+     */
+    listByPeriod: async (idTenant, idBranch, startDate, endDate) => {
+        // Garantir objetos Date
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        // Firestore exige que o campo de filtro de intervalo seja o primeiro na ordenação (ou requires index)
+        return await transactionRepository.findWhere(idTenant, idBranch,
+            [
+                ['date', '>=', start],
+                ['date', '<=', end]
+            ],
             { field: 'date', direction: 'desc' }
         );
     }

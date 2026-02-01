@@ -147,6 +147,52 @@ export const PayableService = {
     },
 
     /**
+     * Lista contas a pagar com filtros aplicados no banco
+     */
+    listWithFilters: async (idTenant, idBranch, filters = {}, limitCount = 50) => {
+        const whereClauses = [];
+
+        if (filters.status && filters.status !== 'all') {
+            whereClauses.push(['status', '==', filters.status]);
+        }
+
+        if (filters.category && filters.category !== 'all') {
+            whereClauses.push(['category', '==', filters.category]);
+        }
+
+        // Datas (espera string YYYY-MM-DD ou Date object)
+        if (filters.startDate) {
+            const start = new Date(filters.startDate);
+            // Ajustar para início do dia se for string simples, ou garantir Date
+            if (typeof filters.startDate === 'string') {
+                // Ajuste simples para evitar fuso? melhor usar split se for YYYY-MM-DD puro
+                // Mas assumindo input type="date", vem YYYY-MM-DD.
+                // Criando com T00:00:00 local
+                const parts = filters.startDate.split('-');
+                start.setFullYear(parts[0], parts[1] - 1, parts[2]);
+                start.setHours(0, 0, 0, 0);
+            }
+            whereClauses.push(['dueDate', '>=', start]);
+        }
+
+        if (filters.endDate) {
+            const end = new Date(filters.endDate);
+            if (typeof filters.endDate === 'string') {
+                const parts = filters.endDate.split('-');
+                end.setFullYear(parts[0], parts[1] - 1, parts[2]);
+                end.setHours(23, 59, 59, 999);
+            }
+            whereClauses.push(['dueDate', '<=', end]);
+        }
+
+        return await payableRepository.findWhere(idTenant, idBranch,
+            whereClauses,
+            { field: 'dueDate', direction: 'asc' },
+            limitCount
+        );
+    },
+
+    /**
      * Atualiza uma conta existente
      */
     updatePayable: async (idTenant, idBranch, userId, id, data) => {

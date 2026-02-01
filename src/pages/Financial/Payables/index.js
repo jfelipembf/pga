@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useRef, useCallback } from "react"
 import { Row, Col, Card, CardBody, Button, Input, Badge, Label, UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem, Collapse } from "reactstrap"
 import BasicTable from "../../../components/Common/BasicTable"
 import { PayableFormVisual } from "./PayableFormVisual"
@@ -14,6 +14,9 @@ import {
     PAYABLE_STATUS_COLORS,
     PAYABLE_STATUS_LABELS
 } from "../../../utils/constants"
+import "flatpickr/dist/themes/material_blue.css"
+import Flatpickr from "react-flatpickr"
+import { Portuguese } from "flatpickr/dist/l10n/pt.js"
 
 const PayablesPage = () => {
     document.title = "Contas a Pagar | Lexa Admin"
@@ -37,8 +40,23 @@ const PayablesPage = () => {
         toggleModal,
         handleEdit,
         handleSave,
-        handlePay
+        handlePay,
+        handleLoadMore,
+        hasMore
     } = usePayables()
+
+    // Observer Infinite Scroll
+    const observer = useRef();
+    const lastElementRef = useCallback(node => {
+        if (loading) return;
+        if (observer.current) observer.current.disconnect();
+        observer.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && hasMore) {
+                handleLoadMore();
+            }
+        });
+        if (node) observer.current.observe(node);
+    }, [loading, hasMore, handleLoadMore]);
 
     const [moreFiltersOpen, setMoreFiltersOpen] = useState(false)
     const [paymentModal, setPaymentModal] = useState(false)
@@ -236,11 +254,25 @@ const PayablesPage = () => {
                                 </Col>
                                 <Col md={3}>
                                     <Label className="font-size-11 fw-bold text-uppercase">Início (Vencimento)</Label>
-                                    <Input type="date" bsSize="sm" value={filterStartDate} onChange={(e) => setFilterStartDate(e.target.value)} />
+                                    <Flatpickr
+                                        className="form-control form-control-sm"
+                                        value={filterStartDate}
+                                        options={{ dateFormat: "d/m/Y", locale: Portuguese }}
+                                        onChange={(dates) => {
+                                            if (dates.length > 0) setFilterStartDate(dates[0])
+                                        }}
+                                    />
                                 </Col>
                                 <Col md={3}>
                                     <Label className="font-size-11 fw-bold text-uppercase">Fim (Vencimento)</Label>
-                                    <Input type="date" bsSize="sm" value={filterEndDate} onChange={(e) => setFilterEndDate(e.target.value)} />
+                                    <Flatpickr
+                                        className="form-control form-control-sm"
+                                        value={filterEndDate}
+                                        options={{ dateFormat: "d/m/Y", locale: Portuguese }}
+                                        onChange={(dates) => {
+                                            if (dates.length > 0) setFilterEndDate(dates[0])
+                                        }}
+                                    />
                                 </Col>
                                 <Col md={3} className="d-flex align-items-end">
                                     <Button color="link" size="sm" className="text-danger p-0 fw-bold" onClick={() => {
@@ -267,6 +299,18 @@ const PayablesPage = () => {
                         externalSearch={searchTerm}
                         onExternalSearchChange={setSearchTerm}
                     />
+
+                    {/* Infinite Scroll Sentinel */}
+                    {hasMore && (
+                        <div ref={lastElementRef} className="text-center p-3">
+                            {loading && (
+                                <div>
+                                    <div className="spinner-border spinner-border-sm text-primary me-2"></div>
+                                    <small className="text-muted">Carregando mais...</small>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </CardBody>
             </Card>
 

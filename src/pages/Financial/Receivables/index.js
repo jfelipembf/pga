@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
     Card, CardBody, Badge, Input, Label,
     UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem,
@@ -14,6 +14,9 @@ import {
     STATUS_COLORS,
     STATUS_LABELS
 } from '../../../utils/constants';
+import "flatpickr/dist/themes/material_blue.css"
+import Flatpickr from "react-flatpickr"
+import { Portuguese } from "flatpickr/dist/l10n/pt.js"
 
 import Miniwidget from '../../Dashboard/Miniwidget';
 
@@ -60,6 +63,19 @@ const ReceivablesPage = () => {
     const [selectedReceivable, setSelectedReceivable] = useState(null);
     const [isSettlementModalOpen, setIsSettlementModalOpen] = useState(false);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
+    // Observer para Infinite Scroll
+    const observer = useRef();
+    const lastBookElementRef = useCallback(node => {
+        if (isLoading) return;
+        if (observer.current) observer.current.disconnect();
+        observer.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && hasMore) {
+                handleLoadMore();
+            }
+        });
+        if (node) observer.current.observe(node);
+    }, [isLoading, hasMore, handleLoadMore]);
 
     // Memoizar dados com estado de seleção para forçar re-render do BasicTable
     const receivablesWithSelection = React.useMemo(() => {
@@ -348,11 +364,31 @@ const ReceivablesPage = () => {
                                 </Col>
                                 <Col md={4}>
                                     <Label className="font-size-11 fw-bold text-uppercase text-muted">Vencimento Início</Label>
-                                    <Input type="date" bsSize="sm" value={dateRange.start} onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))} />
+                                    <Flatpickr
+                                        className="form-control form-control-sm"
+                                        value={dateRange.start}
+                                        options={{
+                                            dateFormat: "d/m/Y",
+                                            locale: Portuguese
+                                        }}
+                                        onChange={(dates) => {
+                                            if (dates.length > 0) setDateRange(prev => ({ ...prev, start: dates[0] }))
+                                        }}
+                                    />
                                 </Col>
                                 <Col md={4}>
                                     <Label className="font-size-11 fw-bold text-uppercase text-muted">Vencimento Fim</Label>
-                                    <Input type="date" bsSize="sm" value={dateRange.end} onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))} />
+                                    <Flatpickr
+                                        className="form-control form-control-sm"
+                                        value={dateRange.end}
+                                        options={{
+                                            dateFormat: "d/m/Y",
+                                            locale: Portuguese
+                                        }}
+                                        onChange={(dates) => {
+                                            if (dates.length > 0) setDateRange(prev => ({ ...prev, end: dates[0] }))
+                                        }}
+                                    />
                                 </Col>
                             </Row>
                         </div>
@@ -375,21 +411,15 @@ const ReceivablesPage = () => {
                 }}
             />
 
+            {/* INFINITE SCROLL SENTINEL */}
             {hasMore && (
-                <div className="text-center mt-3 mb-5">
-                    <Button
-                        color="light"
-                        outline
-                        className="btn-rounded waves-effect waves-light border-dashed"
-                        onClick={handleLoadMore}
-                        disabled={isLoading}
-                    >
-                        {isLoading ? (
-                            <><i className="mdi mdi-loading mdi-spin me-2"></i> Carregando...</>
-                        ) : (
-                            <><i className="mdi mdi-chevron-double-down me-2"></i> Carregar registros anteriores</>
-                        )}
-                    </Button>
+                <div ref={lastBookElementRef} className="text-center p-4">
+                    {isLoading && (
+                        <div>
+                            <div className="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                            <span className="text-muted font-size-12">Carregando mais...</span>
+                        </div>
+                    )}
                 </div>
             )}
 

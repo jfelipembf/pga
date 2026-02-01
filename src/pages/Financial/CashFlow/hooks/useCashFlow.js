@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTenant } from '../../../../hooks/useTenant'
 import { CashierService } from '../../../../services/Financial/CashierService'
+import { BankAccountService } from '../../../../services/Financial/BankAccountService'
 import { toast } from 'react-toastify'
 import moment from 'moment'
 
@@ -9,14 +10,72 @@ import moment from 'moment'
  */
 export const useCashFlow = () => {
     const { tenantId: idTenant, branchId: idBranch } = useTenant()
-    const [transactions, setTransactions] = useState([])
+    const [transactions, setTransactions] = useState([]) // Raw transactions from server
     const [loading, setLoading] = useState(true)
     const [period, setPeriod] = useState('month')
+    const [customDateRange, setCustomDateRange] = useState({ start: new Date(), end: new Date() })
+
+    // Filtro de Conta Bancária
+    const [bankAccounts, setBankAccounts] = useState([])
+    const [filterBankAccount, setFilterBankAccount] = useState('all')
+
+    const [fetchLimit, setFetchLimit] = useState(50);
+    const [hasMore, setHasMore] = useState(true);
+
+    // Carregar Contas Bancárias
+    useEffect(() => {
+        if (idTenant && idBranch) {
+            BankAccountService.listActive(idTenant, idBranch)
+                .then(setBankAccounts)
+                .catch(err => console.error("Erro ao carregar contas bancárias:", err))
+        }
+    }, [idTenant, idBranch])
+
+    // Reset pagination when filter changes
+    useEffect(() => {
+        setFetchLimit(50);
+    }, [period, customDateRange, filterBankAccount]); // Reset também ao mudar conta (opcional, mas bom pra UX)
 
     const loadData = useCallback(async () => {
         try {
             setLoading(true)
-            const txs = await CashierService.listTransactions(idTenant, idBranch)
+
+            let start, end;
+
+            if (period === 'day') {
+                start = moment().startOf('day');
+                end = moment().endOf('day');
+            } else if (period === 'week') {
+                start = moment().subtract(6, 'days').startOf('day'); // Últimos 7 dias
+                end = moment().endOf('day');
+            } else if (period === 'month') {
+                start = moment().startOf('month');
+                end = moment().endOf('month');
+            } else if (period === 'custom') {
+                start = moment(customDateRange.start).startOf('day');
+                end = moment(customDateRange.end).endOf('day');
+            } else {
+                start = moment().startOf('month');
+                end = moment().endOf('month');
+            }
+
+            // console.log(`Buscando fluxo de caixa: ${period} (${start.format('DD/MM')} - ${end.format('DD/MM')}) | Limit: ${fetchLimit}`);
+
+            const filters = {
+                startDate: start.toDate(),
+                endDate: end.toDate()
+            }
+
+            // Usar listTransactions com filtros e limite
+            // Nota: Filtro de conta bancária será feito no CLIENTE para evitar índices complexos no Firestore
+            const txs = await CashierService.listTransactions(idTenant, idBranch, filters, fetchLimit)
+
+            if (txs.length < fetchLimit) {
+                setHasMore(false);
+            } else {
+                setHasMore(true);
+            }
+
             setTransactions(txs)
         } catch (error) {
             console.error("Erro ao carregar fluxo de caixa:", error)
@@ -24,23 +83,23 @@ export const useCashFlow = () => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch])
+    }, [idTenant, idBranch, period, customDateRange, fetchLimit])
 
     useEffect(() => {
         loadData()
     }, [loadData])
 
-    // Filtragem por Período
+    const handleLoadMore = useCallback(() => {
+        if (!loading && hasMore) {
+            setFetchLimit(prev => prev + 50);
+        }
+    }, [loading, hasMore]);
+
+    // Filtragem Client-Side
     const filteredTransactions = useMemo(() => {
-        const now = moment();
-        return transactions.filter(t => {
-            const tDate = moment(t.date?.toDate ? t.date.toDate() : t.date);
-            if (period === 'day') return tDate.isSame(now, 'day');
-            if (period === 'week') return tDate.isAfter(moment().subtract(7, 'days'));
-            if (period === 'month') return tDate.isSame(now, 'month');
-            return true;
-        });
-    }, [transactions, period]);
+        if (filterBankAccount === 'all') return transactions;
+        return transactions.filter(t => t.idBankAccount === filterBankAccount);
+    }, [transactions, filterBankAccount]);
 
     const totals = useMemo(() => {
         const income = filteredTransactions
@@ -56,7 +115,7 @@ export const useCashFlow = () => {
             expense,
             balance: income - expense
         }
-    }, [filteredTransactions])
+    }, [filteredTransactions]) // Depende dos filtrados
 
     // Lógica para o Gráfico (Agrupar por dia nos últimos 7 dias indep. do filtro lateral)
     const chartDataGrouped = useMemo(() => {
@@ -68,7 +127,7 @@ export const useCashFlow = () => {
         const entries = new Array(7).fill(0)
         const exits = new Array(7).fill(0)
 
-        transactions.forEach(t => {
+        filteredTransactions.forEach(t => { // Usa os filtrados
             const dateStr = moment(t.date?.toDate ? t.date.toDate() : t.date).format('DD/MM')
             const index = last7Days.indexOf(dateStr)
             if (index !== -1) {
@@ -98,16 +157,24 @@ export const useCashFlow = () => {
                 },
             ],
         }
-    }, [transactions])
+    }, [filteredTransactions])
 
     return {
-        transactions: filteredTransactions,
-        allTransactions: transactions,
+        transactions: filteredTransactions, // Retorna os filtrados para a UI
+        allTransactionsLength: transactions.length, // Opcional, pra saber total carregado
         loading,
         period,
         setPeriod,
+        customDateRange,
+        setCustomDateRange,
         totals,
         chartData: chartDataGrouped,
-        refresh: loadData
+        handleLoadMore,
+        hasMore,
+        refresh: loadData,
+        // Novos retornos de Banco
+        bankAccounts,
+        filterBankAccount,
+        setFilterBankAccount
     }
 }

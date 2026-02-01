@@ -36,30 +36,14 @@ export const useReceivablesList = () => {
 
             const filters = [];
 
-            // Filtro de Status no Servidor
-            if (statusFilter !== 'all') {
-                if (statusFilter === 'open') {
-                    // 'open' no frontend inclui 'overdue' por data
-                    filters.push(['status', '==', 'open']);
-                } else {
-                    filters.push(['status', '==', statusFilter]);
-                }
-            }
-
-            // Filtro de Método de Pagamento no Servidor
-            if (paymentFilter !== 'all') {
-                filters.push(['paymentMethod', '==', paymentFilter]);
-            }
-
-            // Filtro de Data no Servidor (Convertendo string para Date para o Firestore)
-            if (dateRange.start) filters.push(['dueDate', '>=', moment(dateRange.start).startOf('day').toDate()]);
-            if (dateRange.end) filters.push(['dueDate', '<=', moment(dateRange.end).endOf('day').toDate()]);
+            // Filtros removidos do servidor para evitar erro de índice/tipo.
+            // A filtragem será feita no cliente.
 
             // Definir Limite (usando o estado de fetchLimit)
             const data = await receivableRepository.findWhere(
                 idTenant, idBranch,
                 filters,
-                { field: 'dueDate', direction: 'asc' },
+                { field: 'dueDate', direction: 'desc' }, // Pegar mais recentes primeiro
                 fetchLimit
             );
 
@@ -109,17 +93,44 @@ export const useReceivablesList = () => {
     }, []);
 
     // 4. Dados Filtrados
+    // 4. Dados Filtrados
     const filteredData = useMemo(() => {
-        return receivables.filter(r => {
-            // Filtros de busca textual continuam no front por serem leves
-            const matchesSearch = !searchTerm ||
-                (r.clientName?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                (String(r.saleNumber).includes(searchTerm)) ||
-                (r.description?.toLowerCase().includes(searchTerm.toLowerCase()));
+        const res = receivables.filter(r => {
+            // 1. Filtro de Status
+            let matchesStatus = true;
+            if (statusFilter !== 'all') {
+                if (statusFilter === 'open') {
+                    matchesStatus = r.virtualStatus === 'open';
+                } else if (statusFilter === 'overdue') {
+                    matchesStatus = r.virtualStatus === 'overdue';
+                } else {
+                    matchesStatus = r.status === statusFilter;
+                }
+            }
 
-            return matchesSearch;
+            // 2. Filtro de Pagamento
+            const matchesPayment = paymentFilter === 'all' || r.paymentMethod === paymentFilter;
+
+            // 3. Filtro de Data (Cliente)
+            let matchesDate = true;
+            if (dateRange.start && dateRange.end) {
+                const rDate = r.dueDate?.seconds ? moment(r.dueDate.seconds * 1000) : moment(r.dueDate);
+                const start = moment(dateRange.start).startOf('day');
+                const end = moment(dateRange.end).endOf('day');
+                matchesDate = rDate.isValid() && rDate.isBetween(start, end, null, '[]');
+            }
+
+            // 4. Filtros de busca textual
+            const term = searchTerm?.toLowerCase() || '';
+            const matchesSearch = !term ||
+                (r.clientName?.toLowerCase().includes(term)) ||
+                (String(r.saleNumber).includes(term)) ||
+                (r.description?.toLowerCase().includes(term));
+
+            return matchesStatus && matchesPayment && matchesSearch && matchesDate;
         });
-    }, [receivables, searchTerm]);
+        return res;
+    }, [receivables, searchTerm, statusFilter, paymentFilter, dateRange]);
 
     // 5. KPIs Totais
     const kpis = useMemo(() => {
