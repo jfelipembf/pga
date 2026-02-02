@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react"
 import { useSelector } from "react-redux"
-import { ClientService } from "../../../services/Clients/ClientService"
+import { ClientService } from "../../../features/clients"
 import { toast } from "react-toastify"
 
 export const useClientList = () => {

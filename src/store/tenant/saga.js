@@ -16,6 +16,7 @@ import { tenantRepository } from "../../data/repositories/TenantRepository"
 
 function* fetchTenantDetails({ payload: slugOrId }) {
     try {
+        // Sempre resolve o ID primeiro
         const idTenant = yield call([tenantRepository, tenantRepository.resolveTenantId], slugOrId)
         if (!idTenant) {
             yield put(getTenantDetailsFail("Tenant não encontrado"))
@@ -35,15 +36,17 @@ function* fetchTenantDetails({ payload: slugOrId }) {
 
 function* fetchBranchDetails({ payload: { idTenant: tenantSlug, idBranch: branchSlug } }) {
     try {
+        // Resolve Tenant ID
         const idTenant = yield call([tenantRepository, tenantRepository.resolveTenantId], tenantSlug)
         if (!idTenant) {
-            yield put(getBranchDetailsFail("Tenant não encontrado para buscar branch"))
+            yield put(getBranchDetailsFail("Tenant não encontrado"))
             return
         }
 
+        // Resolve Branch ID
         const idBranch = yield call([tenantRepository, tenantRepository.resolveBranchId], idTenant, branchSlug)
         if (!idBranch) {
-            yield put(getBranchDetailsFail("Branch não encontrada"))
+            yield put(getBranchDetailsFail("Filial não encontrada"))
             return
         }
 
@@ -61,7 +64,10 @@ function* fetchBranchDetails({ payload: { idTenant: tenantSlug, idBranch: branch
 function* fetchBranches({ payload: slugOrId }) {
     try {
         const idTenant = yield call([tenantRepository, tenantRepository.resolveTenantId], slugOrId)
-        if (!idTenant) return
+        if (!idTenant) {
+            yield put(getBranchesFail("Tenant não encontrado"))
+            return
+        }
 
         const response = yield call([tenantRepository, tenantRepository.findBranches], idTenant)
         yield put(getBranchesSuccess(response))

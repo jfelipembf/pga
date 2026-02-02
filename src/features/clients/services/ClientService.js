@@ -1,7 +1,8 @@
-import { clientRepository } from '../../data/repositories/ClientRepository'
-import { AuditService } from '../Audit/AuditService'
-import { ClientSchema } from '../../data/schemas/ClientSchema'
-import { generateClientId } from '../../utils/sequence'
+import { clientRepository } from '../repositories/ClientRepository'
+import { AuditService } from '../../../services/Audit/AuditService'
+import { ClientSchema } from '../schemas/ClientSchema'
+import { generateClientId } from '../../../utils/sequence'
+import { normalizeDate } from '../../../utils/date'
 
 /**
  * Serviço de Clientes que orquestra Negócio, Persistência e Auditoria.
@@ -31,9 +32,11 @@ export const ClientService = {
                 idTenant,
                 idBranch,
                 userId,
+                userName: clientData.userName,
                 action: 'CREATE',
                 entityType: 'client',
                 entityId: newClient.id,
+                description: `Cliente criado: ${newClient.name}`,
                 details: { name: newClient.name, email: newClient.email }
             })
 
@@ -67,20 +70,55 @@ export const ClientService = {
     /**
      * Deleta um cliente com auditoria.
      */
-    deleteClient: async (idTenant, idBranch, userId, id) => {
-        // Busca antes para salvar o estado no log
+    /**
+     * Deleta um cliente com verificação de segurança e auditoria (Soft Delete).
+     * O sistema impede exclusão se houver contratos ativos ou dívidas.
+     */
+    deleteClient: async (idTenant, idBranch, userId, id, userName = null) => {
+        // 1. Busca estado atual
         const client = await clientRepository.findById(idTenant, idBranch, id)
+        if (!client) throw new Error("Cliente não encontrado.")
 
-        await clientRepository.delete(idTenant, idBranch, id)
+        // 2. CHECK: Contratos Ativos
+        // Importa repositório aqui para evitar dependência circular se possível, ou usa injeção
+        const { clientContractRepository } = await import('../repositories/ClientContractRepository')
+        const activeContracts = await clientContractRepository.findByClient(idTenant, idBranch, id)
+        const hasActiveContracts = activeContracts.some(c => c.status === 'active' || c.status === 'suspended')
 
+        if (hasActiveContracts) {
+            throw new Error("SEGURANÇA: Não é possível excluir cliente com contratos Ativos ou Suspensos. Cancele os contratos primeiro.")
+        }
+
+        // 3. CHECK: Financeiro em Aberto
+        const { receivableRepository } = await import('../../../data/repositories/ReceivableRepository')
+        const openReceivables = await receivableRepository.findWhere(idTenant, idBranch, [
+            ['idClient', '==', id],
+            ['status', '==', 'open'],
+            ['deletedAt', '==', null]
+        ])
+
+        if (openReceivables.length > 0) {
+            throw new Error(`SEGURANÇA: Cliente possui ${openReceivables.length} títulos financeiros em aberto. Baixe ou cancele os títulos antes.`)
+        }
+
+        // 4. Se passou, executa Soft Delete
+        await clientRepository.softDelete(idTenant, idBranch, id, userId)
+
+        // 5. Auditoria da Exclusão
         await AuditService.log({
             idTenant,
             idBranch,
             userId,
+            userName,
             action: 'DELETE',
             entityType: 'client',
             entityId: id,
-            details: { before: client }
+            description: `Cliente excluído: ${client.name}`,
+            details: {
+                name: client.name,
+                reason: 'User request',
+                method: 'soft_delete'
+            }
         })
 
         return id
@@ -91,7 +129,7 @@ export const ClientService = {
      * Valida transições e registra auditoria.
      */
     updateLifecycleStatus: async (idTenant, idBranch, idClient, newStatus, metadata = {}) => {
-        const { VALID_TRANSITIONS } = await import('../../data/schemas/ClientSchema')
+        const { VALID_TRANSITIONS } = await import('../schemas/ClientSchema')
 
         // 1. Busca cliente atual
         const client = await clientRepository.findById(idTenant, idBranch, idClient)
@@ -108,12 +146,12 @@ export const ClientService = {
         // 3. Prepara atualização
         const updates = {
             lifecycleStatus: newStatus,
-            updatedAt: new Date()
+            updatedAt: normalizeDate(new Date())
         }
 
         // 4. Campos específicos por status
         if (newStatus === 'active' && !client.lifecycle?.convertedAt) {
-            updates['lifecycle.convertedAt'] = new Date()
+            updates['lifecycle.convertedAt'] = normalizeDate(new Date())
             updates['lifecycle.convertedBy'] = metadata.userId
             if (metadata.contractId) {
                 updates['lifecycle.firstContractId'] = metadata.contractId
@@ -121,7 +159,7 @@ export const ClientService = {
         }
 
         if (newStatus === 'lost') {
-            updates['lifecycle.lostAt'] = new Date()
+            updates['lifecycle.lostAt'] = normalizeDate(new Date())
             updates['lifecycle.lostReason'] = metadata.reason || 'not_specified'
             updates['lifecycle.lostNotes'] = metadata.notes || null
         }
@@ -146,5 +184,40 @@ export const ClientService = {
         })
 
         return { from: currentStatus, to: newStatus }
+    },
+
+    /**
+     * Define o status operacional real do cliente (Fonte Única de Verdade).
+     * Cruza o lifecycleStatus com a validade dos contratos.
+     */
+    calculateLiveStatus: (client, contracts = []) => {
+        if (!client) return null;
+
+        // 1. Se o aluno foi marcado como 'Perdido', esse é o status final
+        if (client.lifecycleStatus === 'lost') return 'lost';
+
+        // 2. Se houver contratos, o status depende da vigência deles
+        if (contracts && contracts.length > 0) {
+            const now = new Date();
+
+            // Verificar se há algum contrato ATIVO hoje
+            const hasActive = contracts.some(c => {
+                const isStatusActive = c.status === 'active';
+                const endDate = c.endDate?.toDate ? c.endDate.toDate() : new Date(c.endDate);
+                return isStatusActive && (endDate >= now);
+            });
+
+            if (hasActive) return 'active';
+
+            // Verificar se há algum contrato SUSPENSO
+            const hasSuspended = contracts.some(c => c.status === 'suspended');
+            if (hasSuspended) return 'suspended';
+
+            // Se todos os contratos expiraram ou foram cancelados
+            return 'inactive';
+        }
+
+        // 3. Se não tem contratos, mantém o status de funil (lead, scheduled, attended)
+        return client.lifecycleStatus || 'lead';
     }
 }

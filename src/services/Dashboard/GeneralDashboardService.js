@@ -5,6 +5,7 @@
 import { transactionRepository } from "../../data/repositories/TransactionRepository"
 import { query, where, getDocs } from "firebase/firestore"
 import moment from "moment"
+import { normalizeDate } from "../../utils/date"
 
 export const GeneralDashboardService = {
 
@@ -12,8 +13,8 @@ export const GeneralDashboardService = {
      * Dados para o Dashboard Operacional (Consultor)
      */
     getOperationalData: async (idTenant, idBranch, userId) => {
-        const startMonth = moment().startOf('month').toDate();
-        const endMonth = moment().endOf('month').toDate();
+        const startMonth = normalizeDate(moment().startOf('month'));
+        const endMonth = normalizeDate(moment().endOf('month'));
         const today = moment().startOf('day');
 
         const collectionRef = transactionRepository.getCollectionRef(idTenant, idBranch);
@@ -61,8 +62,8 @@ export const GeneralDashboardService = {
      * Dados para o Dashboard Gerencial (Gestor)
      */
     getManagerData: async (idTenant, idBranch) => {
-        const startMonth = moment().startOf('month').toDate();
-        const endMonth = moment().endOf('month').toDate();
+        const startMonth = normalizeDate(moment().startOf('month'));
+        const endMonth = normalizeDate(moment().endOf('month'));
         const today = moment().startOf('day');
 
         const collectionRef = transactionRepository.getCollectionRef(idTenant, idBranch);

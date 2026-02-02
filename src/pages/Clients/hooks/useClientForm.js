@@ -5,14 +5,13 @@ import { getAuth } from "firebase/auth"
 
 import { useTenant } from "../../../hooks/useTenant"
 
-import { ClientSchema } from "../../../data/schemas/ClientSchema"
-import { ClientService } from "../../../services/Clients/ClientService"
+import { ClientSchema, ClientService } from "../../../features/clients"
 import { StorageService } from "../../../services/Storage/StorageService"
 import { getAddressByCep } from "../../../services/External/AddressService"
 
 export const useClientForm = ({ onClientAdded, toggle }) => {
     // Obter IDs reais via Hook Centralizado
-    const { tenantId: idTenant, branchId: idBranch } = useTenant()
+    const { idTenant, idBranch } = useTenant()
 
     const [selectedPhoto, setSelectedPhoto] = useState(null)
     const [photoPreview, setPhotoPreview] = useState(null)
@@ -121,7 +120,11 @@ export const useClientForm = ({ onClientAdded, toggle }) => {
                 }
 
                 // 4. Salvar
-                await ClientService.createClient(idTenant, idBranch, auth.currentUser.uid, clientData)
+                const user = JSON.parse(localStorage.getItem("authUser")) || {};
+                await ClientService.createClient(idTenant, idBranch, auth.currentUser.uid, {
+                    ...clientData,
+                    userName: user.displayName || user.email // Garante Snapshot
+                })
 
                 toast.success("Cliente cadastrado com sucesso!")
                 onClientAdded?.()

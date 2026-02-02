@@ -1,10 +1,11 @@
 import { runTransaction, doc } from 'firebase/firestore'
-import { getFirebaseBackend } from '../../helpers/firebase_helper'
-import { clientContractRepository } from '../../data/repositories/ClientContractRepository'
-import { ClientContractSchema } from '../../data/schemas/ClientContractSchema'
-import { AuditService } from '../Audit/AuditService'
-import { DashboardSummaryService } from '../Dashboard/DashboardSummaryService'
-import { generateContractId } from '../../utils/sequence'
+import { getFirebaseBackend } from '../../../helpers/firebase_helper'
+import { clientContractRepository } from '../repositories/ClientContractRepository'
+import { ClientContractSchema } from '../schemas/ClientContractSchema'
+import { AuditService } from '../../../services/Audit/AuditService'
+import { DashboardSummaryService } from '../../../services/Dashboard/DashboardSummaryService'
+import { generateContractId } from '../../../utils/sequence'
+import { normalizeDate } from '../../../utils/date'
 import moment from 'moment'
 
 /**
@@ -41,9 +42,11 @@ export const ClientContractService = {
             friendlyId, // ID amigável para exibição
             status: contractData.status || 'active',
             paidInstallments: 0,
+            startDate: normalizeDate(contractData.startDate) || new Date(),
+            endDate: normalizeDate(contractData.endDate),
             createdBy: userId,
-            createdAt: new Date(),
-            updatedAt: new Date()
+            createdAt: normalizeDate(new Date()),
+            updatedAt: normalizeDate(new Date())
         }
 
         // 4. Verifica se é o primeiro contrato do cliente
@@ -69,10 +72,11 @@ export const ClientContractService = {
                 const clientRef = doc(db, `tenants/${idTenant}/branches/${idBranch}/clients/${contractData.idClient}`)
                 transaction.update(clientRef, {
                     lifecycleStatus: 'active',
-                    'lifecycle.convertedAt': new Date(),
+                    'lifecycle.convertedAt': normalizeDate(new Date()),
                     'lifecycle.convertedBy': userId,
                     'lifecycle.firstContractId': contractId,
-                    updatedAt: new Date()
+                    'lifecycle.startDate': normalizeDate(contractData.startDate) || normalizeDate(new Date()),
+                    updatedAt: normalizeDate(new Date())
                 })
 
                 // Incrementa dashboard
@@ -89,6 +93,7 @@ export const ClientContractService = {
             idTenant,
             idBranch,
             userId,
+            userName: contractData.userName,
             action: 'CREATE',
             entityType: 'clientContract',
             entityId: contractId,
@@ -96,7 +101,8 @@ export const ClientContractService = {
                 idClient: contractData.idClient,
                 planName: contractData.planName,
                 isFirstContract
-            }
+            },
+            description: `Contrato ${contractData.planName} criado para o cliente.`
         })
 
         return contractId
@@ -112,7 +118,7 @@ export const ClientContractService = {
             throw new Error('Apenas contratos ativos podem ser suspensos')
         }
 
-        const suspensionEndDate = moment().add(suspensionDays, 'days').toDate()
+        const suspensionEndDate = normalizeDate(moment().add(suspensionDays, 'days'))
 
         // Transação: Contract + Client + Dashboard
         const db = ClientContractService.db
@@ -122,19 +128,19 @@ export const ClientContractService = {
             transaction.update(contractRef, {
                 status: 'suspended',
                 'suspension.isSuspended': true,
-                'suspension.suspendedAt': new Date(),
+                'suspension.suspendedAt': normalizeDate(new Date()),
                 'suspension.suspendedBy': userId,
                 'suspension.suspensionDays': suspensionDays,
                 'suspension.suspensionEndDate': suspensionEndDate,
                 'suspension.reason': reason,
-                updatedAt: new Date()
+                updatedAt: normalizeDate(new Date())
             })
 
             // Atualiza cliente
             const clientRef = doc(db, `tenants/${idTenant}/branches/${idBranch}/clients/${contract.idClient}`)
             transaction.update(clientRef, {
                 lifecycleStatus: 'suspended',
-                updatedAt: new Date()
+                updatedAt: normalizeDate(new Date())
             })
 
             // Atualiza dashboard
@@ -175,14 +181,14 @@ export const ClientContractService = {
             transaction.update(contractRef, {
                 status: 'active',
                 'suspension.isSuspended': false,
-                updatedAt: new Date()
+                updatedAt: normalizeDate(new Date())
             })
 
             // Atualiza cliente
             const clientRef = doc(db, `tenants/${idTenant}/branches/${idBranch}/clients/${contract.idClient}`)
             transaction.update(clientRef, {
                 lifecycleStatus: 'active',
-                updatedAt: new Date()
+                updatedAt: normalizeDate(new Date())
             })
 
             // Atualiza dashboard
@@ -211,7 +217,7 @@ export const ClientContractService = {
     cancel: async (idTenant, idBranch, userId, idContract, reason, notes) => {
         const contract = await clientContractRepository.findById(idTenant, idBranch, idContract)
 
-        if (contract.status === 'canceled') {
+        if (contract.status === 'cancelled') {
             throw new Error('Contrato já está cancelado')
         }
 
@@ -224,19 +230,19 @@ export const ClientContractService = {
             // Atualiza contrato
             const contractRef = doc(db, `tenants/${idTenant}/branches/${idBranch}/clientContracts/${idContract}`)
             transaction.update(contractRef, {
-                status: 'canceled',
-                'cancellation.canceledAt': new Date(),
+                status: 'cancelled',
+                'cancellation.canceledAt': normalizeDate(new Date()),
                 'cancellation.canceledBy': userId,
                 'cancellation.reason': reason,
                 'cancellation.notes': notes,
-                updatedAt: new Date()
+                updatedAt: normalizeDate(new Date())
             })
 
             // Atualiza cliente para 'inactive'
             const clientRef = doc(db, `tenants/${idTenant}/branches/${idBranch}/clients/${contract.idClient}`)
             transaction.update(clientRef, {
                 lifecycleStatus: 'inactive',
-                updatedAt: new Date()
+                updatedAt: normalizeDate(new Date())
             })
 
             // Atualiza dashboard

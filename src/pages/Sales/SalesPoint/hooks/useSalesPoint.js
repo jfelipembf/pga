@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTenant } from '../../../../hooks/useTenant';
 import { SalesService } from '../../../../services/Sales/SalesService';
 import { AcquirerService } from '../../../../services/Financial/AcquirerService';
-import { ContractService } from '../../../../services/Contracts/ContractService';
+import { ContractService } from '../../../../features/clients';
 import { toast } from 'react-toastify';
 
 /**
@@ -13,7 +13,12 @@ import { toast } from 'react-toastify';
 export const useSalesPoint = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { tenantId: idTenant, branchId: idBranch } = useTenant();
+    const {
+        idTenant,
+        idBranch,
+        tenantSlug,
+        branchSlug
+    } = useTenant();
 
     // 1. Obtenção de contexto (Usuário e Cliente)
     const user = useMemo(() => {
@@ -132,6 +137,7 @@ export const useSalesPoint = () => {
                 friendlyId: friendlyId,
                 idSeller: user.uid,
                 sellerName: user.displayName || user.email || 'Vendedor',
+                userName: user.displayName || user.email || 'Vendedor', // Explicitamente para Auditoria
                 items: cartItems.map(item => ({
                     type: item.type, // Usa o type do item (contract, product, service)
                     idItem: item.idItem,
@@ -156,7 +162,7 @@ export const useSalesPoint = () => {
                 totalPaid: totals.totalPaid,
                 balance: totals.balance,
                 dueDateBalance: finalizeData.dueDate ? new Date(finalizeData.dueDate) : null,
-                status: totals.balance > 0.01 ? 'partial' : 'completed'
+                status: totals.balance > 0.01 ? 'partial' : 'paid'
             };
 
             await SalesService.processSale(idTenant, idBranch, user.uid, salePayload);
@@ -164,7 +170,8 @@ export const useSalesPoint = () => {
             toast.success("Venda Finalizada!");
 
             setTimeout(() => {
-                navigate(`/${idTenant}/${idBranch}/clients/${idClient}`);
+                // Use SLUGS for friendly navigation
+                navigate(`/${tenantSlug}/${branchSlug}/clients/${idClient}`);
             }, 1000);
 
         } catch (error) {

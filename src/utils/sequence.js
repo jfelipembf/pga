@@ -12,11 +12,34 @@ import { getFirebaseBackend } from '../helpers/firebase_helper'
  * Formato: [PREFIX][SEQUENCIAL_PADDED]
  * Exemplos:
  *   Clientes:   0001, 0002, 0003 (sem prefixo = GYM ID)
- *   Vendas:     V00001, V00002
- *   Contratos:  C00001, C00002
- *   Recebíveis: R00001, R00002
  *   Despesas:   D00001, D00002
+ *   Pagáveis:   P00001, P00002
  */
+
+/**
+ * Gera um código curto a partir de um ID Firebase (fallback quando não há ID amigável)
+ * @param {string} firebaseId - ID do Firebase
+ * @returns {string} Exemplo: "#ABC123"
+ */
+export const generateShortCode = (firebaseId) => {
+    if (!firebaseId) return '#------';
+    const short = firebaseId.substring(0, 6).toUpperCase();
+    return `#${short}`;
+};
+
+/**
+ * Formata um número de qualquer entidade para exibição com o caractere #
+ * @param {string} number - Número (ex: V00001)
+ * @returns {string} Exemplo: "#V00001"
+ */
+export const formatId = (number) => {
+    if (!number) return '-';
+    if (number.startsWith('#')) return number;
+    return `#${number}`;
+};
+
+// Aliases para compatibilidade se necessário
+export const formatSaleNumber = formatId;
 
 /**
  * Função base para gerar IDs amigáveis usando contadores Firestore.

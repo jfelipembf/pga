@@ -9,7 +9,7 @@ import moment from 'moment'
  * Hook para gerenciar a lógica do Fluxo de Caixa
  */
 export const useCashFlow = () => {
-    const { tenantId: idTenant, branchId: idBranch } = useTenant()
+    const { idTenant, idBranch } = useTenant()
     const [transactions, setTransactions] = useState([]) // Raw transactions from server
     const [loading, setLoading] = useState(true)
     const [period, setPeriod] = useState('month')
@@ -104,7 +104,7 @@ export const useCashFlow = () => {
     const totals = useMemo(() => {
         const income = filteredTransactions
             .filter(t => t.type === 'income')
-            .reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0)
+            .reduce((acc, curr) => acc + (parseFloat(curr.netAmount || curr.amount) || 0), 0)
 
         const expense = filteredTransactions
             .filter(t => t.type === 'expense')
@@ -131,7 +131,7 @@ export const useCashFlow = () => {
             const dateStr = moment(t.date?.toDate ? t.date.toDate() : t.date).format('DD/MM')
             const index = last7Days.indexOf(dateStr)
             if (index !== -1) {
-                if (t.type === 'income') entries[index] += parseFloat(t.amount) || 0
+                if (t.type === 'income') entries[index] += parseFloat(t.netAmount || t.amount) || 0
                 else exits[index] += parseFloat(t.amount) || 0
             }
         })

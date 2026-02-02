@@ -10,7 +10,7 @@ import { toast } from 'react-toastify'
  * Hook customizado para gerenciar a lógica da página de Caixa.
  */
 export const useCashier = () => {
-    const { tenantId: idTenant, branchId: idBranch } = useTenant()
+    const { idTenant, idBranch } = useTenant()
 
     // Obtenção do Usuário (Padrão LocalStorage)
     const user = useMemo(() => {
@@ -144,6 +144,7 @@ export const useCashier = () => {
                 amount: parseFloat(data.amount),
                 netAmount: parseFloat(data.amount), // Assumindo valor líquido igual
                 description: data.description,
+                userName: displayUserName, // Garante o Snapshot para auditoria
                 method: 'money', // Padrão: Dinheiro (Sangria/Suprimento é caixa físico)
                 notes: data.notes
             })
@@ -155,6 +156,37 @@ export const useCashier = () => {
             toast.error(error.message || 'Erro ao registrar movimento.')
         }
     }
+
+    const liveSummary = useMemo(() => {
+        if (!currentSession) return null;
+
+        const summary = {
+            openingBalance: parseFloat(currentSession.openingBalance) || 0,
+            totalIncome: 0,
+            totalExpenses: 0,
+            netCash: 0,
+            expectedBalance: 0
+        };
+
+        transactions.forEach(t => {
+            const amount = parseFloat(t.amount || 0);
+            const netAmount = parseFloat(t.netAmount || 0);
+
+            if (t.type === 'income') {
+                summary.totalIncome += netAmount;
+                // Apenas dinheiro físico entra na contagem da "gaveta" (expectedBalance)
+                if (t.method === 'money' || t.method === 'dinheiro') {
+                    summary.netCash += netAmount;
+                }
+            } else if (t.type === 'expense') {
+                summary.totalExpenses += amount;
+                summary.netCash -= amount;
+            }
+        });
+
+        summary.expectedBalance = summary.openingBalance + summary.netCash;
+        return summary;
+    }, [currentSession, transactions]);
 
     return {
         idTenant,
@@ -178,6 +210,7 @@ export const useCashier = () => {
         setMovementModalType,
         handleMovement,
         transactions,
+        liveSummary,
         refresh: loadData
     }
 }

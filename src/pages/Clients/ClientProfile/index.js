@@ -1,27 +1,56 @@
 import React from "react"
 import { Row, Col, Button, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from "reactstrap"
-import { useNavigate, useParams } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
+import { useTenant } from "../../../hooks/useTenant"
 
 // Hooks e Contextos
 import { useClientProfile } from "./hooks/useClientProfile"
+import { useClientFinancial } from "./hooks/useClientFinancial"
 import { TAB_LIST, PROFILE_TABS } from "./constants/profileConstants"
+import { ClientService } from "../../../features/clients"
 
 // Componentes Comuns
 import PageLoader from "../../../components/Common/PageLoader"
 import StatusBadge from "../../../components/Common/StatusBadge"
 import ConfirmDialog from "../../../components/Common/ConfirmDialog"
+import { formatCurrency } from "../../../utils/format"
 
 // Sub-componentes do Perfil
 import ClientSummary from "./components/ClientSummary"
 import ClientProfileForm from "./components/ClientProfileForm"
 import ClientFinancial from "./components/ClientFinancial"
 
+
 // Estilos
 import "./ClientProfile.scss"
 
 const ClientProfile = () => {
     const navigate = useNavigate()
-    const { idTenant, idBranch } = useParams() // Get IDs from URL (matching App.js definition)
+    // FIX: Usar useTenant para garantir os IDs corretos (ignorando slug da URL se necessário)
+    const { idTenant, idBranch, tenantSlug, branchSlug } = useTenant()
+
+
+
+    const navigateToSale = () => {
+        // Usa Slugs se disponíveis, senão IDs
+        const tLink = tenantSlug || idTenant;
+        const bLink = branchSlug || idBranch;
+        navigate(`/${tLink}/${bLink}/sales/new`, {
+            state: {
+                idClient: client?.id,
+                clientName: `${client?.firstName} ${client?.lastName}`,
+                friendlyId: client?.friendlyId
+            }
+        });
+    }
+    // ID do cliente continua vindo da URL (se rota for /clients/:id)
+    // Se id estiver undefined aqui, pode ser que useClientProfile o capture. Mas vamos garantir.
+    // O hook useClientProfile já faz const { id } = useParams(). 
+    // Aqui no componente precisamos de id? Não explicitamente, mas useClientProfile resolve.
+
+    // MAS espere, se useParams tem { idTenant, idBranch, id }, e eu chamo useTenant...
+    // useClientProfile chama useParams() e pega 'id'. Ok.
+
     const {
         client,
         loading,
@@ -30,6 +59,16 @@ const ClientProfile = () => {
         handleDelete,
         isDeleting
     } = useClientProfile()
+
+    // Resumo financeiro e contratos para a Header
+    const { summary, contracts } = useClientFinancial()
+
+    // Fonte Única de Verdade para o Status do Aluno
+    const liveStatus = ClientService.calculateLiveStatus(client, contracts);
+
+    // Recalcula estados baseados no summary atualizado
+    const hasDebt = summary && summary.totalPending > 0.01
+    const isOverdue = summary && summary.totalOverdue > 0.01
 
     const [menuOpen, setMenuOpen] = React.useState(false)
     const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false)
@@ -72,8 +111,27 @@ const ClientProfile = () => {
                                 <h3 className="mb-1 text-white">{profileDisplay.name}</h3>
                                 <div className="d-flex align-items-center gap-2 flex-wrap">
                                     <span className="fw-semibold">ID: {profileDisplay.id}</span>
-                                    <StatusBadge status={client?.lifecycleStatus} />
+                                    <StatusBadge status={liveStatus} />
                                 </div>
+
+                                {hasDebt && (
+                                    <div className="mt-3">
+                                        <div
+                                            className={`d-inline-flex align-items-center gap-2 px-3 py-2 rounded shadow-lg ${isOverdue ? 'bg-danger' : 'bg-warning'}`}
+                                            style={{
+                                                color: '#fff',
+                                                fontSize: '14px',
+                                                fontWeight: '800',
+                                                border: '2px solid rgba(255, 255, 255, 0.2)'
+                                            }}
+                                        >
+                                            <i className={isOverdue ? "mdi mdi-alert-octagon font-size-20" : "mdi mdi-alert-circle-outline font-size-20"} />
+                                            <span className="text-uppercase letter-spacing-1">
+                                                {isOverdue ? 'Débito Vencido' : 'Saldo Devedor'}: {formatCurrency(isOverdue ? summary.totalOverdue : summary.totalPending)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -81,15 +139,7 @@ const ClientProfile = () => {
                             <Button
                                 color="success"
                                 className="d-flex align-items-center gap-2"
-                                onClick={() => {
-                                    navigate(`/${idTenant}/${idBranch}/sales/new`, {
-                                        state: {
-                                            idClient: client?.id,
-                                            clientName: `${client?.firstName} ${client?.lastName}`,
-                                            friendlyId: client?.friendlyId
-                                        }
-                                    });
-                                }}
+                                onClick={navigateToSale}
                             >
                                 <i className="mdi mdi-cart-outline" />
                                 Nova Venda

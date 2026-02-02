@@ -1,17 +1,26 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useTenant } from '../../../../hooks/useTenant'; // Importe o hook padronizado
 import { receivableRepository } from '../../../../data/repositories/ReceivableRepository';
 import { bankAccountRepository } from '../../../../data/repositories/BankAccountRepository';
 import { transactionRepository } from '../../../../data/repositories/TransactionRepository';
 import { toast } from 'react-toastify';
 import moment from 'moment';
 import { formatCurrency } from '../../../../utils/format';
+import { normalizeDate } from '../../../../utils/date';
+import { AuditService } from '../../../../services/Audit/AuditService';
+import { getAuth } from 'firebase/auth';
 
 /**
  * Hook centralizado para gerenciar a lista de recebíveis, filtros e ações.
  */
 export const useReceivablesList = () => {
-    const { idTenant, idBranch } = useParams();
+    // PADRÃO: Usar hook centralizado para evitar inconsistência de IDs
+    const { idTenant, idBranch } = useTenant();
+
+    const user = useMemo(() => {
+        const authUser = localStorage.getItem("authUser")
+        return authUser ? JSON.parse(authUser) : {}
+    }, [])
 
     // 1. Estados Principais
     const [receivables, setReceivables] = useState([]);
@@ -36,16 +45,46 @@ export const useReceivablesList = () => {
 
             const filters = [];
 
-            // Filtros removidos do servidor para evitar erro de índice/tipo.
-            // A filtragem será feita no cliente.
+            if (dateRange.start) {
+                const start = normalizeDate(dateRange.start);
+                if (start) {
+                    filters.push(['dueDate', '>=', start]);
+                }
+            }
+            if (dateRange.end) {
+                const end = normalizeDate(dateRange.end);
+                if (end) {
+                    filters.push(['dueDate', '<=', end]);
+                }
+            }
+
+
+
+            console.log("Fluxo de Recebíveis - Buscando dados:", {
+                idTenant,
+                fetchLimit,
+                dateRange,
+                filtersApplied: filters.map(f => `${f[0]} ${f[1]} ${f[2]}`)
+            });
 
             // Definir Limite (usando o estado de fetchLimit)
-            const data = await receivableRepository.findWhere(
+            // STRATEGY: Buscar INCLUINDO deletados e filtrar em memória para evitar necessidade de índice composto complexo (deletedAt + dueDate)
+            // Isso garante que se o índice falhar, ainda temos dados.
+            const rawData = await receivableRepository.findWhere(
                 idTenant, idBranch,
                 filters,
                 { field: 'dueDate', direction: 'desc' }, // Pegar mais recentes primeiro
-                fetchLimit
+                fetchLimit,
+                true // includeDeleted = true
             );
+
+            // Filtra em memória (Robustez)
+            const data = rawData.filter(r => !r.deletedAt);
+
+            console.log(`Fluxo de Recebíveis - Retorno: ${data.length} registros encontrados.`);
+            if (data.length > 0) {
+                console.log("Primeiro registro (exemplo):", data[0]);
+            }
 
             const today = moment().startOf('day');
 
@@ -68,7 +107,7 @@ export const useReceivablesList = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [idTenant, idBranch, fetchLimit, statusFilter, paymentFilter, dateRange]);
+    }, [idTenant, idBranch, fetchLimit, dateRange]);
 
     const handleLoadMore = useCallback(() => {
         setFetchLimit(prev => prev + 50);
@@ -199,7 +238,8 @@ export const useReceivablesList = () => {
                 category: 'Movimentação Interna (Antecipação)', // DRE deve ignorar esta categoria
                 idBankAccount,
                 sourceType: 'receivable_bulk',
-                createdAt: new Date()
+                createdAt: new Date(),
+                userName: user.displayName || user.email // Garante Snapshot
             });
 
             // 3b. Saída da Taxa (Garante que o saldo final bata com o líquido)
@@ -208,10 +248,10 @@ export const useReceivablesList = () => {
                 description: `Taxa de Antecipação - ${anticipationFee}%`,
                 amount: totalExtraFee,
                 type: 'expense',
-                category: 'Taxas Administrativas',
                 idBankAccount,
                 sourceType: 'receivable_fee',
-                createdAt: new Date()
+                createdAt: new Date(),
+                userName: user.displayName || user.email // Garante Snapshot
             });
 
             // 4. Atualizar Saldo Bancário Final
@@ -220,6 +260,19 @@ export const useReceivablesList = () => {
             await bankAccountRepository.update(idTenant, idBranch, idBankAccount, {
                 currentBalance: newBalance,
                 updatedAt: new Date()
+            });
+
+            // 5. Auditoria
+            const auth = getAuth();
+            await AuditService.log({
+                idTenant, idBranch,
+                userId: auth.currentUser?.uid,
+                userName: user.displayName || user.email,
+                action: 'RECEIVABLE_ANTICIPATED',
+                entityType: 'receivable_bulk',
+                entityId: receivableIds.join(','),
+                description: `Antecipação realizada: ${receivableIds.length} títulos. Taxa: ${anticipationFee}%`,
+                details: { totalNet, totalGross, totalExtraFee }
             });
 
             toast.success("Antecipação processada com sucesso!");
@@ -245,13 +298,14 @@ export const useReceivablesList = () => {
 
             // 2. Criar Transação Financeira (Registro no Fluxo de Caixa)
             // Para cartões, o valor que entra na conta é o líquido (menos a taxa)
+            const settlementDateObj = normalizeDate(settlementDate);
             const settlementAmount = Number(totalAmount);
             const feePercent = parseFloat(settlementData.estimatedFee) || 0;
             const feeAmount = feePercent > 0 ? (settlementAmount * (feePercent / 100)) : 0;
             const netSettlement = settlementAmount - feeAmount;
 
             const transactionData = {
-                date: settlementDate,
+                date: settlementDateObj,
                 description: `Recebimento - ${receivable.clientName || 'ClienteIndefinido'}`,
                 amount: netSettlement, // Valor Real que entra no banco
                 grossAmount: settlementAmount, // Armazenamos o bruto para referência
@@ -267,7 +321,8 @@ export const useReceivablesList = () => {
                 idSource: id,
                 sourceType: 'receivable',
                 notes: notes || '',
-                createdAt: new Date().toISOString()
+                createdAt: new Date().toISOString(),
+                userName: user.displayName || user.email // Garante Snapshot
             };
             await transactionRepository.create(idTenant, idBranch, transactionData);
 
@@ -309,6 +364,19 @@ export const useReceivablesList = () => {
                 updatedAt: new Date()
             });
 
+            // 6. Auditoria
+            const auth = getAuth();
+            await AuditService.log({
+                idTenant, idBranch,
+                userId: auth.currentUser?.uid,
+                userName: user.displayName || user.email,
+                action: 'RECEIVABLE_SETTLED',
+                entityType: 'receivable',
+                entityId: id,
+                description: `Recebimento baixado: ${receivable.description || id}. Valor: ${formatCurrency(netSettlement)}`,
+                details: settlementData
+            });
+
             toast.success("Recebimento baixado com sucesso!");
             loadReceivables();
         } catch (error) {
@@ -331,6 +399,19 @@ export const useReceivablesList = () => {
             await receivableRepository.update(idTenant, idBranch, id, {
                 status: 'cancelled',
                 updatedAt: new Date()
+            });
+
+            // Auditoria
+            const auth = getAuth();
+            await AuditService.log({
+                idTenant, idBranch,
+                userId: auth.currentUser?.uid,
+                userName: user.displayName || user.email,
+                action: 'RECEIVABLE_CANCELLED',
+                entityType: 'receivable',
+                entityId: id,
+                description: `Título a receber cancelado: ${item.description || item.id}`,
+                details: { status: 'cancelled' }
             });
 
             toast.success("Título cancelado.");

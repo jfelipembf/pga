@@ -1,4 +1,5 @@
 import { auditRepository } from '../../data/repositories/AuditRepository'
+import { normalizeDate } from '../../utils/date'
 
 /**
  * Serviço de Auditoria para isolar a lógica de logs da UI.
@@ -19,19 +20,23 @@ export const AuditService = {
         idTenant,
         idBranch,
         userId,
+        userName,
         action,
         entityType,
         entityId,
+        description,
         details = {}
     }) => {
         try {
             const logData = {
                 userId,
+                userName: userName || null, // Denormaliza o nome para histórico
                 action,
                 entityType,
                 entityId,
+                description: description || '', // Agora é salvo explicitamente e protegido contra undefined
                 details,
-                timestamp: new Date().toISOString(),
+                timestamp: normalizeDate(new Date()),
                 metadata: {
                     userAgent: navigator.userAgent,
                     platform: navigator.platform
@@ -42,8 +47,45 @@ export const AuditService = {
             return true
         } catch (error) {
             console.error("Erro ao gravar log de auditoria:", error)
-            // Em produção, você pode querer enviar isso para um Sentry ou similar
             return false
+        }
+    },
+
+    /**
+     * Lista logs de auditoria com filtros simplificados.
+     */
+    listLogs: async (idTenant, idBranch, filters = {}, limitCount = 200) => {
+        try {
+            const whereClauses = [];
+
+            if (filters.action && filters.action !== 'all') {
+                whereClauses.push(['action', '==', filters.action]);
+            }
+            if (filters.entityType && filters.entityType !== 'all') {
+                whereClauses.push(['entityType', '==', filters.entityType]);
+            }
+            if (filters.userId && filters.userId !== 'all') {
+                whereClauses.push(['userId', '==', filters.userId]);
+            }
+
+            // Filtro de Datas
+            if (filters.startDate) {
+                whereClauses.push(['timestamp', '>=', normalizeDate(filters.startDate)]);
+            }
+            if (filters.endDate) {
+                whereClauses.push(['timestamp', '<=', normalizeDate(filters.endDate)]);
+            }
+
+            return await auditRepository.findWhere(
+                idTenant,
+                idBranch,
+                whereClauses,
+                { field: 'timestamp', direction: 'desc' },
+                limitCount
+            );
+        } catch (error) {
+            console.error("Erro ao buscar logs de auditoria:", error);
+            return [];
         }
     }
 }

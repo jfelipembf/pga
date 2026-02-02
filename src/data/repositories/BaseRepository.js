@@ -52,10 +52,16 @@ export class BaseRepository {
         return colRef;
     }
 
-    async findAll(idTenant, idBranch) {
+    async findAll(idTenant, idBranch, includeDeleted = false) {
         const ref = this.getCollectionRef(idTenant, idBranch)
+        let q = query(ref)
 
-        const snapshot = await getDocs(ref)
+        if (!includeDeleted) {
+            // Agora seguro: Todos os registros antigos foram migrados para ter deletedAt: null
+            q = query(q, where('deletedAt', '==', null))
+        }
+
+        const snapshot = await getDocs(q)
 
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
     }
@@ -63,7 +69,12 @@ export class BaseRepository {
     async findById(idTenant, idBranch, id) {
         const ref = doc(this.getCollectionRef(idTenant, idBranch), id)
         const snapshot = await getDoc(ref)
-        return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null
+        const data = snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null
+
+        // Se estiver "deletado", retorna null (mimetiza não encontrado), a menos que tratemos isso na UI
+        if (data && data.deletedAt) return null;
+
+        return data
     }
 
     /**
@@ -71,9 +82,15 @@ export class BaseRepository {
      * @param {Array} filters - Array de arrays: [['field', 'op', 'value'], ...]
      * @param {Object} sort - { field: 'name', direction: 'asc' }
      */
-    async findWhere(idTenant, idBranch, filters = [], sort = null, limitCount = null) {
+    async findWhere(idTenant, idBranch, filters = [], sort = null, limitCount = null, includeDeleted = false) {
         const ref = this.getCollectionRef(idTenant, idBranch)
+        console.log(`[BaseRepository] findWhere em: ${ref.path} | Filtros: ${filters.length} | IncludeDeleted: ${includeDeleted}`);
         let q = query(ref)
+
+        // Filtro automático de soft delete
+        if (!includeDeleted) {
+            q = query(q, where('deletedAt', '==', null))
+        }
 
         // Adicionar filtros
         filters.forEach(([field, op, value]) => {
@@ -96,6 +113,7 @@ export class BaseRepository {
 
     async create(idTenant, idBranch, data) {
         const ref = doc(this.getCollectionRef(idTenant, idBranch))
+        console.log(`[BaseRepository] CREATE em: ${ref.path}`);
         const timestamp = serverTimestamp()
         const newData = {
             ...data,
@@ -103,7 +121,8 @@ export class BaseRepository {
             idTenant,
             idBranch,
             createdAt: timestamp,
-            updatedAt: timestamp
+            updatedAt: timestamp,
+            deletedAt: null // Inicializa como nulo
         }
         await setDoc(ref, newData)
         return newData
@@ -119,7 +138,30 @@ export class BaseRepository {
         return { id, ...data }
     }
 
-    async delete(idTenant, idBranch, id) {
+    /**
+     * Realiza a Exclusão Lógica (Soft Delete).
+     * O registro permanece no banco, mas fica invisível para consultas padrão.
+     */
+    async softDelete(idTenant, idBranch, id, userId = null) {
+        const ref = doc(this.getCollectionRef(idTenant, idBranch), id)
+        const timestamp = serverTimestamp()
+
+        await updateDoc(ref, {
+            deletedAt: timestamp,
+            deletedBy: userId,
+            isActive: false, // Força inativação
+            status: 'deleted', // Atualiza status se houver campo
+            updatedAt: timestamp
+        })
+
+        return id
+    }
+
+    /**
+     * Exclusão Física (Hard Delete) - USAR COM EXTREMA CAUTELA
+     * Apenas para limpeza de dados irrelevantes ou GDPR.
+     */
+    async hardDelete(idTenant, idBranch, id) {
         const ref = doc(this.getCollectionRef(idTenant, idBranch), id)
         await deleteDoc(ref)
         return id

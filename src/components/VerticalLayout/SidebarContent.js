@@ -12,15 +12,20 @@ import { Link } from "react-router-dom"
 //i18n
 import { withTranslation } from "react-i18next"
 
+// Hooks
+import { useTenant } from "../../hooks/useTenant";
+
 const SidebarContent = props => {
   const ref = useRef();
 
-  const { idTenant, idBranch } = props.router.params;
+  // Use Centralized Tenant Hook
+  const { tenantSlug, branchSlug } = useTenant();
 
   const linkTo = (path) => {
     if (path.startsWith("/#") || path === "#") return path;
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `/${idTenant}/${idBranch}${cleanPath}`;
+    // Always build links using the friendliest identifier available (Slug)
+    return `/${tenantSlug}/${branchSlug}${cleanPath}`;
   };
 
   const activateParentDropdown = useCallback((item) => {
@@ -214,6 +219,13 @@ const SidebarContent = props => {
               <Link to={linkTo("/calendar")} className=" waves-effect">
                 <i className="mdi mdi-calendar-check"></i>
                 <span>{props.t("Calendar")}</span>
+              </Link>
+            </li>
+
+            <li>
+              <Link to={linkTo("/admin/audit-logs")} className=" waves-effect">
+                <i className="mdi mdi-shield-search"></i>
+                <span>{props.t("Auditoria")}</span>
               </Link>
             </li>
 

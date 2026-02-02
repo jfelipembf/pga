@@ -7,11 +7,9 @@ import { useTenant } from '../../../hooks/useTenant'
  * Hook para gerenciar a lógica de Adquirentes (Máquinas de Cartão)
  */
 export const useAcquirers = () => {
-    const { tenantId, branchId } = useTenant()
+    const { idTenant, idBranch } = useTenant()
 
-    // IDs mapeados para compatibilidade com o service
-    const idTenant = tenantId;
-    const idBranch = branchId;
+    // IDs mapeados já estão corretos
 
     const [acquirers, setAcquirers] = useState([])
     const [loading, setLoading] = useState(true)

@@ -1,4 +1,4 @@
-import { BaseRepository } from './BaseRepository'
+import { BaseRepository } from '../../../data/repositories/BaseRepository'
 
 /**
  * Repositório específico para a entidade de Clientes.

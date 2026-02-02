@@ -5,7 +5,7 @@ import { toast } from 'react-toastify'
 import moment from 'moment'
 
 export const useFinancialDashboard = () => {
-    const { tenantId: idTenant, branchId: idBranch } = useTenant()
+    const { idTenant, idBranch } = useTenant()
 
     const [loading, setLoading] = useState(true)
     const [data, setData] = useState({
@@ -46,7 +46,7 @@ export const useFinancialDashboard = () => {
             if (performanceRes.transactions) {
                 performanceRes.transactions.forEach(t => {
                     const day = moment(t.date?.toDate ? t.date.toDate() : t.date).date();
-                    const val = parseFloat(t.amount) || 0;
+                    const val = parseFloat(t.netAmount || t.amount) || 0;
                     if (t.type === 'income') incomeSeries[day - 1] += val;
                     else expenseSeries[day - 1] += val;
                 });

@@ -3,6 +3,7 @@ import { Row, Col, Label, Input, Button, Form, InputGroup, InputGroupText, FormF
 import { useFormik } from "formik"
 import { PayableSchema } from "../../../data/schemas/Financial/PayableSchema"
 import { DEFAULT_CHART_OF_ACCOUNTS, DEFAULT_COST_CENTERS } from "../../../data/consts/FinancialStructs"
+import { toISODate } from "../../../utils/date"
 
 export const PayableFormVisual = ({ initialData, onCancel, onSave, hideTitle = false }) => {
 
@@ -24,7 +25,7 @@ export const PayableFormVisual = ({ initialData, onCancel, onSave, hideTitle = f
             title: initialData?.title || initialData?.description || '',
             amount: initialData?.amount || '',
             supplier: initialData?.supplier || '',
-            dueDate: initialData?.dueDate || '',
+            dueDate: toISODate(initialData?.dueDate) || '',
             documentNumber: initialData?.documentNumber || '',
             chartOfAccountId: initialData?.chartOfAccountId || '',
             costCenterId: initialData?.costCenterId || '',

@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Modal, ModalHeader, ModalBody, Button, Row, Col, Label, Input, Alert, Table } from 'reactstrap';
 import { formatCurrency } from '../../../utils/format';
 import { bankAccountRepository } from '../../../data/repositories/BankAccountRepository';
-import { useParams } from 'react-router-dom';
+import { useTenant } from '../../../hooks/useTenant';
 import moment from 'moment';
 
 const ReceivableAnticipationModal = ({ isOpen, toggle, selectedReceivables, onAnticipate }) => {
-    const { idTenant, idBranch } = useParams();
+    const { idTenant, idBranch } = useTenant();
     const [bankAccounts, setBankAccounts] = useState([]);
     const [idBankAccount, setIdBankAccount] = useState('');
     const [anticipationFee, setAnticipationFee] = useState(3); // Taxa padrão de 3%

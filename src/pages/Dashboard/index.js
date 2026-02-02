@@ -1,9 +1,8 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { Row, Col, Card, CardBody } from "reactstrap"
 import Miniwidget from "./Miniwidget"
 import { useGeneralDashboard } from "./hooks/useGeneralDashboard"
 import { formatCurrency } from "../../utils/format"
-
 const Dashboard = () => {
   document.title = "Dashboard Geral | Lexa Admin"
 

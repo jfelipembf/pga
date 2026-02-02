@@ -1,5 +1,5 @@
 import React from "react"
-import { Row, Col, Card, CardBody, CardTitle, Badge } from "reactstrap"
+import { Row, Col, Card, CardBody, CardTitle } from "reactstrap"
 import Miniwidget from "../../Dashboard/Miniwidget"
 import { useGeneralDashboard } from "../hooks/useGeneralDashboard"
 import { formatCurrency } from "../../../utils/format"

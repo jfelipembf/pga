@@ -14,15 +14,16 @@ moment.locale('pt-br');
  * @param {any} date - Data a ser formatada
  * @returns {string} Data formatada ou '-'
  */
-export const formatDate = (date) => {
+export const formatDate = (date, format = 'date') => {
     if (!date) return '-';
 
     // Tratamento para Timestamp do Firestore (seconds, nanoseconds)
-    if (date.seconds) {
-        return moment(date.seconds * 1000).format('DD/MM/YYYY');
-    }
+    const m = date.seconds ? moment(date.seconds * 1000) : moment(date);
 
-    return moment(date).format('DD/MM/YYYY');
+    if (format === 'time') return m.format('HH:mm');
+    if (format === 'datetime' || format === 'full') return m.format('DD/MM/YYYY HH:mm');
+
+    return m.format('DD/MM/YYYY');
 };
 
 /**
@@ -63,3 +64,32 @@ export const toISODate = (date) => {
     if (date.seconds) return moment(date.seconds * 1000).format('YYYY-MM-DD');
     return moment(date).format('YYYY-MM-DD');
 }
+
+/**
+ * Normaliza qualquer entrada (String, Timestamp, Date) para um objeto Date real (JS).
+ * Fundamental para garantir que o Firebase salve como Timestamp e não como String.
+ * @param {any} date 
+ * @returns {Date | null}
+ */
+export const normalizeDate = (date) => {
+    if (!date) return null;
+
+    // Se já for um Date do JS
+    if (date instanceof Date) return date;
+
+    // Se for um Timestamp do Firestore
+    if (date.seconds) return new Date(date.seconds * 1000);
+
+    // Se for uma string (comum vir de inputs HTML como YYYY-MM-DD)
+    if (typeof date === 'string') {
+        // Tentativa de evitar distorção de fuso horário (UTC vs Local) em strings curtas
+        if (date.length === 10) {
+            return moment(date + 'T12:00:00').toDate();
+        }
+        return moment(date).toDate();
+    }
+
+    // Fallback usando moment
+    const m = moment(date);
+    return m.isValid() ? m.toDate() : null;
+};

@@ -23,6 +23,8 @@ import "./assets/scss/theme.scss"
 // Import Firebase Configuration file
 import { initFirebaseBackend } from "./helpers/firebase_helper"
 
+import GlobalErrorBoundary from "./components/Common/GlobalErrorBoundary"
+
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_APIKEY,
   authDomain: process.env.REACT_APP_AUTHDOMAIN,
@@ -52,44 +54,47 @@ const App = props => {
   }
 
   const Layout = getLayout()
+
   return (
     <React.Fragment>
-      <ToastContainer position="top-center" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
-      <Routes>
-        {/* Dynamic Multitenant Root */}
-        <Route path="/:idTenant/:idBranch">
+      <GlobalErrorBoundary>
+        <ToastContainer position="top-center" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+        <Routes>
+          {/* Dynamic Multitenant Root */}
+          <Route path="/:idTenant/:idBranch">
 
-          {/* Public Auth routes within tenant context */}
-          <Route element={<NonAuthLayout />}>
-            {authRoutes.map((route, idx) => (
-              <Route
-                key={idx}
-                path={route.path.startsWith('/') ? route.path.substring(1) : route.path}
-                element={route.component}
-              />
-            ))}
+            {/* Public Auth routes within tenant context */}
+            <Route element={<NonAuthLayout />}>
+              {authRoutes.map((route, idx) => (
+                <Route
+                  key={idx}
+                  path={route.path.startsWith('/') ? route.path.substring(1) : route.path}
+                  element={route.component}
+                />
+              ))}
+            </Route>
+
+            {/* Protected routes within tenant context */}
+            <Route element={<Authmiddleware><Layout /></Authmiddleware>}>
+              {userRoutes.map((route, idx) => (
+                <Route
+                  key={idx}
+                  path={route.path.startsWith('/') ? route.path.substring(1) : route.path}
+                  element={route.component}
+                />
+              ))}
+            </Route>
           </Route>
 
-          {/* Protected routes within tenant context */}
-          <Route element={<Authmiddleware><Layout /></Authmiddleware>}>
-            {userRoutes.map((route, idx) => (
-              <Route
-                key={idx}
-                path={route.path.startsWith('/') ? route.path.substring(1) : route.path}
-                element={route.component}
-              />
-            ))}
-          </Route>
-        </Route>
+          {/* Global redirects/fallbacks */}
+          <Route path="/login" element={<Navigate to="/pages-404" replace />} />
+          <Route path="/register" element={<Navigate to="/pages-404" replace />} />
+          <Route path="/" element={<Navigate to="/pages-404" replace />} />
+          <Route path="/dashboard" element={<Navigate to="/pages-404" replace />} />
 
-        {/* Global redirects/fallbacks */}
-        <Route path="/login" element={<Navigate to="/pages-404" replace />} />
-        <Route path="/register" element={<Navigate to="/pages-404" replace />} />
-        <Route path="/" element={<Navigate to="/pages-404" replace />} />
-        <Route path="/dashboard" element={<Navigate to="/pages-404" replace />} />
-
-        {/* You should define a Catch-all or a landing page route here if possible */}
-      </Routes>
+          {/* You should define a Catch-all or a landing page route here if possible */}
+        </Routes>
+      </GlobalErrorBoundary>
     </React.Fragment>
   )
 }

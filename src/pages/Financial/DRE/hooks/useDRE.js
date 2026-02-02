@@ -12,7 +12,7 @@ import moment from 'moment'
  * a partir do BALANCETE (verdade contábil).
  */
 export const useDRE = () => {
-    const { tenantId: idTenant, branchId: idBranch } = useTenant()
+    const { idTenant, idBranch } = useTenant()
     const [balancete, setBalancete] = useState([])
     const [loading, setLoading] = useState(true)
     const [period, setPeriod] = useState('month')
@@ -65,36 +65,32 @@ export const useDRE = () => {
         const net = [];
 
         balancete.forEach(conta => {
-            // RECEITAS (crédito > débito)
-            if (conta.account.startsWith('RECEITA_')) {
-                const valor = conta.credit - conta.debit
-                if (valor > 0) {
-                    net.push({
-                        id: conta.account,
-                        type: 'income',
-                        amount: valor,
-                        category: conta.accountName,
-                        description: `Receitas: ${conta.accountName}`,
-                        date: new Date() // Data do período
-                    })
-                }
-            }
+            // DETECÇÃO DE GRUPO (Padrão Numérico Estrito)
+            const isRevenue = conta.account.startsWith('1');
+            const isExpense = conta.account.startsWith('2');
 
-            // DESPESAS (débito > crédito)
-            if (conta.account.startsWith('DESPESA_')) {
-                const valor = conta.debit - conta.credit
+            if (isRevenue) {
+                const valor = conta.credit - conta.debit;
                 if (valor > 0) {
                     net.push({
                         id: conta.account,
-                        type: 'expense',
-                        amount: valor,
                         category: conta.accountName,
-                        description: `Despesas: ${conta.accountName}`,
-                        date: new Date() // Data do período
-                    })
+                        amount: valor,
+                        type: 'income'
+                    });
+                }
+            } else if (isExpense) {
+                const valor = conta.debit - conta.credit;
+                if (valor > 0) {
+                    net.push({
+                        id: conta.account,
+                        category: conta.accountName,
+                        amount: valor,
+                        type: 'expense'
+                    });
                 }
             }
-        })
+        });
 
         return net;
     }, [balancete])
@@ -104,11 +100,11 @@ export const useDRE = () => {
      */
     const summary = useMemo(() => {
         const totalReceitas = balancete
-            .filter(c => c.account.startsWith('RECEITA_'))
+            .filter(c => c.account.startsWith('1'))
             .reduce((sum, c) => sum + (c.credit - c.debit), 0)
 
         const totalDespesas = balancete
-            .filter(c => c.account.startsWith('DESPESA_'))
+            .filter(c => c.account.startsWith('2'))
             .reduce((sum, c) => sum + (c.debit - c.credit), 0)
 
         return {

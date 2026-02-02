@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useTenant } from '../../../hooks/useTenant'
 import { GeneralDashboardService } from '../../../services/Dashboard/GeneralDashboardService'
-import { toast } from 'react-toastify'
+
 
 // Tipo: 'operational' | 'manager'
 export const useGeneralDashboard = (type = 'manager') => {
-    const { tenantId: idTenant, branchId: idBranch } = useTenant()
+    const { idTenant, idBranch } = useTenant()
 
     // Obter userId do localStorage ou contexto Auth (Simplificado aqui)
     // Em produção seria useProfile() ou similar.

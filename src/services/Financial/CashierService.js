@@ -3,6 +3,7 @@ import { transactionRepository } from '../../data/repositories/TransactionReposi
 import { AuditService } from '../Audit/AuditService'
 import { CashierSessionSchema, TransactionSchema } from '../../data/schemas/FinancialSchemas'
 import { LedgerService } from '../Ledger/LedgerService'
+import { normalizeDate } from '../../utils/date'
 
 /**
  * Serviço responsável por gerenciar a "Gaveta de Caixa" (Sessões e Movimentações).
@@ -22,7 +23,7 @@ export const CashierService = {
         const sessionData = {
             idUser: userId,
             userName,
-            openedAt: new Date(),
+            openedAt: normalizeDate(new Date()),
             openingBalance: safeOpeningBalance,
             status: 'open',
             totalIncome: 0,
@@ -37,6 +38,7 @@ export const CashierService = {
 
         await AuditService.log({
             idTenant, idBranch, userId,
+            userName,
             action: 'CASHIER_OPEN',
             entityType: 'cashierSession',
             entityId: newSession.id,
@@ -57,7 +59,7 @@ export const CashierService = {
 
         const updateData = {
             status: 'closed',
-            closedAt: new Date(),
+            closedAt: normalizeDate(new Date()),
             actualBalance: parseFloat(closingData.actualBalance) || 0,
             difference: (parseFloat(closingData.actualBalance) || 0) - session.expectedBalance,
             closingNotes: closingData.notes
@@ -89,7 +91,7 @@ export const CashierService = {
         const fullMovement = {
             ...movementData,
             idCashierSession: cashierSession.id,
-            date: new Date(),
+            date: normalizeDate(new Date()),
             status: 'completed'
         };
 
@@ -126,7 +128,7 @@ export const CashierService = {
                     idBankAccount: fullMovement.idBankAccount,
                     bankAccountName: fullMovement.bankAccountName || 'Banco',
                     description: fullMovement.description,
-                    date: new Date()
+                    date: normalizeDate(new Date())
                 })
             } catch (ledgerError) {
                 console.error("Erro ao criar lançamento contábil de movimentação de caixa:", ledgerError)
@@ -135,6 +137,7 @@ export const CashierService = {
 
         await AuditService.log({
             idTenant, idBranch, userId,
+            userName: movementData.userName,
             action: fullMovement.type === 'income' ? 'CASHIER_INCOME' : 'CASHIER_EXPENSE',
             entityType: 'financialTransaction',
             entityId: newMovement.id,
@@ -151,8 +154,8 @@ export const CashierService = {
     listTransactions: async (idTenant, idBranch, filters = {}, limitCount = 50) => {
         const whereClauses = [];
 
-        if (filters.startDate) whereClauses.push(['date', '>=', filters.startDate]);
-        if (filters.endDate) whereClauses.push(['date', '<=', filters.endDate]);
+        if (filters.startDate) whereClauses.push(['date', '>=', normalizeDate(filters.startDate)]);
+        if (filters.endDate) whereClauses.push(['date', '<=', normalizeDate(filters.endDate)]);
 
         return await transactionRepository.findWhere(idTenant, idBranch,
             whereClauses,
@@ -166,8 +169,8 @@ export const CashierService = {
      */
     listByPeriod: async (idTenant, idBranch, startDate, endDate) => {
         // Garantir objetos Date
-        const start = new Date(startDate);
-        const end = new Date(endDate);
+        const start = normalizeDate(startDate);
+        const end = normalizeDate(endDate);
 
         // Firestore exige que o campo de filtro de intervalo seja o primeiro na ordenação (ou requires index)
         return await transactionRepository.findWhere(idTenant, idBranch,

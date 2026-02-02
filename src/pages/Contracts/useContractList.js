@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
-import { ContractService } from "../../services/Contracts/ContractService"
+import { ContractService } from "../../features/clients"
 import { tenantRepository } from "../../data/repositories/TenantRepository"
 import { toast } from "react-toastify"
 import { useTenant } from "../../hooks/useTenant"
@@ -8,7 +8,7 @@ import { useTenant } from "../../hooks/useTenant"
  * Hook para gerenciar a lógica de listagem e manutenção de Contratos (Planos)
  */
 export const useContractList = () => {
-    const { tenantId: idTenant, branchId: idBranch } = useTenant()
+    const { idTenant, idBranch } = useTenant()
     const [contracts, setContracts] = useState([])
     const [loading, setLoading] = useState(true)
     const [selectedId, setSelectedId] = useState(null)

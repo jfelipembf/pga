@@ -7,7 +7,7 @@ import { toast } from 'react-toastify'
  * Hook para gerenciar a lógica de Contas a Pagar (Payables)
  */
 export const usePayables = () => {
-    const { tenantId: idTenant, branchId: idBranch } = useTenant()
+    const { idTenant, idBranch } = useTenant()
 
     // Obtenção do Usuário (Padrão LocalStorage)
     const user = useMemo(() => {
@@ -74,10 +74,16 @@ export const usePayables = () => {
     const handleSave = async (data) => {
         try {
             if (selectedPayable) {
-                await PayableService.updatePayable(idTenant, idBranch, user.uid, selectedPayable.id, data)
+                await PayableService.updatePayable(idTenant, idBranch, user.uid, selectedPayable.id, {
+                    ...data,
+                    userName: user.displayName || user.email // Garante Snapshot
+                })
                 toast.success("Conta atualizada com sucesso")
             } else {
-                await PayableService.createPayable(idTenant, idBranch, user.uid, data)
+                await PayableService.createPayable(idTenant, idBranch, user.uid, {
+                    ...data,
+                    userName: user.displayName || user.email // Garante Snapshot
+                })
                 toast.success("Conta registrada com sucesso")
             }
             toggleModal()
@@ -90,7 +96,10 @@ export const usePayables = () => {
 
     const handlePay = async (id, paymentData = {}) => {
         try {
-            await PayableService.payBill(idTenant, idBranch, user.uid, id, paymentData)
+            await PayableService.payBill(idTenant, idBranch, user.uid, id, {
+                ...paymentData,
+                userName: user.displayName || user.email // Garante Snapshot
+            })
             toast.success("Pagamento realizado com sucesso")
             await loadPayables()
         } catch (error) {

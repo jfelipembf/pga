@@ -1,5 +1,6 @@
 import React from "react"
 import { Badge } from "reactstrap"
+import { formatDate } from "../../../utils/date"
 
 export const PayableListItem = ({ payable, active, onClick }) => {
     // Helper status colors
@@ -34,7 +35,7 @@ export const PayableListItem = ({ payable, active, onClick }) => {
                 </div>
                 <div className="d-flex justify-content-between align-items-center">
                     <p className="text-muted font-size-12 mb-0">
-                        Vencto: {new Date(payable.dueDate).toLocaleDateString('pt-BR')}
+                        Vencto: {formatDate(payable.dueDate)}
                     </p>
                     <Badge color={getStatusColor(payable.status)} pill className="font-size-10">
                         {getStatusLabel(payable.status)}

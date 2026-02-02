@@ -38,7 +38,7 @@ export const SaleSchema = Yup.object().shape({
         then: () => Yup.date().required('Defina a data para o pagamento do saldo restante'),
         otherwise: () => Yup.date().nullable()
     }),
-    status: Yup.string().oneOf(['draft', 'completed', 'cancelled', 'partial']).default('completed'),
+    status: Yup.string().oneOf(['draft', 'completed', 'cancelled', 'partial', 'paid', 'open']).default('completed'),
     idCashierSession: Yup.string().nullable(),
     metadata: Yup.object().nullable()
 })

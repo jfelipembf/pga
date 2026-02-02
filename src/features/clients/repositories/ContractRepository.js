@@ -1,4 +1,4 @@
-import { BaseRepository } from "./BaseRepository";
+import { BaseRepository } from "../../../data/repositories/BaseRepository";
 
 /**
  * Repositório focado apenas na persistência de Contratos (Planos).

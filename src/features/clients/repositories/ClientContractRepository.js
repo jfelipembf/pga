@@ -1,4 +1,4 @@
-import { BaseRepository } from './BaseRepository'
+import { BaseRepository } from '../../../data/repositories/BaseRepository'
 
 /**
  * Repositório para Contratos de Cliente.
@@ -24,7 +24,8 @@ class ClientContractRepository extends BaseRepository {
      * Busca contratos ativos de um cliente.
      */
     async findActiveByClient(idTenant, idBranch, idClient) {
-        return this.findWhere(
+        const now = new Date()
+        const contracts = await this.findWhere(
             idTenant,
             idBranch,
             [
@@ -32,6 +33,23 @@ class ClientContractRepository extends BaseRepository {
                 ['status', '==', 'active']
             ]
         )
+        // Filtro em memória para data (Firestore não suporta bem múltiplos filtros de desigualdade em campos diferentes sem índices compostos complexos)
+        return contracts.filter(c => {
+            const endDate = c.endDate?.toDate ? c.endDate.toDate() : new Date(c.endDate)
+            return endDate >= now
+        })
+    }
+
+    /**
+     * Busca contratos estritamente ativos (status active E não vencidos)
+     */
+    async findStrictlyActive(idTenant, idBranch) {
+        const now = new Date()
+        const allActiveStatus = await this.findByStatus(idTenant, idBranch, 'active')
+        return allActiveStatus.filter(c => {
+            const endDate = c.endDate?.toDate ? c.endDate.toDate() : new Date(c.endDate)
+            return endDate >= now
+        })
     }
 
     /**

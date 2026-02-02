@@ -1,7 +1,9 @@
 import { receivableRepository } from '../../data/repositories/ReceivableRepository'
+import { salesRepository } from '../../data/repositories/SalesRepository'
 import { CashierService } from './CashierService'
 import { AuditService } from '../Audit/AuditService'
 import { LedgerService } from '../Ledger/LedgerService'
+import { normalizeDate } from '../../utils/date'
 
 
 /**
@@ -42,7 +44,7 @@ export const ReceivableService = {
                 netAmount: netAmount,
                 idBankAccount: paymentData.idBankAccount || 'CAIXA',
                 bankAccountName: paymentData.bankAccountName || 'Caixa',
-                settlementDate: new Date()
+                settlementDate: normalizeDate(paymentData.settlementDate) || new Date()
             })
         } catch (ledgerError) {
             console.error("Erro ao criar lançamento contábil de recebimento:", ledgerError)
@@ -64,6 +66,7 @@ export const ReceivableService = {
         // 4. Auditoria
         await AuditService.log({
             idTenant, idBranch, userId,
+            userName: paymentData.userName, // Recebe do frontend ou busca do Auth
             action: 'RECEIVABLE_SETTLED',
             entityType: 'receivable',
             entityId: idReceivable,
@@ -71,40 +74,109 @@ export const ReceivableService = {
             details: updatedData
         })
 
+        // 5. ATUALIZAÇÃO DO STATUS DA VENDA (Se originado de uma venda parcial)
+        if (receivable.idSale && updatedData.status === 'paid') {
+            try {
+                // Verificar se existem outros títulos pendentes DO CLIENTE para esta mesma venda
+                // Ignoramos tipos 'acquirer' (cartão), pois para o cliente a venda já está paga.
+                const otherPending = await receivableRepository.findWhere(idTenant, idBranch, [
+                    ['idSale', '==', receivable.idSale],
+                    ['status', '==', 'open'],
+                    ['type', '==', 'client'], // Apenas dívidas diretas do cliente
+                    ['id', '!=', idReceivable]
+                ]);
+
+                // Se não houver mais nada em aberto para esta venda, mudamos o status da venda para 'paid'
+                if (otherPending.length === 0) {
+                    console.log(`[ReceivableService] OK! Tudo pago. Atualizando venda ${receivable.idSale} para 'paid'...`);
+                    await salesRepository.update(idTenant, idBranch, receivable.idSale, {
+                        status: 'paid',
+                        updatedAt: new Date()
+                    });
+                    console.log(`[ReceivableService] Sucesso! Venda ${receivable.idSale} agora é 'paid'.`);
+                } else {
+                    console.log(`[ReceivableService] Venda ${receivable.idSale} ainda tem ${otherPending.length} pendências do tipo client.`);
+                }
+            } catch (saleUpdateError) {
+                console.error("Erro ao tentar atualizar status da venda vinculada:", saleUpdateError);
+            }
+        }
+
         return { id: idReceivable, ...updatedData }
     },
 
     /**
      * Obtém o resumo financeiro consolidado de um cliente.
+     * Cruza dados de Vendas (Volume/LTV) e Recebíveis (A Receber/Vencidos)
      */
     getSummaryByClient: async (idTenant, idBranch, idClient) => {
-        const receivables = await receivableRepository.findWhere(idTenant, idBranch, [
-            ['idClient', '==', idClient],
-            ['deleted', '==', false]
+        // Buscar em paralelo para performance
+        const [receivables, sales] = await Promise.all([
+            receivableRepository.findWhere(idTenant, idBranch, [
+                ['idClient', '==', idClient],
+                ['status', '!=', 'cancelled']
+            ]),
+            salesRepository.findWhere(idTenant, idBranch, [
+                ['idClient', '==', idClient]
+            ])
         ]);
 
         const summary = {
-            totalOwed: 0,
-            totalPaid: 0,
-            totalPending: 0,
-            totalOverdue: 0,
+            totalOwed: 0,      // Volume Bruto de Vendas
+            totalPaid: 0,      // LTV Real (Dinheiro + Pix + Cartão + Parcelas Pagas)
+            totalPending: 0,   // Saldo Devedor do Cliente (Tipo 'client')
+            totalOverdue: 0,   // Débito Vencido do Cliente (Tipo 'client')
+            totalBankReceivable: 0, // A Receber das Adquirentes (Tipo 'acquirer')
             receivablesCount: receivables.length
         };
 
-        const now = new Date(); // Usar Date nativo
+        const now = new Date();
 
+        // 1. Processar Volume de Vendas e Pagamentos Imediatos
+        sales.forEach(sale => {
+            const total = parseFloat(sale.total) || 0;
+            const paidAtSale = parseFloat(sale.totalPaid) || 0;
+
+            summary.totalOwed += total;
+            summary.totalPaid += paidAtSale; // Cash/Pix/Card no ato da venda
+        });
+
+        // 2. Processar Títulos (Parcelas e Recebíveis Futuros)
         receivables.forEach(rec => {
             const amount = parseFloat(rec.amount) || 0;
             const paid = parseFloat(rec.paid) || 0;
             const pending = Math.max(0, amount - paid);
 
-            summary.totalOwed += amount;
-            summary.totalPaid += paid;
-            summary.totalPending += pending;
+            // EVITAR DUPLICIDADE NO LTV:
+            // Se o título for 'acquirer' (Cartão), o valor já foi contado no 'totalPaid' da Venda.
+            // Somamos no LTV apenas as baixas de títulos do tipo 'client' (Boleto/Dinheiro Pendente).
+            if (rec.type === 'client' || rec.paymentMethod === 'pending_payment') {
+                summary.totalPaid += paid;
+                summary.totalPending += pending;
 
-            if (pending > 0 && rec.dueDate && new Date(rec.dueDate) < now) {
-                summary.totalOverdue += pending;
+                // Normalização de Data para Vencimento
+                let dueDate = null;
+                if (rec.dueDate) {
+                    dueDate = typeof rec.dueDate.toDate === 'function' ? rec.dueDate.toDate() : new Date(rec.dueDate);
+                }
+
+                if (rec.status === 'open' && dueDate && dueDate < now) {
+                    summary.totalOverdue += pending;
+                }
+            } else if (rec.type === 'acquirer') {
+                // Dinheiro que o cliente já pagou (swiped), mas que o banco ainda não repassou
+                summary.totalBankReceivable += pending;
+                // Se a parcela do cartão for paga pelo banco, isso não é "novo faturamento" do aluno,
+                // é apenas liquidação de algo que já contamos no ato da venda.
             }
+        });
+
+        console.log("[ReceivableService] Resumo Calculado:", {
+            idClient,
+            totalOwed: summary.totalOwed,
+            totalPaid: summary.totalPaid,
+            totalPending: summary.totalPending,
+            totalBankReceivable: summary.totalBankReceivable
         });
 
         return summary;
@@ -115,7 +187,7 @@ export const ReceivableService = {
      */
     listByClient: async (idTenant, idBranch, idClient) => {
         return await receivableRepository.findWhere(idTenant, idBranch,
-            [['idClient', '==', idClient], ['deleted', '==', false]],
+            [['idClient', '==', idClient]],
             { field: 'dueDate', direction: 'desc' }
         );
     },

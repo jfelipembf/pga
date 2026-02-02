@@ -1,49 +1,45 @@
 import { useParams } from 'react-router-dom';
-import { getFirebaseBackend } from '../helpers/firebase_helper';
+import { useMemo } from 'react';
 
 /**
- * Hook Centralizado para Resolução de Tenant/Branch.
- * 
- * Este hook é a "Fonte da Verdade" para identificar em qual contexto (Tenant/Filial) 
- * o sistema deve operar.
+ * Hook centralizado para resolução do Contexto do Tenant (Unidade/Filial).
  * 
  * PROBLEMA RESOLVIDO:
- * A URL contém Slugs (ex: "academia-top"), não necessariamente IDs (ex: "rfu...").
- * Componentes antigos usavam useParams() pegando o slug e usando como ID, causando 
- * duplicação de dados ou acesso a tenants errados (ex: "a2").
+ * Garante consistência entre a URL e o Usuário Autenticado.
+ * Previne que componentes acessem dados em paths incorretos (ex: slug 'a2' vs ID real 'rfu...').
  * 
- * SOLUÇÃO:
- * Este hook prioriza o ID do Tenant resolvido e armazenado no token do usuário logado.
- * Se o usuário está logado, sabemos EXATAMENTE qual é o seu Tenant ID real.
- * A URL serve apenas para navegação/estética.
+ * USO:
+ * Em vez de const { idTenant } = useParams(), use:
+ * const { idTenant, idBranch } = useTenant();
  */
 export const useTenant = () => {
+    // 1. Tenta pegar da URL (pode ser slug ou ID real)
     const params = useParams();
 
-    // Tenta obter o backend (pode ser null se não inicializado, mas aqui já deve estar)
-    const backend = getFirebaseBackend();
-    const user = backend ? backend.getAuthenticatedUser() : null;
+    // 2. Tenta pegar do Usuário Autenticado (ID Real, Fonte da Verdade de segurança)
+    const userJson = localStorage.getItem('authUser');
+    const user = userJson ? JSON.parse(userJson) : null;
 
-    // Lógica de Prioridade:
-    // 1. User Logado (Fonte Segura e Resolvida pelo Saga no Login)
-    // 2. URL Params (Fallback para páginas públicas ou deep links não autenticados - Risco de usar Slug como ID)
+    return useMemo(() => {
+        // IDs para Data Fetching (Prioriza ID Real do Auth)
+        const tenantId = user?.idTenant || params.idTenant;
+        const branchId = user?.idBranch || params.idBranch;
 
-    // Nota: Se user.idTenant existir, ele é o UUID real (ex: "rfu...").
-    // params.idTenant é o que está na barra de endereço (ex: "a2").
+        // Slugs para Navegação (Prioriza Slug do Auth, fallback para params)
+        // Se na URL tiver 'a2', params.idTenant é 'a2'.
+        // O user.tenantSlug deve ser 'a2' também.
+        const tSlug = user?.tenantSlug || params.idTenant || tenantId;
+        const bSlug = user?.branchSlug || params.idBranch || branchId;
 
-    const tenantId = user?.idTenant || params.idTenant;
-    const branchId = user?.idBranch || params.idBranch;
-
-    return {
-        // IDs Reais (para usar em Services/Repositories e Banco de Dados)
-        tenantId,
-        branchId,
-
-        // Slugs (para display ou construir links de navegação)
-        tenantSlug: params.idTenant || user?.tenantSlug,
-        branchSlug: params.idBranch || user?.branchSlug,
-
-        // Objeto user completo se necessário
-        user
-    };
+        return {
+            idTenant: tenantId,
+            idBranch: branchId,
+            // Adicionando Slugs para links amigáveis
+            tenantSlug: tSlug,
+            branchSlug: bSlug,
+            // Flags úteis
+            isReady: !!(tenantId && branchId),
+            user: user
+        };
+    }, [params.idTenant, params.idBranch, user?.idTenant, user?.idBranch]);
 };

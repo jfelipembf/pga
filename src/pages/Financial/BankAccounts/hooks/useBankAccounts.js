@@ -7,7 +7,7 @@ import { toast } from 'react-toastify'
  * Hook para gerenciar a lógica de Contas Bancárias
  */
 export const useBankAccounts = () => {
-    const { tenantId: idTenant, branchId: idBranch } = useTenant()
+    const { idTenant, idBranch } = useTenant()
     const [accounts, setAccounts] = useState([])
     const [loading, setLoading] = useState(true)
     const [selectedId, setSelectedId] = useState(null)

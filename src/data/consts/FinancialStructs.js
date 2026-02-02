@@ -96,6 +96,44 @@ export const DEFAULT_CHART_OF_ACCOUNTS = [
                 ]
             }
         ]
+    },
+    {
+        id: '3', code: '3', name: 'ATIVOS', type: 'asset', children: [
+            {
+                id: '3.1', code: '3.1', name: 'Circulante', children: [
+                    { id: '3.1.1', code: '3.1.1', name: 'Caixa e Bancos' },
+                    { id: '3.1.2', code: '3.1.2', name: 'Contas a Receber' },
+                    { id: '3.1.3', code: '3.1.3', name: 'Estoques' },
+                ]
+            },
+            {
+                id: '3.2', code: '3.2', name: 'Não Circulante', children: [
+                    { id: '3.2.1', code: '3.2.1', name: 'Imobilizado' },
+                    { id: '3.2.2', code: '3.2.2', name: 'Máquinas e Equipamentos' },
+                ]
+            }
+        ]
+    },
+    {
+        id: '4', code: '4', name: 'PASSIVOS', type: 'liability', children: [
+            {
+                id: '4.1', code: '4.1', name: 'Circulante', children: [
+                    { id: '4.1.1', code: '4.1.1', name: 'Contas a Pagar' },
+                    { id: '4.1.2', code: '4.1.2', name: 'Fornecedores' },
+                    { id: '4.1.3', code: '4.1.3', name: 'Impostos a Recolher' },
+                ]
+            }
+        ]
+    },
+    {
+        id: '5', code: '5', name: 'PATRIMÔNIO LÍQUIDO', type: 'equity', children: [
+            {
+                id: '5.1', code: '5.1', name: 'Capital Social', children: [
+                    { id: '5.1.1', code: '5.1.1', name: 'Capital Integralizado' },
+                    { id: '5.1.2', code: '5.1.2', name: 'Ajustes de Exercícios Anteriores' },
+                ]
+            }
+        ]
     }
 ];
 

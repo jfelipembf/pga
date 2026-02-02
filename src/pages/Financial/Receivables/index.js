@@ -8,7 +8,7 @@ import BasicTable from '../../../components/Common/BasicTable';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import { formatCurrency } from '../../../utils/format';
 import { formatDate } from '../../../utils/date';
-import { formatSaleNumber } from '../../../utils/idGenerators';
+import { formatId } from '../../../utils/sequence';
 import {
     PAYMENT_METHOD_LABELS,
     STATUS_COLORS,
@@ -141,7 +141,7 @@ const ReceivablesPage = () => {
             key: "saleNumber",
             render: (receivable) => (
                 <div>
-                    <div className="fw-bold text-dark">{formatSaleNumber(receivable.saleNumber)}</div>
+                    <div className="fw-bold text-dark">{formatId(receivable.saleNumber)}</div>
                     <small className="text-muted">{receivable.description || 'Venda PDV'}</small>
                 </div>
             )

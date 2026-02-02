@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useTenant } from "../../../../hooks/useTenant"
-import { ClientService } from "../../../../services/Clients/ClientService"
+import { ClientService } from "../../../../features/clients"
 import { toast } from "react-toastify"
 import { PROFILE_TABS } from "../constants/profileConstants"
 
@@ -10,7 +10,7 @@ import { PROFILE_TABS } from "../constants/profileConstants"
  */
 export const useClientProfile = () => {
     const { id } = useParams()
-    const { tenantId, branchId } = useTenant()
+    const { idTenant, idBranch } = useTenant()
 
     const navigate = useNavigate()
 
@@ -27,11 +27,11 @@ export const useClientProfile = () => {
 
     // Carregar dados do cliente
     const loadClient = useCallback(async () => {
-        if (!tenantId || !branchId || !id) return
+        if (!idTenant || !idBranch || !id) return
 
         try {
             setLoading(true)
-            const data = await ClientService.getClientById(tenantId, branchId, id)
+            const data = await ClientService.getClientById(idTenant, idBranch, id)
             if (!data) {
                 toast.error("Cliente não encontrado.")
                 navigate(-1) // Go back safe
@@ -44,31 +44,32 @@ export const useClientProfile = () => {
         } finally {
             setLoading(false)
         }
-    }, [tenantId, branchId, id, navigate])
+    }, [idTenant, idBranch, id, navigate])
 
     // Deletar cliente
     const deleteClient = async () => {
-        if (!tenantId || !branchId) return
+        if (!idTenant || !idBranch) return
 
         try {
             setIsDeleting(true)
             const user = getAuthUser()
-            await ClientService.deleteClient(tenantId, branchId, user?.uid, id)
+            const userName = user?.displayName || (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.email) || 'Usuário Atual';
+            await ClientService.deleteClient(idTenant, idBranch, user?.uid, id, userName)
             toast.success("Cliente excluído com sucesso.")
             navigate(-1)
         } catch (error) {
             console.error("Erro ao excluir cliente:", error)
-            toast.error("Erro ao excluir cliente.")
+            toast.error(error.message || "Erro ao excluir cliente.")
         } finally {
             setIsDeleting(false)
         }
     }
 
     useEffect(() => {
-        if (tenantId && branchId && id) {
+        if (idTenant && idBranch && id) {
             loadClient()
         }
-    }, [tenantId, branchId, id, loadClient])
+    }, [idTenant, idBranch, id, loadClient])
 
     return {
         client,
@@ -78,7 +79,7 @@ export const useClientProfile = () => {
         refreshData: loadClient,
         handleDelete: deleteClient,
         isDeleting,
-        idTenant: tenantId,
-        idBranch: branchId
+        idTenant,
+        idBranch
     }
 }

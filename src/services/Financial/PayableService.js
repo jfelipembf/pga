@@ -3,8 +3,9 @@ import { transactionRepository } from '../../data/repositories/TransactionReposi
 import { bankAccountRepository } from '../../data/repositories/BankAccountRepository'
 import { AuditService } from '../Audit/AuditService'
 import { PayableSchema } from '../../data/schemas/Financial/PayableSchema'
-import { generateExpenseNumber, generateDailySequential } from '../../utils/idGenerators'
+import { generatePayableId } from '../../utils/sequence'
 import { LedgerService } from '../Ledger/LedgerService'
+import { normalizeDate } from '../../utils/date'
 
 /**
  * Serviço para Gestão de Contas a Pagar (Payables)
@@ -18,15 +19,14 @@ export const PayableService = {
     createPayable: async (idTenant, idBranch, userId, payableData) => {
         await PayableSchema.validate(payableData, { abortEarly: false })
 
-        // Gerar ID amigável
-        const now = new Date();
-        const sequentialNumber = generateDailySequential(now);
-        const expenseNumber = generateExpenseNumber(now, sequentialNumber);
+        // Gerar ID amigável (P00001)
+        const expenseNumber = await generatePayableId(idTenant, idBranch);
 
         const newPayable = await payableRepository.create(idTenant, idBranch, {
             ...payableData,
             expenseNumber,
             amount: parseFloat(payableData.amount) || 0,
+            dueDate: normalizeDate(payableData.dueDate),
             status: payableData.status || 'open',
             createdBy: userId,
             createdAt: new Date()
@@ -44,6 +44,7 @@ export const PayableService = {
 
         await AuditService.log({
             idTenant, idBranch, userId,
+            userName: payableData.userName,
             action: 'PAYABLE_CREATED',
             entityType: 'payable',
             entityId: newPayable.id,
@@ -77,8 +78,9 @@ export const PayableService = {
         }
 
         // 2. Criar Transação Financeira (Saída)
+        const paymentDateObj = normalizeDate(paymentDate);
         const transactionData = {
-            date: paymentDate,
+            date: paymentDateObj,
             description: `Pagamento - ${payable.supplier || 'Fornecedor'} - ${payable.description || payable.title}`,
             amount: finalAmount,
             type: 'expense',
@@ -119,7 +121,7 @@ export const PayableService = {
         // 5. Atualizar Status do Payable
         await payableRepository.update(idTenant, idBranch, idPayable, {
             status: 'paid',
-            paymentDate: paymentDate,
+            paymentDate: paymentDateObj,
             paymentMethod: paymentMethod,
             idBankAccount: idBankAccount,
             amountPaid: finalAmount,
@@ -130,6 +132,7 @@ export const PayableService = {
         // 6. Auditoria
         await AuditService.log({
             idTenant, idBranch, userId,
+            userName: paymentData.userName,
             action: 'PAYABLE_PAID',
             entityType: 'payable',
             entityId: idPayable,
@@ -203,6 +206,7 @@ export const PayableService = {
 
         await AuditService.log({
             idTenant, idBranch, userId,
+            userName: data.userName,
             action: 'PAYABLE_UPDATED',
             entityType: 'payable',
             entityId: id,

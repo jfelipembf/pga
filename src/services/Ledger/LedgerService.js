@@ -1,33 +1,36 @@
 import { ledgerRepository } from '../../data/repositories/LedgerRepository'
+import { normalizeDate } from '../../utils/date'
 
 /**
  * Contas Contábeis Padrão (Chart of Accounts - Plano de Contas)
  * Baseado no padrão brasileiro de contabilidade
  */
 export const STANDARD_ACCOUNTS = {
-    // ATIVOS
-    BANK_ACCOUNTS: 'ATIVO_CIRCULANTE_BANCOS',
-    CASH: 'ATIVO_CIRCULANTE_CAIXA',
-    ACCOUNTS_RECEIVABLE: 'ATIVO_CIRCULANTE_CONTAS_A_RECEBER',
+    // RECEITAS (Grupo 1)
+    PRODUCT_REVENUE: '1.1.1',
+    SERVICE_REVENUE: '1.1.2',
+    SUBSCRIPTION_REVENUE: '1.1.3',
 
-    // PASSIVOS
-    ACCOUNTS_PAYABLE: 'PASSIVO_CIRCULANTE_CONTAS_A_PAGAR',
-    SALARY_PAYABLE: 'PASSIVO_CIRCULANTE_SALARIOS',
-    TAXES_PAYABLE: 'PASSIVO_CIRCULANTE_IMPOSTOS',
+    // DESPESAS (Grupo 2)
+    ADMINISTRATIVE_EXPENSES: '2.1', // Grupo geral administrativo
+    OPERATIONAL_EXPENSES: '2.4',
+    CARD_FEES: '2.5.3',
+    BANK_FEES: '2.5.4',
+    SALARY_EXPENSES: '2.2.1',
 
-    // RECEITAS
-    SALES_REVENUE: 'RECEITA_VENDAS',
-    SERVICE_REVENUE: 'RECEITA_SERVICOS',
+    // ATIVOS (Grupo 3)
+    BANK_ACCOUNTS: '3.1.1',
+    CASH: '3.1.1',
+    ACCOUNTS_RECEIVABLE: '3.1.2',
 
-    // DESPESAS
-    ADMINISTRATIVE_EXPENSES: 'DESPESA_ADMINISTRATIVA',
-    OPERATIONAL_EXPENSES: 'DESPESA_OPERACIONAL',
-    CARD_FEES: 'DESPESA_TAXAS_CARTAO',
-    SALARY_EXPENSES: 'DESPESA_SALARIOS',
+    // PASSIVOS (Grupo 4)
+    ACCOUNTS_PAYABLE: '4.1.1',
+    SALARY_PAYABLE: '4.1.1',
+    TAXES_PAYABLE: '4.1.3',
 
-    // PATRIMÔNIO
-    EQUITY_ADJUSTMENTS: 'PATRIMONIO_AJUSTES',
-}
+    // PATRIMÔNIO (Grupo 5)
+    EQUITY_ADJUSTMENTS: '5.1.2',
+};
 
 /**
  * Serviço de Lançamentos Contábeis (Ledger)
@@ -86,7 +89,7 @@ export const LedgerService = {
      */
     payPayableEntry: async (idTenant, idBranch, payable, payment) => {
         return await ledgerRepository.create(idTenant, idBranch, {
-            date: new Date(payment.paymentDate),
+            date: normalizeDate(payment.paymentDate) || new Date(),
             description: `Pagamento: ${payable.supplier} - ${payable.description || payable.title}`,
             sourceType: 'payable_payment',
             sourceId: payable.id,
@@ -117,8 +120,8 @@ export const LedgerService = {
      * Quando: Ao CRIAR uma venda
      */
     createSaleEntry: async (idTenant, idBranch, sale) => {
-        // Determinar conta de receita (Padrão: 1.1.2 Prestação de Serviços se não especificado)
-        const revenueAccount = sale.revenueAccountId || '1.1.2';
+        // Determinar conta de receita (Padrão: RECEITA_SERVICOS se não especificado)
+        const revenueAccount = sale.revenueAccountId || STANDARD_ACCOUNTS.SERVICE_REVENUE;
         const revenueName = sale.revenueAccountName || 'Prestação de Serviços';
 
         return await ledgerRepository.create(idTenant, idBranch, {
@@ -181,7 +184,7 @@ export const LedgerService = {
         })
 
         return await ledgerRepository.create(idTenant, idBranch, {
-            date: new Date(settlement.settlementDate),
+            date: normalizeDate(settlement.settlementDate) || new Date(),
             description: `Recebimento: ${receivable.description}`,
             sourceType: 'receivable_settlement',
             sourceId: receivable.id,
@@ -235,7 +238,7 @@ export const LedgerService = {
         const isWithdrawal = movement.type === 'withdrawal'
 
         return await ledgerRepository.create(idTenant, idBranch, {
-            date: movement.date || new Date(),
+            date: normalizeDate(movement.date) || new Date(),
             description: isWithdrawal
                 ? `Sangria de caixa: ${movement.description}`
                 : `Suprimento de caixa: ${movement.description}`,
@@ -267,7 +270,7 @@ export const LedgerService = {
      */
     createBankTransfer: async (idTenant, idBranch, transfer) => {
         return await ledgerRepository.create(idTenant, idBranch, {
-            date: transfer.date || new Date(),
+            date: normalizeDate(transfer.date) || new Date(),
             description: `Transferência: ${transfer.fromBankName} → ${transfer.toBankName}`,
             sourceType: 'bank_transfer',
             sourceId: transfer.id,
@@ -299,14 +302,14 @@ export const LedgerService = {
      */
     createBankFee: async (idTenant, idBranch, fee) => {
         return await ledgerRepository.create(idTenant, idBranch, {
-            date: fee.date || new Date(),
+            date: normalizeDate(fee.date) || new Date(),
             description: `Tarifa bancária: ${fee.description}`,
             sourceType: 'bank_fee',
             sourceId: fee.id,
             entries: [
                 {
                     // DÉBITO: Despesa com tarifas (vai para DRE)
-                    account: 'DESPESA_TARIFAS_BANCARIAS',
+                    account: STANDARD_ACCOUNTS.BANK_FEES,
                     accountName: 'Despesa com Tarifas Bancárias',
                     debit: fee.amount,
                     credit: 0

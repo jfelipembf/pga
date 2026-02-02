@@ -1,6 +1,7 @@
 import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore'
 import { getFirebaseBackend } from '../../helpers/firebase_helper'
 import moment from 'moment'
+import { normalizeDate } from '../../utils/date'
 
 /**
  * Serviço para gerenciar o documento agregado de Dashboard.
@@ -78,7 +79,7 @@ export const DashboardSummaryService = {
             trialConversionRate: 0,
 
             // Metadata
-            lastUpdated: new Date(),
+            lastUpdated: normalizeDate(new Date()),
             month: currentMonth
         }
 
@@ -99,7 +100,7 @@ export const DashboardSummaryService = {
             incrementUpdates[key] = increment(value)
         }
 
-        incrementUpdates.lastUpdated = new Date()
+        incrementUpdates.lastUpdated = normalizeDate(new Date())
 
         try {
             await updateDoc(summaryRef, incrementUpdates)
@@ -126,7 +127,7 @@ export const DashboardSummaryService = {
             incrementUpdates[key] = increment(value)
         }
 
-        incrementUpdates.lastUpdated = new Date()
+        incrementUpdates.lastUpdated = normalizeDate(new Date())
 
         transaction.update(summaryRef, incrementUpdates)
     },
@@ -136,8 +137,8 @@ export const DashboardSummaryService = {
      * Esta função é cara, deve rodar apenas via Cloud Function agendada.
      */
     async recalculate(idTenant, idBranch) {
-        const { clientRepository } = await import('../../data/repositories/ClientRepository')
-        const { clientContractRepository } = await import('../../data/repositories/ClientContractRepository')
+        const { clientRepository } = await import('../../features/clients')
+        const { clientContractRepository } = await import('../../features/clients')
 
         // Conta clientes reais
         const allClients = await clientRepository.findAll(idTenant, idBranch)
@@ -145,15 +146,15 @@ export const DashboardSummaryService = {
         const trialsScheduled = allClients.filter(c => c.lifecycle?.trial?.scheduled).length
         const trialsAttended = allClients.filter(c => c.lifecycle?.trial?.attended).length
 
-        // Conta contratos reais
-        const activeContracts = await clientContractRepository.findByStatus(idTenant, idBranch, 'active')
+        // Conta contratos reais (estritamente ativos e não vencidos)
+        const activeContracts = await clientContractRepository.findStrictlyActive(idTenant, idBranch)
         const suspendedContracts = await clientContractRepository.findByStatus(idTenant, idBranch, 'suspended')
 
         // Novos do mês
-        const startMonth = moment().startOf('month').toDate()
-        const newLeads = allClients.filter(c => c.createdAt >= startMonth).length
+        const startMonth = normalizeDate(moment().startOf('month'));
+        const newLeads = allClients.filter(c => normalizeDate(c.createdAt) >= startMonth).length
         const newStudents = allClients.filter(c =>
-            c.lifecycle?.convertedAt && c.lifecycle.convertedAt >= startMonth
+            c.lifecycle?.convertedAt && normalizeDate(c.lifecycle.convertedAt) >= startMonth
         ).length
 
         // Calcula taxas
@@ -173,7 +174,7 @@ export const DashboardSummaryService = {
             conversionRate,
             trialShowUpRate,
             trialConversionRate,
-            lastUpdated: new Date(),
+            lastUpdated: normalizeDate(new Date()),
             month: moment().format('YYYY-MM')
         }
 

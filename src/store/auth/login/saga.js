@@ -23,13 +23,14 @@ function* loginUser({ payload: { user, history } }) {
     );
 
     // 2. Resolve Tenant and Branch IDs
-    const resolvedTenantId = yield call([tenantRepository, tenantRepository.resolveTenantId], idTenant);
-    if (!resolvedTenantId) {
+    // FIX: Nome correto do método é resolveTenantId
+    const resolvedidTenant = yield call([tenantRepository, tenantRepository.resolveTenantId], idTenant);
+    if (!resolvedidTenant) {
       yield put(apiError("Unidade/Tenant inválido."));
       return;
     }
 
-    const resolvedBranchId = yield call([tenantRepository, tenantRepository.resolveBranchId], resolvedTenantId, idBranch);
+    const resolvedBranchId = yield call([tenantRepository, tenantRepository.resolveBranchId], resolvedidTenant, idBranch);
     if (!resolvedBranchId) {
       yield put(apiError("Filial inválida."));
       return;
@@ -38,7 +39,7 @@ function* loginUser({ payload: { user, history } }) {
     // 3. Fetch Staff Profile from the specific Branch
     const staffProfile = yield call(
       [staffRepository, staffRepository.findByUid],
-      resolvedTenantId,
+      resolvedidTenant,
       resolvedBranchId,
       authResponse.uid
     );
@@ -54,27 +55,44 @@ function* loginUser({ payload: { user, history } }) {
       return;
     }
 
-    // You can add more role-based checks here if necessary
-    // if (staffProfile.role !== 'owner' && staffProfile.role !== 'admin') { ... }
+    // Fetch Slugs for URL consistency (Crucial for Friendly URLs)
+    let finalTenantSlug = idTenant; // Assume input was slug
+    let finalBranchSlug = idBranch; // Assume input was slug
+
+    // Verify if inputs were actually IDs, if so, fetch slugs
+    if (finalTenantSlug === resolvedidTenant) {
+      const tenantData = yield call([tenantRepository, tenantRepository.findTenantById], resolvedidTenant);
+      finalTenantSlug = tenantData?.slug || resolvedidTenant;
+    }
+
+    if (finalBranchSlug === resolvedBranchId) {
+      const branchData = yield call([tenantRepository, tenantRepository.findBranchById], resolvedidTenant, resolvedBranchId);
+      finalBranchSlug = branchData?.slug || resolvedBranchId;
+    }
 
     // 5. Success - Store unified user object
     const finalUser = {
       ...authResponse,
       ...staffProfile,
       // Store resolved IDs to keep consistency but URL might keep using slugs
-      idTenant: resolvedTenantId,
+      idTenant: resolvedidTenant,
       idBranch: resolvedBranchId,
-      tenantSlug: idTenant,
-      branchSlug: idBranch
+      tenantSlug: finalTenantSlug,
+      branchSlug: finalBranchSlug,
+      // Unificação de Dados de Exibição
+      displayName: staffProfile.name || (staffProfile.firstName ? `${staffProfile.firstName} ${staffProfile.lastName || ''}`.trim() : null) || authResponse.displayName || authResponse.email,
+      photoURL: staffProfile.photo || staffProfile.avatar || authResponse.photoURL || null,
+      firstName: staffProfile.firstName || null,
+      lastName: staffProfile.lastName || null,
+      role: staffProfile.role || 'user'
     };
 
     localStorage.setItem("authUser", JSON.stringify(finalUser));
     yield put(loginSuccess(finalUser));
 
     // 6. Redirect to Multitenant Dashboard
-    // Use original parameters (idTenant, idBranch) to keep the URL friendly (slugs) if desired, 
-    // OR use resolved IDs. Usually, you want to keep the URL as the user typed if it's valid.
-    history(`/${idTenant}/${idBranch}/dashboard`);
+    // Use Friendly Slugs for URL
+    history(`/${finalTenantSlug}/${finalBranchSlug}/dashboard`);
 
   } catch (error) {
     yield put(apiError(error));
@@ -87,13 +105,13 @@ function* logoutUser({ payload: { history, idTenant, idBranch } }) {
     let redirectUrl = '/login';
 
     if (idTenant && idBranch) {
+      // Tenta manter o contexto atual se passado
       redirectUrl = `/${idTenant}/${idBranch}/login`;
     } else if (authUser) {
       const user = JSON.parse(authUser);
+      // Prefere slugs para URL
       if (user.tenantSlug && user.branchSlug) {
         redirectUrl = `/${user.tenantSlug}/${user.branchSlug}/login`;
-      } else if (user.idTenant && user.idBranch) {
-        redirectUrl = `/${user.idTenant}/${user.idBranch}/login`;
       }
     }
 
@@ -114,12 +132,12 @@ function* socialLogin({ payload: { data, history } }) {
     const authResponse = yield call(fireBaseBackend.socialLoginUser, type);
 
     if (authResponse) {
-      const resolvedTenantId = yield call([tenantRepository, tenantRepository.resolveTenantId], idTenant);
-      if (!resolvedTenantId) {
+      const resolvedidTenant = yield call([tenantRepository, tenantRepository.resolveTenantId], idTenant);
+      if (!resolvedidTenant) {
         yield put(apiError("Unidade/Tenant inválido."));
         return;
       }
-      const resolvedBranchId = yield call([tenantRepository, tenantRepository.resolveBranchId], resolvedTenantId, idBranch);
+      const resolvedBranchId = yield call([tenantRepository, tenantRepository.resolveBranchId], resolvedidTenant, idBranch);
       if (!resolvedBranchId) {
         yield put(apiError("Filial inválida."));
         return;
@@ -128,7 +146,7 @@ function* socialLogin({ payload: { data, history } }) {
       // Fetch Staff Profile (consistent with email login)
       const staffProfile = yield call(
         [staffRepository, staffRepository.findByUid],
-        resolvedTenantId,
+        resolvedidTenant,
         resolvedBranchId,
         authResponse.uid
       );
@@ -138,18 +156,22 @@ function* socialLogin({ payload: { data, history } }) {
         return;
       }
 
+      // Fetch Slugs (Simplified here, ideally repeat the check from loginUser)
+      const tenantData = yield call([tenantRepository, tenantRepository.findTenantById], resolvedidTenant);
+      const branchData = yield call([tenantRepository, tenantRepository.findBranchById], resolvedidTenant, resolvedBranchId);
+
       const finalUser = {
         ...authResponse,
         ...staffProfile,
-        idTenant: resolvedTenantId,
+        idTenant: resolvedidTenant,
         idBranch: resolvedBranchId,
-        tenantSlug: idTenant,
-        branchSlug: idBranch
+        tenantSlug: tenantData?.slug || idTenant,
+        branchSlug: branchData?.slug || idBranch
       };
 
       localStorage.setItem("authUser", JSON.stringify(finalUser));
       yield put(loginSuccess(finalUser));
-      history(`/${idTenant}/${idBranch}/dashboard`);
+      history(`/${finalUser.tenantSlug}/${finalUser.branchSlug}/dashboard`);
     }
   } catch (error) {
     yield put(apiError(error));

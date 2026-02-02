@@ -43,7 +43,9 @@ const ProfileMenu = props => {
             src={user1}
             alt="Header Avatar"
           />
-          <span className="d-none d-xl-inline-block ms-1">{activeBranch ? activeBranch.name : "Selecionar Unidade"}</span>
+          <span className="d-none d-xl-inline-block ms-1">
+            {JSON.parse(localStorage.getItem("authUser"))?.displayName || JSON.parse(localStorage.getItem("authUser"))?.email || "Usuário"}
+          </span>
           <i className="mdi mdi-chevron-down d-none d-xl-inline-block"></i>
         </DropdownToggle>
         <DropdownMenu className="dropdown-menu-end">

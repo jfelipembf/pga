@@ -5,6 +5,7 @@ import { bankAccountRepository } from "../../data/repositories/BankAccountReposi
 import { cashierRepository } from "../../data/repositories/CashierRepository"
 import { query, where, getAggregateFromServer, sum, getDocs, orderBy } from "firebase/firestore"
 import moment from "moment"
+import { normalizeDate } from "../../utils/date"
 
 export const FinancialDashboardService = {
 
@@ -16,7 +17,26 @@ export const FinancialDashboardService = {
         const totalBank = accounts.reduce((acc, curr) => acc + (parseFloat(curr.currentBalance) || 0), 0);
 
         const openSessions = await cashierRepository.findWhere(idTenant, idBranch, [['status', '==', 'open']]);
-        const totalCashier = openSessions.reduce((acc, curr) => acc + (parseFloat(curr.expectedBalance) || 0), 0);
+
+        let totalCashier = 0;
+        for (const session of openSessions) {
+            // Cálculo AO VIVO (mesma lógica do useCashier)
+            const transactions = await transactionRepository.findBySession(idTenant, idBranch, session.id);
+            const opening = parseFloat(session.openingBalance) || 0;
+            const netCash = transactions.reduce((sum, t) => {
+                const amount = parseFloat(t.amount || 0);
+                const netAmount = parseFloat(t.netAmount || amount || 0);
+
+                if (t.type === 'income') {
+                    // Apenas dinheiro físico fica na gaveta
+                    return (t.method === 'money' || t.method === 'dinheiro') ? sum + netAmount : sum;
+                } else if (t.type === 'expense') {
+                    return sum - amount;
+                }
+                return sum;
+            }, 0);
+            totalCashier += (opening + netCash);
+        }
 
         return {
             total: totalBank + totalCashier,
@@ -30,8 +50,8 @@ export const FinancialDashboardService = {
      * Busca transações reais para montar o gráfico.
      */
     getMonthData: async (idTenant, idBranch, date) => {
-        const start = moment(date).startOf('month').toDate();
-        const end = moment(date).endOf('month').toDate();
+        const start = normalizeDate(moment(date).startOf('month'));
+        const end = normalizeDate(moment(date).endOf('month'));
         const collectionRef = transactionRepository.getCollectionRef(idTenant, idBranch);
 
         // Buscar transações para o gráfico e totais
@@ -49,7 +69,7 @@ export const FinancialDashboardService = {
 
         const income = transactions
             .filter(t => t.type === 'income')
-            .reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+            .reduce((acc, curr) => acc + (parseFloat(curr.netAmount || curr.amount) || 0), 0);
 
         const expense = transactions
             .filter(t => t.type === 'expense')
@@ -68,7 +88,7 @@ export const FinancialDashboardService = {
      * Inadimplência (A Receber Vencido)
      */
     getOverdueReceivables: async (idTenant, idBranch) => {
-        const today = moment().startOf('day').toDate();
+        const today = normalizeDate(moment().startOf('day'));
         const collectionRef = receivableRepository.getCollectionRef(idTenant, idBranch);
 
         try {
@@ -102,7 +122,7 @@ export const FinancialDashboardService = {
      * Contas a Pagar VENCIDAS (Inadimplência da Empresa)
      */
     getOverduePayables: async (idTenant, idBranch) => {
-        const today = moment().startOf('day').toDate();
+        const today = normalizeDate(moment().startOf('day'));
         const collectionRef = payableRepository.getCollectionRef(idTenant, idBranch);
 
         try {

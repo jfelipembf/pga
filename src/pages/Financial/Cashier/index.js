@@ -26,6 +26,7 @@ const CashierPage = () => {
         handleOpenCashier,
         handleCloseCashier,
         transactions,
+        liveSummary,
         movementModalType,
         setMovementModalType,
         handleMovement
@@ -150,25 +151,25 @@ const CashierPage = () => {
                                             <Col md={3}>
                                                 <div className="p-3 border rounded bg-light">
                                                     <p className="text-muted mb-1 font-size-12 uppercase fw-bold">Saldo Inicial</p>
-                                                    <h4 className="mb-0 text-dark">{formatCurrency(currentSession.openingBalance)}</h4>
+                                                    <h4 className="mb-0 text-dark">{formatCurrency(liveSummary?.openingBalance || 0)}</h4>
                                                 </div>
                                             </Col>
                                             <Col md={3}>
                                                 <div className="p-3 border rounded bg-success-subtle">
                                                     <p className="text-success mb-1 font-size-12 uppercase fw-bold">Entradas (Dinheiro/Pix)</p>
-                                                    <h4 className="mb-0 text-success">+{formatCurrency(currentSession.totalIncome)}</h4>
+                                                    <h4 className="mb-0 text-success">+{formatCurrency(liveSummary?.totalIncome || 0)}</h4>
                                                 </div>
                                             </Col>
                                             <Col md={3}>
                                                 <div className="p-3 border rounded bg-danger-subtle">
                                                     <p className="text-danger mb-1 font-size-12 uppercase fw-bold">Saídas / Sangrias</p>
-                                                    <h4 className="mb-0 text-danger">-{formatCurrency(currentSession.totalExpenses)}</h4>
+                                                    <h4 className="mb-0 text-danger">-{formatCurrency(liveSummary?.totalExpenses || 0)}</h4>
                                                 </div>
                                             </Col>
                                             <Col md={3}>
-                                                <div className="p-3 border rounded bg-primary text-white shadow-sm">
-                                                    <p className="text-white-50 mb-1 font-size-12 uppercase fw-bold">Saldo em Gaveta</p>
-                                                    <h4 className="mb-0">{formatCurrency(currentSession.expectedBalance)}</h4>
+                                                <div className="p-3 border rounded bg-primary text-white shadow">
+                                                    <p className="text-white-50 mb-1 font-size-12 uppercase fw-bold">Esperado em Espécie</p>
+                                                    <h4 className="mb-0 text-white">{formatCurrency(liveSummary?.expectedBalance || 0)}</h4>
                                                 </div>
                                             </Col>
                                         </Row>

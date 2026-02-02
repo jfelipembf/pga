@@ -6,10 +6,10 @@ import { formatCurrency } from '../../../utils/format';
 import { bankAccountRepository } from '../../../data/repositories/BankAccountRepository';
 import { AcquirerService } from '../../../services/Financial/AcquirerService';
 import { PAYMENT_METHODS } from '../../../utils/constants';
-import { useParams } from 'react-router-dom';
+import { useTenant } from '../../../hooks/useTenant';
 
 const ReceivableSettlementModal = ({ isOpen, toggle, receivable, onSettle }) => {
-    const { idTenant, idBranch } = useParams();
+    const { idTenant, idBranch } = useTenant();
     const [bankAccounts, setBankAccounts] = useState([]);
     const [acquirers, setAcquirers] = useState([]);
 
@@ -109,11 +109,11 @@ const ReceivableSettlementModal = ({ isOpen, toggle, receivable, onSettle }) => 
 
     return (
         <Modal isOpen={isOpen} toggle={toggle} centered size="lg">
-            <ModalHeader toggle={toggle} className="bg-success text-white">
+            <ModalHeader toggle={toggle}>
                 Baixar Recebimento
             </ModalHeader>
             <ModalBody className="p-4">
-                <div className="bg-light p-3 rounded mb-4 border border-success border-opacity-25">
+                <div className="bg-light p-3 rounded mb-4 border">
                     <Row>
                         <Col md={6}>
                             <small className="text-muted text-uppercase fw-bold">Cliente</small>
@@ -121,7 +121,7 @@ const ReceivableSettlementModal = ({ isOpen, toggle, receivable, onSettle }) => 
                         </Col>
                         <Col md={6} className="text-end">
                             <small className="text-muted text-uppercase fw-bold">Valor Original</small>
-                            < h4 className="text-success mb-0">{formatCurrency(originalAmount)}</h4>
+                            <h4 className="text-dark mb-0">{formatCurrency(originalAmount)}</h4>
                         </Col>
                     </Row>
                 </div>
@@ -300,7 +300,7 @@ const ReceivableSettlementModal = ({ isOpen, toggle, receivable, onSettle }) => 
                                 type="number"
                                 step="0.01"
                                 name="amountReceived"
-                                className="fw-bold text-success form-control-lg"
+                                className="fw-bold form-control-lg"
                                 onChange={formik.handleChange}
                                 value={formik.values.amountReceived}
                             />
@@ -353,7 +353,7 @@ const ReceivableSettlementModal = ({ isOpen, toggle, receivable, onSettle }) => 
 
                     <div className="d-flex justify-content-end gap-2 mt-4">
                         <Button color="light" onClick={toggle}>Cancelar</Button>
-                        <Button type="submit" color="success" className="px-4 fw-bold">
+                        <Button type="submit" color="primary" className="px-5 fw-bold btn-lg">
                             <i className="mdi mdi-check-circle-outline me-1"></i> CONFIRMAR BAIXA
                         </Button>
                     </div>

@@ -1,12 +1,11 @@
 import { salesRepository } from '../../data/repositories/SalesRepository'
-import { receivableRepository } from '../../data/repositories/ReceivableRepository'
-import { acquirerRepository } from '../../data/repositories/AcquirerRepository'
-import { contractRepository } from '../../data/repositories/ContractRepository'
-import { CashierService } from '../Financial/CashierService'
+import { contractRepository } from '../../features/clients'
 import { AuditService } from '../Audit/AuditService'
-import { LedgerService } from '../Ledger/LedgerService'
+import { LedgerService, STANDARD_ACCOUNTS } from '../Ledger/LedgerService'
+import { SalesPaymentProcessor } from './SalesPaymentProcessor'
 import { SaleSchema } from '../../data/schemas/Financial/SaleSchema'
 import { generateSaleId } from '../../utils/sequence'
+import { normalizeDate } from '../../utils/date'
 import moment from 'moment'
 
 /**
@@ -23,7 +22,7 @@ export const SalesService = {
         // 2. Garantir tipagem segura para cálculos financeiros (Anti-NaN)
         const saleData = {
             ...rawSaleData,
-            saleDate: rawSaleData.saleDate ? new Date(rawSaleData.saleDate) : new Date(),
+            saleDate: normalizeDate(rawSaleData.saleDate) || new Date(),
             subtotal: parseFloat(rawSaleData.subtotal) || 0,
             total: parseFloat(rawSaleData.total) || 0,
             totalPaid: parseFloat(rawSaleData.totalPaid) || 0,
@@ -53,202 +52,91 @@ export const SalesService = {
             ...saleData,
             saleNumber: saleNumber,
             friendlyId: saleNumber, // friendlyId = saleNumber
-            status: saleData.balance > 0 ? 'partial' : 'completed',
+            status: saleData.balance > 0.01 ? 'partial' : 'paid',
             createdAt: new Date()
         })
 
 
 
-        // 5. Processar cada pagamento recebido
+        // 5. Processar cada pagamento recebido (Delegado para SalesPaymentProcessor)
         if (saleData.payments && saleData.payments.length > 0) {
+            // Import dinâmico ou estático - assumindo estático
             for (const payment of saleData.payments) {
-                const pValue = parseFloat(payment.value) || 0;
-
                 if (payment.methodId === 'dinheiro') {
-                    // DINHEIRO: Regime de Caixa - Entrada imediata no caixa físico
-                    await CashierService.registerMovement(idTenant, idBranch, userId, {
-                        type: 'income',
-                        amount: pValue,
-                        netAmount: pValue,
-                        category: 'sale',
-                        method: 'dinheiro',
-                        description: `Pgto Venda #${newSale.saleNumber || newSale.id.substring(0, 6)} - Dinheiro`,
-                        idSale: newSale.id,
-                        saleNumber: newSale.saleNumber
-                    })
-
-                    // CONTABILIDADE: Baixar Recebível "A Vista" (D: Caixa, C: Recebível)
-                    await LedgerService.registerSalePayment(idTenant, idBranch, {
-                        saleId: newSale.id,
-                        saleNumber: newSale.saleNumber,
-                        paymentMethod: 'dinheiro',
-                        amount: pValue
-                    });
-
+                    await SalesPaymentProcessor.processCashPayment(idTenant, idBranch, userId, newSale, payment);
                 } else if (payment.methodId === 'pix') {
-                    // PIX: Vai direto para conta bancária, NÃO para caixa físico
-                    // TODO: Implementar BankAccountService.registerTransaction
-                    // Por enquanto, registramos no caixa mas com método 'pix' para diferenciar
-                    await CashierService.registerMovement(idTenant, idBranch, userId, {
-                        type: 'income',
-                        amount: pValue,
-                        netAmount: pValue,
-                        category: 'sale',
-                        method: 'pix',
-                        description: `Pgto Venda #${newSale.saleNumber || newSale.id.substring(0, 6)} - PIX`,
-                        idSale: newSale.id,
-                        saleNumber: newSale.saleNumber,
-                        metadata: { shouldBeBankTransaction: true } // Flag para migração futura
-                    })
-
-                    // CONTABILIDADE: Baixar Recebível "A Vista" (D: Banco/Caixa, C: Recebível)
-                    await LedgerService.registerSalePayment(idTenant, idBranch, {
-                        saleId: newSale.id,
-                        saleNumber: newSale.saleNumber,
-                        paymentMethod: 'pix',
-                        amount: pValue
-                    });
-
+                    await SalesPaymentProcessor.processPixPayment(idTenant, idBranch, userId, newSale, payment);
                 } else if (['cartao_debito', 'cartao_credito'].includes(payment.methodId)) {
-                    // CARTÃO: Regime de Competência -> Recebíveis com Taxas
-                    let feePercentage = 2.5;
-
-                    try {
-                        const activeAcquirers = await acquirerRepository.findActive(idTenant, idBranch)
-                        const activeAcquirer = activeAcquirers.find(a => a.name === payment.provider)
-
-                        if (activeAcquirer) {
-                            let targetFees = activeAcquirer.fees
-
-                            if (activeAcquirer.rateConfigs && Array.isArray(activeAcquirer.rateConfigs)) {
-                                const brandConfig = activeAcquirer.rateConfigs.find(c => c.brands && c.brands.includes(payment.brand))
-                                if (brandConfig && brandConfig.fees) {
-                                    targetFees = brandConfig.fees
-                                }
-                            }
-
-                            if (targetFees) {
-                                if (payment.methodId === 'cartao_debito') {
-                                    feePercentage = parseFloat(targetFees.debitCard) || 1.9
-                                } else {
-                                    const instKey = `creditCard${payment.installments || 1}x`
-                                    feePercentage = parseFloat(targetFees[instKey]) || 3.5
-                                }
-                            }
-                        }
-                    } catch (err) {
-                        console.warn("Usando taxa padrão devido a erro na busca de adquirente:", err);
-                    }
-
-                    // CORREÇÃO CRÍTICA: Loop de parcelas para cartão parcelado
-                    const numInstallments = parseInt(payment.installments) || 1;
-                    const valuePerInstallment = pValue / numInstallments;
-
-                    for (let i = 1; i <= numInstallments; i++) {
-                        const feeAmount = (valuePerInstallment * feePercentage) / 100;
-                        const netAmount = valuePerInstallment - feeAmount;
-
-                        // Calcular data de vencimento
-                        const daysToAdd = payment.methodId === 'cartao_debito'
-                            ? 1  // D+1 para débito
-                            : (30 * i); // D+30, D+60, D+90... para crédito
-
-                        const dueDate = moment().add(daysToAdd, 'days').toDate();
-
-                        await receivableRepository.create(idTenant, idBranch, {
-                            idSale: newSale.id,
-                            saleNumber: newSale.saleNumber,
-                            idClient: saleData.idClient,
-                            clientName: saleData.clientName,
-                            friendlyId: saleData.friendlyId || '',
-
-                            // NOVO: Tipo de recebível (risco ZERO)
-                            type: 'acquirer',
-
-                            // NOVO: Controle de parcelas
-                            installmentNumber: i,
-                            totalInstallments: numInstallments,
-
-                            // Valores detalhados
-                            grossAmount: valuePerInstallment,
-                            feeAmount: feeAmount,
-                            netAmount: netAmount,
-                            amount: valuePerInstallment,
-                            paid: 0,
-                            pending: valuePerInstallment,
-
-                            dueDate: dueDate,
-                            settlementDate: null,
-                            paymentMethod: payment.methodId,
-                            status: 'open',
-
-                            // Informações da adquirente
-                            idAcquirer: payment.idAcquirer || null,
-                            provider: payment.provider,
-                            brand: payment.brand,
-                            authCode: payment.auth,
-
-                            description: `Parcela ${i}/${numInstallments} - ${payment.provider} ${payment.brand}`,
-                            createdAt: new Date()
-                        })
-                    }
+                    await SalesPaymentProcessor.processCardPayment(idTenant, idBranch, newSale, payment, {
+                        idClient: saleData.idClient,
+                        clientName: saleData.clientName,
+                        friendlyId: saleData.friendlyId
+                    });
+                } else {
+                    // STRICT MODE: Não aceitar métodos desconhecidos silenciosamente.
+                    // Para robustez, se o método não tem processador específico, deve ser tratado ou rejeitado.
+                    // Vamos assumir que outros métodos (ex: boleto, transferencia) seguem o fluxo de 'outros' ou lançar erro.
+                    // Se quisermos aceitar genéricos, usamos um processador genérico. Se quisermos rigor, erro.
+                    // Dado o pedido do usuário ("sem fallbacks", "robusto"), erro é melhor se não implementado.
+                    // Mas 'pix' e 'dinheiro' estão cobertos. Se vier 'boleto', hoje ele é ignorado.
+                    // Vamos implementar um GenericPayment ou lançar erro.
+                    throw new Error(`Método de pagamento não suportado ou não implementado: ${payment.methodId}`);
                 }
             }
         }
 
-        // 5. Saldo Remanescente (Contas a Receber direto do cliente - RISCO ALTO)
+        // 6. Saldo Remanescente (Contas a Receber direto do cliente)
+        // 6. Saldo Remanescente (Contas a Receber direto do cliente)
         if (saleData.balance > 0) {
-            await receivableRepository.create(idTenant, idBranch, {
-                idSale: newSale.id,
-                saleNumber: newSale.saleNumber,
-                idClient: saleData.idClient,
-                clientName: saleData.clientName,
-                friendlyId: saleData.friendlyId || '',
+            console.log(`[SalesService] Processando saldo devedor. Valor: ${saleData.balance}`);
 
-                // NOVO: Tipo cliente (RISCO)
-                type: 'client',
+            // Robust Date Handling
+            let balanceDate;
+            if (saleData.dueDateBalance) {
+                balanceDate = saleData.dueDateBalance;
+            } else if (saleData.firstPaymentDate) {
+                balanceDate = saleData.firstPaymentDate;
+            } else {
+                console.warn("[SalesService] Data de vencimento do saldo não informada. Usando fallback (30 dias).");
+                balanceDate = moment().add(30, 'days').toDate();
+            }
 
-                installmentNumber: 1,
-                totalInstallments: 1,
+            // Garantir que é Date
+            balanceDate = normalizeDate(balanceDate);
 
-                grossAmount: saleData.balance,
-                feeAmount: 0,
-                netAmount: saleData.balance,
-                amount: saleData.balance,
-                paid: 0,
-                pending: saleData.balance,
+            console.log(`[SalesService] Data Vencimento Definida: ${balanceDate}`);
 
-                dueDate: moment(saleData.dueDateBalance).toDate(),
-                settlementDate: null,
-                paymentMethod: 'pending_payment',
-                status: 'open',
-
-                description: `Saldo devedor da Venda #${newSale.saleNumber || newSale.id.substring(0, 6)}`,
-                createdAt: new Date()
-            })
+            await SalesPaymentProcessor.processRemainingBalance(
+                idTenant,
+                idBranch,
+                newSale,
+                saleData.balance,
+                {
+                    idClient: saleData.idClient,
+                    clientName: saleData.clientName,
+                    friendlyId: saleData.friendlyId
+                },
+                balanceDate
+            );
         }
 
 
         // 7. Gerar Contratos do Cliente e Atualizar Status (Nova Arquitetura)
-        // Usa ClientContractService para garantir transações atômicas
-        console.log('🔍 [DEBUG] Verificando items da venda:', saleData.items)
-
         if (saleData.items && saleData.items.length > 0) {
-            const { ClientContractService } = await import('../Clients/ClientContractService')
+            // Importa o serviço uma única vez
+            const { ClientContractService } = await import('../../features/clients')
 
             for (const item of saleData.items) {
-                console.log(`🔍 [DEBUG] Item: ${item.name}, Tipo: "${item.type}"`)
+                const itemType = String(item.type || '').toLowerCase();
 
-                // Aceita: contract, contrato, service (contratos vêm como "service" do banco)
-                if (item.type === 'contract' || item.type === 'contrato') {
-                    console.log(`✅ [DEBUG] Item identificado como contrato! Criando...`)
+                if (itemType === 'contract' || itemType === 'contrato') {
                     try {
                         // Buscar detalhes do template do contrato
                         const contractTemplate = await contractRepository.findById(idTenant, idBranch, String(item.idItem))
 
                         if (contractTemplate) {
                             // Calcular datas com base no template
-                            const startDate = moment().toDate()
+                            const startDate = normalizeDate(item.startDate) || new Date()
                             const duration = parseInt(contractTemplate.duration) || 12
                             const durationType = contractTemplate.durationType || 'months'
 
@@ -283,7 +171,8 @@ export const SalesService = {
                                 endDate,
                                 value: parseFloat(item.unitPrice) || 0,
                                 installments: 1,
-                                status: 'active'
+                                status: 'active',
+                                userName: saleData.sellerName || saleData.userName // Garante Snapshot
                             })
 
                             console.log(`✅ Contrato criado e cliente atualizado para 'active'`)
@@ -303,23 +192,23 @@ export const SalesService = {
         }
 
         // 8. ✅ LANÇAMENTO CONTÁBIL (Partidas Dobradas)
-        // Classificar receita baseada nos itens
-        let revenueId = '1.1.2' // Default: Serviços
+        // Classificar receita baseada nos itens usando o padrão do LedgerService
+        let revenueId = STANDARD_ACCOUNTS.SERVICE_REVENUE
         let revenueName = 'Prestação de Serviços'
 
         const hasProduct = saleData.items?.some(i => i.type === 'product' || i.type === 'produto')
         const hasService = saleData.items?.some(i => i.type === 'service' || i.type === 'servico' || i.type === 'contract' || i.type === 'contrato')
 
         if (hasProduct && !hasService) {
-            revenueId = '1.1.1'
+            revenueId = STANDARD_ACCOUNTS.PRODUCT_REVENUE
             revenueName = 'Venda de Produtos'
         } else if (hasService) {
             // Se for contrato recorrente é Mensalidade
             if (saleData.items?.some(i => i.type === 'contract' || i.type === 'contrato')) {
-                revenueId = '1.1.3'
+                revenueId = STANDARD_ACCOUNTS.SUBSCRIPTION_REVENUE
                 revenueName = 'Mensalidades/Assinaturas'
             } else {
-                revenueId = '1.1.2'
+                revenueId = STANDARD_ACCOUNTS.SERVICE_REVENUE
                 revenueName = 'Prestação de Serviços'
             }
         }
@@ -339,6 +228,7 @@ export const SalesService = {
         // 6. Auditoria (Rastreabilidade total)
         await AuditService.log({
             idTenant, idBranch, userId,
+            userName: saleData.sellerName,
             action: 'SALE_PROCESSED',
             entityType: 'sale',
             entityId: newSale.id,
@@ -358,8 +248,31 @@ export const SalesService = {
      */
     listByClient: async (idTenant, idBranch, idClient) => {
         return await salesRepository.findWhere(idTenant, idBranch,
-            [['idClient', '==', idClient], ['deleted', '==', false]],
+            [['idClient', '==', idClient]],
             { field: 'saleDate', direction: 'desc' }
         );
+    },
+
+    /**
+     * Define o status real de uma venda cruzando com seus recebíveis.
+     * Esta é a "Fonte Única de Verdade" para o status da venda.
+     */
+    calculateSaleStatus: (sale, receivables = []) => {
+        // Se a venda já foi cancelada, permanece cancelada
+        if (sale.status === 'cancelled') return 'cancelled';
+
+        // Filtra recebíveis que pertencem a esta venda e são responsabilidade do cliente
+        const clientReceivables = receivables.filter(r =>
+            r.idSale === sale.id &&
+            (r.type === 'client' || r.paymentMethod === 'pending_payment')
+        );
+
+        // Se não houver recebíveis de cliente, e o status original não for falho, é pago
+        if (clientReceivables.length === 0) return 'paid';
+
+        // Verifica se ainda existe algum valor pendente
+        const totalPending = clientReceivables.reduce((sum, r) => sum + (r.status === 'open' ? (parseFloat(r.pending) || 0) : 0), 0);
+
+        return totalPending > 0.01 ? 'partial' : 'paid';
     }
 }

@@ -105,6 +105,7 @@ import UiColors from "pages/Ui/UiColors"
 import UiOffcanvas from "pages/Ui/UiOffcanvas"
 import Chat from "pages/Chat/Chat";
 import Kanban from "pages/Kanban"
+import AuditLogsPage from "../pages/Admin/AuditLogs/index"
 
 import OperationalDashboard from "../pages/Dashboard/Operational/index"
 
@@ -133,6 +134,7 @@ const userRoutes = [
 
   { path: "/chat", component: <Chat /> },
   { path: "/kanbanboard", component: <Kanban /> },
+  { path: "/admin/audit-logs", component: <AuditLogsPage /> },
 
   // // //profile
   { path: "/profile", component: <UserProfile /> },

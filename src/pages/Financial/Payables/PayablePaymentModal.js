@@ -3,11 +3,12 @@ import { Modal, ModalHeader, ModalBody, Button, Row, Col, Label, Input, FormFeed
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { formatCurrency } from '../../../utils/format';
+import { formatDate } from '../../../utils/date';
 import { bankAccountRepository } from '../../../data/repositories/BankAccountRepository';
-import { useParams } from 'react-router-dom';
+import { useTenant } from '../../../hooks/useTenant';
 
 const PayablePaymentModal = ({ isOpen, toggle, payable, onPay }) => {
-    const { idTenant, idBranch } = useParams();
+    const { idTenant, idBranch } = useTenant();
     const [bankAccounts, setBankAccounts] = useState([]);
 
     // Carregar contas bancárias
@@ -70,7 +71,7 @@ const PayablePaymentModal = ({ isOpen, toggle, payable, onPay }) => {
                             <p className="mb-0 text-muted font-size-12"><strong>Descrição:</strong> {payable.description || payable.title}</p>
                         </Col>
                         <Col md={6} className="text-end">
-                            <p className="mb-1 text-muted font-size-12"><strong>Vencimento:</strong> {payable.dueDate}</p>
+                            <p className="mb-1 text-muted font-size-12"><strong>Vencimento:</strong> {formatDate(payable.dueDate)}</p>
                             <p className="mb-0"><strong>Valor:</strong> <span className="text-danger fw-bold">{formatCurrency(payable.amount)}</span></p>
                         </Col>
                     </Row>

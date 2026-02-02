@@ -1,5 +1,5 @@
 import React from "react"
-import { Row, Col, Card, CardBody, CardTitle, Button } from "reactstrap"
+import { Row, Col, Card, CardBody } from "reactstrap"
 import Miniwidget from "../../Dashboard/Miniwidget"
 import { useFinancialDashboard } from "./hooks/useFinancialDashboard"
 import { formatCurrency } from "../../../utils/format"
@@ -28,7 +28,7 @@ const chartOptions = {
 const FinancialDashboard = () => {
     document.title = "Dashboard Financeiro | Lexa Admin"
 
-    const { loading, data, chartData, refresh } = useFinancialDashboard()
+    const { data, chartData } = useFinancialDashboard()
 
     // KPIs Superiores
     const reports = [
