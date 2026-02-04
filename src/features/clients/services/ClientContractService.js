@@ -300,7 +300,13 @@ export const ClientContractService = {
      * Cancela um contrato definitivamente.
      */
     cancel: async (idTenant, idBranch, userId, idContract, financialData) => {
-        const { reason, notes, cancellationFee, refundAmount, settlementType } = financialData || {}
+        const {
+            reason,
+            notes,
+            cancellationFee,
+            effectiveDate,
+            cancelFutureReceivables
+        } = financialData || {}
         const contract = await clientContractRepository.findById(idTenant, idBranch, idContract)
 
         if (contract.status === 'cancelled') {
@@ -321,7 +327,7 @@ export const ClientContractService = {
         const wasSuspended = contract.status === 'suspended'
         const db = ClientContractService.db
 
-        // 1. Localizar parcelas (receivables) em aberto para cancelar
+        // 1. Localizar parcelas (receivables) em aberto
         const receivablesRef = collection(db, `tenants/${idTenant}/branches/${idBranch}/receivables`)
         const q = query(receivablesRef,
             where('idSale', '==', contract.idSale),
@@ -330,6 +336,15 @@ export const ClientContractService = {
         )
         const receivableDocs = await getDocs(q)
 
+        // Filtro por data se houver data de efetivação
+        const effectiveMoment = moment(effectiveDate)
+        const docsToCancel = cancelFutureReceivables
+            ? receivableDocs.docs.filter(d => {
+                const dueDate = d.data().dueDate?.seconds ? moment(d.data().dueDate.seconds * 1000) : moment(d.data().dueDate)
+                return dueDate.isSameOrAfter(effectiveMoment, 'day')
+            })
+            : []
+
         // Transação: Contract + Client + Dashboard + Receivables
         await runTransaction(db, async (transaction) => {
             // A. Atualiza contrato
@@ -337,12 +352,12 @@ export const ClientContractService = {
             transaction.update(contractRef, {
                 status: 'cancelled',
                 'cancellation.canceledAt': normalizeDate(new Date()),
+                'cancellation.effectiveDate': normalizeDate(new Date(effectiveDate)),
                 'cancellation.canceledBy': userId,
                 'cancellation.reason': reason,
                 'cancellation.notes': notes,
                 'cancellation.feeApplied': parseFloat(cancellationFee) || 0,
-                'cancellation.settlementType': settlementType || 'none',
-                'cancellation.refundAmount': parseFloat(refundAmount) || 0,
+                'cancellation.futureReceivablesCanceled': cancelFutureReceivables,
                 updatedAt: normalizeDate(new Date())
             })
 
@@ -353,11 +368,11 @@ export const ClientContractService = {
                 updatedAt: normalizeDate(new Date())
             })
 
-            // C. Cancelar parcelas futuras em aberto
-            receivableDocs.forEach((docSnap) => {
+            // C. Cancelar parcelas futuras em aberto (respeitando a regra de data e escolha do user)
+            docsToCancel.forEach((docSnap) => {
                 transaction.update(docSnap.ref, {
                     status: 'cancelled',
-                    description: `Cancelado devido ao encerramento do contrato.`,
+                    description: `Cancelado em ${effectiveDate}. Motivo: Encerramento do contrato.`,
                     updatedAt: normalizeDate(new Date())
                 })
             })
@@ -407,7 +422,7 @@ export const ClientContractService = {
 
             // 2. DRE: Registrar Estorno de Receita (Dedução) para parcelas canceladas
             let totalCancelledAR = 0
-            receivableDocs.forEach(d => totalCancelledAR += (d.data().amount || 0))
+            docsToCancel.forEach(d => totalCancelledAR += (d.data().amount || 0))
 
             if (totalCancelledAR > 0) {
                 await LedgerService.createCancellationDeductionEntry(idTenant, idBranch, {
@@ -418,19 +433,6 @@ export const ClientContractService = {
                 })
             }
 
-            // 3. CAIXA: Registrar Saída (Reembolso) se houver
-            if (settlementType === 'refund' && parseFloat(refundAmount) > 0) {
-                await CashierService.registerMovement(idTenant, idBranch, userId, {
-                    type: 'expense',
-                    category: 'contract_refund',
-                    amount: parseFloat(refundAmount),
-                    netAmount: parseFloat(refundAmount),
-                    description: `Reembolso de cancelamento - Aluno: ${contract.clientName}`,
-                    clientName: contract.clientName,
-                    idSale: contract.idSale,
-                    method: 'dinheiro' // Padrão se não informado
-                })
-            }
         } catch (finError) {
             console.error("Erro na integração financeira do cancelamento:", finError)
             // Não barramos o cancelamento operacional se o financeiro falhar, mas logamos

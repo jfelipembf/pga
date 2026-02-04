@@ -9,10 +9,10 @@ const CashierPrintTemplate = ({ summary, transactions, user, session }) => {
     // Calcular totais por método
     const totals = useMemo(() => {
         const acc = {
-            cash: 0,
+            dinheiro: 0,
             pix: 0,
-            credit_card: 0,
-            debit_card: 0,
+            cartao_credito: 0,
+            cartao_debito: 0,
             others: 0,
             withdrawals: 0
         };
@@ -75,7 +75,7 @@ const CashierPrintTemplate = ({ summary, transactions, user, session }) => {
                 <div className="ps-4 mb-3 border-start border-dark ms-2">
                     <div className="d-flex justify-content-between mb-1">
                         <span>Dinheiro:</span>
-                        <span>{formatCurrency(totals.cash)}</span>
+                        <span>{formatCurrency(totals.dinheiro)}</span>
                     </div>
                     <div className="d-flex justify-content-between mb-1">
                         <span>PIX:</span>
@@ -83,11 +83,11 @@ const CashierPrintTemplate = ({ summary, transactions, user, session }) => {
                     </div>
                     <div className="d-flex justify-content-between mb-1">
                         <span>Cartão Crédito:</span>
-                        <span>{formatCurrency(totals.credit_card)}</span>
+                        <span>{formatCurrency(totals.cartao_credito)}</span>
                     </div>
                     <div className="d-flex justify-content-between mb-1">
                         <span>Cartão Débito:</span>
-                        <span>{formatCurrency(totals.debit_card)}</span>
+                        <span>{formatCurrency(totals.cartao_debito)}</span>
                     </div>
                 </div>
 

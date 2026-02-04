@@ -26,91 +26,61 @@ const ClientContracts = ({ client }) => {
         transfer: { open: false },
         cancel: { open: false },
         details: { open: false },
-        reactivate: { open: false }
+        reactivate: { open: false },
+        targetContract: null // Contrato sendo editado no momento
     })
 
-    const toggleModal = (key, extra = {}) => {
+    const toggleModal = (key, contract = null, extra = {}) => {
         setModalState(prev => ({
             ...prev,
-            [key]: { ...prev[key], open: !prev[key].open, ...extra }
+            [key]: { ...prev[key], open: !prev[key].open, ...extra },
+            targetContract: contract || prev.targetContract
         }))
     }
 
-    const activeContract = contracts?.find(c => c.status === 'active' || c.status === 'suspended')
-    const isSuspended = activeContract?.status === 'suspended'
+    const manageableContracts = contracts?.filter(c => ['active', 'suspended'].includes(c.status)) || []
 
     const handleConfirmAdjust = async (values) => {
+        const target = modalState.targetContract;
+        if (!target) return;
         try {
             await ClientContractService.adjustDays(
-                idTenant,
-                idBranch,
-                user.uid,
-                activeContract.id,
-                values.days,
-                modalState.adjust.mode,
-                values.reason
+                idTenant, idBranch, user.uid, target.id,
+                values.days, modalState.adjust.mode, values.reason
             )
             toast.success("Vigência do contrato ajustada com sucesso!")
-            refreshData()
-            toggleModal('adjust')
-        } catch (error) {
-            console.error("Erro ao ajustar contrato:", error)
-            toast.error(error.message || "Erro ao realizar ajuste")
-        }
+            refreshData(); toggleModal('adjust')
+        } catch (error) { toast.error(error.message || "Erro ao realizar ajuste") }
     }
 
     const handleConfirmSuspend = async (values) => {
+        const target = modalState.targetContract;
+        if (!target) return;
         try {
-            await ClientContractService.suspend(
-                idTenant,
-                idBranch,
-                user.uid,
-                activeContract.id,
-                values,
-                values.reason
-            )
+            await ClientContractService.suspend(idTenant, idBranch, user.uid, target.id, values, values.reason)
             toast.success("Contrato suspenso com sucesso!")
-            refreshData()
-            toggleModal('suspend')
-        } catch (error) {
-            console.error("Erro ao suspender contrato:", error)
-            toast.error(error.message || "Erro ao suspender")
-        }
+            refreshData(); toggleModal('suspend')
+        } catch (error) { toast.error(error.message || "Erro ao suspender") }
     }
 
     const handleConfirmCancel = async (values) => {
+        const target = modalState.targetContract;
+        if (!target) return;
         try {
-            await ClientContractService.cancel(
-                idTenant,
-                idBranch,
-                user.uid,
-                activeContract.id,
-                values
-            )
+            await ClientContractService.cancel(idTenant, idBranch, user.uid, target.id, values)
             toast.success("Contrato cancelado com sucesso!")
-            refreshData()
-            toggleModal('cancel')
-        } catch (error) {
-            console.error("Erro ao cancelar contrato:", error)
-            toast.error(error.message || "Erro ao cancelar")
-        }
+            refreshData(); toggleModal('cancel')
+        } catch (error) { toast.error(error.message || "Erro ao cancelar") }
     }
 
     const handleConfirmReactivate = async () => {
+        const target = modalState.targetContract;
+        if (!target) return;
         try {
-            await ClientContractService.reactivate(
-                idTenant,
-                idBranch,
-                user.uid,
-                activeContract.id
-            )
+            await ClientContractService.reactivate(idTenant, idBranch, user.uid, target.id)
             toast.success("Contrato reativado com sucesso!")
-            refreshData()
-            toggleModal('reactivate')
-        } catch (error) {
-            console.error("Erro ao reativar contrato:", error)
-            toast.error(error.message || "Erro ao reativar")
-        }
+            refreshData(); toggleModal('reactivate')
+        } catch (error) { toast.error(error.message || "Erro ao reativar") }
     }
 
     if (loading) {
@@ -128,166 +98,142 @@ const ClientContracts = ({ client }) => {
         if (a.status !== 'active' && b.status === 'active') return 1
         return new Date(b.startDate) - new Date(a.startDate)
     })
-    const pastContracts = sortedContracts.filter(c => c.id !== activeContract?.id)
+
+    const manageableIds = manageableContracts.map(c => c.id)
+    const pastContracts = sortedContracts.filter(c => !manageableIds.includes(c.id))
 
     return (
         <div className="animate__animated animate__fadeIn">
-            {/* Contrato Ativo em Destaque */}
-            {activeContract ? (
+            {/* Contratos Gerenciáveis (Ativos ou Suspensos) */}
+            {manageableContracts.length > 0 ? (
                 <div className="mb-4">
                     <h5 className="font-size-16 fw-bold mb-3 text-primary">
-                        <i className="mdi mdi-shield-check-outline me-2"></i>Contrato Ativo
+                        <i className="mdi mdi-shield-check-outline me-2"></i>Contratos em Vigência
                     </h5>
-                    <Card className="border-0 shadow-sm overflow-hidden">
-                        <CardBody className="p-4">
-                            <Row className="g-4">
-                                {/* Informações do Plano */}
-                                <Col lg={4} className="border-end">
-                                    <div className="d-flex align-items-start">
-                                        <div className="avatar-md me-3">
-                                            <span className="avatar-title rounded-circle bg-soft-success text-success font-size-24">
-                                                <i className="mdi mdi-file-certificate"></i>
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <h4 className="font-size-18 mb-1 fw-bold text-dark">{activeContract.planName}</h4>
-                                            <p className="text-muted mb-2 font-size-13">{activeContract.friendlyId}</p>
-                                            <Badge color="soft-success" className="font-size-11 text-uppercase px-2">Em Vigência</Badge>
-                                        </div>
-                                    </div>
-                                </Col>
-
-                                {/* Datas e Valores */}
-                                <Col lg={3} className="border-end">
-                                    <div className="px-3">
-                                        <div className="mb-3">
-                                            <p className="text-muted mb-1 font-size-11 text-uppercase fw-bold">Período</p>
-                                            <h6 className="mb-0 fw-semibold text-dark">
-                                                {formatDate(activeContract.startDate)}
-                                                <i className="mdi mdi-arrow-right mx-2 text-muted"></i>
-                                                {formatDate(activeContract.endDate)}
-                                            </h6>
-                                        </div>
-                                        <div>
-                                            <p className="text-muted mb-1 font-size-11 text-uppercase fw-bold">Valor Mensal</p>
-                                            <h5 className="mb-0 text-primary fw-bold">{formatCurrency(activeContract.value)}</h5>
-                                        </div>
-                                    </div>
-                                </Col>
-
-                                {/* Regras e Condições */}
-                                <Col lg={5}>
-                                    <div className="ps-3">
-                                        <p className="text-muted mb-2 font-size-11 text-uppercase fw-bold">Regras do Plano</p>
-                                        <div className="d-flex flex-wrap gap-2">
-                                            {/* Suspensão */}
-                                            {activeContract.rules?.allowFreeze !== false ? (
-                                                <Badge color="soft-info" className="px-2 py-1">
-                                                    <i className="mdi mdi-pause-circle-outline me-1"></i>
-                                                    Suspensão: até {activeContract.rules?.maxFreezeDays || 30} dias
-                                                </Badge>
-                                            ) : (
-                                                <Badge color="soft-danger" className="px-2 py-1">
-                                                    <i className="mdi mdi-lock-outline me-1"></i>
-                                                    Sem Suspensão
-                                                </Badge>
-                                            )}
-
-                                            {/* Permanência */}
-                                            {activeContract.rules?.minPermanence > 0 && (
-                                                <Badge color="soft-warning" className="px-2 py-1">
-                                                    <i className="mdi mdi-shield-account-outline me-1"></i>
-                                                    Fidelidade: {activeContract.rules.minPermanence} meses
-                                                </Badge>
-                                            )}
-
-                                            {/* Dias da Semana */}
-                                            {activeContract.rules?.allowedWeekDays?.length > 0 && (
-                                                <Badge color="soft-secondary" className="px-2 py-1">
-                                                    <i className="mdi mdi-calendar-check me-1"></i>
-                                                    Dias: {activeContract.rules?.allowedWeekDays?.length}x semana
-                                                </Badge>
-                                            )}
-
-                                            {/* Limite de Acesso */}
-                                            {activeContract.rules?.accessLimitType && activeContract.rules?.accessLimitType !== 'unlimited' && (
-                                                <Badge color="soft-primary" className="px-2 py-1">
-                                                    <i className="mdi mdi-clock-check-outline me-1"></i>
-                                                    Limite: {activeContract.rules?.accessLimitQuantity || 0} total
-                                                </Badge>
-                                            )}
-                                        </div>
-
-                                        {/* Estatísticas de Suspensão */}
-                                        {activeContract.rules?.allowFreeze !== false && (
-                                            <div className="mt-3 p-2 bg-light rounded border border-dashed">
-                                                <div className="d-flex justify-content-between align-items-center small">
-                                                    <span className="text-muted"><i className="mdi mdi-clock-fast me-1"></i>Uso de Suspensão:</span>
-                                                    <span className="fw-bold">
-                                                        {activeContract.suspension?.totalDaysUsed || 0} / {activeContract.rules?.maxFreezeDays || 30} dias
+                    {manageableContracts.map((contract) => {
+                        const isSuspended = contract.status === 'suspended';
+                        return (
+                            <Card key={contract.id} className="border-0 shadow-sm overflow-hidden mb-4">
+                                <CardBody className="p-4">
+                                    <Row className="g-4">
+                                        {/* Informações do Plano */}
+                                        <Col lg={4} className="border-end">
+                                            <div className="d-flex align-items-start">
+                                                <div className="avatar-md me-3">
+                                                    <span className={`avatar-title rounded-circle bg-soft-${isSuspended ? 'warning' : 'success'} text-${isSuspended ? 'warning' : 'success'} font-size-24`}>
+                                                        <i className="mdi mdi-file-certificate"></i>
                                                     </span>
                                                 </div>
-                                                <div className="progress progress-sm mt-1" style={{ height: '4px' }}>
-                                                    <div
-                                                        className={`progress-bar ${(activeContract.suspension?.totalDaysUsed || 0) > (activeContract.rules?.maxFreezeDays || 30) * 0.8 ? 'bg-danger' : 'bg-info'}`}
-                                                        style={{ width: `${Math.min(100, ((activeContract.suspension?.totalDaysUsed || 0) / (activeContract.rules?.maxFreezeDays || 30)) * 100)}%` }}
-                                                    ></div>
-                                                </div>
-                                                <div className="d-flex justify-content-between mt-1 small">
-                                                    <span className="text-muted font-size-10">{activeContract.suspension?.totalOccurrences || 0} utilizações</span>
-                                                    <span className="text-info font-size-10 fw-bold">{(activeContract.rules?.maxFreezeDays || 30) - (activeContract.suspension?.totalDaysUsed || 0)} dias restantes</span>
+                                                <div>
+                                                    <h4 className="font-size-18 mb-1 fw-bold text-dark">{contract.planName}</h4>
+                                                    <p className="text-muted mb-2 font-size-13">{contract.friendlyId}</p>
+                                                    <StatusBadge status={contract.status} />
                                                 </div>
                                             </div>
-                                        )}
+                                        </Col>
 
-                                        <div className="mt-3 d-flex gap-2">
-                                            <Button color="light" size="sm" className="btn-rounded px-3" id="detailsBtn">
-                                                <i className="mdi mdi-information-outline me-1"></i> Dados
-                                            </Button>
-
-                                            <div className="btn-group btn-group-sm shadow-sm rounded-pill">
-                                                <Button color="info" outline className="border-end-0" id="addDaysBtn" onClick={() => toggleModal('adjust', { mode: 'add' })}>
-                                                    <i className="mdi mdi-calendar-plus"></i>
-                                                </Button>
-                                                <Button color="info" outline className="border-start-0" id="subDaysBtn" onClick={() => toggleModal('adjust', { mode: 'sub' })}>
-                                                    <i className="mdi mdi-calendar-remove"></i>
-                                                </Button>
+                                        {/* Datas e Valores */}
+                                        <Col lg={3} className="border-end">
+                                            <div className="px-3">
+                                                <div className="mb-3">
+                                                    <p className="text-muted mb-1 font-size-11 text-uppercase fw-bold">Período</p>
+                                                    <h6 className="mb-0 fw-semibold text-dark">
+                                                        {formatDate(contract.startDate)}
+                                                        <i className="mdi mdi-arrow-right mx-2 text-muted"></i>
+                                                        {formatDate(contract.endDate)}
+                                                    </h6>
+                                                </div>
+                                                <div>
+                                                    <p className="text-muted mb-1 font-size-11 text-uppercase fw-bold">Valor Mensal</p>
+                                                    <h5 className="mb-0 text-primary fw-bold">{formatCurrency(contract.value)}</h5>
+                                                </div>
                                             </div>
+                                        </Col>
 
-                                            {isSuspended ? (
-                                                <Button color="success" size="sm" className="btn-rounded px-3 shadow-sm" id="reactivateBtn" onClick={() => toggleModal('reactivate')}>
-                                                    <i className="mdi mdi-play-circle-outline me-1"></i> Reativar Agora
-                                                </Button>
-                                            ) : (
-                                                <Button color="warning" outline size="sm" className="btn-rounded px-3" id="suspendBtn" onClick={() => toggleModal('suspend')}>
-                                                    <i className="mdi mdi-pause-circle-outline me-1"></i> Suspender
-                                                </Button>
-                                            )}
+                                        {/* Regras e Condições */}
+                                        <Col lg={5}>
+                                            <div className="ps-3">
+                                                <p className="text-muted mb-2 font-size-11 text-uppercase fw-bold">Regras e Utilização</p>
+                                                <div className="d-flex flex-wrap gap-2 mb-3">
+                                                    {contract.rules?.minPermanence > 0 && (
+                                                        <Badge color="soft-warning" className="px-2 py-1">
+                                                            <i className="mdi mdi-shield-account-outline me-1"></i>
+                                                            Fidelidade: {contract.rules.minPermanence} meses
+                                                        </Badge>
+                                                    )}
 
-                                            <Button color="primary" outline size="sm" className="btn-rounded px-3" id="transferBtn" onClick={() => toggleModal('transfer')}>
-                                                <i className="mdi mdi-account-switch-outline me-1"></i> Transferir
-                                            </Button>
+                                                    {contract.rules?.allowedWeekDays?.length > 0 && (
+                                                        <Badge color="soft-secondary" className="px-2 py-1">
+                                                            <i className="mdi mdi-calendar-check me-1"></i>
+                                                            {contract.rules?.allowedWeekDays?.length}x p/ semana
+                                                        </Badge>
+                                                    )}
 
-                                            <Button color="danger" outline size="sm" className="btn-rounded px-3" id="cancelBtn" onClick={() => toggleModal('cancel')}>
-                                                <i className="mdi mdi-close-circle-outline me-1"></i> Cancelar
-                                            </Button>
-                                        </div>
+                                                    {contract.rules?.accessLimitType && contract.rules?.accessLimitType !== 'unlimited' && (
+                                                        <Badge color="soft-primary" className="px-2 py-1">
+                                                            <i className="mdi mdi-clock-check-outline me-1"></i>
+                                                            Limite: {contract.rules?.accessLimitQuantity || 0} total
+                                                        </Badge>
+                                                    )}
+                                                </div>
 
-                                        <UncontrolledTooltip target="detailsBtn">Ver detalhes e histórico</UncontrolledTooltip>
-                                        <UncontrolledTooltip target="addDaysBtn">Adicionar dias de vigência</UncontrolledTooltip>
-                                        <UncontrolledTooltip target="subDaysBtn">Debitar dias de vigência</UncontrolledTooltip>
-                                        {isSuspended ? (
-                                            <UncontrolledTooltip target="reactivateBtn">Voltar a utilizar o plano hoje</UncontrolledTooltip>
-                                        ) : (
-                                            <UncontrolledTooltip target="suspendBtn">Pausar contrato</UncontrolledTooltip>
-                                        )}
-                                        <UncontrolledTooltip target="transferBtn">Transferir titularidade</UncontrolledTooltip>
-                                        <UncontrolledTooltip target="cancelBtn">Encerrar definitivamente</UncontrolledTooltip>
-                                    </div>
-                                </Col>
-                            </Row>
-                        </CardBody>
-                    </Card>
+                                                {/* Estatísticas de Suspensão */}
+                                                {contract.rules?.allowFreeze !== false && (
+                                                    <div className="mb-3 p-2 bg-light rounded border border-dashed">
+                                                        <div className="d-flex justify-content-between align-items-center small">
+                                                            <span className="text-muted font-size-11"><i className="mdi mdi-clock-fast me-1"></i>Pausas Usadas:</span>
+                                                            <span className="fw-bold font-size-11">
+                                                                {contract.suspension?.totalDaysUsed || 0} / {contract.rules?.maxFreezeDays || 30} dias
+                                                            </span>
+                                                        </div>
+                                                        <div className="progress progress-sm mt-1" style={{ height: '4px' }}>
+                                                            <div
+                                                                className={`progress-bar ${(contract.suspension?.totalDaysUsed || 0) > (contract.rules?.maxFreezeDays || 30) * 0.8 ? 'bg-danger' : 'bg-info'}`}
+                                                                style={{ width: `${Math.min(100, ((contract.suspension?.totalDaysUsed || 0) / (contract.rules?.maxFreezeDays || 30)) * 100)}%` }}
+                                                            ></div>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                <div className="d-flex gap-2">
+                                                    <Button color="light" size="sm" className="btn-rounded px-3">
+                                                        <i className="mdi mdi-information-outline me-1"></i> Dados
+                                                    </Button>
+
+                                                    <div className="btn-group btn-group-sm shadow-sm rounded-pill">
+                                                        <Button color="info" outline className="border-end-0" onClick={() => toggleModal('adjust', contract, { mode: 'add' })}>
+                                                            <i className="mdi mdi-calendar-plus"></i>
+                                                        </Button>
+                                                        <Button color="info" outline className="border-start-0" onClick={() => toggleModal('adjust', contract, { mode: 'sub' })}>
+                                                            <i className="mdi mdi-calendar-remove"></i>
+                                                        </Button>
+                                                    </div>
+
+                                                    {isSuspended ? (
+                                                        <Button color="success" size="sm" className="btn-rounded px-3 shadow-sm" onClick={() => toggleModal('reactivate', contract)}>
+                                                            <i className="mdi mdi-play-circle-outline me-1"></i> Reativar
+                                                        </Button>
+                                                    ) : (
+                                                        <Button color="warning" outline size="sm" className="btn-rounded px-3" onClick={() => toggleModal('suspend', contract)}>
+                                                            <i className="mdi mdi-pause-circle-outline me-1"></i> Suspender
+                                                        </Button>
+                                                    )}
+
+                                                    <Button color="primary" outline size="sm" className="btn-rounded px-3" onClick={() => toggleModal('transfer', contract)}>
+                                                        <i className="mdi mdi-account-switch-outline me-1"></i> Transferir
+                                                    </Button>
+
+                                                    <Button color="danger" outline size="sm" className="btn-rounded px-3" onClick={() => toggleModal('cancel', contract)}>
+                                                        <i className="mdi mdi-close-circle-outline me-1"></i> Cancelar
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </Col>
+                                    </Row>
+                                </CardBody>
+                            </Card>
+                        )
+                    })}
                 </div>
             ) : (
                 <Card className="border-0 shadow-sm mb-4 bg-soft-light border-dashed">
@@ -299,9 +245,6 @@ const ClientContracts = ({ client }) => {
                         </div>
                         <h5 className="text-dark fw-bold">Nenhum contrato ativo</h5>
                         <p className="text-muted">Este cliente não possui uma matrícula ativa no momento.</p>
-                        <Button color="primary" className="btn-rounded">
-                            Nova Venda / Matrícula
-                        </Button>
                     </CardBody>
                 </Card>
             )}
@@ -371,7 +314,7 @@ const ClientContracts = ({ client }) => {
             <ContractAdjustDaysModal
                 isOpen={modalState.adjust.open}
                 toggle={() => toggleModal('adjust')}
-                contract={activeContract}
+                contract={modalState.targetContract}
                 mode={modalState.adjust.mode}
                 onConfirm={handleConfirmAdjust}
             />
@@ -379,14 +322,14 @@ const ClientContracts = ({ client }) => {
             <ContractSuspendModal
                 isOpen={modalState.suspend.open}
                 toggle={() => toggleModal('suspend')}
-                contract={activeContract}
+                contract={modalState.targetContract}
                 onConfirm={handleConfirmSuspend}
             />
 
             <ContractTransferModal
                 isOpen={modalState.transfer.open}
                 toggle={() => toggleModal('transfer')}
-                contract={activeContract}
+                contract={modalState.targetContract}
                 onConfirm={(data) => {
                     console.log("Transferência:", data)
                     toggleModal('transfer')
@@ -396,7 +339,7 @@ const ClientContracts = ({ client }) => {
             <ContractCancelModal
                 isOpen={modalState.cancel.open}
                 toggle={() => toggleModal('cancel')}
-                contract={activeContract}
+                contract={modalState.targetContract}
                 onConfirm={handleConfirmCancel}
             />
 

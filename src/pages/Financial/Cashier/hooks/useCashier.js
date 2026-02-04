@@ -208,7 +208,14 @@ export const useCashier = () => {
             totalIncome: 0,
             totalExpenses: 0,
             netCash: 0,
-            expectedBalance: 0
+            expectedBalance: 0,
+            methods: {
+                dinheiro: 0,
+                pix: 0,
+                cartao_credito: 0,
+                cartao_debito: 0,
+                others: 0
+            }
         };
 
         transactions.forEach(t => {
@@ -217,8 +224,16 @@ export const useCashier = () => {
 
             if (t.type === 'income') {
                 summary.totalIncome += netAmount;
+
+                const method = t.method || 'others';
+                if (summary.methods[method] !== undefined) {
+                    summary.methods[method] += netAmount;
+                } else {
+                    summary.methods.others += netAmount;
+                }
+
                 // Apenas dinheiro físico entra na contagem da "gaveta" (expectedBalance)
-                if (t.method === 'money' || t.method === 'dinheiro') {
+                if (method === 'money' || method === 'dinheiro') {
                     summary.netCash += netAmount;
                 }
             } else if (t.type === 'expense') {

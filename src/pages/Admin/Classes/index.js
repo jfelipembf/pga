@@ -2,12 +2,14 @@ import React from "react"
 import { connect } from "react-redux"
 import { Card, CardBody, Container } from "reactstrap"
 
-import { ScheduleForm, ClassesGradeCard } from "./Components"
+import {
+  ScheduleForm,
+  ClassesGradeCard,
+  useClassesPage,
+  useGradeControls
+} from "../../../features/classes"
 import PageLoader from "../../../components/Common/PageLoader"
-
 import { setBreadcrumbItems } from "../../../store/actions"
-
-import { useClassesPage, useGradeControls } from "./hooks"
 
 import ConfirmDialog from "../../../components/Common/ConfirmDialog"
 import OverlayLoader from "../../../components/Common/OverlayLoader"
@@ -22,6 +24,7 @@ const ClassesPage = ({ setBreadcrumbItems }) => {
     setShowDeleteConfirm,
     isLoading,
     isInitialLoading,
+    isNavigationLoading,
     activities,
     areas,
     instructors,
@@ -80,19 +83,26 @@ const ClassesPage = ({ setBreadcrumbItems }) => {
         schedules={schedulesForGrid}
         onClassClick={handleClassClick}
         selectedClassId={formState.id}
+        loading={isNavigationLoading}
       />
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
+        toggle={() => setShowDeleteConfirm(false)}
         title="Excluir Turma"
-        message={<>
-          <p>Tem certeza que deseja excluir esta turma?</p>
-          <p className="text-muted small mb-0">Essa ação pode ser irreversível se não houver histórico.</p>
+        description={<>
+          <p><strong>Tem certeza que deseja excluir esta turma?</strong></p>
+          <p className="text-warning small">
+            <i className="mdi mdi-alert-outline me-1"></i>
+            Esta ação irá excluir a turma e <strong>todas as sessões futuras</strong> a partir da data selecionada.
+          </p>
+          <p className="text-muted small mb-0">
+            Sessões passadas serão mantidas para histórico.
+          </p>
         </>}
-        confirmText="Excluir"
+        confirmText="Excluir Turma e Sessões"
         confirmColor="danger"
         onConfirm={handleConfirmDelete}
-        onCancel={() => setShowDeleteConfirm(false)}
       />
     </Container>
   )

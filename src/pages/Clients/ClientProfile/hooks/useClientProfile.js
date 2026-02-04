@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
+import { useFormik } from "formik"
 import { useTenant } from "../../../../hooks/useTenant"
-import { ClientService } from "../../../../features/clients"
+import { ClientService, ClientSchema } from "../../../../features/clients"
 import { toast } from "react-toastify"
 import { PROFILE_TABS } from "../constants/profileConstants"
 
@@ -10,7 +11,7 @@ import { PROFILE_TABS } from "../constants/profileConstants"
  */
 export const useClientProfile = () => {
     const { id } = useParams()
-    const { idTenant, idBranch } = useTenant()
+    const { idTenant, idBranch, user } = useTenant()
 
     const navigate = useNavigate()
 
@@ -19,11 +20,44 @@ export const useClientProfile = () => {
     const [activeTab, setActiveTab] = useState(PROFILE_TABS.SUMMARY)
     const [isDeleting, setIsDeleting] = useState(false)
 
-    // Helper para obter usuário logado
-    const getAuthUser = () => {
-        const authUser = localStorage.getItem("authUser")
-        return authUser ? JSON.parse(authUser) : null
-    }
+    // Formik para edição do perfil
+    const formik = useFormik({
+        initialValues: {
+            firstName: "",
+            lastName: "",
+            birthDate: "",
+            gender: "unspecified",
+            cpf: "",
+            email: "",
+            phone: "",
+            zipCode: "",
+            street: "",
+            number: "",
+            complement: "",
+            neighborhood: "",
+            city: "",
+            state: "SP",
+            emergencyName: "",
+            emergencyPhone: "",
+            emergencyEmail: "",
+            healthObservations: ""
+        },
+        validationSchema: ClientSchema,
+        onSubmit: async (values) => {
+            try {
+                const userName = user?.displayName || user?.email || 'Usuário Sistema';
+                await ClientService.updateClient(idTenant, idBranch, user.uid, id, {
+                    ...values,
+                    userName
+                });
+                toast.success("Perfil atualizado com sucesso!");
+                loadClient(); // Recarrega dados
+            } catch (error) {
+                console.error("Erro ao salvar perfil:", error);
+                toast.error(error.message || "Erro ao salvar alterações.");
+            }
+        }
+    });
 
     // Carregar dados do cliente
     const loadClient = useCallback(async () => {
@@ -34,10 +68,33 @@ export const useClientProfile = () => {
             const data = await ClientService.getClientById(idTenant, idBranch, id)
             if (!data) {
                 toast.error("Cliente não encontrado.")
-                navigate(-1) // Go back safe
+                navigate(-1)
                 return
             }
             setClient(data)
+
+            // Atualiza valores do formulário
+            formik.setValues({
+                firstName: data.firstName || "",
+                lastName: data.lastName || "",
+                birthDate: data.birthDate || "",
+                gender: data.gender || "unspecified",
+                cpf: data.cpf || "",
+                email: data.email || "",
+                phone: data.phone || "",
+                zipCode: data.address?.zipCode || "",
+                street: data.address?.street || "",
+                number: data.address?.number || "",
+                complement: data.address?.complement || "",
+                neighborhood: data.address?.neighborhood || "",
+                city: data.address?.city || "",
+                state: data.address?.state || "SP",
+                emergencyName: data.emergencyContact?.name || "",
+                emergencyPhone: data.emergencyContact?.phone || "",
+                emergencyEmail: data.emergencyContact?.email || "",
+                healthObservations: data.healthObservations || ""
+            });
+
         } catch (error) {
             console.error("Erro ao carregar perfil do cliente:", error)
             toast.error("Erro ao carregar dados do cliente.")
@@ -52,7 +109,6 @@ export const useClientProfile = () => {
 
         try {
             setIsDeleting(true)
-            const user = getAuthUser()
             const userName = user?.displayName || (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.email) || 'Usuário Atual';
             await ClientService.deleteClient(idTenant, idBranch, user?.uid, id, userName)
             toast.success("Cliente excluído com sucesso.")
@@ -80,6 +136,7 @@ export const useClientProfile = () => {
         handleDelete: deleteClient,
         isDeleting,
         idTenant,
-        idBranch
+        idBranch,
+        formik
     }
 }

@@ -1,6 +1,6 @@
 import { payableRepository } from '../../data/repositories/PayableRepository'
-import { transactionRepository } from '../../data/repositories/TransactionRepository'
 import { bankAccountRepository } from '../../data/repositories/BankAccountRepository'
+import { CashierService } from './CashierService'
 import { AuditService } from '../Audit/AuditService'
 import { PayableSchema } from '../../data/schemas/Financial/PayableSchema'
 import { generatePayableId } from '../../utils/sequence'
@@ -78,25 +78,23 @@ export const PayableService = {
             throw new Error(`Saldo insuficiente. Disponível: R$ ${currentBalance.toFixed(2)}, Necessário: R$ ${finalAmount.toFixed(2)}`);
         }
 
-        // 2. Criar Transação Financeira (Saída)
+        // 2. Registrar no Caixa (Sessão Diária)
+        // Isso garante que a despesa apareça no extrato do dia e atualize os totais (e gaveta se for dinheiro)
         const paymentDateObj = normalizeDate(paymentDate);
-        const transactionData = {
-            date: paymentDateObj,
-            description: `Pagamento - ${payable.supplier || 'Fornecedor'} - ${payable.description || payable.title}`,
-            amount: finalAmount,
+        await CashierService.registerMovement(idTenant, idBranch, userId, {
             type: 'expense',
+            amount: finalAmount,
+            netAmount: finalAmount,
             category: payable.chartOfAccountName || 'Despesas Gerais',
             method: paymentMethod,
+            description: `Pagamento - ${payable.supplier || 'Fornecedor'} - ${payable.description || payable.title}`,
             idBankAccount: idBankAccount,
             idSource: idPayable,
             sourceType: 'payable',
             notes: notes || '',
-            costCenter: payable.costCenterName,
             supplier: payable.supplier,
-            documentNumber: payable.documentNumber,
-            createdAt: new Date().toISOString()
-        };
-        await transactionRepository.create(idTenant, idBranch, transactionData);
+            userName: paymentData.userName
+        })
 
         // 3. DEBITAR Saldo Bancário
         const newBalance = currentBalance - finalAmount;

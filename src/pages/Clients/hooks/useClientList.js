@@ -43,8 +43,8 @@ export const useClientList = () => {
     }
 
     const handleRowClick = (client, navigate) => {
-        if (navigate) {
-            navigate(`/clients/${client.id}`)
+        if (navigate && idTenant && idBranch) {
+            navigate(`/${idTenant}/${idBranch}/clients/${client.id}`)
         }
     }
 

@@ -40,7 +40,7 @@ export const ReceivableService = {
             netAmount: netAmount,
             category: 'receivable_payment',
             method: paymentData.method || receivable.paymentMethod,
-            description: `Rec. Título ${idReceivable} - Cliente: ${receivable.clientName}`,
+            description: receivable.description || `Recebimento de Título #${idReceivable.substring(0, 6)}`,
             clientName: receivable.clientName,
             idReceivable: idReceivable,
             idSale: receivable.idSale,

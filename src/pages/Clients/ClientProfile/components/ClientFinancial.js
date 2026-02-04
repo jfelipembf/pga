@@ -94,16 +94,6 @@ const ClientFinancial = () => {
                             Histórico de Vendas
                         </NavLink>
                     </NavItem>
-                    <NavItem>
-                        <NavLink
-                            className={classnames({ active: activeTab === '3' })}
-                            onClick={() => toggle('3')}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            <i className="mdi mdi-file-document-edit-outline me-2"></i>
-                            Contratos
-                        </NavLink>
-                    </NavItem>
                 </Nav>
 
                 <TabContent activeTab={activeTab} className="p-3 text-muted">
@@ -251,53 +241,6 @@ const ClientFinancial = () => {
                         </div>
                     </TabPane>
 
-                    {/* TAB 3: Contratos */}
-                    <TabPane tabId="3">
-                        <div className="table-responsive">
-                            <Table className="table-nowrap table-hover mb-0">
-                                <thead className="table-light">
-                                    <tr>
-                                        <th>Plano</th>
-                                        <th>Início</th>
-                                        <th>Fim</th>
-                                        <th>Valor</th>
-                                        <th>Status</th>
-                                        <th>Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {contracts && contracts.length > 0 ? (
-                                        contracts.map((contract) => (
-                                            <tr key={contract.id}>
-                                                <td className="fw-bold text-primary">
-                                                    {contract.planName || 'Contrato Personalizado'}
-                                                    <div className="small text-muted font-monospace">{contract.friendlyId}</div>
-                                                </td>
-                                                <td>{formatDate(contract.startDate)}</td>
-                                                <td>{formatDate(contract.endDate)}</td>
-                                                <td>{formatCurrency(contract.value)}</td>
-                                                <td>
-                                                    <StatusBadge status={contract.status} />
-                                                </td>
-                                                <td>
-                                                    <Button color="secondary" size="sm" outline>
-                                                        <i className="mdi mdi-cog"></i> Gerenciar
-                                                    </Button>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan="6" className="text-center py-5 text-muted">
-                                                <i className="mdi mdi-file-document-outline font-size-24 d-block mb-2"></i>
-                                                Cliente não possui contratos ativos.
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </Table>
-                        </div>
-                    </TabPane>
                 </TabContent>
             </div>
 

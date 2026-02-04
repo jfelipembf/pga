@@ -69,7 +69,7 @@ export const SalesService = {
                 } else if (payment.methodId === 'pix') {
                     await SalesPaymentProcessor.processPixPayment(idTenant, idBranch, userId, newSale, payment);
                 } else if (['cartao_debito', 'cartao_credito'].includes(payment.methodId)) {
-                    await SalesPaymentProcessor.processCardPayment(idTenant, idBranch, newSale, payment, {
+                    await SalesPaymentProcessor.processCardPayment(idTenant, idBranch, userId, newSale, payment, {
                         idClient: saleData.idClient,
                         clientName: saleData.clientName,
                         friendlyId: saleData.friendlyId

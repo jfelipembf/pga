@@ -73,7 +73,7 @@ export const SalesPaymentProcessor = {
     /**
      * Processa pagamentos via CARTÃO (Recebíveis Futuros)
      */
-    processCardPayment: async (idTenant, idBranch, sale, payment, clientData) => {
+    processCardPayment: async (idTenant, idBranch, userId, sale, payment, clientData) => {
         const pValue = parseFloat(payment.value) || 0
         const numInstallments = parseInt(payment.installments) || 1
 
@@ -170,6 +170,23 @@ export const SalesPaymentProcessor = {
         for (const rec of receivables) {
             await receivableRepository.create(idTenant, idBranch, rec)
         }
+
+        // 4. Registrar Movimentação no Caixa (Para aparecer no extrato diário)
+        const brandLabel = payment.brand ? payment.brand.toUpperCase() : 'CARTÃO'
+        const installmentLabel = numInstallments > 1 ? ` (${numInstallments}x)` : ''
+
+        await CashierService.registerMovement(idTenant, idBranch, userId, {
+            type: 'income',
+            amount: pValue,
+            netAmount: pValue,
+            category: 'sale',
+            method: payment.methodId,
+            description: `Venda #${sale.saleNumber || sale.id.substring(0, 6)} - ${brandLabel}${installmentLabel}`,
+            idSale: sale.id,
+            saleNumber: sale.saleNumber,
+            clientName: clientData.clientName,
+            userName: sale.sellerName
+        })
 
         return receivables;
     },

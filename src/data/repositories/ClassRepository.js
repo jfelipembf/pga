@@ -10,7 +10,15 @@ class ClassRepository extends BaseRepository {
         super('classes')
     }
 
-    // Métodos herdados do BaseRepository: findAll, findById, findWhere, create, update, delete
+    /**
+     * Lista todas as turmas ativas
+     */
+    async findActive(idTenant, idBranch) {
+        return this.findWhere(idTenant, idBranch, [
+            ['deletedAt', '==', null],
+            ['isActive', '==', true]
+        ])
+    }
 }
 
 export const classRepository = new ClassRepository()

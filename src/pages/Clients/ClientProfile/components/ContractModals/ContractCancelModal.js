@@ -16,16 +16,15 @@ const ContractCancelModal = ({ isOpen, toggle, contract, onConfirm }) => {
     const formik = useFormik({
         initialValues: {
             reason: '',
+            effectiveDate: moment().format('YYYY-MM-DD'),
             cancellationFee: 0,
-            refundAmount: 0,
-            settlementType: 'none', // none, refund, credit
+            cancelFutureReceivables: true,
             notes: ''
         },
         validationSchema: Yup.object({
-            reason: Yup.string().required('Selecione o motivo do cancelamento'),
-            notes: Yup.string().min(5, 'Descreva os detalhes do cancelamento').required('Obrigatório'),
+            reason: Yup.string().required('Selecione o motivo'),
+            notes: Yup.string().min(5, 'Descreva os detalhes').required('Obrigatório'),
             cancellationFee: Yup.number().min(0, 'Valor inválido'),
-            refundAmount: Yup.number().min(0, 'Valor inválido'),
         }),
         onSubmit: (values) => {
             onConfirm(values)
@@ -65,6 +64,20 @@ const ContractCancelModal = ({ isOpen, toggle, contract, onConfirm }) => {
                         <Col lg={7}>
                             <h5 className="font-size-15 mb-3 fw-bold text-dark">Informações Gerais</h5>
                             <Row className="g-3">
+                                <Col md={6}>
+                                    <FormGroup className="mb-4">
+                                        <Label className="fw-semibold text-dark">
+                                            Cancelar a partir de:
+                                            <i className="mdi mdi-help-circle-outline ms-1 text-muted" title="Define a data real do encerramento. Parcelas vencendo após esta data serão tratadas conforme sua escolha ao lado."></i>
+                                        </Label>
+                                        <Input
+                                            type="date"
+                                            name="effectiveDate"
+                                            onChange={formik.handleChange}
+                                            value={formik.values.effectiveDate}
+                                        />
+                                    </FormGroup>
+                                </Col>
                                 <Col md={12}>
                                     <FormGroup className="mb-4">
                                         <Label className="fw-semibold text-dark">Motivo do Cancelamento</Label>
@@ -103,86 +116,47 @@ const ContractCancelModal = ({ isOpen, toggle, contract, onConfirm }) => {
                             </Row>
                         </Col>
 
-                        <Col lg={5} className="border-start">
-                            <h5 className="font-size-14 mb-3 fw-bold text-dark ps-2">Acerto Financeiro</h5>
-                            <div className="ps-2">
-                                <Card className="bg-light border-0 mb-3">
-                                    <CardBody className="p-3">
-                                        <FormGroup className="mb-3">
-                                            <Label className="small text-muted text-uppercase mb-1">Ajuste / Multa Rescisória</Label>
-                                            <div className="input-group">
-                                                <span className="input-group-text font-size-12">R$</span>
-                                                <Input
-                                                    type="number"
-                                                    name="cancellationFee"
-                                                    placeholder="0,00"
-                                                    onChange={formik.handleChange}
-                                                    value={formik.values.cancellationFee}
-                                                />
-                                            </div>
-                                            <small className="text-muted">Valor a ser cobrado do aluno</small>
-                                        </FormGroup>
+                        <Col lg={5} className="border-start ps-4">
+                            <h5 className="font-size-14 mb-4 fw-bold text-dark">Configurações Financeiras</h5>
 
-                                        <FormGroup className="mb-0">
-                                            <Label className="small text-muted text-uppercase mb-1">Tratamento de Crédito</Label>
-                                            <div className="d-flex flex-column gap-2 mt-2">
-                                                <div className="form-check font-size-13">
-                                                    <Input
-                                                        type="radio"
-                                                        name="settlementType"
-                                                        value="none"
-                                                        id="set_none"
-                                                        checked={formik.values.settlementType === 'none'}
-                                                        onChange={formik.handleChange}
-                                                    />
-                                                    <Label check for="set_none">Nenhum reembolso</Label>
-                                                </div>
-                                                <div className="form-check font-size-13">
-                                                    <Input
-                                                        type="radio"
-                                                        name="settlementType"
-                                                        value="refund"
-                                                        id="set_refund"
-                                                        checked={formik.values.settlementType === 'refund'}
-                                                        onChange={formik.handleChange}
-                                                    />
-                                                    <Label check for="set_refund">Reembolso via Caixa/Banco</Label>
-                                                </div>
-                                                <div className="form-check font-size-13">
-                                                    <Input
-                                                        type="radio"
-                                                        name="settlementType"
-                                                        value="credit"
-                                                        id="set_credit"
-                                                        checked={formik.values.settlementType === 'credit'}
-                                                        onChange={formik.handleChange}
-                                                    />
-                                                    <Label check for="set_credit">Deixar como crédito (Devolução)</Label>
-                                                </div>
-                                            </div>
-                                        </FormGroup>
-
-                                        {formik.values.settlementType !== 'none' && (
-                                            <FormGroup className="mt-3">
-                                                <Label className="small fw-bold">Valor do Reembolso/Crédito</Label>
-                                                <div className="input-group input-group-sm">
-                                                    <span className="input-group-text">R$</span>
-                                                    <Input
-                                                        type="number"
-                                                        name="refundAmount"
-                                                        onChange={formik.handleChange}
-                                                        value={formik.values.refundAmount}
-                                                    />
-                                                </div>
-                                            </FormGroup>
-                                        )}
-                                    </CardBody>
-                                </Card>
-
-                                <div className="p-2 border rounded bg-soft-warning small text-dark">
-                                    <i className="mdi mdi-lightbulb-on-outline me-1"></i>
-                                    <strong>Dica:</strong> Parcelas futuras em aberto serão canceladas automaticamente.
+                            <FormGroup className="mb-4">
+                                <Label className="fw-semibold text-dark">
+                                    Aplicar multa por cancelamento?
+                                    <i className="mdi mdi-help-circle-outline ms-1 text-muted" title="Gera um novo título de 'Contas a Receber' para o aluno. Use para cobrar taxas de rescisão contratual."></i>
+                                </Label>
+                                <div className="input-group input-group-lg">
+                                    <span className="input-group-text bg-light">R$</span>
+                                    <Input
+                                        type="number"
+                                        name="cancellationFee"
+                                        placeholder="0,00"
+                                        onChange={formik.handleChange}
+                                        value={formik.values.cancellationFee}
+                                    />
                                 </div>
+                            </FormGroup>
+
+                            <hr className="my-4" />
+
+                            <div className="form-check form-switch mb-4">
+                                <Input
+                                    type="switch"
+                                    name="cancelFutureReceivables"
+                                    id="cancelFutureReceivables"
+                                    className="form-check-input-lg"
+                                    checked={formik.values.cancelFutureReceivables}
+                                    onChange={() => formik.setFieldValue('cancelFutureReceivables', !formik.values.cancelFutureReceivables)}
+                                />
+                                <Label className="form-check-label fw-bold text-dark cursor-pointer ms-2" for="cancelFutureReceivables">
+                                    Cancelar lançamentos futuros?
+                                    <i className="mdi mdi-help-circle-outline ms-1 text-muted" title="Se ativado, todos os títulos 'Abertos' com vencimento após a data de cancelamento serão invalidados."></i>
+                                </Label>
+                                <p className="text-muted small mt-1 ms-2">Recomendado para encerrar cobranças recorrentes no cartão/boleto.</p>
+                            </div>
+
+                            <div className="p-3 border rounded bg-soft-info small text-dark border-info mt-5">
+                                <h6 className="font-size-12 fw-bold mb-1"><i className="mdi mdi-information-outline me-1"></i>Dica Financeira</h6>
+                                O sistema calculará automaticamente o estorno de receita na DRE com base nas parcelas canceladas.
                             </div>
                         </Col>
                     </Row>
@@ -194,7 +168,7 @@ const ContractCancelModal = ({ isOpen, toggle, contract, onConfirm }) => {
                     </Button>
                 </ModalFooter>
             </Form>
-        </Modal>
+        </Modal >
     )
 }
 

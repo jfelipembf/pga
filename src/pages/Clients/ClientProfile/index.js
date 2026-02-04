@@ -1,5 +1,5 @@
 import React from "react"
-import { Row, Col, Button, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from "reactstrap"
+import { Row, Col, Button, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Spinner } from "reactstrap"
 import { useNavigate } from "react-router-dom"
 import { useTenant } from "../../../hooks/useTenant"
 
@@ -58,7 +58,8 @@ const ClientProfile = () => {
         activeTab,
         setActiveTab,
         handleDelete,
-        isDeleting
+        isDeleting,
+        formik
     } = useClientProfile()
 
     // Resumo financeiro e contratos para a Header
@@ -136,7 +137,7 @@ const ClientProfile = () => {
                             </div>
                         </div>
 
-                        <div className="d-flex gap-2 flex-wrap">
+                        <div className="d-flex gap-2 flex-wrap align-items-center">
                             <Button
                                 color="success"
                                 className="d-flex align-items-center gap-2"
@@ -146,10 +147,17 @@ const ClientProfile = () => {
                                 Nova Venda
                             </Button>
 
-                            <Button color="light" className="d-flex align-items-center gap-2">
-                                <i className="mdi mdi-content-save" />
-                                Salvar Alterações
-                            </Button>
+                            {activeTab === PROFILE_TABS.PROFILE && (
+                                <Button
+                                    color="info"
+                                    className="d-flex align-items-center gap-2 shadow-sm"
+                                    onClick={() => formik.handleSubmit()}
+                                    disabled={formik.isSubmitting}
+                                >
+                                    {formik.isSubmitting ? <Spinner size="sm" /> : <i className="mdi mdi-content-save" />}
+                                    {formik.isSubmitting ? "Salvando..." : "Salvar Alterações"}
+                                </Button>
+                            )}
 
                             <div className="ms-2 border-start ps-3">
                                 <Dropdown isOpen={menuOpen} toggle={() => setMenuOpen(!menuOpen)}>
@@ -187,7 +195,7 @@ const ClientProfile = () => {
                             <ClientSummary client={client} />
                         )}
                         {activeTab === PROFILE_TABS.PROFILE && (
-                            <ClientProfileForm client={client} />
+                            <ClientProfileForm formik={formik} />
                         )}
                         {activeTab === PROFILE_TABS.FINANCIAL && (
                             <ClientFinancial client={client} />

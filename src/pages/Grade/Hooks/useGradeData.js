@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react"
 import moment from "moment"
 import { useTenant } from "../../../hooks/useTenant"
-import { SessionService } from "../../../services/Admin/SessionService"
+import { useWeekCache } from "../../../hooks/useWeekCache"
+import { ClassService } from "../../../features/classes"
 import { ActivityService } from "../../../services/Admin/ActivityService"
 import { AreaService } from "../../../services/Admin/AreaService"
 import { StaffService } from "../../../services/Admin/StaffService"
@@ -10,17 +11,39 @@ import { toast } from "react-toastify"
 
 export const useGradeData = (referenceDate) => {
     const { idTenant, idBranch, isReady } = useTenant()
+    const cache = useWeekCache()
+
     const [sessions, setSessions] = useState([])
     const [activities, setActivities] = useState([])
     const [areas, setAreas] = useState([])
     const [staff, setStaff] = useState([])
     const [loading, setLoading] = useState(true)
 
-    const loadData = useCallback(async () => {
+    const loadData = useCallback(async (forceRefresh = false) => {
         if (!isReady) return
 
         try {
             setLoading(true)
+
+            // Verificar cache primeiro (se não for refresh forçado)
+            if (!forceRefresh) {
+                const cached = cache.get(referenceDate)
+                if (cached) {
+                    console.log('📦 Dados carregados do cache')
+
+                    // Delay mínimo para feedback visual (300ms)
+                    await new Promise(resolve => setTimeout(resolve, 300))
+
+                    setSessions(cached.data.sessions || [])
+                    setActivities(cached.data.activities || [])
+                    setAreas(cached.data.areas || [])
+                    setStaff(cached.data.staff || [])
+                    setLoading(false)
+                    return
+                }
+            }
+
+            console.log('🔄 Carregando dados da API...')
 
             // Get date range for the current week based on referenceDate
             const startDate = getStartOfWeek(referenceDate)
@@ -32,13 +55,11 @@ export const useGradeData = (referenceDate) => {
                 areasData,
                 staffData
             ] = await Promise.all([
-                SessionService.listByDateRange(idTenant, idBranch, moment(startDate).format('YYYY-MM-DD'), moment(endDate).format('YYYY-MM-DD')),
+                ClassService.listSessions(idTenant, idBranch, moment(startDate).format('YYYY-MM-DD'), moment(endDate).format('YYYY-MM-DD')),
                 ActivityService.listAll(idTenant, idBranch),
                 AreaService.listAreas(idTenant, idBranch),
                 StaffService.listAll(idTenant, idBranch)
             ])
-
-
 
             // Normalização de dados (Mapper)
             const normalizedSessions = (sessionsData || []).map(s => ({
@@ -63,21 +84,42 @@ export const useGradeData = (referenceDate) => {
                 idBranch: s.idBranch
             })).filter(s => !s.deleted && s.sessionDate && s.startTime)
 
+            const loadedData = {
+                sessions: normalizedSessions,
+                activities: activitiesData || [],
+                areas: areasData || [],
+                staff: staffData || []
+            }
+
+            // Salvar no cache
+            cache.set(referenceDate, loadedData)
+
             setSessions(normalizedSessions)
             setActivities(activitiesData || [])
             setAreas(areasData || [])
             setStaff(staffData || [])
+
+            console.log(`✅ ${normalizedSessions.length} sessões carregadas`)
         } catch (error) {
             console.error("Error loading grade data:", error)
             toast.error("Erro ao carregar dados da grade")
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch, isReady, referenceDate])
+    }, [idTenant, idBranch, isReady, referenceDate, cache.get, cache.set])
 
     useEffect(() => {
         loadData()
     }, [loadData])
+
+    // Cleanup do cache a cada 5 minutos
+    useEffect(() => {
+        const interval = setInterval(() => {
+            cache.cleanup()
+        }, 5 * 60 * 1000)
+
+        return () => clearInterval(interval)
+    }, [cache])
 
     return {
         sessions,
@@ -86,6 +128,7 @@ export const useGradeData = (referenceDate) => {
         areas,
         staff,
         loading,
-        refresh: loadData
+        refresh: () => loadData(true), // Force refresh
+        cacheStats: cache.cacheStats
     }
 }

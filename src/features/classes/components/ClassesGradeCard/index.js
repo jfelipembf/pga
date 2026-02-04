@@ -1,8 +1,8 @@
 import React from "react"
 import { Card, CardBody } from "reactstrap"
 
-import GradeGrid from "../../../Grade/Components/GradeGrid"
-import GradeHeader from "../../../Grade/Components/GradeHeader"
+import GradeGrid from "../../../../pages/Grade/Components/GradeGrid"
+import GradeHeader from "../../../../pages/Grade/Components/GradeHeader"
 import { getStartOfWeek } from "../../../../utils/sharedUtils"
 
 export default function ClassesGradeCard({
@@ -17,6 +17,7 @@ export default function ClassesGradeCard({
   schedules,
   onClassClick,
   selectedClassId,
+  loading,
 }) {
   return (
     <Card className="shadow-sm mt-4">
@@ -45,6 +46,7 @@ export default function ClassesGradeCard({
           showOccupancy={showOccupancy}
           onSelectSchedule={onClassClick}
           selectedClassId={selectedClassId}
+          loading={loading}
         />
       </CardBody>
     </Card>

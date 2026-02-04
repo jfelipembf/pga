@@ -101,6 +101,75 @@ export const ClientService = {
     },
 
     /**
+     * Atualiza dados do cliente com auditoria.
+     */
+    updateClient: async (idTenant, idBranch, userId, idClient, rawData) => {
+        try {
+            // 1. Busca estado anterior para comparação na auditoria
+            const oldData = await clientRepository.findById(idTenant, idBranch, idClient)
+            if (!oldData) throw new Error("Cliente não encontrado")
+
+            const sanitize = (val) => val === undefined ? null : val
+
+            // 2. Preparação do dado
+            const firstName = sanitize(rawData.firstName)
+            const lastName = sanitize(rawData.lastName)
+            const name = rawData.name || `${firstName || ''} ${lastName || ''}`.trim()
+
+            const clientData = {
+                ...rawData,
+                firstName,
+                lastName,
+                name,
+                address: rawData.address || {
+                    zipCode: sanitize(rawData.zipCode),
+                    street: sanitize(rawData.street),
+                    number: sanitize(rawData.number),
+                    complement: sanitize(rawData.complement),
+                    neighborhood: sanitize(rawData.neighborhood),
+                    city: sanitize(rawData.city),
+                    state: sanitize(rawData.state)
+                },
+                emergencyContact: rawData.emergencyContact || {
+                    name: sanitize(rawData.emergencyName),
+                    phone: sanitize(rawData.emergencyPhone),
+                    email: sanitize(rawData.emergencyEmail)
+                },
+                healthObservations: sanitize(rawData.healthObservations) || null
+            }
+
+            // 3. Validação
+            await ClientSchema.validate(clientData, { abortEarly: false })
+
+            // 4. Persistência
+            await clientRepository.update(idTenant, idBranch, idClient, clientData)
+
+            // 5. Auditoria
+            const changedFields = {}
+            Object.keys(clientData).forEach(key => {
+                if (JSON.stringify(clientData[key]) !== JSON.stringify(oldData[key])) {
+                    changedFields[key] = { from: oldData[key], to: clientData[key] }
+                }
+            })
+
+            await AuditService.log({
+                idTenant, idBranch, userId,
+                userName: rawData.userName,
+                action: 'UPDATE',
+                entityType: 'client',
+                entityId: idClient,
+                description: `Perfil do cliente atualizado: ${clientData.name}`,
+                details: changedFields
+            })
+
+            return { id: idClient, ...clientData }
+        } catch (error) {
+            console.error("Erro no ClientService.updateClient:", error)
+            throw error
+        }
+    },
+
+    /**
      * Deleta um cliente com auditoria.
      */
     /**

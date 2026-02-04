@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react"
 import { toast } from "react-toastify"
 import { useLoading } from "../../../hooks/useLoading"
 import { useTenant } from "../../../hooks/useTenant"
-import { SessionService } from "../../../services/Admin/SessionService"
+import { ClassService } from "../../../features/classes"
 import { ClientService } from "../../../features/clients/services/ClientService"
 
 export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentChange) => {
@@ -134,7 +134,7 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
                     userName: user?.displayName || user?.email // For audit log
                 }
 
-                await SessionService.saveAttendance(idTenant, idBranch, user.uid, schedule.id, attendanceData)
+                await ClassService.saveAttendance(idTenant, idBranch, user, schedule.id, attendanceData)
 
                 toast.success(`Presenças salvas com sucesso!`)
                 onAttendanceSaved?.(attendanceData)
