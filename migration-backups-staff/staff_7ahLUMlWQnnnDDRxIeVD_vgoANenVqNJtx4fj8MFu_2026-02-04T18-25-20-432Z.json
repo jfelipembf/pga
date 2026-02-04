@@ -1,0 +1,15 @@
+[
+  {
+    "id": "QYlY20rfOpUSWOwZ4YEvgGpEKnR2",
+    "data": {
+      "firstName": "Diego ",
+      "createdAt": {
+        "_seconds": 1768233362,
+        "_nanoseconds": 504000000
+      },
+      "role": "owner",
+      "email": "d3@gmail.com",
+      "idStaff": "QYlY20rfOpUSWOwZ4YEvgGpEKnR2"
+    }
+  }
+]

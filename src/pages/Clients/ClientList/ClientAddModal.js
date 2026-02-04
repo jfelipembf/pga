@@ -1,5 +1,18 @@
 import React from "react"
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Row, Col, Label, FormFeedback, Spinner } from "reactstrap"
+import {
+    Modal,
+    ModalHeader,
+    ModalBody,
+    ModalFooter,
+    Button,
+    Row,
+    Col,
+    Label,
+    Input,
+    FormFeedback,
+    FormGroup,
+    Spinner
+} from "reactstrap"
 import InputMask from "react-input-mask"
 
 // Components & Utils
@@ -7,6 +20,7 @@ import PhotoPreview from "../../../components/Common/PhotoPreview"
 import OverlayLoader from "../../../components/Common/OverlayLoader"
 import { GENDER_OPTIONS } from "../../../utils/constants"
 import { useClientForm } from "../hooks/useClientForm"
+import logoIcon from "../../../assets/images/logoIcon.png"
 
 const ClientAddModal = ({ isOpen, toggle, onClientAdded }) => {
     const {
@@ -18,350 +32,364 @@ const ClientAddModal = ({ isOpen, toggle, onClientAdded }) => {
     } = useClientForm({ onClientAdded, toggle })
 
     return (
-        <Modal isOpen={isOpen} toggle={toggle} size="xl" centered scrollable>
-            <ModalHeader toggle={toggle}>Novo Cliente</ModalHeader>
-            <ModalBody className="position-relative">
-                <OverlayLoader show={formik.isSubmitting} label="Salvando cliente..." />
-                <form onSubmit={formik.handleSubmit}>
-                    <Row>
-                        <Col lg={12} className="text-center mb-4">
-                            <PhotoPreview
-                                inputId="client-photo"
-                                preview={photoPreview}
-                                onChange={handlePhotoChange}
-                                size={120}
-                                rounded
-                            />
-                        </Col>
-                    </Row>
+        <Modal
+            isOpen={isOpen}
+            toggle={toggle}
+            centered
+            size="xl"
+            contentClassName="border-0 shadow-lg rounded"
+        >
+            <ModalHeader
+                toggle={toggle}
+                className="bg-primary border-bottom-0 rounded-top"
+                close={
+                    <button
+                        className="btn-close btn-close-white"
+                        onClick={toggle}
+                        style={{ fontSize: '16px', opacity: 1 }}
+                        aria-label="Close"
+                    />
+                }
+            >
+                <div className="d-flex align-items-center">
+                    <img
+                        src={logoIcon}
+                        alt="Logo"
+                        style={{
+                            height: '50px',
+                            width: 'auto',
+                            objectFit: 'contain',
+                            filter: 'brightness(0) invert(1)'
+                        }}
+                        className="me-3"
+                    />
+                    <div className="border-start border-white border-opacity-25 ps-3">
+                        <h4 className="text-white fw-bold mb-0" style={{ fontSize: '1.1rem' }}>Novo Cliente</h4>
+                        <p className="text-white-50 mb-0 font-size-12">Cadastre um novo aluno para iniciar as atividades.</p>
+                    </div>
+                </div>
+            </ModalHeader>
 
-                    {/* DADOS PESSOAIS */}
-                    <div className="bg-light p-3 rounded mb-4">
-                        <h5 className="font-size-14 text-uppercase mb-3 fw-bold text-primary">
-                            <i className="mdi mdi-account-circle me-1"></i> Dados Pessoais
+            <ModalBody className="p-4 position-relative">
+                <OverlayLoader show={formik.isSubmitting} label="Salvando dados do aluno..." />
+
+                <Row className="mb-4 g-4">
+                    {/* Coluna da Foto */}
+                    <Col lg="3" className="d-flex flex-column align-items-center border-end">
+                        <PhotoPreview
+                            inputId="client-photo"
+                            preview={photoPreview}
+                            onChange={handlePhotoChange}
+                            size={160}
+                            rounded
+                        />
+                        <span className="text-muted small mt-2">Foto do aluno</span>
+                    </Col>
+
+                    {/* Dados Principais */}
+                    <Col lg="9">
+                        <h5 className="font-size-15 fw-bold mb-3 text-primary">
+                            <i className="mdi mdi-account-details me-2"></i>Informações Pessoais
                         </h5>
-                        <Row>
-                            <Col md={6}>
-                                <div className="mb-3">
-                                    <Label htmlFor="firstName">Nome <span className="text-danger">*</span></Label>
-                                    <input
+                        <Row className="g-3">
+                            <Col md="6">
+                                <FormGroup>
+                                    <Label>Nome <span className="text-danger">*</span></Label>
+                                    <Input
                                         id="firstName"
                                         name="firstName"
-                                        type="text"
-                                        className={`form-control ${formik.touched.firstName && formik.errors.firstName ? 'is-invalid' : ''}`}
+                                        placeholder="Primeiro nome"
+                                        value={formik.values.firstName}
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
-                                        value={formik.values.firstName}
+                                        invalid={formik.touched.firstName && !!formik.errors.firstName}
                                     />
                                     {formik.touched.firstName && formik.errors.firstName && <FormFeedback>{formik.errors.firstName}</FormFeedback>}
-                                </div>
+                                </FormGroup>
                             </Col>
-                            <Col md={6}>
-                                <div className="mb-3">
-                                    <Label htmlFor="lastName">Sobrenome <span className="text-danger">*</span></Label>
-                                    <input
+                            <Col md="6">
+                                <FormGroup>
+                                    <Label>Sobrenome <span className="text-danger">*</span></Label>
+                                    <Input
                                         id="lastName"
                                         name="lastName"
-                                        type="text"
-                                        className={`form-control ${formik.touched.lastName && formik.errors.lastName ? 'is-invalid' : ''}`}
+                                        placeholder="Sobrenome completo"
+                                        value={formik.values.lastName}
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
-                                        value={formik.values.lastName}
+                                        invalid={formik.touched.lastName && !!formik.errors.lastName}
                                     />
                                     {formik.touched.lastName && formik.errors.lastName && <FormFeedback>{formik.errors.lastName}</FormFeedback>}
-                                </div>
+                                </FormGroup>
                             </Col>
-                        </Row>
-                        <Row>
-                            <Col md={4}>
-                                <div className="mb-3">
-                                    <Label htmlFor="birthDate">Data de Nascimento <span className="text-danger">*</span></Label>
-                                    <input
+                            <Col md="4">
+                                <FormGroup>
+                                    <Label>Data de Nascimento <span className="text-danger">*</span></Label>
+                                    <Input
                                         id="birthDate"
                                         name="birthDate"
                                         type="date"
-                                        className={`form-control ${formik.touched.birthDate && formik.errors.birthDate ? 'is-invalid' : ''}`}
+                                        value={formik.values.birthDate}
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
-                                        value={formik.values.birthDate}
+                                        invalid={formik.touched.birthDate && !!formik.errors.birthDate}
                                     />
                                     {formik.touched.birthDate && formik.errors.birthDate && <FormFeedback>{formik.errors.birthDate}</FormFeedback>}
-                                </div>
+                                </FormGroup>
                             </Col>
-                            <Col md={4}>
-                                <div className="mb-3">
-                                    <Label htmlFor="gender">Sexo</Label> {/* Opcional */}
-                                    <select
+                            <Col md="4">
+                                <FormGroup>
+                                    <Label>Sexo</Label>
+                                    <Input
                                         id="gender"
                                         name="gender"
-                                        className={`form-select ${formik.touched.gender && formik.errors.gender ? 'is-invalid' : ''}`}
+                                        type="select"
+                                        value={formik.values.gender}
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
-                                        value={formik.values.gender}
                                     >
                                         {GENDER_OPTIONS.map(opt => (
                                             <option key={opt.value} value={opt.value}>{opt.label}</option>
                                         ))}
-                                    </select>
-                                    {formik.touched.gender && formik.errors.gender && <FormFeedback>{formik.errors.gender}</FormFeedback>}
-                                </div>
+                                    </Input>
+                                </FormGroup>
                             </Col>
-                            <Col md={4}>
-                                <div className="mb-3">
-                                    <Label htmlFor="cpf">CPF</Label> {/* Opcional */}
-                                    <InputMask
+                            <Col md="4">
+                                <FormGroup>
+                                    <Label>CPF</Label>
+                                    <Input
+                                        tag={InputMask}
                                         mask="999.999.999-99"
                                         id="cpf"
                                         name="cpf"
-                                        className={`form-control ${formik.touched.cpf && formik.errors.cpf ? 'is-invalid' : ''}`}
+                                        placeholder="000.000.000-00"
+                                        value={formik.values.cpf}
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
-                                        value={formik.values.cpf}
+                                        invalid={formik.touched.cpf && !!formik.errors.cpf}
                                     />
                                     {formik.touched.cpf && formik.errors.cpf && <FormFeedback>{formik.errors.cpf}</FormFeedback>}
-                                </div>
+                                </FormGroup>
                             </Col>
-                        </Row>
-                        <Row>
-                            <Col md={6}>
-                                <div className="mb-3">
-                                    <Label htmlFor="email">Email <span className="text-danger">*</span></Label>
-                                    <input
+                            <Col md="8">
+                                <FormGroup>
+                                    <Label>Email <span className="text-danger">*</span></Label>
+                                    <Input
                                         id="email"
                                         name="email"
                                         type="email"
-                                        className={`form-control ${formik.touched.email && formik.errors.email ? 'is-invalid' : ''}`}
+                                        placeholder="exemplo@email.com"
+                                        value={formik.values.email}
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
-                                        value={formik.values.email}
+                                        invalid={formik.touched.email && !!formik.errors.email}
                                     />
                                     {formik.touched.email && formik.errors.email && <FormFeedback>{formik.errors.email}</FormFeedback>}
-                                </div>
+                                </FormGroup>
                             </Col>
-                            <Col md={6}>
-                                <div className="mb-3">
-                                    <Label htmlFor="phone">Telefone <span className="text-danger">*</span></Label>
-                                    <InputMask
+                            <Col md="4">
+                                <FormGroup>
+                                    <Label>Telefone <span className="text-danger">*</span></Label>
+                                    <Input
+                                        tag={InputMask}
                                         mask="(99) 99999-9999"
                                         id="phone"
                                         name="phone"
-                                        className={`form-control ${formik.touched.phone && formik.errors.phone ? 'is-invalid' : ''}`}
+                                        placeholder="(00) 00000-0000"
+                                        value={formik.values.phone}
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
-                                        value={formik.values.phone}
+                                        invalid={formik.touched.phone && !!formik.errors.phone}
                                     />
                                     {formik.touched.phone && formik.errors.phone && <FormFeedback>{formik.errors.phone}</FormFeedback>}
-                                </div>
+                                </FormGroup>
                             </Col>
                         </Row>
-                    </div>
+                    </Col>
+                </Row>
 
-                    {/* ENDEREÇO (Opcional) */}
-                    <div className="bg-light p-3 rounded mb-4">
-                        <h5 className="font-size-14 text-uppercase mb-3 fw-bold text-primary">
-                            <i className="mdi mdi-map-marker me-1"></i> Endereço
-                        </h5>
-                        <Row>
-                            <Col md={3}>
-                                <div className="mb-3">
-                                    <Label htmlFor="zipCode">CEP</Label>
-                                    <div className="input-group">
-                                        <InputMask
-                                            mask="99999-999"
-                                            id="zipCode"
-                                            name="zipCode"
-                                            className={`form-control ${formik.touched.zipCode && formik.errors.zipCode ? 'is-invalid' : ''}`}
-                                            onChange={formik.handleChange}
-                                            onBlur={(e) => {
-                                                formik.handleBlur(e)
-                                                handleCepBlur(e)
-                                            }}
-                                            value={formik.values.zipCode}
-                                        />
-                                        {isLoadingCep && <span className="input-group-text"><Spinner size="sm" /></span>}
-                                    </div>
-                                    {formik.touched.zipCode && formik.errors.zipCode && <div className="text-danger font-size-12 mt-1">{formik.errors.zipCode}</div>}
-                                </div>
-                            </Col>
-                            <Col md={7}>
-                                <div className="mb-3">
-                                    <Label htmlFor="street">Rua</Label>
-                                    <input
-                                        id="street"
-                                        name="street"
-                                        type="text"
-                                        className={`form-control ${formik.touched.street && formik.errors.street ? 'is-invalid' : ''}`}
-                                        onChange={formik.handleChange}
-                                        onBlur={formik.handleBlur}
-                                        value={formik.values.street}
-                                    />
-                                    {formik.touched.street && formik.errors.street && <FormFeedback>{formik.errors.street}</FormFeedback>}
-                                </div>
-                            </Col>
-                            <Col md={2}>
-                                <div className="mb-3">
-                                    <Label htmlFor="number">Número</Label>
-                                    <input
-                                        id="number"
-                                        name="number"
-                                        type="text"
-                                        className={`form-control ${formik.touched.number && formik.errors.number ? 'is-invalid' : ''}`}
-                                        onChange={formik.handleChange}
-                                        onBlur={formik.handleBlur}
-                                        value={formik.values.number}
-                                    />
-                                    {formik.touched.number && formik.errors.number && <FormFeedback>{formik.errors.number}</FormFeedback>}
-                                </div>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col md={4}>
-                                <div className="mb-3">
-                                    <Label htmlFor="complement">Complemento</Label>
-                                    <input
-                                        id="complement"
-                                        name="complement"
-                                        type="text"
-                                        className="form-control"
-                                        onChange={formik.handleChange}
-                                        onBlur={formik.handleBlur}
-                                        value={formik.values.complement}
-                                    />
-                                </div>
-                            </Col>
-                            <Col md={4}>
-                                <div className="mb-3">
-                                    <Label htmlFor="neighborhood">Bairro</Label>
-                                    <input
-                                        id="neighborhood"
-                                        name="neighborhood"
-                                        type="text"
-                                        className={`form-control ${formik.touched.neighborhood && formik.errors.neighborhood ? 'is-invalid' : ''}`}
-                                        onChange={formik.handleChange}
-                                        onBlur={formik.handleBlur}
-                                        value={formik.values.neighborhood}
-                                    />
-                                    {formik.touched.neighborhood && formik.errors.neighborhood && <FormFeedback>{formik.errors.neighborhood}</FormFeedback>}
-                                </div>
-                            </Col>
-                            <Col md={3}>
-                                <div className="mb-3">
-                                    <Label htmlFor="city">Cidade</Label>
-                                    <input
-                                        id="city"
-                                        name="city"
-                                        type="text"
-                                        className={`form-control ${formik.touched.city && formik.errors.city ? 'is-invalid' : ''}`}
-                                        onChange={formik.handleChange}
-                                        onBlur={formik.handleBlur}
-                                        value={formik.values.city}
-                                    />
-                                    {formik.touched.city && formik.errors.city && <FormFeedback>{formik.errors.city}</FormFeedback>}
-                                </div>
-                            </Col>
-                            <Col md={1}>
-                                <div className="mb-3">
-                                    <Label htmlFor="state">UF</Label>
-                                    <input
-                                        id="state"
-                                        name="state"
-                                        type="text"
-                                        maxLength={2}
-                                        className={`form-control ${formik.touched.state && formik.errors.state ? 'is-invalid' : ''}`}
-                                        onChange={formik.handleChange}
-                                        onBlur={formik.handleBlur}
-                                        value={formik.values.state}
-                                    />
-                                    {formik.touched.state && formik.errors.state && <FormFeedback>{formik.errors.state}</FormFeedback>}
-                                </div>
-                            </Col>
-                        </Row>
-                    </div>
+                <hr className="my-4" />
 
-                    {/* CONTATO DE EMERGÊNCIA (Opcional) */}
-                    <div className="bg-light p-3 rounded mb-4">
-                        <h5 className="font-size-14 text-uppercase mb-3 fw-bold text-primary">
-                            <i className="mdi mdi-alert-circle-outline me-1"></i> Contato de Emergência
-                        </h5>
-                        <Row>
-                            <Col md={4}>
-                                <div className="mb-3">
-                                    <Label htmlFor="emergencyName">Nome</Label>
-                                    <input
-                                        id="emergencyName"
-                                        name="emergencyName"
-                                        type="text"
-                                        className={`form-control ${formik.touched.emergencyName && formik.errors.emergencyName ? 'is-invalid' : ''}`}
-                                        onChange={formik.handleChange}
-                                        onBlur={formik.handleBlur}
-                                        value={formik.values.emergencyName}
-                                    />
-                                    {formik.touched.emergencyName && formik.errors.emergencyName && <FormFeedback>{formik.errors.emergencyName}</FormFeedback>}
-                                </div>
-                            </Col>
-                            <Col md={4}>
-                                <div className="mb-3">
-                                    <Label htmlFor="emergencyPhone">Telefone</Label>
-                                    <InputMask
-                                        mask="(99) 99999-9999"
-                                        id="emergencyPhone"
-                                        name="emergencyPhone"
-                                        className={`form-control ${formik.touched.emergencyPhone && formik.errors.emergencyPhone ? 'is-invalid' : ''}`}
-                                        onChange={formik.handleChange}
-                                        onBlur={formik.handleBlur}
-                                        value={formik.values.emergencyPhone}
-                                    />
-                                    {formik.touched.emergencyPhone && formik.errors.emergencyPhone && <FormFeedback>{formik.errors.emergencyPhone}</FormFeedback>}
-                                </div>
-                            </Col>
-                            <Col md={4}>
-                                <div className="mb-3">
-                                    <Label htmlFor="emergencyEmail">Email</Label>
-                                    <input
-                                        id="emergencyEmail"
-                                        name="emergencyEmail"
-                                        type="email"
-                                        className={`form-control ${formik.touched.emergencyEmail && formik.errors.emergencyEmail ? 'is-invalid' : ''}`}
-                                        onChange={formik.handleChange}
-                                        onBlur={formik.handleBlur}
-                                        value={formik.values.emergencyEmail}
-                                    />
-                                    {formik.touched.emergencyEmail && formik.errors.emergencyEmail && <FormFeedback>{formik.errors.emergencyEmail}</FormFeedback>}
-                                </div>
-                            </Col>
-                        </Row>
-                    </div>
+                <h5 className="font-size-15 fw-bold mb-3 text-primary">
+                    <i className="mdi mdi-map-marker me-2"></i>Endereço
+                </h5>
+                <Row className="g-3">
+                    <Col md="3">
+                        <FormGroup>
+                            <Label className="d-flex align-items-center gap-2">
+                                CEP
+                                {isLoadingCep && <Spinner size="sm" className="ms-1" />}
+                            </Label>
+                            <Input
+                                tag={InputMask}
+                                mask="99999-999"
+                                id="zipCode"
+                                name="zipCode"
+                                placeholder="00000-000"
+                                value={formik.values.zipCode}
+                                onChange={formik.handleChange}
+                                onBlur={(e) => {
+                                    formik.handleBlur(e)
+                                    handleCepBlur(e)
+                                }}
+                                invalid={formik.touched.zipCode && !!formik.errors.zipCode}
+                            />
+                            {formik.touched.zipCode && formik.errors.zipCode && <FormFeedback>{formik.errors.zipCode}</FormFeedback>}
+                        </FormGroup>
+                    </Col>
+                    <Col md="7">
+                        <FormGroup>
+                            <Label>Rua</Label>
+                            <Input
+                                id="street"
+                                name="street"
+                                placeholder="Logradouro"
+                                value={formik.values.street}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                            />
+                        </FormGroup>
+                    </Col>
+                    <Col md="2">
+                        <FormGroup>
+                            <Label>Número</Label>
+                            <Input
+                                id="number"
+                                name="number"
+                                placeholder="00"
+                                value={formik.values.number}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                            />
+                        </FormGroup>
+                    </Col>
+                    <Col md="4">
+                        <FormGroup>
+                            <Label>Bairro</Label>
+                            <Input
+                                id="neighborhood"
+                                name="neighborhood"
+                                placeholder="Bairro"
+                                value={formik.values.neighborhood}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                            />
+                        </FormGroup>
+                    </Col>
+                    <Col md="4">
+                        <FormGroup>
+                            <Label>Cidade</Label>
+                            <Input
+                                id="city"
+                                name="city"
+                                placeholder="Cidade"
+                                value={formik.values.city}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                            />
+                        </FormGroup>
+                    </Col>
+                    <Col md="1">
+                        <FormGroup>
+                            <Label>UF</Label>
+                            <Input
+                                id="state"
+                                name="state"
+                                placeholder="UF"
+                                maxLength={2}
+                                value={formik.values.state}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                            />
+                        </FormGroup>
+                    </Col>
+                    <Col md="3">
+                        <FormGroup>
+                            <Label>Complemento</Label>
+                            <Input
+                                id="complement"
+                                name="complement"
+                                placeholder="Apto, Sala, etc"
+                                value={formik.values.complement}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                            />
+                        </FormGroup>
+                    </Col>
+                </Row>
 
-                    {/* DADOS DE SAÚDE (Opcional) */}
-                    <div className="bg-light p-3 rounded">
-                        <h5 className="font-size-14 text-uppercase mb-3 fw-bold text-primary">
-                            <i className="mdi mdi-heart-pulse me-1"></i> Dados de Saúde
-                        </h5>
-                        <Row>
-                            <Col md={12}>
-                                <div className="mb-3">
-                                    <Label htmlFor="healthObservations">Observações / Restrições Médicas</Label>
-                                    <textarea
-                                        id="healthObservations"
-                                        name="healthObservations"
-                                        rows="3"
-                                        className="form-control"
-                                        onChange={formik.handleChange}
-                                        onBlur={formik.handleBlur}
-                                        value={formik.values.healthObservations}
-                                        placeholder="Liste alergias, cirurgias recentes, dores crônicas ou medicamentos..."
-                                    />
-                                </div>
-                            </Col>
-                        </Row>
-                    </div>
+                <hr className="my-4" />
 
-                </form>
+                <h5 className="font-size-15 fw-bold mb-3 text-secondary">
+                    <i className="mdi mdi-alert-circle-outline me-2"></i>Emergência e Saúde
+                </h5>
+                <Row className="g-3">
+                    <Col md="4">
+                        <FormGroup>
+                            <Label>Nome do Contato</Label>
+                            <Input
+                                id="emergencyName"
+                                name="emergencyName"
+                                placeholder="Nome do representante"
+                                value={formik.values.emergencyName}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                            />
+                        </FormGroup>
+                    </Col>
+                    <Col md="4">
+                        <FormGroup>
+                            <Label>Telefone de Emergência</Label>
+                            <Input
+                                tag={InputMask}
+                                mask="(99) 99999-9999"
+                                id="emergencyPhone"
+                                name="emergencyPhone"
+                                placeholder="(00) 00000-0000"
+                                value={formik.values.emergencyPhone}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                            />
+                        </FormGroup>
+                    </Col>
+                    <Col md="4">
+                        <FormGroup>
+                            <Label>Email de Emergência</Label>
+                            <Input
+                                id="emergencyEmail"
+                                name="emergencyEmail"
+                                type="email"
+                                placeholder="representante@email.com"
+                                value={formik.values.emergencyEmail}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                            />
+                        </FormGroup>
+                    </Col>
+                    <Col md="12">
+                        <FormGroup>
+                            <Label>Observações / Restrições Médicas</Label>
+                            <textarea
+                                id="healthObservations"
+                                name="healthObservations"
+                                rows="3"
+                                className="form-control"
+                                placeholder="Alergias, medicamentos, dores crônicas ou restrições importantes..."
+                                value={formik.values.healthObservations}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                            />
+                        </FormGroup>
+                    </Col>
+                </Row>
             </ModalBody>
-            <ModalFooter>
-                <Button color="secondary" onClick={toggle} disabled={formik.isSubmitting}>Cancelar</Button>
-                <Button color="primary" onClick={formik.handleSubmit} disabled={formik.isSubmitting}>
-                    {formik.isSubmitting ? <Spinner size="sm" /> : "Salvar Cadastro"}
+
+            <ModalFooter className="bg-light">
+                <Button color="secondary" outline onClick={toggle} disabled={formik.isSubmitting}>
+                    Cancelar
+                </Button>
+                <Button color="primary" onClick={formik.handleSubmit} disabled={formik.isSubmitting} className="px-4">
+                    {formik.isSubmitting ? "Sessão sendo salva..." : "Salvar Cadastro"}
                 </Button>
             </ModalFooter>
         </Modal>

@@ -134,7 +134,7 @@ const BasicTable = ({
             </Row>
 
             <div className="table-responsive">
-                <Table bordered className="align-middle mb-0">
+                <Table className="align-middle mb-0">
                     <thead className="table-light">
                         <tr>
                             {columns.map(col => (

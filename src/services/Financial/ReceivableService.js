@@ -79,12 +79,13 @@ export const ReceivableService = {
         // 7. Lançamento Contábil
         try {
             await LedgerService.settleReceivableEntry(idTenant, idBranch, receivable, {
-                amount: settlementAmount,
+                grossAmount: settlementAmount,
                 feeAmount: feeAmount,
                 netAmount: netAmount,
                 idBankAccount: idBankAccount,
                 bankAccountName: bankAccount?.name || 'Caixa',
-                settlementDate: updatedData.settlementDate
+                settlementDate: updatedData.settlementDate,
+                paymentMethod: paymentData.method || receivable.paymentMethod
             })
         } catch (ledgerError) {
             console.error("Erro contábil:", ledgerError)
@@ -309,7 +310,7 @@ export const ReceivableService = {
             // Lançamento Contábil (Individual por recebível para o Ledger bater)
             try {
                 await LedgerService.settleReceivableEntry(idTenant, idBranch, rawRec, {
-                    amount: gross,
+                    grossAmount: gross,
                     feeAmount: feeShare,
                     netAmount: netShare,
                     idBankAccount: idBankAccount,

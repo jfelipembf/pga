@@ -167,6 +167,7 @@ export const SalesService = {
                                 idClient: saleData.idClient,
                                 idSale: newSale.id,
                                 idPlan: item.idItem,
+                                idContractTemplate: item.idItem, // Padronização com o Schema
                                 planName: item.name || contractTemplate.title,
                                 planType,
                                 startDate,
@@ -174,7 +175,19 @@ export const SalesService = {
                                 value: parseFloat(item.unitPrice) || 0,
                                 installments: 1,
                                 status: 'active',
-                                userName: saleData.sellerName || saleData.userName // Garante Snapshot
+                                userName: saleData.sellerName || saleData.userName,
+                                // Snapshot de Regras
+                                rules: {
+                                    allowFreeze: contractTemplate.allowFreeze ?? true,
+                                    maxFreezeDays: contractTemplate.maxFreezeDays ?? 30,
+                                    minPermanence: contractTemplate.minPermanence ?? 0,
+                                    // Regras de Acesso (Controle de Frequência)
+                                    accessLimitType: contractTemplate.accessLimitType || 'unlimited',
+                                    accessLimitQuantity: contractTemplate.accessLimitQuantity || null,
+                                    allowedWeekDays: contractTemplate.allowedWeekDays || [],
+                                    unlimitedInOrigin: contractTemplate.unlimitedInOrigin ?? true,
+                                    allowedBranches: contractTemplate.allowedBranches || []
+                                }
                             })
 
                             console.log(`✅ Contrato criado e cliente atualizado para 'active'`)

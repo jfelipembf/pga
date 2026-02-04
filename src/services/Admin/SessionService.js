@@ -22,9 +22,12 @@ export const SessionService = {
         const newSession = await sessionRepository.create(idTenant, idBranch, {
             ...sessionData,
             isActive: sessionData.isActive !== false,
-            status: sessionData.status || 'active',
+            status: sessionData.status || 'scheduled',
             enrolledCount: sessionData.enrolledCount || 0,
+            presentCount: 0,
+            absentCount: 0,
             attendanceRecorded: sessionData.attendanceRecorded || false,
+            attendanceSnapshot: null,
             createdBy: userId,
             createdAt: new Date(),
             deletedAt: null

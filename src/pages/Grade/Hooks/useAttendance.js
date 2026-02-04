@@ -63,6 +63,16 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
         if (!client?.id) return
         const idClient = client.idClient || String(client.id)
 
+        // Verificação de Status
+        if (client.lifecycleStatus === 'suspended') {
+            toast.error("Este aluno está SUSPENSO e não pode realizar esse check-in.")
+            return
+        }
+
+        if (client.lifecycleStatus === 'inactive' || client.lifecycleStatus === 'lost') {
+            toast.warning(`Atenção: Aluno com status '${client.lifecycleStatus}'. Verifique o contrato.`)
+        }
+
         setSearchText("")
 
         setClients(prev => {

@@ -13,7 +13,10 @@ export const SessionSchema = Yup.object().shape({
     maxCapacity: Yup.number().positive().integer().required('Capacidade é obrigatória'),
     enrolledCount: Yup.number().min(0).default(0),
     isActive: Yup.boolean().default(true),
-    status: Yup.string().oneOf(['active', 'cancelled', 'completed']).default('active'),
+    status: Yup.string().oneOf(['active', 'cancelled', 'completed', 'scheduled']).default('scheduled'),
     attendanceRecorded: Yup.boolean().default(false),
-    attendanceSnapshot: Yup.array().of(Yup.object()).nullable().default(null)
+    attendanceSnapshot: Yup.array().of(Yup.object()).nullable().default(null),
+    presentCount: Yup.number().min(0).default(0),
+    absentCount: Yup.number().min(0).default(0),
+    id: Yup.string().nullable()
 });

@@ -118,6 +118,23 @@ export class BaseRepository {
         return newData
     }
 
+    async set(idTenant, idBranch, id, data) {
+        const ref = doc(this.getCollectionRef(idTenant, idBranch), id)
+        console.log(`[BaseRepository] SET em: ${ref.path}`);
+        const timestamp = serverTimestamp()
+        const newData = {
+            ...data,
+            id: ref.id,
+            idTenant,
+            idBranch,
+            createdAt: timestamp,
+            updatedAt: timestamp,
+            deletedAt: null
+        }
+        await setDoc(ref, newData)
+        return newData
+    }
+
     async update(idTenant, idBranch, id, data) {
         const ref = doc(this.getCollectionRef(idTenant, idBranch), id)
         const timestamp = serverTimestamp()

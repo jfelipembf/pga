@@ -1,35 +1,50 @@
-import React, { useEffect, useMemo, useState } from "react"
-import { Button, Col, Row } from "reactstrap"
+import React, { useEffect, useState, useCallback } from "react"
+import { Col, Row, Button } from "reactstrap"
 import { connect } from "react-redux"
 
 import BasicTable from "../../../components/Common/BasicTable"
-import StatusBadge from "../../../components/Common/StatusBadge"
 import { setBreadcrumbItems } from "../../../store/actions"
-import { useNavigate, useParams } from "react-router-dom"
-import { createStaff, listStaff, useStaffPhotoUpload } from "../../../services/Staff/index"
-import { listRoles } from "../../../services/Roles/index"
-import { buildStaffPayload } from "../../../utils/payloadBuilders"
-import { toast } from "react-toastify"
+import { useNavigate } from "react-router-dom"
+import { useStaff } from "./hooks/useStaff"
+import { RoleService } from "../../../services/Admin/RoleService"
 import { PLACEHOLDER_AVATAR as placeholderAvatar } from "../../Clients/Constants/defaults"
 import PageLoader from "../../../components/Common/PageLoader"
-import { useLoading } from "../../../hooks/useLoading"
 import StaffAddModal from "./Components/StaffAddModal"
 
 const StaffList = ({ setBreadcrumbItems }) => {
-  const [modalOpen, setModalOpen] = useState(false)
-  const [staff, setStaff] = useState([])
-  const [roles, setRoles] = useState([])
   const navigate = useNavigate()
-  const { tenant, branch } = useParams()
-  const { uploadPhoto, uploading } = useStaffPhotoUpload()
-  const { isLoading, withLoading } = useLoading()
+  const {
+    idTenant,
+    idBranch,
+    staff,
+    loading,
+    modal,
+    toggleModal,
+    refresh,
+    searchTerm,
+    setSearchTerm,
+    filteredStaff
+  } = useStaff()
 
-  const profilePath = useMemo(() => {
-    if (tenant && branch) {
-      return `/${tenant}/${branch}/Staff/profile`
+  const [roles, setRoles] = useState([])
+  const [loadingRoles, setLoadingRoles] = useState(false)
+
+  const loadRoles = useCallback(async () => {
+    if (!idTenant || !idBranch) return
+    try {
+      setLoadingRoles(true)
+      const rolesData = await RoleService.listAll(idTenant, idBranch)
+      setRoles(rolesData)
+    } catch (e) {
+      console.error("Erro ao carregar cargos:", e)
+    } finally {
+      setLoadingRoles(false)
     }
-    return "/Staff/profile"
-  }, [tenant, branch])
+  }, [idTenant, idBranch])
+
+  useEffect(() => {
+    loadRoles()
+  }, [loadRoles])
 
   const computeAge = birthDate => {
     if (!birthDate) return ""
@@ -40,163 +55,110 @@ const StaffList = ({ setBreadcrumbItems }) => {
     return Math.abs(ageDate.getUTCFullYear() - 1970)
   }
 
-  const columns = useMemo(
-    () => [
-      {
-        key: "avatar",
-        label: "Colaborador",
-        render: item => (
-          <div className="d-flex align-items-center gap-3">
-            <img
-              src={item.photo || placeholderAvatar}
-              alt={item.name || `${item.firstName || ""} ${item.lastName || ""}`}
-              className="rounded-circle"
-              style={{ objectFit: "cover", flexShrink: 0 }}
-              width="48"
-              height="48"
-            />
-            <div>
-              <div className="fw-semibold">{item.name || `${item.firstName || ""} ${item.lastName || ""}`}</div>
-              {item.birthDate ? (
-                <div className="text-muted fs-12">{computeAge(item.birthDate)} anos</div>
-              ) : null}
-            </div>
+  const columns = [
+    {
+      key: "avatar",
+      label: "Colaborador",
+      render: item => (
+        <div className="d-flex align-items-center gap-3">
+          <img
+            src={item.photo || placeholderAvatar}
+            alt={item.name}
+            className="rounded-circle"
+            style={{ objectFit: "cover", flexShrink: 0 }}
+            width="48"
+            height="48"
+          />
+          <div>
+            <div className="fw-semibold">{item.name}</div>
+            {item.birthDate ? (
+              <div className="text-muted fs-12">{computeAge(item.birthDate)} anos</div>
+            ) : null}
           </div>
-        ),
+        </div>
+      ),
+    },
+    {
+      key: "roleName",
+      label: "Cargo",
+      render: item => item.roleName || "-"
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: item => {
+        const status = item.status || 'active'
+        const colors = {
+          active: "success",
+          suspended: "secondary",
+          inactive: "danger",
+          deleted: "dark"
+        }
+        const labels = {
+          active: "Ativo",
+          suspended: "Suspenso",
+          inactive: "Inativo",
+          deleted: "Excluído"
+        }
+        return (
+          <span className={`badge bg-${colors[status] || 'secondary'} font-size-12 px-2`}>
+            {labels[status] || status}
+          </span>
+        )
       },
-      {
-        key: "role",
-        label: "Cargo",
-      },
-      {
-        key: "status",
-        label: "Status",
-        render: item => <StatusBadge status={item.status} type="common" />,
-      },
-      {
-        key: "phone",
-        label: "Telefone",
-        render: item => item.phone || "-" // Safe access
-      },
-      {
-        key: "email",
-        label: "Email",
-      },
-      {
-        key: "actions",
-        label: "Ações",
-        render: item => (
-          <Button color="link" className="p-0" onClick={() => navigate(`${profilePath}?id=${item.id}`)}>
-            Ver
-          </Button>
-        ),
-      },
-    ],
-    [navigate, profilePath]
-  )
+    },
+    {
+      key: "phone",
+      label: "Telefone",
+      render: item => item.phone || "-"
+    },
+    {
+      key: "email",
+      label: "Email",
+    },
+    {
+      key: "actions",
+      label: "Ações",
+      render: item => (
+        <Button color="link" className="p-0" onClick={() => navigate(`../profile?id=${item.id}`)}>
+          Ver
+        </Button>
+      ),
+    },
+  ]
 
   useEffect(() => {
     const breadcrumbItems = [
-      { title: "Administrativo", link: "/admin" },
-      { title: "Colaboradores", link: "/Staff/list" },
+      { title: "Administrativo", link: "#" },
+      { title: "Colaboradores", link: "/admin/staff" },
     ]
     setBreadcrumbItems("Colaboradores", breadcrumbItems)
   }, [setBreadcrumbItems])
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        await withLoading('page', async () => {
-          const data = await listStaff()
-          setStaff(data)
-        })
-      } catch (e) {
-        console.error(e)
-        toast.show({ title: "Erro ao carregar colaboradores", description: e?.message || String(e), color: "danger" })
-      }
-    }
-    load()
-  }, [toast, withLoading])
-
-  useEffect(() => {
-    const loadRoles = async () => {
-      try {
-        await withLoading('roles', async () => {
-          const data = await listRoles()
-          setRoles(data)
-        })
-      } catch (e) {
-        console.error(e)
-        toast.show({ title: "Erro ao carregar cargos", description: e?.message || String(e), color: "danger" })
-      }
-    }
-    loadRoles()
-  }, [toast, withLoading])
-
-  const handleModalSubmit = async data => {
-    try {
-      await withLoading('submit', async () => {
-        let photo = ""
-        if (data.avatarFile) {
-          const oldPhotoUrl = data.photo || data.avatar
-          photo = await uploadPhoto(data.avatarFile, {
-            deleteOldPhoto: oldPhotoUrl
-          })
-        }
-
-        const selectedRole = roles.find(r => r.id === data.roleId)
-
-        // Strict consistency using buildStaffPayload
-        const rawPayload = {
-          ...data,
-          role: data.roleTitle || selectedRole?.label || "",
-          isInstructor: !!selectedRole?.isInstructor,
-          photo: photo
-        }
-
-        const payload = buildStaffPayload(rawPayload)
-        const response = await createStaff(payload)
-
-        const newStaff = {
-          ...payload,
-          id: response.uid,
-        }
-
-        setStaff(prev => [newStaff, ...prev])
-        setModalOpen(false)
-        toast.show({ title: "Colaborador criado", description: "Registro salvo com sucesso.", color: "success" })
-      })
-    } catch (e) {
-      console.error(e)
-      toast.show({ title: "Erro ao salvar", description: e?.message || String(e), color: "danger" })
-    }
-  }
-
-  if (isLoading('page') && !staff.length) {
+  if (loading && !staff.length) {
     return <PageLoader />
   }
 
   return (
     <Row>
       <Col>
-        <>
-          <BasicTable
-            columns={columns}
-            data={staff}
-            searchKeys={["name", "email", "phone", "role", "status"]}
-            searchPlaceholder="Buscar colaboradores..."
-            onNewClick={() => setModalOpen(true)}
-            loading={isLoading('page')}
-          />
-          <StaffAddModal
-            isOpen={modalOpen}
-            toggle={() => setModalOpen(false)}
-            onSubmit={handleModalSubmit}
-            submitting={isLoading('submit') || uploading}
-            roles={roles}
-            isLoadingRoles={isLoading('roles')}
-          />
-        </>
+        <BasicTable
+          columns={columns}
+          data={filteredStaff}
+          searchKeys={["name", "email", "phone", "roleName", "status"]}
+          searchPlaceholder="Buscar colaboradores..."
+          onNewClick={toggleModal}
+          loading={loading}
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+        />
+        <StaffAddModal
+          isOpen={modal}
+          toggle={toggleModal}
+          onStaffAdded={refresh}
+          roles={roles}
+          loadingRoles={loadingRoles}
+        />
       </Col>
     </Row>
   )

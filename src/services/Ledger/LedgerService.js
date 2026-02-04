@@ -10,6 +10,8 @@ export const STANDARD_ACCOUNTS = {
     PRODUCT_REVENUE: '1.1.1',
     SERVICE_REVENUE: '1.1.2',
     SUBSCRIPTION_REVENUE: '1.1.3',
+    PENALTY_REVENUE: '1.1.4', // Receita de Multas
+    REVENUE_DEDUCTIONS: '1.1.9', // Deduções/Estornos (Contra-receita)
 
     // DESPESAS (Grupo 2)
     ADMINISTRATIVE_EXPENSES: '2.1', // Grupo geral administrativo
@@ -150,42 +152,100 @@ export const LedgerService = {
     },
 
     /**
+     * Lançamento: Multa por Cancelamento de Contrato
+     * D - Contas a Receber (Ativo)
+     * C - Receita de Multas (DRE)
+     */
+    createPenaltyEntry: async (idTenant, idBranch, penalty) => {
+        return await ledgerRepository.create(idTenant, idBranch, {
+            date: new Date(),
+            description: `Reconhecimento de multa rescisória: ${penalty.clientName} - Contrato #${penalty.contractId}`,
+            sourceType: 'contract_penalty',
+            sourceId: penalty.contractId,
+            entries: [
+                {
+                    account: STANDARD_ACCOUNTS.ACCOUNTS_RECEIVABLE,
+                    accountName: 'Contas a Receber',
+                    debit: penalty.amount,
+                    credit: 0
+                },
+                {
+                    account: STANDARD_ACCOUNTS.PENALTY_REVENUE,
+                    accountName: 'Receita de Multas e Penalidades',
+                    debit: 0,
+                    credit: penalty.amount
+                }
+            ]
+        })
+    },
+
+    /**
+     * Lançamento: Dedução de Receita por Cancelamento (Estorno)
+     * Quando: Removemos do AR valores que não serão mais recebidos.
+     * D - Deduções de Receita (Contra-receita na DRE)
+     * C - Contas a Receber (Ativo)
+     */
+    createCancellationDeductionEntry: async (idTenant, idBranch, deduction) => {
+        return await ledgerRepository.create(idTenant, idBranch, {
+            date: new Date(),
+            description: `Estorno de receita por cancelamento: ${deduction.clientName} - Ref: ${deduction.saleNumber}`,
+            sourceType: 'contract_cancel_deduction',
+            sourceId: deduction.contractId,
+            entries: [
+                {
+                    account: STANDARD_ACCOUNTS.REVENUE_DEDUCTIONS,
+                    accountName: 'Deduções de Receita (Vendas Canceladas)',
+                    debit: deduction.amount,
+                    credit: 0
+                },
+                {
+                    account: STANDARD_ACCOUNTS.ACCOUNTS_RECEIVABLE,
+                    accountName: 'Contas a Receber',
+                    debit: 0,
+                    credit: deduction.amount
+                }
+            ]
+        })
+    },
+
+    /**
      * Lançamento: Recebimento de Venda (Regime de Caixa)
      * Quando: Ao RECEBER o pagamento
      */
     settleReceivableEntry: async (idTenant, idBranch, receivable, settlement) => {
+        const { grossAmount, netAmount, feeAmount, idBankAccount, bankAccountName, settlementDate, paymentMethod } = settlement;
+
         const entries = [
             {
-                // DÉBITO: Diminui contas a receber (baixa o direito)
+                // DÉBITO: Aumenta o saldo do banco (entrada de dinheiro LÍQUIDA)
+                account: idBankAccount,
+                accountName: bankAccountName || 'Banco',
+                debit: netAmount,
+                credit: 0,
+                paymentMethod: paymentMethod
+            },
+            {
+                // CRÉDITO: Diminui contas a receber (baixa o direito pelo valor BRUTO)
                 account: STANDARD_ACCOUNTS.ACCOUNTS_RECEIVABLE,
                 accountName: 'Contas a Receber',
-                debit: settlement.grossAmount,
-                credit: 0
+                debit: 0,
+                credit: grossAmount
             }
         ]
 
-        // Se tiver taxa de cartão, registra como despesa
-        if (settlement.feeAmount > 0) {
+        // Se tiver taxa de cartão, registra como despesa (DÉBITO)
+        if (feeAmount > 0) {
             entries.push({
-                // DÉBITO: Despesa com taxas
                 account: STANDARD_ACCOUNTS.CARD_FEES,
                 accountName: 'Despesa com Taxas de Cartão',
-                debit: settlement.feeAmount,
+                debit: feeAmount,
                 credit: 0
             })
         }
 
-        // CRÉDITO: Aumenta o saldo do banco (entrada de dinheiro LÍQUIDA)
-        entries.push({
-            account: settlement.idBankAccount,
-            accountName: settlement.bankAccountName || 'Banco',
-            debit: 0,
-            credit: settlement.netAmount + (settlement.feeAmount || 0)
-        })
-
         return await ledgerRepository.create(idTenant, idBranch, {
-            date: normalizeDate(settlement.settlementDate) || new Date(),
-            description: `Recebimento: ${receivable.description}`,
+            date: normalizeDate(settlementDate) || new Date(),
+            description: `Recebimento: ${receivable.description || 'Título'} - Cliente: ${receivable.clientName}`,
             sourceType: 'receivable_settlement',
             sourceId: receivable.id,
             entries

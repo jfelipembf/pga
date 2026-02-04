@@ -1,9 +1,11 @@
-import { runTransaction, doc } from 'firebase/firestore'
+import { runTransaction, doc, arrayUnion, query, where, collection, getDocs } from 'firebase/firestore'
 import { getFirebaseBackend } from '../../../helpers/firebase_helper'
 import { clientContractRepository } from '../repositories/ClientContractRepository'
 import { ClientContractSchema } from '../schemas/ClientContractSchema'
 import { AuditService } from '../../../services/Audit/AuditService'
 import { DashboardSummaryService } from '../../../services/Dashboard/DashboardSummaryService'
+import { LedgerService } from '../../../services/Ledger/LedgerService'
+import { CashierService } from '../../../services/Financial/CashierService'
 import { generateContractId } from '../../../utils/sequence'
 import { normalizeDate } from '../../../utils/date'
 import moment from 'moment'
@@ -111,28 +113,66 @@ export const ClientContractService = {
     /**
      * Suspende um contrato temporariamente.
      */
-    suspend: async (idTenant, idBranch, userId, idContract, suspensionDays, reason) => {
+    suspend: async (idTenant, idBranch, userId, idContract, data, reason) => {
         const contract = await clientContractRepository.findById(idTenant, idBranch, idContract)
 
         if (contract.status !== 'active') {
             throw new Error('Apenas contratos ativos podem ser suspensos')
         }
 
-        const suspensionEndDate = normalizeDate(moment().add(suspensionDays, 'days'))
+        const { startDate, endDate, suspensionDays: daysInput } = typeof data === 'object' ? data : { suspensionDays: data }
+
+        let finalStartDate = startDate ? normalizeDate(startDate) : normalizeDate(new Date())
+        let finalEndDate = endDate ? normalizeDate(endDate) : null
+        let suspensionDays = daysInput
+
+        // Se enviou datas, calcula os dias
+        if (startDate && endDate) {
+            suspensionDays = moment(endDate).diff(moment(startDate), 'days')
+            finalEndDate = normalizeDate(endDate)
+        } else if (suspensionDays) {
+            finalEndDate = normalizeDate(moment(finalStartDate).add(suspensionDays, 'days'))
+        }
+
+        if (!suspensionDays || suspensionDays <= 0) {
+            throw new Error('Período de suspensão inválido')
+        }
+
+        // Validação de Regras do Plano
+        const rules = contract.rules || {}
+        if (rules.allowFreeze === false) {
+            throw new Error('Este plano não permite suspensão (congelamento)')
+        }
+
+        const totalUsed = contract.suspension?.totalDaysUsed || 0
+        const available = (rules.maxFreezeDays || 0) - totalUsed
+
+        if (rules.maxFreezeDays && suspensionDays > available) {
+            throw new Error(`Este plano permite apenas mais ${available} dias de suspensão (Total usado: ${totalUsed}/${rules.maxFreezeDays})`)
+        }
 
         // Transação: Contract + Client + Dashboard
         const db = ClientContractService.db
         await runTransaction(db, async (transaction) => {
             // Atualiza contrato
             const contractRef = doc(db, `tenants/${idTenant}/branches/${idBranch}/clientContracts/${idContract}`)
+
+            const suspensionEntry = {
+                id: Math.random().toString(36).substr(2, 9),
+                startDate: finalStartDate,
+                endDate: finalEndDate,
+                intendedDays: suspensionDays,
+                reason: reason,
+                suspendedAt: normalizeDate(new Date()),
+                suspendedBy: userId,
+                status: 'ongoing'
+            }
+
             transaction.update(contractRef, {
                 status: 'suspended',
                 'suspension.isSuspended': true,
-                'suspension.suspendedAt': normalizeDate(new Date()),
-                'suspension.suspendedBy': userId,
-                'suspension.suspensionDays': suspensionDays,
-                'suspension.suspensionEndDate': suspensionEndDate,
-                'suspension.reason': reason,
+                'suspension.current': suspensionEntry,
+                'suspension.history': arrayUnion(suspensionEntry),
                 updatedAt: normalizeDate(new Date())
             })
 
@@ -158,6 +198,51 @@ export const ClientContractService = {
             entityType: 'clientContract',
             entityId: idContract,
             details: { suspensionDays, reason }
+        })
+
+        return true
+    },
+
+    /**
+     * Ajusta a vigência do contrato adicionando ou debitando dias.
+     */
+    adjustDays: async (idTenant, idBranch, userId, idContract, days, mode, reason) => {
+        const contract = await clientContractRepository.findById(idTenant, idBranch, idContract)
+
+        if (!['active', 'suspended'].includes(contract.status)) {
+            throw new Error('Apenas contratos ativos ou suspensos podem ter a vigência ajustada')
+        }
+
+        const currentEndDate = contract.endDate?.toDate ? contract.endDate.toDate() : new Date(contract.endDate)
+        const newEndDate = normalizeDate(
+            mode === 'add'
+                ? moment(currentEndDate).add(days, 'days')
+                : moment(currentEndDate).subtract(days, 'days')
+        )
+
+        const db = ClientContractService.db
+        const contractRef = doc(db, `tenants/${idTenant}/branches/${idBranch}/clientContracts/${idContract}`)
+
+        await runTransaction(db, async (transaction) => {
+            transaction.update(contractRef, {
+                endDate: newEndDate,
+                updatedAt: normalizeDate(new Date()),
+                'lastAdjustment': {
+                    days,
+                    mode,
+                    reason,
+                    adjustedAt: normalizeDate(new Date()),
+                    adjustedBy: userId
+                }
+            })
+        })
+
+        await AuditService.log({
+            idTenant, idBranch, userId,
+            action: 'CONTRACT_DAYS_ADJUSTED',
+            entityType: 'clientContract',
+            entityId: idContract,
+            details: { days, mode, reason, oldEndDate: currentEndDate, newEndDate }
         })
 
         return true
@@ -214,20 +299,40 @@ export const ClientContractService = {
     /**
      * Cancela um contrato definitivamente.
      */
-    cancel: async (idTenant, idBranch, userId, idContract, reason, notes) => {
+    cancel: async (idTenant, idBranch, userId, idContract, financialData) => {
+        const { reason, notes, cancellationFee, refundAmount, settlementType } = financialData || {}
         const contract = await clientContractRepository.findById(idTenant, idBranch, idContract)
 
         if (contract.status === 'cancelled') {
             throw new Error('Contrato já está cancelado')
         }
 
+        // Validação de Permanência Mínima (Apenas informativa/bloqueio se necessário)
+        const rules = contract.rules || {}
+        if (rules.minPermanence > 0) {
+            const startDate = moment(contract.startDate?.seconds ? contract.startDate.seconds * 1000 : contract.startDate)
+            const monthsActive = moment().diff(startDate, 'months')
+
+            // Aqui poderíamos ter uma lógica de "Override" se o usuário for admin
+            // Mas por enquanto mantemos a flexibilidade já que o modal já avisou
+        }
+
         const wasActive = contract.status === 'active'
         const wasSuspended = contract.status === 'suspended'
-
-        // Transação: Contract + Client + Dashboard
         const db = ClientContractService.db
+
+        // 1. Localizar parcelas (receivables) em aberto para cancelar
+        const receivablesRef = collection(db, `tenants/${idTenant}/branches/${idBranch}/receivables`)
+        const q = query(receivablesRef,
+            where('idSale', '==', contract.idSale),
+            where('status', '==', 'open'),
+            where('deletedAt', '==', null)
+        )
+        const receivableDocs = await getDocs(q)
+
+        // Transação: Contract + Client + Dashboard + Receivables
         await runTransaction(db, async (transaction) => {
-            // Atualiza contrato
+            // A. Atualiza contrato
             const contractRef = doc(db, `tenants/${idTenant}/branches/${idBranch}/clientContracts/${idContract}`)
             transaction.update(contractRef, {
                 status: 'cancelled',
@@ -235,17 +340,50 @@ export const ClientContractService = {
                 'cancellation.canceledBy': userId,
                 'cancellation.reason': reason,
                 'cancellation.notes': notes,
+                'cancellation.feeApplied': parseFloat(cancellationFee) || 0,
+                'cancellation.settlementType': settlementType || 'none',
+                'cancellation.refundAmount': parseFloat(refundAmount) || 0,
                 updatedAt: normalizeDate(new Date())
             })
 
-            // Atualiza cliente para 'inactive'
+            // B. Atualiza cliente para 'inactive'
             const clientRef = doc(db, `tenants/${idTenant}/branches/${idBranch}/clients/${contract.idClient}`)
             transaction.update(clientRef, {
                 lifecycleStatus: 'inactive',
                 updatedAt: normalizeDate(new Date())
             })
 
-            // Atualiza dashboard
+            // C. Cancelar parcelas futuras em aberto
+            receivableDocs.forEach((docSnap) => {
+                transaction.update(docSnap.ref, {
+                    status: 'cancelled',
+                    description: `Cancelado devido ao encerramento do contrato.`,
+                    updatedAt: normalizeDate(new Date())
+                })
+            })
+
+            // D. Se houver multa, criar novo título a receber
+            if (parseFloat(cancellationFee) > 0) {
+                const feeRef = doc(collection(db, `tenants/${idTenant}/branches/${idBranch}/receivables`))
+                transaction.set(feeRef, {
+                    idClient: contract.idClient,
+                    clientName: contract.clientName || 'Cliente',
+                    idSale: contract.idSale || null,
+                    type: 'client',
+                    amount: parseFloat(cancellationFee),
+                    pending: parseFloat(cancellationFee),
+                    paid: 0,
+                    dueDate: normalizeDate(new Date()), // Vencimento hoje
+                    paymentMethod: 'pending_payment',
+                    status: 'open',
+                    description: `Multa Rescisória - Contrato: ${contract.planName}`,
+                    category: 'penalties',
+                    createdAt: normalizeDate(new Date()),
+                    updatedAt: normalizeDate(new Date())
+                })
+            }
+
+            // E. Atualiza dashboard
             const dashboardUpdates = { canceledStudents: 1 }
             if (wasActive) {
                 dashboardUpdates.activeStudents = -1
@@ -256,14 +394,54 @@ export const ClientContractService = {
             DashboardSummaryService.applyInTransaction(transaction, idTenant, idBranch, dashboardUpdates)
         })
 
+        // --- INTEGRAÇÃO FINANCEIRA PÓS-TRANSAÇÃO ---
+        try {
+            // 1. DRE: Registrar Multa se houver
+            if (parseFloat(cancellationFee) > 0) {
+                await LedgerService.createPenaltyEntry(idTenant, idBranch, {
+                    contractId: idContract,
+                    clientName: contract.clientName || 'Cliente',
+                    amount: parseFloat(cancellationFee)
+                })
+            }
+
+            // 2. DRE: Registrar Estorno de Receita (Dedução) para parcelas canceladas
+            let totalCancelledAR = 0
+            receivableDocs.forEach(d => totalCancelledAR += (d.data().amount || 0))
+
+            if (totalCancelledAR > 0) {
+                await LedgerService.createCancellationDeductionEntry(idTenant, idBranch, {
+                    contractId: idContract,
+                    clientName: contract.clientName || 'Cliente',
+                    saleNumber: contract.idSale,
+                    amount: totalCancelledAR
+                })
+            }
+
+            // 3. CAIXA: Registrar Saída (Reembolso) se houver
+            if (settlementType === 'refund' && parseFloat(refundAmount) > 0) {
+                await CashierService.registerMovement(idTenant, idBranch, userId, {
+                    type: 'expense',
+                    category: 'contract_refund',
+                    amount: parseFloat(refundAmount),
+                    netAmount: parseFloat(refundAmount),
+                    description: `Reembolso de cancelamento - Aluno: ${contract.clientName}`,
+                    clientName: contract.clientName,
+                    idSale: contract.idSale,
+                    method: 'dinheiro' // Padrão se não informado
+                })
+            }
+        } catch (finError) {
+            console.error("Erro na integração financeira do cancelamento:", finError)
+            // Não barramos o cancelamento operacional se o financeiro falhar, mas logamos
+        }
+
         await AuditService.log({
-            idTenant,
-            idBranch,
-            userId,
+            idTenant, idBranch, userId,
             action: 'CANCEL',
             entityType: 'clientContract',
             entityId: idContract,
-            details: { reason, notes }
+            details: { ...financialData, actualCanceledReceivables: receivableDocs.size }
         })
 
         return true

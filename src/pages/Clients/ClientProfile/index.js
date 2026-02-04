@@ -19,6 +19,7 @@ import { formatCurrency } from "../../../utils/format"
 import ClientSummary from "./components/ClientSummary"
 import ClientProfileForm from "./components/ClientProfileForm"
 import ClientFinancial from "./components/ClientFinancial"
+import ClientContracts from "./components/ClientContracts"
 
 
 // Estilos
@@ -190,6 +191,9 @@ const ClientProfile = () => {
                         )}
                         {activeTab === PROFILE_TABS.FINANCIAL && (
                             <ClientFinancial client={client} />
+                        )}
+                        {activeTab === PROFILE_TABS.CONTRACTS && (
+                            <ClientContracts client={client} />
                         )}
                         {/* Abas removidas conforme solicitado */}
                     </Col>

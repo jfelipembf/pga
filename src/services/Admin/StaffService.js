@@ -1,36 +1,72 @@
 import { staffRepository } from '../../data/repositories/StaffRepository'
 import { AuditService } from '../Audit/AuditService'
 import { StaffSchema } from '../../data/schemas/Admin/StaffSchema'
+import { initializeApp, deleteApp } from "firebase/app"
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth"
+import { firebaseConfig } from "../../helpers/firebase_config"
 
 /**
  * Serviço para Gestão de Colaboradores (Staff)
  */
 export const StaffService = {
     /**
-     * Cria um novo colaborador
+     * Cria um novo colaborador (Auth + Firestore)
      */
     createStaff: async (idTenant, idBranch, userId, staffData) => {
+        // 1. Validação do Schema
         await StaffSchema.validate(staffData, { abortEarly: false })
 
-        const newStaff = await staffRepository.create(idTenant, idBranch, {
-            ...staffData,
-            isActive: staffData.isActive !== false,
-            status: staffData.status || 'active',
-            createdBy: userId,
-            createdAt: new Date(),
-            deletedAt: null
-        })
+        let secondaryApp = null
+        try {
+            // 2. Inicialização Duplicada para criar usuário sem deslogar o Admin
+            const appName = `SecondaryApp_${Date.now()}`
+            secondaryApp = initializeApp(firebaseConfig, appName)
+            const secondaryAuth = getAuth(secondaryApp)
 
-        await AuditService.log({
-            idTenant, idBranch, userId,
-            userName: staffData.userName,
-            action: 'STAFF_CREATED',
-            entityType: 'staff',
-            entityId: newStaff.id,
-            description: `Novo colaborador criado: ${staffData.name}`
-        })
+            // 3. Criar Usuário no Firebase Auth
+            const userCredential = await createUserWithEmailAndPassword(
+                secondaryAuth,
+                staffData.email,
+                staffData.password
+            )
+            const staffUid = userCredential.user.uid
 
-        return newStaff
+            // 4. Preparar dados para Firestore (Removendo campos sensíveis do payload do banco)
+            const { password, confirmPassword, ...dbData } = staffData
+
+            const newStaff = await staffRepository.set(idTenant, idBranch, staffUid, {
+                ...dbData,
+                isActive: dbData.isActive !== false,
+                status: dbData.status || 'active',
+                createdBy: userId,
+                deletedAt: null
+            })
+
+            // 5. Auditoria
+            await AuditService.log({
+                idTenant, idBranch, userId,
+                userName: staffData.createdByUserName || 'Sistema',
+                action: 'STAFF_CREATED',
+                entityType: 'staff',
+                entityId: staffUid,
+                description: `Novo colaborador criado: ${staffData.name} (${staffData.roleName || 'Sem cargo'})`,
+                details: {
+                    email: staffData.email,
+                    role: staffData.roleName,
+                    roleId: staffData.roleId
+                }
+            })
+
+            return newStaff
+        } catch (error) {
+            console.error("Erro ao criar colaborador:", error)
+            throw error
+        } finally {
+            // Limpeza: Deletar a instância secundária
+            if (secondaryApp) {
+                await deleteApp(secondaryApp)
+            }
+        }
     },
 
     /**
@@ -64,7 +100,7 @@ export const StaffService = {
         }
 
         const rawData = await staffRepository.findWhere(
-            idTenant, 
+            idTenant,
             idBranch,
             whereClauses,
             { field: 'name', direction: 'asc' }
