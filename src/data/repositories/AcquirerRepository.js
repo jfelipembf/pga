@@ -7,7 +7,8 @@ export class AcquirerRepository extends BaseRepository {
 
     async findActive(idTenant, idBranch) {
         return await this.findWhere(idTenant, idBranch, [
-            ['isActive', '==', true]
+            ['isActive', '==', true],
+            ['deletedAt', '==', null]
         ]);
     }
 }

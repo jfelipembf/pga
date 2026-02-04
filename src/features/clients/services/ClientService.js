@@ -11,20 +11,53 @@ export const ClientService = {
     /**
      * Cria um novo cliente com validação e auditoria.
      */
-    createClient: async (idTenant, idBranch, userId, clientData) => {
+    createClient: async (idTenant, idBranch, userId, rawData) => {
         try {
-            // 1. Validação (Business Logic)
+            // 1. Sanitização e Preparação Automática
+            const sanitize = (val) => val === undefined ? null : val
+
+            // Unifica nome e garante estrutura aninhada se não vier do form
+            const firstName = sanitize(rawData.firstName)
+            const lastName = sanitize(rawData.lastName)
+            const name = rawData.name || `${firstName || ''} ${lastName || ''}`.trim()
+
+            const clientData = {
+                ...rawData,
+                firstName,
+                lastName,
+                name,
+                photoUrl: rawData.photoUrl || null,
+                cpf: sanitize(rawData.cpf),
+                gender: sanitize(rawData.gender) || 'unspecified',
+                // Garante objetos aninhados se vierem flat do formulário
+                address: rawData.address || {
+                    zipCode: sanitize(rawData.zipCode),
+                    street: sanitize(rawData.street),
+                    number: sanitize(rawData.number),
+                    complement: sanitize(rawData.complement),
+                    neighborhood: sanitize(rawData.neighborhood),
+                    city: sanitize(rawData.city),
+                    state: sanitize(rawData.state)
+                },
+                emergencyContact: rawData.emergencyContact || {
+                    name: sanitize(rawData.emergencyName),
+                    phone: sanitize(rawData.emergencyPhone),
+                    email: sanitize(rawData.emergencyEmail)
+                },
+                healthObservations: sanitize(rawData.healthObservations) || null
+            }
+
+            // 2. Validação (Business Logic)
             await ClientSchema.validate(clientData, { abortEarly: false })
 
-            // 2. Gerar ID Amigável (GYM ID)
-            // Formato: 0001, 0002, 0003...
+            // 3. Gerar ID Amigável (GYM ID)
             const friendlyId = await generateClientId(idTenant, idBranch)
 
-            // 3. Persistência (Data Layer)
+            // 4. Persistência (Data Layer)
             const newClient = await clientRepository.create(idTenant, idBranch, {
                 ...clientData,
                 friendlyId,
-                lifecycleStatus: clientData.lifecycleStatus || 'lead' // Status inicial
+                lifecycleStatus: clientData.lifecycleStatus || 'lead'
             })
 
             // 3. Auditoria (Audit Service)
@@ -52,7 +85,7 @@ export const ClientService = {
      */
     listClients: async (idTenant, idBranch) => {
         try {
-            const clients = await clientRepository.findAll(idTenant, idBranch)
+            const clients = await clientRepository.findActive(idTenant, idBranch)
             return clients
         } catch (error) {
             console.error(`[ClientService] Erro ao listar clientes:`, error)

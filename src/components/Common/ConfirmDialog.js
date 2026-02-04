@@ -47,7 +47,7 @@ ConfirmDialog.propTypes = {
     isOpen: PropTypes.bool.isRequired,
     toggle: PropTypes.func.isRequired,
     title: PropTypes.string.isRequired,
-    description: PropTypes.string.isRequired,
+    description: PropTypes.node.isRequired,
     confirmText: PropTypes.string,
     cancelText: PropTypes.string,
     confirmColor: PropTypes.string,

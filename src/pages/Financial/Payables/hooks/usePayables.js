@@ -108,6 +108,18 @@ export const usePayables = () => {
         }
     }
 
+    const handleDelete = async (id) => {
+        if (!window.confirm("Deseja realmente excluir esta conta?")) return
+        try {
+            await PayableService.deletePayable(idTenant, idBranch, user.uid, id)
+            toast.success("Conta excluída com sucesso")
+            await loadPayables()
+        } catch (error) {
+            console.error("Erro ao excluir conta:", error)
+            toast.error(error.message || "Erro ao excluir conta")
+        }
+    }
+
     const handleLoadMore = useCallback(() => {
         setFetchLimit(prev => prev + 50);
     }, []);
@@ -158,6 +170,7 @@ export const usePayables = () => {
         handleEdit,
         handleSave,
         handlePay,
+        handleDelete,
         handleLoadMore,
         hasMore: payables.length >= fetchLimit && payables.length > 0, // Verifica se carregou o limite (sinal de que tem mais), e se tem dados
         refresh: loadPayables

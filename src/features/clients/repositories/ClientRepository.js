@@ -9,12 +9,22 @@ class ClientRepository extends BaseRepository {
     }
 
     /**
+     * Lista todos os clientes ativos (não deletados)
+     */
+    async findActive(idTenant, idBranch) {
+        return this.findWhere(idTenant, idBranch, [
+            ['deletedAt', '==', null]
+        ])
+    }
+
+    /**
      * Buscar clientes por status usando a sintaxe modular.
      */
     async findByStatus(idTenant, idBranch, status) {
         return this.findWhere(idTenant, idBranch, [
-            ['status', '==', status]
-        ], { field: 'name', direction: 'asc' })
+            ['lifecycleStatus', '==', status],
+            ['deletedAt', '==', null]
+        ])
     }
 }
 

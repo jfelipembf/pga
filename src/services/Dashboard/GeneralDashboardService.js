@@ -22,10 +22,10 @@ export const GeneralDashboardService = {
         let salesMonth = 0;
 
         try {
-            // Buscamos apenas pelo criador (já indexado) para evitar erro de índice composto com Data+Tipo
+            // Buscamos apenas por Data (já indexado) e filtramos o usuário em memória
+            // Isso evita a necessidade de criar índices compostos manuais.
             const q = query(
                 collectionRef,
-                where('createdBy', '==', userId),
                 where('date', '>=', startMonth),
                 where('date', '<=', endMonth)
             );
@@ -33,8 +33,9 @@ export const GeneralDashboardService = {
             const snapshot = await getDocs(q);
             snapshot.forEach(doc => {
                 const item = doc.data();
-                // Filtramos o tipo 'income' na memória (consome menos que 1ms de CPU)
-                if (item.type === 'income') {
+
+                // Filtros em memória: Tipo 'income' e apenas as vendas DO USUÁRIO logado
+                if (item.type === 'income' && item.createdBy === userId) {
                     const amount = parseFloat(item.amount) || 0;
                     const date = moment(item.date?.toDate ? item.date.toDate() : item.date);
 

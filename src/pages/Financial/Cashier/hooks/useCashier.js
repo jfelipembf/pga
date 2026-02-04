@@ -26,6 +26,8 @@ export const useCashier = () => {
     const [modalOpen, setModalOpen] = useState(false)
     const [modalClose, setModalClose] = useState(false)
 
+    const [selectedDate, setSelectedDate] = useState(new Date())
+
     const loadData = useCallback(async () => {
         if (!user || !user.uid) {
             return
@@ -34,39 +36,81 @@ export const useCashier = () => {
         try {
             setLoading(true)
 
-            // 1. Fetch own session and profile
-            const [ownSession, profile] = await Promise.all([
-                cashierRepository.findOpenSession(idTenant, idBranch, user.uid),
-                staffRepository.findByUid(idTenant, idBranch, user.uid)
-            ])
+            // 1. Fetch Profile and determine Permissions
+            const profile = await staffRepository.findByUid(idTenant, idBranch, user.uid);
+            setUserProfile(profile);
 
-            setUserProfile(profile)
+            const isPowerUser = profile?.role === 'admin' || profile?.role === 'owner' || user?.role === 'admin';
 
-            // 2. Logic for Admin/Owner: also fetch other sessions
-            const isAdmin = profile?.role === 'admin' || profile?.role === 'owner' || user?.role === 'admin'
+            // Check if selected date is TODAY
+            const today = new Date();
+            const isToday = selectedDate.toDateString() === today.toDateString();
 
-            if (isAdmin) {
-                const allSessions = await cashierRepository.findActiveSessions(idTenant, idBranch)
-                setActiveSessions(allSessions)
+            let sessionsFetched = [];
+            let myOpenSession = null;
 
-                // If admin has no own session, show the first available one (or none if none exists)
-                if (ownSession) {
-                    setCurrentSession(ownSession)
-                } else if (allSessions.length > 0) {
-                    setCurrentSession(allSessions[0])
+            if (isToday) {
+                // Fetch all active sessions if admin, otherwise just mine
+                if (isPowerUser) {
+                    sessionsFetched = await cashierRepository.findActiveSessions(idTenant, idBranch);
+                    myOpenSession = sessionsFetched.find(s => s.idUser === user.uid);
                 } else {
-                    setCurrentSession(null)
+                    myOpenSession = await cashierRepository.findOpenSession(idTenant, idBranch, user.uid);
+                    sessionsFetched = myOpenSession ? [myOpenSession] : [];
                 }
             } else {
-                setCurrentSession(ownSession)
+                // Historical: Fetch by date
+                const sessionsOfDay = await cashierRepository.findByDate(idTenant, idBranch, selectedDate);
+                if (isPowerUser) {
+                    sessionsFetched = sessionsOfDay;
+                } else {
+                    sessionsFetched = sessionsOfDay.filter(s => s.idUser === user.uid);
+                }
+                myOpenSession = sessionsFetched.find(s => s.idUser === user.uid);
             }
 
-            // 3. Load transactions for the current session (determinada acima)
-            const sessionToLoad = ownSession || (isAdmin && activeSessions.length > 0 ? activeSessions[0] : null);
+            // Determine which session to show by default
+            let initialSession = null;
+            let finalSessions = [...sessionsFetched];
 
-            if (sessionToLoad) {
-                const moves = await transactionRepository.findBySession(idTenant, idBranch, sessionToLoad.id);
-                setTransactions(moves);
+            if (sessionsFetched.length > 0) {
+                if (isPowerUser && sessionsFetched.length > 1) {
+                    // Create a virtual "All Sessions" object for Admins
+                    const consolidated = {
+                        id: 'all',
+                        userName: 'TODOS OS CAIXAS (GERAL)',
+                        isConsolidated: true,
+                        openingBalance: sessionsFetched.reduce((acc, s) => acc + (parseFloat(s.openingBalance) || 0), 0)
+                    };
+                    finalSessions = [consolidated, ...sessionsFetched];
+                    initialSession = consolidated;
+                } else {
+                    // One session or regular user: default to first found (or mine)
+                    initialSession = myOpenSession || sessionsFetched[0];
+                }
+            }
+
+            setActiveSessions(finalSessions);
+            setCurrentSession(initialSession);
+
+            // 3. Load transactions
+            if (initialSession) {
+                if (initialSession.id === 'all') {
+                    // Fetch for ALL sessions in parallel
+                    const allMoves = await Promise.all(
+                        sessionsFetched.map(s => transactionRepository.findBySession(idTenant, idBranch, s.id))
+                    );
+                    // Flatten and sort by date descending
+                    const flattened = allMoves.flat().sort((a, b) => {
+                        const da = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt);
+                        const db = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt);
+                        return db - da;
+                    });
+                    setTransactions(flattened);
+                } else {
+                    const moves = await transactionRepository.findBySession(idTenant, idBranch, initialSession.id);
+                    setTransactions(moves);
+                }
             } else {
                 setTransactions([]);
             }
@@ -77,8 +121,7 @@ export const useCashier = () => {
         } finally {
             setLoading(false)
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [idTenant, idBranch, user])
+    }, [idTenant, idBranch, user, selectedDate])
 
     useEffect(() => {
         loadData()
@@ -211,6 +254,8 @@ export const useCashier = () => {
         handleMovement,
         transactions,
         liveSummary,
-        refresh: loadData
+        refresh: loadData,
+        selectedDate,
+        setSelectedDate
     }
 }

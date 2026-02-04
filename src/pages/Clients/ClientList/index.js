@@ -1,6 +1,7 @@
 import React, { useEffect } from "react"
 import { Row, Col } from "reactstrap"
 import { connect } from "react-redux"
+import { useNavigate } from "react-router-dom"
 
 // Components
 import BasicTable from "../../../components/Common/BasicTable"
@@ -8,7 +9,6 @@ import ClientAddModal from "./ClientAddModal"
 
 // Hooks
 import { useClientList } from "../hooks/useClientList"
-import { useClientListActions } from "../hooks/useClientListActions"
 import { useClientTableColumns } from "../hooks/useClientTableColumns"
 
 // Store Actions
@@ -16,16 +16,18 @@ import { setBreadcrumbItems } from "../../../store/actions"
 
 const ClientsList = ({ setBreadcrumbItems }) => {
     document.title = "Clientes | Lexa Admin"
-
-    const { clients, loading: loadingPage, refreshClients } = useClientList()
-
-    const columns = useClientTableColumns()
+    const navigate = useNavigate()
 
     const {
+        clients,
+        loading: loadingPage,
+        refreshClients,
         modalOpen,
         setModalOpen,
-        handleRowClick,
-    } = useClientListActions({ setClients: () => { } })
+        handleRowClick
+    } = useClientList()
+
+    const columns = useClientTableColumns()
 
     // Setup Breadcrumb
     useEffect(() => {
@@ -43,10 +45,10 @@ const ClientsList = ({ setBreadcrumbItems }) => {
                     <BasicTable
                         columns={columns}
                         data={clients}
-                        searchKeys={["firstName", "lastName", "email", "phone", "status"]}
+                        searchKeys={["firstName", "lastName", "email", "phone", "lifecycleStatus"]}
                         searchPlaceholder="Buscar por nome, email ou telefone..."
                         onNewClick={() => setModalOpen(true)}
-                        onRowClick={handleRowClick}
+                        onRowClick={(client) => handleRowClick(client, navigate)}
                         loading={loadingPage}
                         paginationPosition="bottom"
                     />

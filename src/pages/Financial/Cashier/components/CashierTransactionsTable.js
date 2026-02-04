@@ -16,10 +16,12 @@ export const CashierTransactionsTable = ({ transactions }) => {
     return (
         <div className="table-responsive mt-4">
             <h5 className="font-size-14 text-uppercase fw-bold text-muted mb-3">Extrato de Movimentações</h5>
-            <Table className="table-hover table-nowrap align-middle mb-0 bg-white shadow-sm rounded">
+            <Table bordered className="table-hover table-nowrap align-middle mb-0 bg-white shadow-sm rounded">
                 <thead className="table-light">
                     <tr>
                         <th>Horário</th>
+                        <th>Operador</th>
+                        <th>Cliente</th>
                         <th>Descrição</th>
                         <th>Tipo</th>
                         <th>Forma Pagto</th>
@@ -29,12 +31,18 @@ export const CashierTransactionsTable = ({ transactions }) => {
                 <tbody>
                     {transactions.map((t) => (
                         <tr key={t.id}>
-                            <td className="text-muted" style={{ width: '100px' }}>
-                                {t.createdAt?.toDate ? formatDate(t.createdAt.toDate(), 'HH:mm') : formatDate(new Date(t.date), 'HH:mm')}
+                            <td className="text-muted" style={{ width: '80px' }}>
+                                {t.createdAt?.toDate ? formatDate(t.createdAt.toDate(), 'time') : formatDate(new Date(t.date), 'time')}
+                            </td>
+                            <td style={{ width: '120px' }}>
+                                <div className="text-muted font-size-12">{t.userName?.split(' ')[0] || 'Sistema'}</div>
+                            </td>
+                            <td style={{ width: '150px' }}>
+                                <div className="fw-medium text-dark">{t.clientName || '-'}</div>
                             </td>
                             <td>
                                 <div className="fw-bold text-dark">{t.description}</div>
-                                {t.saleNumber && <small className="text-muted">Venda #{t.saleNumber}</small>}
+                                {t.saleNumber && !t.description.includes(t.saleNumber) && <small className="text-muted">Venda #{t.saleNumber}</small>}
                             </td>
                             <td>
                                 <Badge

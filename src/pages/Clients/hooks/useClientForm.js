@@ -81,48 +81,11 @@ export const useClientForm = ({ onClientAdded, toggle }) => {
                     })
                 }
 
-                // 2. Sanitização (Evitar undefined no Firebase)
-                const sanitize = (val) => val === undefined ? null : val
-
-                // 3. Montar objeto final
-                const {
-                    zipCode, street, number, complement, neighborhood, city, state,
-                    emergencyName, emergencyPhone, emergencyEmail,
-                    firstName, lastName,
-                    ...rest
-                } = values
-
-                const clientData = {
-                    ...rest,
-                    firstName: sanitize(firstName),
-                    lastName: sanitize(lastName),
-                    name: `${firstName} ${lastName}`.trim(),
-                    photoUrl: photoUrl || null,
-                    cpf: sanitize(rest.cpf),
-                    gender: sanitize(rest.gender),
-                    // Endereço aninhado
-                    address: {
-                        zipCode: sanitize(zipCode),
-                        street: sanitize(street),
-                        number: sanitize(number),
-                        complement: sanitize(complement),
-                        neighborhood: sanitize(neighborhood),
-                        city: sanitize(city),
-                        state: sanitize(state)
-                    },
-                    // Emergência aninhada
-                    emergencyContact: {
-                        name: sanitize(emergencyName),
-                        phone: sanitize(emergencyPhone),
-                        email: sanitize(emergencyEmail)
-                    },
-                    healthObservations: sanitize(rest.healthObservations)
-                }
-
-                // 4. Salvar
+                // 2. Salvar
                 const user = JSON.parse(localStorage.getItem("authUser")) || {};
                 await ClientService.createClient(idTenant, idBranch, auth.currentUser.uid, {
-                    ...clientData,
+                    ...values,
+                    photoUrl: photoUrl || null,
                     userName: user.displayName || user.email // Garante Snapshot
                 })
 

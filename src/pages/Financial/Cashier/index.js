@@ -7,6 +7,10 @@ import { formatDate } from '../../../utils/date'
 import { useCashier } from './hooks/useCashier'
 import { CashierTransactionsTable } from './components/CashierTransactionsTable'
 import { CashierMovementModal } from './components/CashierMovementModal'
+import CashierPrintTemplate from './components/CashierPrintTemplate'
+import Flatpickr from "react-flatpickr"
+import "flatpickr/dist/themes/material_blue.css"
+import { Portuguese } from 'flatpickr/dist/l10n/pt.js'
 
 const CashierPage = () => {
     document.title = "Caixa | Lexa Admin"
@@ -29,7 +33,9 @@ const CashierPage = () => {
         liveSummary,
         movementModalType,
         setMovementModalType,
-        handleMovement
+        handleMovement,
+        selectedDate,
+        setSelectedDate
     } = useCashier()
 
     // Formik: Abrir Caixa
@@ -68,8 +74,20 @@ const CashierPage = () => {
                                 <div className="d-flex justify-content-between align-items-center mb-4">
                                     <h4 className="font-size-18 text-uppercase mb-0 fw-bold">Gestão de Caixa</h4>
                                     <div className="d-flex gap-2">
-                                        <Button color="light" className="btn-md border">
-                                            <i className="mdi mdi-history me-1"></i> Histórico
+                                        <div className="d-inline-block me-2" style={{ width: '140px' }}>
+                                            <Flatpickr
+                                                className="form-control text-center"
+                                                value={selectedDate}
+                                                onChange={([date]) => setSelectedDate(date)}
+                                                options={{
+                                                    locale: Portuguese,
+                                                    dateFormat: "d/m/Y",
+                                                    disableMobile: true
+                                                }}
+                                            />
+                                        </div>
+                                        <Button color="secondary" className="btn-md shadow-sm text-white" onClick={() => window.print()}>
+                                            <i className="mdi mdi-printer me-1"></i> Imprimir
                                         </Button>
                                         {!currentSession && (
                                             <Button color="primary" className="btn-md shadow-sm" onClick={() => setModalOpen(true)}>
@@ -134,42 +152,69 @@ const CashierPage = () => {
                                                     {currentSession?.idUser === user?.uid ? displayUserName : currentSession.userName}
                                                 </h5>
                                             </div>
-                                            <div className="d-flex gap-2">
-                                                <Button color="success" outline className="fw-medium" onClick={() => setMovementModalType('income')}>
-                                                    <i className="mdi mdi-plus-circle-outline me-1"></i> Suprimento
-                                                </Button>
-                                                <Button color="danger" outline className="fw-medium" onClick={() => setMovementModalType('expense')}>
-                                                    <i className="mdi mdi-minus-circle-outline me-1"></i> Sangria
-                                                </Button>
-                                                <Button color="outline-danger" className="fw-medium ms-2" onClick={() => setModalClose(true)}>
-                                                    <i className="mdi mdi-lock-open-outline me-1"></i> Encerrar Expediente
-                                                </Button>
-                                            </div>
+                                            {!currentSession.isConsolidated ? (
+                                                <div className="d-flex gap-2">
+                                                    <Button color="success" outline className="fw-medium" onClick={() => setMovementModalType('income')}>
+                                                        <i className="mdi mdi-plus-circle-outline me-1"></i> Suprimento
+                                                    </Button>
+                                                    <Button color="danger" outline className="fw-medium" onClick={() => setMovementModalType('expense')}>
+                                                        <i className="mdi mdi-minus-circle-outline me-1"></i> Sangria
+                                                    </Button>
+                                                    <Button color="outline-danger" className="fw-medium ms-2" onClick={() => setModalClose(true)}>
+                                                        <i className="mdi mdi-lock-open-outline me-1"></i> Encerrar Expediente
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <div className="text-muted font-size-12 italic">
+                                                    <i className="mdi mdi-information-outline me-1"></i>
+                                                    Modo Visualização Geral (Ações desabilitadas)
+                                                </div>
+                                            )}
                                         </div>
 
                                         <Row className="g-4 mb-4">
                                             <Col md={3}>
-                                                <div className="p-3 border rounded bg-light">
-                                                    <p className="text-muted mb-1 font-size-12 uppercase fw-bold">Saldo Inicial</p>
-                                                    <h4 className="mb-0 text-dark">{formatCurrency(liveSummary?.openingBalance || 0)}</h4>
+                                                <div className="cashier-summary-card">
+                                                    <div className="cashier-summary-card__icon bg-light text-dark">
+                                                        <i className="mdi mdi-bank-outline"></i>
+                                                    </div>
+                                                    <div className="cashier-summary-card__data">
+                                                        <p className="cashier-summary-card__label">Saldo Inicial</p>
+                                                        <h4 className="cashier-summary-card__value">{formatCurrency(liveSummary?.openingBalance || 0)}</h4>
+                                                    </div>
                                                 </div>
                                             </Col>
                                             <Col md={3}>
-                                                <div className="p-3 border rounded bg-success-subtle">
-                                                    <p className="text-success mb-1 font-size-12 uppercase fw-bold">Entradas (Dinheiro/Pix)</p>
-                                                    <h4 className="mb-0 text-success">+{formatCurrency(liveSummary?.totalIncome || 0)}</h4>
+                                                <div className="cashier-summary-card">
+                                                    <div className="cashier-summary-card__icon bg-success-subtle text-success">
+                                                        <i className="mdi mdi-trending-up"></i>
+                                                    </div>
+                                                    <div className="cashier-summary-card__data">
+                                                        <p className="cashier-summary-card__label text-success">Entradas</p>
+                                                        <h4 className="cashier-summary-card__value text-success">+{formatCurrency(liveSummary?.totalIncome || 0)}</h4>
+                                                    </div>
                                                 </div>
                                             </Col>
                                             <Col md={3}>
-                                                <div className="p-3 border rounded bg-danger-subtle">
-                                                    <p className="text-danger mb-1 font-size-12 uppercase fw-bold">Saídas / Sangrias</p>
-                                                    <h4 className="mb-0 text-danger">-{formatCurrency(liveSummary?.totalExpenses || 0)}</h4>
+                                                <div className="cashier-summary-card">
+                                                    <div className="cashier-summary-card__icon bg-danger-subtle text-danger">
+                                                        <i className="mdi mdi-trending-down"></i>
+                                                    </div>
+                                                    <div className="cashier-summary-card__data">
+                                                        <p className="cashier-summary-card__label text-danger">Saídas / Sangrias</p>
+                                                        <h4 className="cashier-summary-card__value text-danger">-{formatCurrency(liveSummary?.totalExpenses || 0)}</h4>
+                                                    </div>
                                                 </div>
                                             </Col>
                                             <Col md={3}>
-                                                <div className="p-3 border rounded bg-primary text-white shadow">
-                                                    <p className="text-white-50 mb-1 font-size-12 uppercase fw-bold">Esperado em Espécie</p>
-                                                    <h4 className="mb-0 text-white">{formatCurrency(liveSummary?.expectedBalance || 0)}</h4>
+                                                <div className="cashier-summary-card is-highlighted">
+                                                    <div className="cashier-summary-card__icon bg-white-50 text-white">
+                                                        <i className="mdi mdi-cash-multiple"></i>
+                                                    </div>
+                                                    <div className="cashier-summary-card__data">
+                                                        <p className="cashier-summary-card__label text-white-50">Esperado em Espécie</p>
+                                                        <h4 className="cashier-summary-card__value text-white">{formatCurrency(liveSummary?.expectedBalance || 0)}</h4>
+                                                    </div>
                                                 </div>
                                             </Col>
                                         </Row>
@@ -185,7 +230,7 @@ const CashierPage = () => {
 
                 {/* MODAIS */}
                 <Modal isOpen={modalOpen} toggle={() => setModalOpen(!modalOpen)} centered>
-                    <ModalHeader toggle={() => setModalOpen(!modalOpen)} className="bg-primary text-white">Abrir Caixa</ModalHeader>
+                    <ModalHeader toggle={() => setModalOpen(!modalOpen)}>Abrir Caixa</ModalHeader>
                     <ModalBody className="p-4">
                         <form onSubmit={formikOpen.handleSubmit}>
                             <div className="mb-4">
@@ -213,9 +258,9 @@ const CashierPage = () => {
                 </Modal>
 
                 <Modal isOpen={modalClose} toggle={() => setModalClose(!modalClose)} centered>
-                    <ModalHeader toggle={() => setModalClose(!modalClose)} className="bg-danger text-white">Fechar Caixa</ModalHeader>
+                    <ModalHeader toggle={() => setModalClose(!modalClose)}>Fechar Caixa</ModalHeader>
                     <ModalBody className="p-4">
-                        <div className="text-center mb-4 p-3 bg-light rounded border border-dashed">
+                        <div className="text-center mb-4 p-3">
                             <p className="mb-1 text-muted text-uppercase font-size-11 fw-bold">Saldo Esperado em Gaveta</p>
                             <h3 className="text-dark fw-bold m-0">{formatCurrency(currentSession?.expectedBalance)}</h3>
                         </div>
@@ -257,7 +302,14 @@ const CashierPage = () => {
                     onSave={handleMovement}
                     type={movementModalType}
                 />
+
             </div>
+            <CashierPrintTemplate
+                summary={liveSummary}
+                transactions={transactions}
+                user={user}
+                session={currentSession}
+            />
         </React.Fragment>
     )
 }

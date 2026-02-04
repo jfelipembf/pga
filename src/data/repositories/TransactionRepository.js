@@ -16,7 +16,7 @@ class TransactionRepository extends BaseRepository {
     async findBySession(idTenant, idBranch, idCashierSession) {
         return this.findWhere(idTenant, idBranch, [
             ['idCashierSession', '==', idCashierSession]
-        ], { field: 'createdAt', direction: 'desc' }) // ou 'date'
+        ])
     }
 }
 

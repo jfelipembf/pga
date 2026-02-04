@@ -11,7 +11,8 @@ export const AcquirerService = {
             const payload = {
                 ...validated,
                 createdAt: normalizeDate(new Date()),
-                updatedAt: normalizeDate(new Date())
+                updatedAt: normalizeDate(new Date()),
+                deletedAt: null
             }
             const newAcquirer = await acquirerRepository.create(idTenant, idBranch, payload)
 
@@ -36,7 +37,8 @@ export const AcquirerService = {
     },
 
     listAll: async (idTenant, idBranch) => {
-        return await acquirerRepository.findAll(idTenant, idBranch)
+        const data = await acquirerRepository.findAll(idTenant, idBranch)
+        return data.filter(a => !a.deletedAt)
     },
 
     update: async (idTenant, idBranch, userId, id, data) => {
@@ -73,7 +75,18 @@ export const AcquirerService = {
     },
 
     delete: async (idTenant, idBranch, userId, id) => {
-        const result = await acquirerRepository.softDelete(idTenant, idBranch, id)
+        // 1. CHECK: Tem recebíveis pendentes?
+        const { receivableRepository } = await import('../../data/repositories/ReceivableRepository')
+        const pending = await receivableRepository.findWhere(idTenant, idBranch, [
+            ['idAcquirer', '==', id],
+            ['status', '==', 'open']
+        ], null, 1)
+
+        if (pending.length > 0) {
+            throw new Error("SEGURANÇA: Esta credenciadora possui recebíveis pendentes. Você não pode excluí-la até que todos os títulos sejam liquidados ou transferidos. Sugestão: Apenas desative a credenciadora.")
+        }
+
+        const result = await acquirerRepository.softDelete(idTenant, idBranch, id, userId)
 
         await AuditService.log({
             idTenant, idBranch, userId,

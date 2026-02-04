@@ -15,8 +15,7 @@ class ClientContractRepository extends BaseRepository {
         return this.findWhere(
             idTenant,
             idBranch,
-            [['idClient', '==', idClient]],
-            { field: 'startDate', direction: 'desc' }
+            [['idClient', '==', idClient]]
         )
     }
 
@@ -56,12 +55,9 @@ class ClientContractRepository extends BaseRepository {
      * Busca contratos por status.
      */
     async findByStatus(idTenant, idBranch, status) {
-        return this.findWhere(
-            idTenant,
-            idBranch,
-            [['status', '==', status]],
-            { field: 'startDate', direction: 'desc' }
-        )
+        return this.findWhere(idTenant, idBranch, [
+            ['status', '==', status]
+        ])
     }
 
     /**

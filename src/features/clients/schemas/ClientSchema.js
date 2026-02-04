@@ -42,9 +42,6 @@ export const ClientSchema = Yup.object().shape({
 
     leadSource: Yup.string().nullable(), // instagram, google, indicacao, etc
     referredBy: Yup.string().nullable(), // ID do cliente que indicou
-
-    // === STATUS (Legacy - mantido para compatibilidade) ===
-    status: Yup.string().default('lead')
 })
 
 /**

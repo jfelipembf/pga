@@ -52,15 +52,9 @@ export class BaseRepository {
         return colRef;
     }
 
-    async findAll(idTenant, idBranch, includeDeleted = false) {
+    async findAll(idTenant, idBranch) {
         const ref = this.getCollectionRef(idTenant, idBranch)
-        let q = query(ref)
-
-        if (!includeDeleted) {
-            // Agora seguro: Todos os registros antigos foram migrados para ter deletedAt: null
-            q = query(q, where('deletedAt', '==', null))
-        }
-
+        const q = query(ref)
         const snapshot = await getDocs(q)
 
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
@@ -82,30 +76,26 @@ export class BaseRepository {
      * @param {Array} filters - Array de arrays: [['field', 'op', 'value'], ...]
      * @param {Object} sort - { field: 'name', direction: 'asc' }
      */
-    async findWhere(idTenant, idBranch, filters = [], sort = null, limitCount = null, includeDeleted = false) {
+    async findWhere(idTenant, idBranch, filters = [], sort = null, limitCount = null) {
         const ref = this.getCollectionRef(idTenant, idBranch)
-        console.log(`[BaseRepository] findWhere em: ${ref.path} | Filtros: ${filters.length} | IncludeDeleted: ${includeDeleted}`);
-        let q = query(ref)
-
-        // Filtro automático de soft delete
-        if (!includeDeleted) {
-            q = query(q, where('deletedAt', '==', null))
-        }
+        const constraints = []
 
         // Adicionar filtros
         filters.forEach(([field, op, value]) => {
-            q = query(q, where(field, op, value))
+            constraints.push(where(field, op, value))
         })
 
         // Adicionar ordenação
         if (sort) {
-            q = query(q, orderBy(sort.field, sort.direction || 'asc'))
+            constraints.push(orderBy(sort.field, sort.direction || 'asc'))
         }
 
         // Adicionar limite
         if (limitCount) {
-            q = query(q, limit(limitCount))
+            constraints.push(limit(limitCount))
         }
+
+        const q = query(ref, ...constraints)
 
         const snapshot = await getDocs(q)
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))

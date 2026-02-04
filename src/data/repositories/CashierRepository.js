@@ -38,6 +38,28 @@ class CashierRepository extends BaseRepository {
         const snapshot = await getDocs(q)
         return snapshot.empty ? null : { id: snapshot.docs[0].id, ...snapshot.docs[0].data() }
     }
+
+    /**
+     * Encontra sessões de caixa por data de abertura.
+     */
+    async findByDate(idTenant, idBranch, date) {
+        // Importar normalizeDate dentro do método ou no topo se possível (mas create-react-app pode reclamar de imports fora)
+        // Assumindo que o date passado já é um objeto Date válido ou string
+        // Precisamos criar startOfDay e endOfDay
+        const start = new Date(date);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(date);
+        end.setHours(23, 59, 59, 999);
+
+        // ATENÇÃO: Queries com range na mesma data requerem indice composto se houver orderBy.
+        // Aqui faremos simples.
+
+        return await this.findWhere(idTenant, idBranch, [
+            ['openedAt', '>=', start],
+            ['openedAt', '<=', end]
+        ], { field: 'openedAt', direction: 'desc' });
+    }
 }
 
 export const cashierRepository = new CashierRepository()

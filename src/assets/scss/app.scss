@@ -40,6 +40,7 @@ File: Main Css File
 @import "custom/components/widgets";
 @import "custom/components/demos";
 @import "custom/components/print";
+@import "custom/components/premium-ui";
 
 
 // Plugins
@@ -75,4 +76,4 @@ File: Main Css File
 @import "custom/pages/directory";
 @import "custom/pages/chat";
 @import "custom/pages/kanbanboard";
-
+@import "custom/pages/grade";

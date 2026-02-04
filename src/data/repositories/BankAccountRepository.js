@@ -8,9 +8,22 @@ export class BankAccountRepository extends BaseRepository {
         super("bank_accounts");
     }
 
+    /**
+     * Lista contas ativas e não deletadas
+     */
     async findActive(idTenant, idBranch) {
         return this.findWhere(idTenant, idBranch, [
-            ['isActive', '==', true]
+            ['isActive', '==', true],
+            ['deletedAt', '==', null]
+        ])
+    }
+
+    /**
+     * Lista todas as contas não deletadas (mesmo as inativas)
+     */
+    async findVisible(idTenant, idBranch) {
+        return this.findWhere(idTenant, idBranch, [
+            ['deletedAt', '==', null]
         ])
     }
 

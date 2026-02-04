@@ -4,8 +4,8 @@ import { Navigate } from "react-router-dom"
 // Profile
 import UserProfile from "../pages/Authentication/user-profile"
 
-// Pages Calendar
-import Calendar from "../pages/Calendar/index"
+// Pages Grade
+import Grade from "../pages/Grade/index"
 
 //Email
 import EmailInbox from "../pages/Email/email-inbox"
@@ -106,6 +106,13 @@ import UiOffcanvas from "pages/Ui/UiOffcanvas"
 import Chat from "pages/Chat/Chat";
 import Kanban from "pages/Kanban"
 import AuditLogsPage from "../pages/Admin/AuditLogs/index"
+import AreasPage from "../pages/Admin/Areas/index"
+import ActivitiesPage from "../pages/Admin/Activities/ActivitiesPage"
+import RolesPage from "../pages/Admin/Roles/index"
+import EvaluationLevelsPage from "../pages/Admin/EvaluationLevels/index"
+import StaffList from "../pages/Admin/Staff/List"
+import ClassesPage from "../pages/Admin/Classes/index"
+import CatalogPage from "../pages/Admin/Catalog/index"
 
 import OperationalDashboard from "../pages/Dashboard/Operational/index"
 
@@ -129,11 +136,20 @@ const userRoutes = [
   { path: "/clients", component: <ClientsList /> },
   { path: "/clients/:id", component: <ClientProfile /> },
 
-  // //calendar
-  { path: "/calendar", component: <Calendar /> },
+  // Grade
+  { path: "/grade", component: <Grade /> },
 
   { path: "/chat", component: <Chat /> },
   { path: "/kanbanboard", component: <Kanban /> },
+  
+  // Admin Routes
+  { path: "/admin/activities", component: <ActivitiesPage /> },
+  { path: "/admin/areas", component: <AreasPage /> },
+  { path: "/admin/roles", component: <RolesPage /> },
+  { path: "/admin/evaluation-levels", component: <EvaluationLevelsPage /> },
+  { path: "/admin/staff", component: <StaffList /> },
+  { path: "/admin/classes", component: <ClassesPage /> },
+  { path: "/admin/catalog", component: <CatalogPage /> },
   { path: "/admin/audit-logs", component: <AuditLogsPage /> },
 
   // // //profile

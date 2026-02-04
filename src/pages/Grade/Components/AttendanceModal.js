@@ -1,0 +1,323 @@
+import React, { useEffect, useMemo, useState } from "react"
+import PropTypes from "prop-types"
+import classNames from "classnames"
+import {
+  Badge,
+  Button,
+  Input,
+  InputGroup,
+  Col,
+  InputGroupText,
+  Modal,
+  ModalBody,
+  ModalHeader,
+  Row,
+} from "reactstrap"
+
+import ButtonLoader from "../../../components/Common/ButtonLoader"
+import { useLoading } from "../../../hooks/useLoading"
+import { toast } from "react-toastify"
+
+import { useAttendance } from "../Hooks/useAttendance"
+
+const placeholderAvatar = "data:image/svg+xml;utf8," + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" fill="#e9ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#6c757d">Aluno</text></svg>'
+)
+
+const AttendanceModal = ({ isOpen, onClose, schedule, onAttendanceSaved, onEnrollmentChange }) => {
+  const {
+    clients,
+    searchText,
+    setSearchText,
+    searchResults,
+    isLoading,
+    justAddedId,
+    attendanceStats,
+    handleSelectSearchClient,
+    handleMarkAbsence,
+    handleConfirmAbsence,
+    handleMarkPresent,
+    handleChangeJustification,
+    handleSave
+  } = useAttendance(isOpen, schedule, onAttendanceSaved, onEnrollmentChange)
+
+  const title = useMemo(() => {
+    if (!schedule) return "Controle de presença"
+    return `${schedule.activityName || "Turma"} · ${schedule.startTime} - ${schedule.endTime}`
+  }, [schedule])
+
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      toggle={onClose}
+      size="xl"
+      centered
+      backdrop="static"
+      modalClassName="premium-modal"
+      contentClassName="premium-modal__content"
+    >
+      <ModalHeader toggle={onClose} className="premium-modal__header">
+        <div className="d-flex align-items-center gap-2">
+          <i className="mdi mdi-account-check-outline text-primary fs-4"></i>
+          <div>
+            <h5 className="mb-0 fw-bold">Controle de Presença</h5>
+            <small className="text-muted fw-medium">{title}</small>
+          </div>
+        </div>
+      </ModalHeader>
+
+      <ModalBody className="premium-modal__body p-4" style={{ maxHeight: "78vh", overflowY: "auto" }}>
+        {/* Class Info Card */}
+        <div className="attendance-info-card mb-4" style={{ borderLeft: `6px solid ${schedule?.color || "#3c5068"}` }}>
+          <Row className="align-items-center g-3">
+            <Col lg={8}>
+              <div className="d-flex flex-wrap gap-4 align-items-center">
+                <div className="info-item">
+                  <div className="info-item__icon"><i className="mdi mdi-account-star"></i></div>
+                  <div className="info-item__content">
+                    <label>Professor</label>
+                    <span>{schedule?.employeeName || "Não definido"}</span>
+                  </div>
+                </div>
+                <div className="info-item">
+                  <div className="info-item__icon"><i className="mdi mdi-clock-outline"></i></div>
+                  <div className="info-item__content">
+                    <label>Horário</label>
+                    <span>{schedule?.startTime} - {schedule?.endTime}</span>
+                  </div>
+                </div>
+                <div className="info-item">
+                  <div className="info-item__icon"><i className="mdi mdi-map-marker-radius-outline"></i></div>
+                  <div className="info-item__content">
+                    <label>Local</label>
+                    <span>{schedule?.areaName || "Geral"}</span>
+                  </div>
+                </div>
+              </div>
+            </Col>
+            <Col lg={4} className="text-lg-end">
+              <div className="d-flex gap-3 justify-content-center">
+                <div className="attendance-stat is-present">
+                  <span className="attendance-stat__value">{attendanceStats.present}</span>
+                  <span className="attendance-stat__label">Presentes</span>
+                </div>
+                <div className="attendance-stat is-absent">
+                  <span className="attendance-stat__value">{attendanceStats.absent}</span>
+                  <span className="attendance-stat__label">Ausentes</span>
+                </div>
+                <div className="attendance-stat is-total">
+                  <span className="attendance-stat__value">{attendanceStats.total}</span>
+                  <span className="attendance-stat__label">Total</span>
+                </div>
+              </div>
+            </Col>
+          </Row>
+        </div>
+
+        {/* Global Search */}
+        <div className="mb-4">
+          <div className="position-relative">
+            <span className="position-absolute top-50 start-0 translate-middle-y ms-3 z-index-10">
+              {isLoading('addExtra') ? <ButtonLoader size="sm" /> : <i className="mdi mdi-magnify text-muted fs-4" />}
+            </span>
+            <Input
+              className="form-control-lg border-2 ps-5 shadow-sm rounded-pill"
+              placeholder="Adicionar aluno à chamada (Nome, CPF ou GymID)..."
+              style={{ fontSize: '1rem' }}
+              value={searchText}
+              onChange={e => setSearchText(e.target.value)}
+              disabled={isLoading('addExtra')}
+            />
+            {searchResults.length > 0 && (
+              <div className="search-dropdown shadow-lg border rounded-3 mt-2">
+                {searchResults.map(c => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className="search-dropdown__item"
+                    onClick={() => handleSelectSearchClient(c)}
+                  >
+                    <div className="d-flex align-items-center gap-3">
+                      <div className="avatar-xs rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-bold">
+                        {c.name?.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="fw-bold text-dark">{c.name}</div>
+                        <div className="text-muted small">{c.idGym || "Sem ID"}</div>
+                      </div>
+                    </div>
+                    <i className="mdi mdi-plus-circle-outline fs-4 text-primary opacity-50"></i>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <Row className="g-4">
+          {/* List Section: Present */}
+          <Col md={12}>
+            <div className="d-flex align-items-center justify-content-between mb-3">
+              <h6 className="section-title mb-0">
+                <i className="mdi mdi-check-circle-outline text-success me-2"></i>
+                Lista de Presença
+              </h6>
+              <span className="badge bg-success-subtle text-success rounded-pill px-3">
+                {attendanceStats.present} Alunos
+              </span>
+            </div>
+
+            <div className="attendance-list-container">
+              {clients.filter(c => c.status !== "absent").length === 0 && (
+                <div className="text-center py-4 bg-light rounded-3 border border-dashed">
+                  <p className="text-muted mb-0">Nenhum aluno marcado como presente.</p>
+                </div>
+              )}
+              <div className="d-flex flex-column gap-2">
+                {clients
+                  .filter(c => c.status !== "absent")
+                  .map(client => {
+                    const isEditing = client.status === "editing"
+                    return (
+                      <div
+                        key={client.id}
+                        className={classNames("attendance-item", { "is-new": String(client.id) === String(justAddedId) })}
+                      >
+                        <div className="attendance-item__avatar">
+                          <img src={client.photo || placeholderAvatar} alt={client.name} />
+                          {['experimental', 'single-session'].includes(client.type) && (
+                            <span className="badge-tag is-experimental" title="Experimental">EX</span>
+                          )}
+                        </div>
+
+                        <div className="attendance-item__content">
+                          <div className="fw-bold text-dark fs-5">{client.name}</div>
+                          <div className="d-flex gap-2 align-items-center mt-1">
+                            <span className="badge bg-light text-muted border px-2 py-1">{client.tag}</span>
+                            {client.idGym && <span className="text-muted small">GymID: {client.idGym}</span>}
+                          </div>
+                        </div>
+
+                        <div className="attendance-item__actions">
+                          {isEditing ? (
+                            <div className="d-flex gap-2 w-100">
+                              <Input
+                                placeholder="Motivo da ausência..."
+                                className="form-control-sm"
+                                value={client.justification}
+                                onChange={e => handleChangeJustification(client.id, e.target.value)}
+                              />
+                              <Button color="success" size="sm" onClick={() => handleConfirmAbsence(client.id)}>
+                                <i className="mdi mdi-check"></i>
+                              </Button>
+                              <Button color="light" size="sm" onClick={() => handleMarkPresent(client.id)}>
+                                <i className="mdi mdi-close"></i>
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button
+                              color="danger"
+                              outline
+                              className="btn-rounded btn-sm px-3"
+                              onClick={() => handleMarkAbsence(client.id)}
+                            >
+                              <i className="mdi mdi-account-minus-outline me-1"></i>
+                              Faltou
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+              </div>
+            </div>
+          </Col>
+
+          {/* List Section: Absent */}
+          <Col md={12}>
+            <div className="d-flex align-items-center justify-content-between mt-2 mb-3">
+              <h6 className="section-title mb-0">
+                <i className="mdi mdi-close-circle-outline text-danger me-2"></i>
+                Ausentes
+              </h6>
+              <span className="badge bg-danger-subtle text-danger rounded-pill px-3">
+                {attendanceStats.absent} Alunos
+              </span>
+            </div>
+
+            <div className="attendance-list-container">
+              {attendanceStats.absent === 0 && (
+                <div className="text-center py-4 bg-light rounded-3 border border-dashed opacity-50">
+                  <p className="text-muted mb-0">Nenhum aluno marcado como ausente.</p>
+                </div>
+              )}
+              <div className="d-flex flex-column gap-2">
+                {clients
+                  .filter(c => c.status === "absent")
+                  .map(client => (
+                    <div key={client.id} className="attendance-item is-absent">
+                      <div className="attendance-item__avatar">
+                        <img src={client.photo || placeholderAvatar} alt={client.name} />
+                      </div>
+
+                      <div className="attendance-item__content">
+                        <div className="fw-bold text-dark fs-5">{client.name}</div>
+                        {client.justification && (
+                          <div className="text-danger small mt-1">
+                            <i className="mdi mdi-comment-text-outline me-1"></i>
+                            {client.justification}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="attendance-item__actions text-end">
+                        <Button
+                          color="success"
+                          outline
+                          className="btn-rounded btn-sm px-3"
+                          onClick={() => handleMarkPresent(client.id)}
+                        >
+                          <i className="mdi mdi-account-plus-outline me-1"></i>
+                          Presente
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </Col>
+        </Row>
+      </ModalBody>
+
+      <div className="premium-modal__footer p-4 d-flex justify-content-between align-items-center bg-light border-top">
+        <Button color="secondary" outline className="btn-rounded px-4">
+          <i className="mdi mdi-whatsapp me-1"></i> Notificar Alunos
+        </Button>
+        <div className="d-flex gap-2">
+          <Button color="light" className="btn-rounded px-4" onClick={onClose}>
+            Fechar
+          </Button>
+          <Button color="primary" className="btn-rounded px-4 shadow-primary" onClick={() => handleSave(onClose)}>
+            Salvar Chamada
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
+AttendanceModal.propTypes = {
+  isOpen: PropTypes.bool,
+  onClose: PropTypes.func,
+  schedule: PropTypes.shape({
+    activityName: PropTypes.string,
+    startTime: PropTypes.string,
+    endTime: PropTypes.string,
+    maxCapacity: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    employeeName: PropTypes.string,
+    areaName: PropTypes.string,
+  }),
+}
+
+export default AttendanceModal

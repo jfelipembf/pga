@@ -3,7 +3,7 @@ import { receivableRepository } from "../../data/repositories/ReceivableReposito
 import { payableRepository } from "../../data/repositories/PayableRepository"
 import { bankAccountRepository } from "../../data/repositories/BankAccountRepository"
 import { cashierRepository } from "../../data/repositories/CashierRepository"
-import { query, where, getAggregateFromServer, sum, getDocs, orderBy } from "firebase/firestore"
+import { query, where, getAggregateFromServer, sum, getDocs } from "firebase/firestore"
 import moment from "moment"
 import { normalizeDate } from "../../utils/date"
 
@@ -50,38 +50,52 @@ export const FinancialDashboardService = {
      * Busca transações reais para montar o gráfico.
      */
     getMonthData: async (idTenant, idBranch, date) => {
-        const start = normalizeDate(moment(date).startOf('month'));
-        const end = normalizeDate(moment(date).endOf('month'));
-        const collectionRef = transactionRepository.getCollectionRef(idTenant, idBranch);
+        try {
+            const start = normalizeDate(moment(date).startOf('month'));
+            const end = normalizeDate(moment(date).endOf('month'));
+            const collectionRef = transactionRepository.getCollectionRef(idTenant, idBranch);
 
-        // Buscar transações para o gráfico e totais
-        // Limitamos para segurança, mas para gráfico preciso de todas ou agregação diária.
-        // Assumindo volume razoável (< 2000/mês).
-        const q = query(
-            collectionRef,
-            where('date', '>=', start),
-            where('date', '<=', end),
-            orderBy('date', 'asc')
-        );
+            // Buscar transações (sem orderBy para evitar necessidade de índice composto com range)
+            const q = query(
+                collectionRef,
+                where('date', '>=', start),
+                where('date', '<=', end)
+            );
 
-        const snapshot = await getDocs(q);
-        const transactions = snapshot.docs.map(doc => doc.data());
+            const snapshot = await getDocs(q);
+            const transactions = snapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data() }))
+                .sort((a, b) => {
+                    const da = a.date?.toDate ? a.date.toDate() : new Date(a.date);
+                    const db = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+                    return da - db;
+                });
 
-        const income = transactions
-            .filter(t => t.type === 'income')
-            .reduce((acc, curr) => acc + (parseFloat(curr.netAmount || curr.amount) || 0), 0);
+            const income = transactions
+                .filter(t => t.type === 'income')
+                .reduce((acc, curr) => acc + (parseFloat(curr.netAmount || curr.amount) || 0), 0);
 
-        const expense = transactions
-            .filter(t => t.type === 'expense')
-            .reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+            const expense = transactions
+                .filter(t => t.type === 'expense')
+                .reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
 
-        return {
-            income,
-            expense,
-            balance: income - expense,
-            monthName: moment(date).format('MMMM'),
-            transactions // Retornamos para processar o gráfico no frontend ou hook
-        };
+            return {
+                income,
+                expense,
+                balance: income - expense,
+                monthName: moment(date).format('MMMM'),
+                transactions
+            };
+        } catch (error) {
+            console.error("Erro ao buscar dados mensais:", error);
+            return {
+                income: 0,
+                expense: 0,
+                balance: 0,
+                monthName: moment(date).format('MMMM'),
+                transactions: []
+            };
+        }
     },
 
     /**

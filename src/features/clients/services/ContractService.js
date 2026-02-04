@@ -26,7 +26,7 @@ export const ContractService = {
                 type: 'contract',
                 createdAt: normalizeDate(new Date()),
                 updatedAt: normalizeDate(new Date()),
-                deleted: false
+                deletedAt: null
             })
 
             await AuditService.log({
@@ -81,25 +81,33 @@ export const ContractService = {
      * Lista contratos ativos para o Select de Vendas
      */
     listActiveContracts: async (idTenant, idBranch) => {
-        return await contractRepository.findActiveContracts(idTenant, idBranch)
+        return await contractRepository.findActivePlans(idTenant, idBranch)
     },
 
     /**
      * Lista todos (incluindo desativados, mas não deletados) para Gestão
      */
     listAllContracts: async (idTenant, idBranch) => {
-        return await contractRepository.findAll(idTenant, idBranch)
+        return await contractRepository.findVisiblePlans(idTenant, idBranch)
     },
 
     /**
      * Soft Delete (apenas marca como deletado)
      */
     deleteContract: async (idTenant, idBranch, userId, idContract) => {
-        const result = await contractRepository.update(idTenant, idBranch, idContract, {
-            deleted: true,
-            isActive: false,
-            updatedAt: normalizeDate(new Date())
-        })
+        // 1. CHECK: Existem alunos usando este plano?
+        const { clientContractRepository } = await import('../repositories/ClientContractRepository')
+        const usages = await clientContractRepository.findWhere(idTenant, idBranch, [
+            ['idPlan', '==', idContract],
+            ['status', '==', 'active']
+        ])
+
+        if (usages.length > 0) {
+            throw new Error(`SEGURANÇA: Este plano possui ${usages.length} contratos de alunos ativos. Você deve cancelar ou migrar os alunos antes de excluir o plano. Sugestão: Apenas desative o plano (isActive = false).`)
+        }
+
+        // 2. Soft Delete
+        const result = await contractRepository.softDelete(idTenant, idBranch, idContract, userId)
 
         await AuditService.log({
             idTenant, idBranch, userId,

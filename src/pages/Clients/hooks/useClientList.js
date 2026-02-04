@@ -1,25 +1,20 @@
 import { useState, useEffect, useCallback } from "react"
-import { useSelector } from "react-redux"
+import { useTenant } from "../../../hooks/useTenant"
 import { ClientService } from "../../../features/clients"
 import { toast } from "react-toastify"
 
 export const useClientList = () => {
+    const { idTenant, idBranch, isReady } = useTenant()
     const [clients, setClients] = useState([])
     const [loading, setLoading] = useState(true)
 
-    // Obter tenant e branch ativos do Redux (já com IDs resolvidos)
-    const { activeTenant, activeBranch, loading: loadingTenant } = useSelector(state => state.Tenant)
-
     const refreshClients = useCallback(async () => {
-        // Só busca se tiver os IDs reais carregados
-        if (!activeTenant?.idTenant || !activeBranch?.idBranch) {
-            return
-        }
+        if (!isReady) return
 
         try {
 
             setLoading(true)
-            const data = await ClientService.listClients(activeTenant.idTenant, activeBranch.idBranch)
+            const data = await ClientService.listClients(idTenant, idBranch)
 
             setClients(data)
         } catch (error) {
@@ -28,19 +23,41 @@ export const useClientList = () => {
         } finally {
             setLoading(false)
         }
-    }, [activeTenant, activeBranch])
+    }, [idTenant, idBranch, isReady])
 
     // Carrega clientes quando tenant/branch mudarem ou forem carregados
     useEffect(() => {
-        if (!loadingTenant && activeTenant?.idTenant && activeBranch?.idBranch) {
+        if (isReady) {
             refreshClients()
         }
-    }, [activeTenant, activeBranch, loadingTenant, refreshClients])
+    }, [isReady, refreshClients])
+
+    const [modalOpen, setModalOpen] = useState(false)
+
+    // Handlers
+    const handleModalSubmit = async (values) => {
+        // Lógica de submit será implementada quando tivermos o NewClientModal
+        console.log("Submit values:", values)
+        setModalOpen(false)
+        await refreshClients()
+    }
+
+    const handleRowClick = (client, navigate) => {
+        if (navigate) {
+            navigate(`/clients/${client.id}`)
+        }
+    }
 
     return {
         clients,
         setClients,
-        loading: loading || loadingTenant, // Combina loading
-        refreshClients
+        loading,
+        refreshClients,
+        // UI State
+        modalOpen,
+        setModalOpen,
+        handleModalSubmit,
+        handleRowClick
     }
 }
+

@@ -74,11 +74,14 @@ export const toISODate = (date) => {
 export const normalizeDate = (date) => {
     if (!date) return null;
 
-    // Se já for um Date do JS
+    // Se for um objeto do Moment.js
+    if (moment.isMoment(date)) return date.toDate();
+
+    // Se for um Date do JS
     if (date instanceof Date) return date;
 
-    // Se for um Timestamp do Firestore
-    if (date.seconds) return new Date(date.seconds * 1000);
+    // Se for um Timestamp do Firestore (.seconds deve ser número)
+    if (date && typeof date.seconds === 'number') return new Date(date.seconds * 1000);
 
     // Se for uma string (comum vir de inputs HTML como YYYY-MM-DD)
     if (typeof date === 'string') {

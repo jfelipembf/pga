@@ -13,7 +13,8 @@ export const BankAccountService = {
             const payload = {
                 ...validated,
                 createdAt: normalizeDate(new Date()),
-                updatedAt: normalizeDate(new Date())
+                updatedAt: normalizeDate(new Date()),
+                deletedAt: null
             }
 
             const newAccount = await bankAccountRepository.create(idTenant, idBranch, payload)
@@ -57,7 +58,7 @@ export const BankAccountService = {
     },
 
     listAll: async (idTenant, idBranch) => {
-        return await bankAccountRepository.findAll(idTenant, idBranch)
+        return await bankAccountRepository.findVisible(idTenant, idBranch)
     },
 
     update: async (idTenant, idBranch, userId, id, data) => {
@@ -123,14 +124,30 @@ export const BankAccountService = {
     },
 
     delete: async (idTenant, idBranch, userId, id) => {
-        const result = await bankAccountRepository.delete(idTenant, idBranch, id)
+        // 1. CHECK: Tem transações vinculadas?
+        const transactions = await transactionRepository.findWhere(idTenant, idBranch, [
+            ['idBankAccount', '==', id],
+            ['deletedAt', '==', null]
+        ], null, 1);
+
+        if (transactions.length > 0) {
+            throw new Error("SEGURANÇA: Esta conta possui histórico de transações e não pode ser excluída para preservar a integridade financeira. Sugestão: Apenas desative a conta.");
+        }
+
+        // 2. CHECK: É uma conta principal?
+        const account = await bankAccountRepository.findById(idTenant, idBranch, id);
+        if (account?.isPrimary) {
+            throw new Error("SEGURANÇA: Não é possível excluir a conta principal do sistema.");
+        }
+
+        const result = await bankAccountRepository.softDelete(idTenant, idBranch, id, userId)
 
         await AuditService.log({
             idTenant, idBranch, userId,
             action: 'BANK_ACCOUNT_DELETED',
             entityType: 'bankAccount',
             entityId: id,
-            description: `Conta bancária excluída permanentemente.`
+            description: `Conta bancária excluída (soft delete): ${account?.name}`
         });
 
         return result

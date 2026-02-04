@@ -51,9 +51,11 @@ export const SalesService = {
         const newSale = await salesRepository.create(idTenant, idBranch, {
             ...saleData,
             saleNumber: saleNumber,
-            friendlyId: saleNumber, // friendlyId = saleNumber
+            friendlyId: saleNumber,
             status: saleData.balance > 0.01 ? 'partial' : 'paid',
-            createdAt: new Date()
+            createdBy: userId, // ✅ Fundamental para o Dashboard Operacional
+            createdAt: new Date(),
+            deletedAt: null
         })
 
 
@@ -247,10 +249,60 @@ export const SalesService = {
      * Lista o histórico de vendas de um cliente.
      */
     listByClient: async (idTenant, idBranch, idClient) => {
-        return await salesRepository.findWhere(idTenant, idBranch,
+        const data = await salesRepository.findWhere(idTenant, idBranch,
             [['idClient', '==', idClient]],
             { field: 'saleDate', direction: 'desc' }
         );
+        return data.filter(s => !s.deletedAt);
+    },
+
+    /**
+     * Lista todas as vendas (com suporte a filtros básicos)
+     */
+    listAll: async (idTenant, idBranch, limit = 50) => {
+        const data = await salesRepository.findWhere(idTenant, idBranch, [], { field: 'saleDate', direction: 'desc' }, limit);
+        return data.filter(s => !s.deletedAt);
+    },
+
+    /**
+     * Exclui uma venda (Soft Delete)
+     * Regra: Só permite se não houver recebíveis JÁ PAGOS.
+     */
+    deleteSale: async (idTenant, idBranch, userId, idSale) => {
+        const sale = await salesRepository.findById(idTenant, idBranch, idSale)
+        if (!sale) throw new Error("Venda não encontrada")
+
+        // 1. CHECK: Existem pagamentos já realizados ou baixas?
+        if ((parseFloat(sale.totalPaid) || 0) > 0.01) {
+            throw new Error("SEGURANÇA: Esta venda já possui pagamentos registrados (Dinheiro, PIX ou Cartão). Não é possível excluir uma venda com movimentação financeira. Sugestão: Cancele a venda para gerar os estornos necessários.")
+        }
+
+        const { receivableRepository } = await import('../../data/repositories/ReceivableRepository')
+        const receivables = await receivableRepository.findWhere(idTenant, idBranch, [['idSale', '==', idSale]])
+
+        const hasPaid = receivables.some(r => r.status === 'paid' || (parseFloat(r.paid) || 0) > 0)
+        if (hasPaid) {
+            throw new Error("SEGURANÇA: Esta venda possui títulos já liquidados. Estorne os recebimentos antes de excluir.")
+        }
+
+        // 2. Soft Delete na Venda
+        await salesRepository.softDelete(idTenant, idBranch, idSale, userId)
+
+        // 3. Soft Delete nos Recebíveis pendentes
+        for (const rec of receivables) {
+            await receivableRepository.softDelete(idTenant, idBranch, rec.id, userId)
+        }
+
+        // 4. Auditoria
+        await AuditService.log({
+            idTenant, idBranch, userId,
+            action: 'SALE_DELETED',
+            entityType: 'sale',
+            entityId: idSale,
+            description: `Venda #${sale.saleNumber} excluída (soft delete). Todos os títulos em aberto foram removidos.`
+        })
+
+        return { success: true }
     },
 
     /**

@@ -24,9 +24,10 @@ export const SalesPaymentProcessor = {
             netAmount: pValue,
             category: 'sale',
             method: 'dinheiro',
-            description: `Pgto Venda #${sale.saleNumber || sale.id.substring(0, 6)} - Dinheiro`,
+            description: `Venda #${sale.saleNumber || sale.id.substring(0, 6)}`,
             idSale: sale.id,
             saleNumber: sale.saleNumber,
+            clientName: sale.clientName, // ✅ Novo: Identificação do cliente no caixa
             userName: sale.sellerName // Garante Snapshot para Auditoria
         })
 
@@ -52,9 +53,10 @@ export const SalesPaymentProcessor = {
             netAmount: pValue,
             category: 'sale',
             method: 'pix',
-            description: `Pgto Venda #${sale.saleNumber || sale.id.substring(0, 6)} - PIX`,
+            description: `Venda #${sale.saleNumber || sale.id.substring(0, 6)}`,
             idSale: sale.id,
             saleNumber: sale.saleNumber,
+            clientName: sale.clientName, // ✅ Novo: Identificação do cliente no caixa
             metadata: { shouldBeBankTransaction: true },
             userName: sale.sellerName // Garante Snapshot para Auditoria
         })

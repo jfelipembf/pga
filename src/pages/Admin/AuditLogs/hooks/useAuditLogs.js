@@ -13,6 +13,7 @@ export const useAuditLogs = () => {
     const [filters, setFilters] = useState({
         action: 'all',
         entityType: 'all',
+        severity: 'all',
         startDate: null,
         endDate: null
     })
@@ -33,8 +34,8 @@ export const useAuditLogs = () => {
             }).length;
 
             const criticalActions = data.filter(l =>
+                l.severity === 'CRITICAL' ||
                 String(l.action).toUpperCase().includes('DELETE') ||
-                String(l.action).toUpperCase().includes('CANCEL') ||
                 String(l.action).toUpperCase().includes('ERROR')
             ).length;
 

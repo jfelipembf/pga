@@ -29,7 +29,8 @@ export const PayableService = {
             dueDate: normalizeDate(payableData.dueDate),
             status: payableData.status || 'open',
             createdBy: userId,
-            createdAt: new Date()
+            createdAt: new Date(),
+            deletedAt: null
         })
 
         // ✅ LANÇAMENTO CONTÁBIL (Partidas Dobradas)
@@ -146,7 +147,8 @@ export const PayableService = {
      * Lista todas as contas a pagar da unidade
      */
     listAll: async (idTenant, idBranch) => {
-        return await payableRepository.findAll(idTenant, idBranch)
+        const data = await payableRepository.findAll(idTenant, idBranch)
+        return data.filter(p => !p.deletedAt)
     },
 
     /**
@@ -188,11 +190,14 @@ export const PayableService = {
             whereClauses.push(['dueDate', '<=', end]);
         }
 
-        return await payableRepository.findWhere(idTenant, idBranch,
+        const rawData = await payableRepository.findWhere(idTenant, idBranch,
             whereClauses,
             { field: 'dueDate', direction: 'asc' },
             limitCount
         );
+
+        // Filtro em memória (Robustez contra falta de índice composto deletedAt + dueDate)
+        return rawData.filter(p => !p.deletedAt);
     },
 
     /**
@@ -210,7 +215,31 @@ export const PayableService = {
             action: 'PAYABLE_UPDATED',
             entityType: 'payable',
             entityId: id,
-            description: `Conta a pagar atualizada: ${data.description || data.title}`
+            description: `Conta a pagar atualizada: ${data.description || data.title || id}`
+        })
+
+        return result
+    },
+
+    /**
+     * Exclusão Lógica (Soft Delete)
+     */
+    deletePayable: async (idTenant, idBranch, userId, idPayable) => {
+        const payable = await payableRepository.findById(idTenant, idBranch, idPayable)
+        if (!payable) throw new Error("Conta não encontrada")
+
+        if (payable.status === 'paid') {
+            throw new Error("SEGURANÇA: Não é possível excluir uma conta que já foi paga. Estorne o pagamento primeiro.")
+        }
+
+        const result = await payableRepository.softDelete(idTenant, idBranch, idPayable, userId)
+
+        await AuditService.log({
+            idTenant, idBranch, userId,
+            action: 'PAYABLE_DELETED',
+            entityType: 'payable',
+            entityId: idPayable,
+            description: `Conta a pagar excluída (soft delete): ${payable.expenseNumber || idPayable}`
         })
 
         return result

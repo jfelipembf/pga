@@ -25,21 +25,24 @@ export const AuditService = {
         entityType,
         entityId,
         description,
-        details = {}
+        details = {},
+        severity = 'INFO' // INFO, WARNING, CRITICAL
     }) => {
         try {
             const logData = {
                 userId,
-                userName: userName || null, // Denormaliza o nome para histórico
+                userName: userName || null,
                 action,
                 entityType,
                 entityId,
-                description: description || '', // Agora é salvo explicitamente e protegido contra undefined
+                description: description || '',
                 details,
+                severity,
                 timestamp: normalizeDate(new Date()),
                 metadata: {
                     userAgent: navigator.userAgent,
-                    platform: navigator.platform
+                    platform: navigator.platform,
+                    url: window.location.href
                 }
             }
 
@@ -49,6 +52,25 @@ export const AuditService = {
             console.error("Erro ao gravar log de auditoria:", error)
             return false
         }
+    },
+
+    /**
+     * Registra um erro crítico no sistema para rastreamento técnico.
+     */
+    logError: async (idTenant, idBranch, userId, error, context = {}) => {
+        return AuditService.log({
+            idTenant,
+            idBranch,
+            userId,
+            action: 'SYSTEM_ERROR',
+            entityType: 'technical_log',
+            description: error.message || 'Erro desconhecido',
+            severity: 'CRITICAL',
+            details: {
+                stack: error.stack,
+                ...context
+            }
+        })
     },
 
     /**
@@ -63,6 +85,9 @@ export const AuditService = {
             }
             if (filters.entityType && filters.entityType !== 'all') {
                 whereClauses.push(['entityType', '==', filters.entityType]);
+            }
+            if (filters.severity && filters.severity !== 'all') {
+                whereClauses.push(['severity', '==', filters.severity]);
             }
             if (filters.userId && filters.userId !== 'all') {
                 whereClauses.push(['userId', '==', filters.userId]);

@@ -77,3 +77,41 @@ export const PAYABLE_STATUS_COLORS = {
     [PAYABLE_STATUS.OVERDUE]: 'danger',
     [PAYABLE_STATUS.CANCELLED]: 'secondary'
 };
+export const STUDENT_STATUS = {
+    ACTIVE: 'active',
+    INACTIVE: 'inactive',
+    EXPERIMENT: 'experiment',
+    PENDING: 'pending'
+}
+
+export const ATTENDANCE_STATUS = {
+    PRESENT: 'present',
+    ABSENT: 'absent',
+    EDITING: 'editing'
+}
+
+export const ATTENDANCE_STATUS_LABELS = {
+    [ATTENDANCE_STATUS.PRESENT]: 'Presente',
+    [ATTENDANCE_STATUS.ABSENT]: 'Faltou',
+    [ATTENDANCE_STATUS.EDITING]: 'Editando'
+}
+
+export const WEEKDAYS = {
+    SUNDAY: 0,
+    MONDAY: 1,
+    TUESDAY: 2,
+    WEDNESDAY: 3,
+    THURSDAY: 4,
+    FRIDAY: 5,
+    SATURDAY: 6
+}
+
+export const WEEKDAY_LABELS = {
+    [WEEKDAYS.SUNDAY]: 'Domingo',
+    [WEEKDAYS.MONDAY]: 'Segunda',
+    [WEEKDAYS.TUESDAY]: 'Terça',
+    [WEEKDAYS.WEDNESDAY]: 'Quarta',
+    [WEEKDAYS.THURSDAY]: 'Quinta',
+    [WEEKDAYS.FRIDAY]: 'Sexta',
+    [WEEKDAYS.SATURDAY]: 'Sábado'
+}

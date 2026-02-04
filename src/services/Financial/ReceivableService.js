@@ -17,92 +17,137 @@ export const ReceivableService = {
         const receivable = await receivableRepository.findById(idTenant, idBranch, idReceivable)
         if (!receivable) throw new Error("Título a receber não encontrado")
         if (receivable.status === 'paid') throw new Error("Título já está liquidado")
+        if (receivable.deletedAt) throw new Error("Título já foi excluído")
 
         const amountToPay = parseFloat(paymentData.amount) || receivable.pending
+        const settlementAmount = Number(amountToPay);
 
-        // 1. Atualizar o documento de Recebível
+        // 1. Validar e Buscar Conta Bancária
+        const { bankAccountRepository } = await import('../../data/repositories/BankAccountRepository')
+        const idBankAccount = paymentData.idBankAccount || 'CAIXA'
+        const bankAccount = await bankAccountRepository.findById(idTenant, idBranch, idBankAccount);
+        if (!bankAccount && idBankAccount !== 'CAIXA') throw new Error("Conta bancária de destino não encontrada.");
+
+        // 2. Cálculo de Taxas
+        const feePercent = parseFloat(paymentData.estimatedFee) || receivable.feePercent || 0;
+        const feeAmount = feePercent > 0 ? (settlementAmount * (feePercent / 100)) : (receivable.feeAmount || 0);
+        const netAmount = settlementAmount - feeAmount;
+
+        // 3. Registrar no Fluxo de Caixa (Income)
+        await CashierService.registerMovement(idTenant, idBranch, userId, {
+            type: 'income',
+            amount: settlementAmount,
+            netAmount: netAmount,
+            category: 'receivable_payment',
+            method: paymentData.method || receivable.paymentMethod,
+            description: `Rec. Título ${idReceivable} - Cliente: ${receivable.clientName}`,
+            clientName: receivable.clientName,
+            idReceivable: idReceivable,
+            idSale: receivable.idSale,
+            idBankAccount: idBankAccount
+        })
+
+        // 4. Atualizar Saldo da Conta Bancária (se não for caixa manual)
+        if (bankAccount) {
+            const currentBalance = Number(bankAccount.currentBalance || 0);
+            const newBalance = currentBalance + netAmount;
+            await bankAccountRepository.update(idTenant, idBranch, idBankAccount, {
+                currentBalance: newBalance,
+                updatedAt: new Date()
+            });
+        }
+
+        // 5. Atualizar o documento de Recebível
+        const remaining = Math.max(0, (receivable.pending || receivable.amount) - settlementAmount);
         const updatedData = {
-            paid: (receivable.paid || 0) + amountToPay,
-            pending: Math.max(0, receivable.pending - amountToPay),
-            status: (receivable.pending - amountToPay) <= 0 ? 'paid' : 'open',
+            paid: (receivable.paid || 0) + settlementAmount,
+            pending: remaining,
+            status: remaining <= 0.01 ? 'paid' : 'open',
+            settlementDate: normalizeDate(paymentData.settlementDate) || new Date(),
+            amountReceived: netAmount,
+            extraFeeAmount: feeAmount,
+            idBankAccount: idBankAccount,
             paidAt: new Date(),
             updatedAt: new Date()
         }
 
         await receivableRepository.update(idTenant, idBranch, idReceivable, updatedData)
 
-        // 2. ✅ LANÇAMENTO CONTÁBIL (Partidas Dobradas - Liquidação de Recebível)
-        // Baixa o recebível e credita o banco/caixa
-        // Se houver taxa, registra como despesa
-        const feeAmount = receivable.feeAmount || 0
-        const netAmount = amountToPay - feeAmount
+        // 6. Se sobrou resíduo e o usuário quer manter aberto (Opcional - pode ser tratado via nova criação de título se necessário)
+        // Por padrão o 'pending' já reflete o saldo aberto se for liquidação parcial.
 
+        // 7. Lançamento Contábil
         try {
             await LedgerService.settleReceivableEntry(idTenant, idBranch, receivable, {
-                amount: amountToPay,
+                amount: settlementAmount,
                 feeAmount: feeAmount,
                 netAmount: netAmount,
-                idBankAccount: paymentData.idBankAccount || 'CAIXA',
-                bankAccountName: paymentData.bankAccountName || 'Caixa',
-                settlementDate: normalizeDate(paymentData.settlementDate) || new Date()
+                idBankAccount: idBankAccount,
+                bankAccountName: bankAccount?.name || 'Caixa',
+                settlementDate: updatedData.settlementDate
             })
         } catch (ledgerError) {
-            console.error("Erro ao criar lançamento contábil de recebimento:", ledgerError)
-            // Não falha a operação, mas loga o erro
+            console.error("Erro contábil:", ledgerError)
         }
 
-        // 3. Registrar no Fluxo de Caixa (Income)
-        await CashierService.registerMovement(idTenant, idBranch, userId, {
-            type: 'income',
-            amount: amountToPay,
-            netAmount: netAmount, // Valor líquido (descontando taxas)
-            category: 'receivable_payment',
-            method: paymentData.method || receivable.paymentMethod,
-            description: `Rec. Título ${idReceivable} - Cliente: ${receivable.clientName}`,
-            idReceivable: idReceivable,
-            idSale: receivable.idSale
-        })
-
-        // 4. Auditoria
+        // 8. Auditoria
         await AuditService.log({
             idTenant, idBranch, userId,
-            userName: paymentData.userName, // Recebe do frontend ou busca do Auth
+            userName: paymentData.userName,
             action: 'RECEIVABLE_SETTLED',
             entityType: 'receivable',
             entityId: idReceivable,
-            description: `Recebimento de R$ ${amountToPay.toFixed(2)} do cliente ${receivable.clientName}${feeAmount > 0 ? ` (Taxa: R$ ${feeAmount.toFixed(2)})` : ''}`,
-            details: updatedData
+            description: `Recebimento de R$ ${settlementAmount.toFixed(2)} do cliente ${receivable.clientName}`,
+            details: { ...updatedData, method: paymentData.method }
         })
 
-        // 5. ATUALIZAÇÃO DO STATUS DA VENDA (Se originado de uma venda parcial)
+        // 9. ATUALIZAÇÃO DO STATUS DA VENDA
         if (receivable.idSale && updatedData.status === 'paid') {
-            try {
-                // Verificar se existem outros títulos pendentes DO CLIENTE para esta mesma venda
-                // Ignoramos tipos 'acquirer' (cartão), pois para o cliente a venda já está paga.
-                const otherPending = await receivableRepository.findWhere(idTenant, idBranch, [
-                    ['idSale', '==', receivable.idSale],
-                    ['status', '==', 'open'],
-                    ['type', '==', 'client'], // Apenas dívidas diretas do cliente
-                    ['id', '!=', idReceivable]
-                ]);
+            const otherPending = await receivableRepository.findWhere(idTenant, idBranch, [
+                ['idSale', '==', receivable.idSale],
+                ['status', '==', 'open'],
+                ['type', '==', 'client'],
+                ['deletedAt', '==', null]
+            ]);
 
-                // Se não houver mais nada em aberto para esta venda, mudamos o status da venda para 'paid'
-                if (otherPending.length === 0) {
-                    console.log(`[ReceivableService] OK! Tudo pago. Atualizando venda ${receivable.idSale} para 'paid'...`);
-                    await salesRepository.update(idTenant, idBranch, receivable.idSale, {
-                        status: 'paid',
-                        updatedAt: new Date()
-                    });
-                    console.log(`[ReceivableService] Sucesso! Venda ${receivable.idSale} agora é 'paid'.`);
-                } else {
-                    console.log(`[ReceivableService] Venda ${receivable.idSale} ainda tem ${otherPending.length} pendências do tipo client.`);
-                }
-            } catch (saleUpdateError) {
-                console.error("Erro ao tentar atualizar status da venda vinculada:", saleUpdateError);
+            if (otherPending.filter(p => p.id !== idReceivable).length === 0) {
+                await salesRepository.update(idTenant, idBranch, receivable.idSale, {
+                    status: 'paid',
+                    updatedAt: new Date()
+                });
             }
         }
 
         return { id: idReceivable, ...updatedData }
+    },
+
+    /**
+     * Lista todos os recebíveis com filtros (Data, Limite, etc)
+     */
+    listAll: async (idTenant, idBranch, options = {}) => {
+        const { startDate, endDate, limit = 50 } = options;
+        const filters = [];
+
+        if (startDate) {
+            const start = normalizeDate(startDate);
+            if (start) filters.push(['dueDate', '>=', start]);
+        }
+        if (endDate) {
+            const end = normalizeDate(endDate);
+            if (end) filters.push(['dueDate', '<=', end]);
+        }
+
+        // Buscamos do repositório
+        // Nota: Não filtramos deletedAt no query para evitar necessidade de índices compostos complexos (Robustez)
+        const rawData = await receivableRepository.findWhere(
+            idTenant, idBranch,
+            filters,
+            { field: 'dueDate', direction: 'desc' },
+            limit
+        );
+
+        // Filtramos em memória
+        return rawData.filter(r => !r.deletedAt);
     },
 
     /**
@@ -114,7 +159,8 @@ export const ReceivableService = {
         const [receivables, sales] = await Promise.all([
             receivableRepository.findWhere(idTenant, idBranch, [
                 ['idClient', '==', idClient],
-                ['status', '!=', 'cancelled']
+                ['status', '!=', 'cancelled'],
+                ['deletedAt', '==', null]
             ]),
             salesRepository.findWhere(idTenant, idBranch, [
                 ['idClient', '==', idClient]
@@ -171,13 +217,6 @@ export const ReceivableService = {
             }
         });
 
-        console.log("[ReceivableService] Resumo Calculado:", {
-            idClient,
-            totalOwed: summary.totalOwed,
-            totalPaid: summary.totalPaid,
-            totalPending: summary.totalPending,
-            totalBankReceivable: summary.totalBankReceivable
-        });
 
         return summary;
     },
@@ -187,7 +226,7 @@ export const ReceivableService = {
      */
     listByClient: async (idTenant, idBranch, idClient) => {
         return await receivableRepository.findWhere(idTenant, idBranch,
-            [['idClient', '==', idClient]],
+            [['idClient', '==', idClient], ['deletedAt', '==', null]],
             { field: 'dueDate', direction: 'desc' }
         );
     },
@@ -196,6 +235,10 @@ export const ReceivableService = {
      * Cancela um recebível
      */
     cancelReceivable: async (idTenant, idBranch, userId, idReceivable, reason) => {
+        const receivable = await receivableRepository.findById(idTenant, idBranch, idReceivable)
+        if (!receivable) throw new Error("Título não encontrado")
+        if (receivable.status === 'paid') throw new Error("Não é possível cancelar um título já recebido.")
+
         await receivableRepository.update(idTenant, idBranch, idReceivable, {
             status: 'cancelled',
             description: `Cancelado: ${reason}`,
@@ -209,5 +252,116 @@ export const ReceivableService = {
             entityId: idReceivable,
             description: `Título a receber cancelado. Motivo: ${reason}`
         })
+    },
+
+    /**
+     * Soft Delete (Exclui sem perder histórico financeiro)
+     */
+    deleteReceivable: async (idTenant, idBranch, userId, idReceivable) => {
+        const receivable = await receivableRepository.findById(idTenant, idBranch, idReceivable)
+        if (!receivable) throw new Error("Título não encontrado")
+
+        if (receivable.status === 'paid') {
+            throw new Error("SEGURANÇA: Não é possível excluir um título já pago. Cancele ou estorne o pagamento primeiro.")
+        }
+
+        await receivableRepository.softDelete(idTenant, idBranch, idReceivable, userId)
+
+        await AuditService.log({
+            idTenant, idBranch, userId,
+            action: 'RECEIVABLE_DELETED',
+            entityType: 'receivable',
+            entityId: idReceivable,
+            description: `Título a receber excluído (soft delete): ${receivable.description || idReceivable}`
+        })
+    },
+
+    /**
+     * Antecipação de Recebíveis (Bulk)
+     */
+    anticipateReceivables: async (idTenant, idBranch, userId, data) => {
+        const { receivableIds, idBankAccount, anticipationFee, totalNet, totalGross, totalExtraFee, settlementDate, userName } = data;
+
+        // 1. Buscar conta bancária
+        const { bankAccountRepository } = await import('../../data/repositories/BankAccountRepository')
+        const bankAccount = await bankAccountRepository.findById(idTenant, idBranch, idBankAccount);
+        if (!bankAccount) throw new Error("Conta não encontrada");
+
+        const { transactionRepository } = await import('../../data/repositories/TransactionRepository')
+
+        // 2. Processar cada recebível
+        for (const id of receivableIds) {
+            const rawRec = await receivableRepository.findById(idTenant, idBranch, id);
+            const gross = parseFloat(rawRec.amount) || 0;
+            const feeShare = gross * (anticipationFee / 100);
+            const netShare = gross - feeShare;
+
+            await receivableRepository.update(idTenant, idBranch, id, {
+                status: 'paid',
+                settlementDate: settlementDate,
+                amountReceived: netShare,
+                extraFeeAmount: feeShare,
+                idBankAccount,
+                notes: `Antecipado via Bulk. Taxa: ${anticipationFee}%`,
+                updatedAt: new Date()
+            });
+
+            // Lançamento Contábil (Individual por recebível para o Ledger bater)
+            try {
+                await LedgerService.settleReceivableEntry(idTenant, idBranch, rawRec, {
+                    amount: gross,
+                    feeAmount: feeShare,
+                    netAmount: netShare,
+                    idBankAccount: idBankAccount,
+                    bankAccountName: bankAccount.name,
+                    settlementDate: normalizeDate(settlementDate)
+                });
+            } catch (le) { console.error("Erro contábil na antecipação:", le); }
+        }
+
+        // 3. Registrar Transações Financeiras de Ajuste de Caixa (Bulk para o extrato ficar limpo)
+        await transactionRepository.create(idTenant, idBranch, {
+            date: normalizeDate(settlementDate),
+            description: `Antecipação (Valor Bruto) - ${receivableIds.length} títulos`,
+            amount: totalGross,
+            type: 'income',
+            category: 'Movimentação Interna (Antecipação)',
+            idBankAccount,
+            sourceType: 'receivable_bulk',
+            createdAt: new Date(),
+            userName: userName
+        });
+
+        await transactionRepository.create(idTenant, idBranch, {
+            date: normalizeDate(settlementDate),
+            description: `Taxa de Antecipação - ${anticipationFee}%`,
+            amount: totalExtraFee,
+            type: 'expense',
+            idBankAccount,
+            sourceType: 'receivable_fee',
+            createdAt: new Date(),
+            userName: userName
+        });
+
+        // 4. Atualizar Saldo Bancário Final
+        const currentBalance = Number(bankAccount.currentBalance || 0);
+        const newBalance = currentBalance + Number(totalNet);
+        await bankAccountRepository.update(idTenant, idBranch, idBankAccount, {
+            currentBalance: newBalance,
+            updatedAt: new Date()
+        });
+
+        // 5. Auditoria
+        await AuditService.log({
+            idTenant, idBranch, userId,
+            userName: userName,
+            action: 'RECEIVABLE_ANTICIPATED',
+            entityType: 'receivable_bulk',
+            entityId: receivableIds.join(','),
+            description: `Antecipação realizada: ${receivableIds.length} títulos. Taxa: ${anticipationFee}%`,
+            details: { totalNet, totalGross, totalExtraFee }
+        });
+
+        return { totalNet, count: receivableIds.length };
     }
 }

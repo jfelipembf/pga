@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
-import { ContractService } from "../../features/clients"
-import { tenantRepository } from "../../data/repositories/TenantRepository"
+import { ContractService } from "../../../services/Financial/ContractService"
+import { tenantRepository } from "../../../data/repositories/TenantRepository"
 import { toast } from "react-toastify"
-import { useTenant } from "../../hooks/useTenant"
+import { useTenant } from "../../../hooks/useTenant"
 
 /**
  * Hook para gerenciar a lógica de listagem e manutenção de Contratos (Planos)
@@ -47,11 +47,13 @@ export const useContractList = () => {
 
     const handleSave = async (data) => {
         try {
+            const userId = 'current-user' // TODO: Get from auth context
+            
             if (selectedId) {
-                await ContractService.updateContract(idTenant, idBranch, selectedId, data);
+                await ContractService.updateContract(idTenant, idBranch, userId, selectedId, data);
                 toast.success("Plano atualizado com sucesso");
             } else {
-                await ContractService.createContract(idTenant, idBranch, data);
+                await ContractService.createContract(idTenant, idBranch, userId, data);
                 toast.success("Novo plano criado com sucesso");
             }
             setIsAddingNew(false);
@@ -74,7 +76,8 @@ export const useContractList = () => {
         if (!window.confirm("Tem certeza que deseja excluir este plano?")) return
 
         try {
-            await ContractService.deleteContract(idTenant, idBranch, id)
+            const userId = 'current-user' // TODO: Get from auth context
+            await ContractService.deleteContract(idTenant, idBranch, userId, id)
             toast.success("Plano excluído com sucesso")
             if (selectedId === id) setSelectedId(null)
             await refreshContracts()

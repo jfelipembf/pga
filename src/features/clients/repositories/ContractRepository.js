@@ -9,12 +9,22 @@ export class ContractRepository extends BaseRepository {
         super("contracts"); // Coleção 'contracts' dentro de tenant/branch
     }
 
-    // Métodos específicos (se houver) além do CRUD padrão do BaseRepository
-    // Ex: buscar contratos ativos para o Select de venda
-    async findActiveContracts(idTenant, idBranch) {
+    /**
+     * Lista planos ativos e visíveis
+     */
+    async findActivePlans(idTenant, idBranch) {
         return await this.findWhere(idTenant, idBranch, [
             ['isActive', '==', true],
-            ['deleted', '==', false]
+            ['deletedAt', '==', null]
+        ]);
+    }
+
+    /**
+     * Lista todos os planos não deletados (mesmo os inativos)
+     */
+    async findVisiblePlans(idTenant, idBranch) {
+        return await this.findWhere(idTenant, idBranch, [
+            ['deletedAt', '==', null]
         ]);
     }
 }

@@ -10,7 +10,10 @@ export const TransactionSchema = Yup.object().shape({
     description: Yup.string().required(),
     idCashierSession: Yup.string().nullable(),
     idSale: Yup.string().nullable(),
-    saleNumber: Yup.string().nullable(), // ID amigável (ex: V20250131-143025)
+    saleNumber: Yup.string().nullable(),
+    clientName: Yup.string().nullable(), // Nome do cliente para identificação rápida
+    createdBy: Yup.string().nullable(), // ID do usuário que gerou
+    userName: Yup.string().nullable(), // Nome do usuário que gerou
     idReceivable: Yup.string().nullable(),
     status: Yup.string().default('completed')
 })

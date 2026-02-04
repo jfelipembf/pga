@@ -39,12 +39,13 @@ const AuditLogsPage = () => {
         setFilters(prev => ({ ...prev, [field]: value }))
     }
 
-    const getActionBadge = (action) => {
+    const getActionBadge = (action, severity) => {
         const actionUpper = String(action || '').toUpperCase();
         let color = "secondary";
         let icon = "circle-outline";
 
-        if (actionUpper.includes('CREATE')) { color = "success"; icon = "plus-circle-outline"; }
+        if (severity === 'CRITICAL') { color = "danger"; icon = "alert-octagon"; }
+        else if (actionUpper.includes('CREATE')) { color = "success"; icon = "plus-circle-outline"; }
         else if (actionUpper.includes('DELETE')) { color = "danger"; icon = "delete-outline"; }
         else if (actionUpper.includes('UPDATE')) { color = "warning"; icon = "pencil-outline"; }
         else if (actionUpper.includes('CANCEL')) { color = "danger"; icon = "close-circle-outline"; }
@@ -107,7 +108,7 @@ const AuditLogsPage = () => {
         {
             label: "Ação",
             key: "action",
-            render: (log) => getActionBadge(log.action)
+            render: (log) => getActionBadge(log.action, log.severity)
         },
         {
             label: "Entidade",
@@ -152,7 +153,8 @@ const AuditLogsPage = () => {
         { id: 'bankAccount', label: 'Contas Bancárias' },
         { id: 'cashier', label: 'Caixa' },
         { id: 'client', label: 'Clientes' },
-        { id: 'plan', label: 'Planos/Contratos' }
+        { id: 'plan', label: 'Planos/Contratos' },
+        { id: 'technical_log', label: 'Logs Técnicos (Erros)' }
     ]
 
     return (
@@ -164,7 +166,7 @@ const AuditLogsPage = () => {
             <Card className="shadow-sm border-0">
                 <CardBody>
                     <Row className="g-3 align-items-end">
-                        <Col md={4}>
+                        <Col md={3}>
                             <Label className="form-label font-size-13 text-muted fw-bold text-uppercase">Entidade</Label>
                             <Input
                                 type="select"
@@ -177,13 +179,27 @@ const AuditLogsPage = () => {
                             </Input>
                         </Col>
 
-                        <Col md={5}>
-                            <Label className="form-label font-size-13 text-muted fw-bold text-uppercase">Busca Rápida (Em Memória)</Label>
+                        <Col md={3}>
+                            <Label className="form-label font-size-13 text-muted fw-bold text-uppercase">Gravidade</Label>
+                            <Input
+                                type="select"
+                                value={filters.severity}
+                                onChange={(e) => handleFilterChange('severity', e.target.value)}
+                            >
+                                <option value="all">Todas</option>
+                                <option value="INFO">Informação</option>
+                                <option value="WARNING">Aviso</option>
+                                <option value="CRITICAL">Crítico / Erro</option>
+                            </Input>
+                        </Col>
+
+                        <Col md={4}>
+                            <Label className="form-label font-size-13 text-muted fw-bold text-uppercase">Busca Rápida</Label>
                             <div className="position-relative">
                                 <Input
                                     type="text"
                                     className="form-control"
-                                    placeholder="Pesquisar nos logs carregados..."
+                                    placeholder="Pesquisar..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
@@ -191,7 +207,7 @@ const AuditLogsPage = () => {
                             </div>
                         </Col>
 
-                        <Col md={3} className="d-flex gap-2">
+                        <Col md={2} className="d-flex gap-2">
                             <Button
                                 color="light"
                                 className="w-100 py-2 border"
@@ -199,7 +215,7 @@ const AuditLogsPage = () => {
                                 active={isFiltersOpen}
                             >
                                 <i className={`mdi mdi-filter-variant me-1`}></i>
-                                {isFiltersOpen ? "Ocultar Datas" : "Filtrar por Data"}
+                                {isFiltersOpen ? "Datas" : "Datas"}
                             </Button>
                         </Col>
                     </Row>

@@ -1,5 +1,5 @@
 import React from "react"
-import { useContractList } from "./useContractList"
+import { useContractList } from "./hooks/useContractList"
 import ManagementLayout from "../../components/Common/ManagementLayout"
 import { ContractFormVisual } from "./ContractFormVisual"
 import { ContractListItem } from "./ContractListItem"

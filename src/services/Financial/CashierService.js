@@ -91,6 +91,7 @@ export const CashierService = {
         const fullMovement = {
             ...movementData,
             idCashierSession: cashierSession.id,
+            createdBy: userId, // ✅ Necessário para o Dashboard Operacional (Minhas Vendas)
             date: normalizeDate(new Date()),
             status: 'completed'
         };
@@ -157,11 +158,13 @@ export const CashierService = {
         if (filters.startDate) whereClauses.push(['date', '>=', normalizeDate(filters.startDate)]);
         if (filters.endDate) whereClauses.push(['date', '<=', normalizeDate(filters.endDate)]);
 
-        return await transactionRepository.findWhere(idTenant, idBranch,
+        const rawData = await transactionRepository.findWhere(idTenant, idBranch,
             whereClauses,
             { field: 'date', direction: 'desc' },
             limitCount
         );
+
+        return rawData.filter(t => !t.deletedAt);
     },
 
     /**
@@ -173,12 +176,14 @@ export const CashierService = {
         const end = normalizeDate(endDate);
 
         // Firestore exige que o campo de filtro de intervalo seja o primeiro na ordenação (ou requires index)
-        return await transactionRepository.findWhere(idTenant, idBranch,
+        const rawData = await transactionRepository.findWhere(idTenant, idBranch,
             [
                 ['date', '>=', start],
                 ['date', '<=', end]
             ],
             { field: 'date', direction: 'desc' }
         );
+
+        return rawData.filter(t => !t.deletedAt);
     }
 }
