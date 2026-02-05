@@ -74,6 +74,31 @@ export const EvaluationService = {
             details: { studentId: payload.idStudent, activityId: payload.idActivity }
         })
 
+        // AUTOMATION TRIGGER (Fire and forget)
+        try {
+            // Importação dinâmica para evitar ciclos e carregar apenas se necessário
+            const { clientRepository } = await import('../../data/repositories/ClientRepository');
+            const { automationService } = await import('../Automation/AutomationService');
+
+            // Buscar dados do aluno para contato
+            const student = await clientRepository.findById(idTenant, idBranch, payload.idStudent);
+
+            if (student) {
+                // Dispara o evento
+                automationService.emit(idTenant, 'EVALUATION_APPROVED', {
+                    studentName: student.name,
+                    studentId: student.id,
+                    phone: student.mobile || student.whatsapp || student.phone, // Tenta várias fontes
+                    responsavel: student.responsibleName || student.name,
+                    levelId: payload.idLevel,
+                    activityId: payload.idActivity,
+                    evaluationId: result.id
+                });
+            }
+        } catch (err) {
+            console.warn('[EvaluationService] Automation Trigger Failed:', err);
+        }
+
         return result
     },
 

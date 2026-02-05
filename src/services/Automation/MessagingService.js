@@ -1,0 +1,76 @@
+import axios from 'axios';
+
+/**
+ * Service to handle WhatsApp interactions via Evolution API
+ */
+class MessagingService {
+    constructor() {
+        // Idealmente, estas configs viriam do Tenant Settings no banco de dados
+        // Para MVP, estamos lendo de variáveis de ambiente ou configs locais
+        this.baseUrl = process.env.REACT_APP_EVOLUTION_API_URL || 'https://api.evolution.com';
+        this.apiKey = process.env.REACT_APP_EVOLUTION_API_KEY;
+    }
+
+    /**
+     * Get instance config for the current tenant
+     * Em um cenário multi-tenant, cada academia pode ter sua instância
+     */
+    getInstanceConfig(tenantId) {
+        // Simulação: buscar do banco ou usar padrão
+        return {
+            instanceName: `tenant_${tenantId}`, // ex: tenant_academia_x
+            token: this.apiKey
+        };
+    }
+
+    /**
+     * Send a plain text message
+     * @param {string} tenantId - Tenant identifier
+     * @param {string} phone - Target phone number (E.164 format preferably)
+     * @param {string} message - Message content
+     */
+    async sendText(tenantId, phone, message) {
+        try {
+            const config = this.getInstanceConfig(tenantId);
+            // Formatar telefone (remover + e caracteres especiais)
+            const cleanPhone = phone.replace(/\D/g, '');
+            const formattedPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
+
+            const url = `${this.baseUrl}/message/sendText/${config.instanceName}`;
+
+            const payload = {
+                number: formattedPhone,
+                options: {
+                    delay: 1200,
+                    presence: "composing",
+                    linkPreview: false
+                },
+                textMessage: {
+                    text: message
+                }
+            };
+
+            const response = await axios.post(url, payload, {
+                headers: {
+                    'apikey': config.token,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            return { success: true, daa: response.data };
+
+        } catch (error) {
+            console.error('[MessagingService] Error sending text:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Send structured content (useful for templates and buttons if supported)
+     */
+    async sendTemplate(tenantId, phone, templateName, variables) {
+        // Placeholder para envio de template
+    }
+}
+
+export const messagingService = new MessagingService();
