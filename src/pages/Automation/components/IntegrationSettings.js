@@ -5,7 +5,10 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
     const [data, setData] = useState({
         evolutionUrl: '',
         evolutionKey: '',
+        evolutionInstanceName: '',
+        evolutionInstanceToken: '',
         openaiKey: '',
+        openaiModel: 'gpt-4o-mini',
         geminiKey: ''
     });
 
@@ -57,6 +60,26 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
                                 placeholder="Ex: global-api-key-..."
                             />
                         </Col>
+                        <Col md={6} className="mb-3">
+                            <Label>Nome da Instância (Padrão)</Label>
+                            <Input
+                                type="text"
+                                name="evolutionInstanceName"
+                                value={data.evolutionInstanceName || ''}
+                                onChange={handleChange}
+                                placeholder="ex: MinhaAcademia"
+                            />
+                        </Col>
+                        <Col md={6} className="mb-3">
+                            <Label>Token da Instância (Opcional)</Label>
+                            <Input
+                                type="password"
+                                name="evolutionInstanceToken"
+                                value={data.evolutionInstanceToken || ''}
+                                onChange={handleChange}
+                                placeholder="Token específico da instância"
+                            />
+                        </Col>
                     </Row>
                 </CardBody>
             </Card>
@@ -72,14 +95,32 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
                     <Row>
                         <Col md={12} className="mb-4">
                             <Label className="fw-bold"><i className="mdi mdi-openai me-1"></i> OpenAI (ChatGPT)</Label>
-                            <Input
-                                type="password"
-                                name="openaiKey"
-                                value={data.openaiKey}
-                                onChange={handleChange}
-                                placeholder="sk-..."
-                            />
-                            <small className="text-muted">Chave de API para gerar textos inteligentes via GPT-4/3.5</small>
+                            <Row>
+                                <Col md={8}>
+                                    <Label className="small">API Key</Label>
+                                    <Input
+                                        type="password"
+                                        name="openaiKey"
+                                        value={data.openaiKey}
+                                        onChange={handleChange}
+                                        placeholder="sk-..."
+                                    />
+                                </Col>
+                                <Col md={4}>
+                                    <Label className="small">Modelo Padrão</Label>
+                                    <Input
+                                        type="select"
+                                        name="openaiModel"
+                                        value={data.openaiModel || 'gpt-4o-mini'}
+                                        onChange={handleChange}
+                                    >
+                                        <option value="gpt-4o">GPT-4o (Mais Inteligente)</option>
+                                        <option value="gpt-4o-mini">GPT-4o Mini (Rápido/Econômico)</option>
+                                        <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                                    </Input>
+                                </Col>
+                            </Row>
+                            <small className="text-muted mt-1 d-block">Chave de API para gerar textos via GPT.</small>
                         </Col>
 
                         <Col md={12} className="border-top pt-3">
