@@ -13,10 +13,14 @@ class AIService {
      * Gera texto com base em um prompt e contexto
      * @param {string} prompt - O comando para a IA
      * @param {object} context - Dados adicionais para enriquecer o prompt
-     * @param {string} model - Modelo específico (opcional)
+     * @param {object} options - Opções extras { apiKey, provider, model }
      */
-    async generateText(prompt, context = {}, model = null) {
-        if (!this.apiKey) {
+    async generateText(prompt, context = {}, options = {}) {
+        const apiKey = options.apiKey || this.apiKey;
+        const provider = options.provider || this.provider;
+        const model = options.model || (provider === 'openai' ? 'gpt-4o-mini' : 'gemini-1.5-flash');
+
+        if (!apiKey) {
             console.error('[AIService] API Key not configured');
             return null;
         }
@@ -24,13 +28,13 @@ class AIService {
         const enrichedPrompt = this._enrichPrompt(prompt, context);
 
         try {
-            if (this.provider === 'openai') {
-                return await this._callOpenAI(enrichedPrompt, model);
-            } else if (this.provider === 'gemini') {
-                return await this._callGemini(enrichedPrompt, model);
+            if (provider === 'openai') {
+                return await this._callOpenAI(enrichedPrompt, model, apiKey);
+            } else if (provider === 'gemini') {
+                return await this._callGemini(enrichedPrompt, model, apiKey);
             }
         } catch (error) {
-            console.error(`[AIService] Error calling ${this.provider}:`, error);
+            console.error(`[AIService] Error calling ${provider}:`, error);
             throw error;
         }
     }
@@ -44,7 +48,7 @@ class AIService {
         return `${prompt}\n\n[Contexto do Aluno/Situação]:\n${contextStr}`;
     }
 
-    async _callOpenAI(prompt, model = 'gpt-4o-mini') {
+    async _callOpenAI(prompt, model, apiKey) {
         const url = 'https://api.openai.com/v1/chat/completions';
 
         const response = await axios.post(url, {
@@ -53,7 +57,7 @@ class AIService {
             temperature: 0.7
         }, {
             headers: {
-                'Authorization': `Bearer ${this.apiKey}`,
+                'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -61,9 +65,11 @@ class AIService {
         return response.data.choices[0].message.content;
     }
 
-    async _callGemini(prompt, model = 'gemini-pro') {
+    async _callGemini(prompt, model, apiKey) {
         // Implementação básica do Gemini REST API
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.apiKey}`;
+        // Se o model vier vazio, garantir um default válido
+        const finalModel = model || 'gemini-1.5-flash';
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${finalModel}:generateContent?key=${apiKey}`;
 
         const response = await axios.post(url, {
             contents: [{

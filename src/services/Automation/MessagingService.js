@@ -29,14 +29,22 @@ class MessagingService {
      * @param {string} phone - Target phone number (E.164 format preferably)
      * @param {string} message - Message content
      */
-    async sendText(tenantId, phone, message) {
+    async sendText(tenantId, phone, message, customConfig = null) {
         try {
-            const config = this.getInstanceConfig(tenantId);
+            const config = customConfig ? {
+                instanceName: customConfig.evolutionInstanceName || customConfig.instanceName,
+                token: customConfig.evolutionInstanceToken || customConfig.evolutionKey || customConfig.apiKey, // Tenta token da instancia ou chave global
+                baseUrl: customConfig.evolutionUrl || this.baseUrl
+            } : this.getInstanceConfig(tenantId);
+
+            // Se customConfig tiver baseUrl, usa, senão usa do this.
+            const baseUrl = customConfig?.evolutionUrl || this.baseUrl;
+
             // Formatar telefone (remover + e caracteres especiais)
             const cleanPhone = phone.replace(/\D/g, '');
             const formattedPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
 
-            const url = `${this.baseUrl}/message/sendText/${config.instanceName}`;
+            const url = `${baseUrl}/message/sendText/${config.instanceName}`;
 
             const payload = {
                 number: formattedPhone,

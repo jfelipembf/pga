@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardBody, CardHeader, Label, Input, Button, Row, Col, Alert } from 'reactstrap';
+import { Card, CardBody, CardHeader, Label, Input, Button, Row, Col, Alert, Spinner } from 'reactstrap';
+import { messagingService } from '../../../services/Automation/MessagingService';
+import { aiService } from '../../../services/Automation/AIService';
+import { toast } from 'react-toastify';
 
 export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
     const [data, setData] = useState({
@@ -13,6 +16,16 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
         geminiModel: 'gemini-1.5-flash'
     });
 
+    // Estados de Teste
+    const [testPhone, setTestPhone] = useState('');
+    const [testMessage, setTestMessage] = useState('Olá! Este é um teste da Lexa.');
+    const [testingWhatsapp, setTestingWhatsapp] = useState(false);
+
+    const [testPrompt, setTestPrompt] = useState('Qual a capital da França?');
+    const [testAiResponse, setTestAiResponse] = useState('');
+    const [testingAi, setTestingAi] = useState(false);
+    const [testAiProvider, setTestAiProvider] = useState('openai');
+
     useEffect(() => {
         if (initialValues) {
             setData(prev => ({ ...prev, ...initialValues }));
@@ -24,6 +37,56 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
         setData(prev => ({ ...prev, [name]: value }));
     }
 
+    // --- TEST HANDLERS ---
+    const runWhatsappTest = async () => {
+        if (!testPhone) return toast.warning('Digite um telefone para o teste');
+        if (!data.evolutionUrl || (!data.evolutionKey && !data.evolutionInstanceToken)) {
+            return toast.error('Configure a URL e chaves do Evolution primeiro');
+        }
+
+        setTestingWhatsapp(true);
+        try {
+            const res = await messagingService.sendText('test', testPhone, testMessage, {
+                evolutionUrl: data.evolutionUrl,
+                evolutionKey: data.evolutionKey,
+                evolutionInstanceName: data.evolutionInstanceName,
+                evolutionInstanceToken: data.evolutionInstanceToken,
+                apiKey: data.evolutionKey
+            });
+
+            if (res.success) {
+                toast.success('Teste Enviado! Verifique seu WhatsApp.');
+            } else {
+                toast.error('Ocorreu um erro: ' + JSON.stringify(res.error || res.daa));
+            }
+        } catch (e) {
+            toast.error('Erro ao conectar: ' + e.message);
+        } finally {
+            setTestingWhatsapp(false);
+        }
+    };
+
+    const runAiTest = async () => {
+        const apiKey = testAiProvider === 'openai' ? data.openaiKey : data.geminiKey;
+        if (!apiKey) return toast.error(`Insira a API Key do ${testAiProvider} acima para testar.`);
+
+        setTestingAi(true);
+        setTestAiResponse('Gerando resposta...');
+        try {
+            const model = testAiProvider === 'openai' ? data.openaiModel : data.geminiModel;
+            const res = await aiService.generateText(testPrompt, {}, {
+                provider: testAiProvider,
+                apiKey,
+                model
+            });
+            setTestAiResponse(res);
+        } catch (e) {
+            setTestAiResponse('ERRO: ' + e.message);
+        } finally {
+            setTestingAi(false);
+        }
+    };
+
     return (
         <div className="animate__animated animate__fadeIn">
             <Alert color="info" className="mb-4">
@@ -31,6 +94,7 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
                 Essas chaves são salvas com segurança.
             </Alert>
 
+            {/* CONFIGURAÇÃO EVOLUTION */}
             <Card className="mb-4 border shadow-sm">
                 <CardHeader className="bg-transparent border-bottom">
                     <div className="d-flex align-items-center">
@@ -41,7 +105,7 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
                 <CardBody>
                     <Row>
                         <Col md={12} className="mb-3">
-                            <Label>URL da API</Label>
+                            <Label>Base URL</Label>
                             <Input
                                 type="text"
                                 name="evolutionUrl"
@@ -58,7 +122,7 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
                                 name="evolutionKey"
                                 value={data.evolutionKey}
                                 onChange={handleChange}
-                                placeholder="Ex: global-api-key-..."
+                                placeholder="Chave Global (Master Key)"
                             />
                         </Col>
                         <Col md={6} className="mb-3">
@@ -85,6 +149,7 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
                 </CardBody>
             </Card>
 
+            {/* CONFIGURAÇÃO IA */}
             <Card className="mb-4 border shadow-sm">
                 <CardHeader className="bg-transparent border-bottom">
                     <div className="d-flex align-items-center">
@@ -157,6 +222,7 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
                 </CardBody>
             </Card>
 
+            {/* BOTÕES DE AÇÃO */}
             <div className="d-flex justify-content-end mb-5">
                 <Button color="secondary" className="me-2">Cancelar</Button>
                 <Button color="primary" onClick={() => onSave(data)} disabled={loading} className="px-4">
@@ -164,6 +230,90 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
                     {loading ? 'Salvando...' : 'Salvar Credenciais'}
                 </Button>
             </div>
+
+            {/* --- ÁREA DE TESTE --- */}
+            <h5 className="mb-3 border-top pt-4">Área de Teste de Conectividade</h5>
+            <Row>
+                {/* Teste WhatsApp */}
+                <Col md={6}>
+                    <Card className="border bg-soft-success">
+                        <CardBody>
+                            <h6 className="card-title mb-3"><i className="mdi mdi-whatsapp"></i> Teste de Envio</h6>
+                            <Row className="g-2">
+                                <Col md={12}>
+                                    <Label className="font-size-12">Telefone (com DDD)</Label>
+                                    <Input
+                                        bsSize="sm"
+                                        value={testPhone}
+                                        onChange={e => setTestPhone(e.target.value)}
+                                        placeholder="5511999999999"
+                                    />
+                                </Col>
+                                <Col md={12}>
+                                    <Label className="font-size-12">Mensagem</Label>
+                                    <Input
+                                        bsSize="sm"
+                                        value={testMessage}
+                                        onChange={e => setTestMessage(e.target.value)}
+                                    />
+                                </Col>
+                                <Col md={12} className="mt-2">
+                                    <Button size="sm" color="success" block onClick={runWhatsappTest} disabled={testingWhatsapp}>
+                                        {testingWhatsapp ? <Spinner size="sm" /> : 'Enviar Teste'}
+                                    </Button>
+                                </Col>
+                            </Row>
+                        </CardBody>
+                    </Card>
+                </Col>
+
+                {/* Teste IA */}
+                <Col md={6}>
+                    <Card className="border bg-soft-info">
+                        <CardBody>
+                            <h6 className="card-title mb-3"><i className="mdi mdi-robot"></i> Teste de IA</h6>
+                            <Row className="g-2">
+                                <Col md={12}>
+                                    <div className="btn-group w-100 btn-group-sm mb-2">
+                                        <Button
+                                            color={testAiProvider === 'openai' ? 'primary' : 'light'}
+                                            onClick={() => setTestAiProvider('openai')}
+                                            active={testAiProvider === 'openai'}
+                                        >OpenAI</Button>
+                                        <Button
+                                            color={testAiProvider === 'gemini' ? 'primary' : 'light'}
+                                            onClick={() => setTestAiProvider('gemini')}
+                                            active={testAiProvider === 'gemini'}
+                                        >Gemini</Button>
+                                    </div>
+                                </Col>
+                                <Col md={12}>
+                                    <Label className="font-size-12">Pergunta / Prompt</Label>
+                                    <Input
+                                        bsSize="sm"
+                                        type="textarea"
+                                        rows={2}
+                                        value={testPrompt}
+                                        onChange={e => setTestPrompt(e.target.value)}
+                                    />
+                                </Col>
+                                <Col md={12} className="mt-2">
+                                    <Button size="sm" color="info" block onClick={runAiTest} disabled={testingAi}>
+                                        {testingAi ? <Spinner size="sm" /> : 'Perguntar à IA'}
+                                    </Button>
+                                </Col>
+                                {testAiResponse && (
+                                    <Col md={12} className="mt-2">
+                                        <div className="bg-white p-2 rounded border font-size-12" style={{ maxHeight: 100, overflow: 'auto' }}>
+                                            <strong>Resposta:</strong> {testAiResponse}
+                                        </div>
+                                    </Col>
+                                )}
+                            </Row>
+                        </CardBody>
+                    </Card>
+                </Col>
+            </Row>
         </div>
     )
 }
