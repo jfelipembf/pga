@@ -29,7 +29,7 @@ export const useGradeData = (referenceDate) => {
             if (!forceRefresh) {
                 const cached = cache.get(referenceDate)
                 if (cached) {
-                    console.log('📦 Dados carregados do cache')
+
 
                     // Delay mínimo para feedback visual (300ms)
                     await new Promise(resolve => setTimeout(resolve, 300))
@@ -43,7 +43,7 @@ export const useGradeData = (referenceDate) => {
                 }
             }
 
-            console.log('🔄 Carregando dados da API...')
+
 
             // Get date range for the current week based on referenceDate
             const startDate = getStartOfWeek(referenceDate)
@@ -99,7 +99,7 @@ export const useGradeData = (referenceDate) => {
             setAreas(areasData || [])
             setStaff(staffData || [])
 
-            console.log(`✅ ${normalizedSessions.length} sessões carregadas`)
+
         } catch (error) {
             console.error("Error loading grade data:", error)
             toast.error("Erro ao carregar dados da grade")

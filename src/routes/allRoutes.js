@@ -6,6 +6,7 @@ import UserProfile from "../pages/Authentication/user-profile"
 
 // Pages Grade
 import Grade from "../pages/Grade/index"
+import EnrollmentGrade from "../pages/Grade/EnrollmentGrade/index"
 
 //Email
 import EmailInbox from "../pages/Email/email-inbox"
@@ -138,10 +139,11 @@ const userRoutes = [
 
   // Grade
   { path: "/grade", component: <Grade /> },
+  { path: "/grade/enroll", component: <EnrollmentGrade /> },
 
   { path: "/chat", component: <Chat /> },
   { path: "/kanbanboard", component: <Kanban /> },
-  
+
   // Admin Routes
   { path: "/admin/activities", component: <ActivitiesPage /> },
   { path: "/admin/areas", component: <AreasPage /> },

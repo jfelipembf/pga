@@ -237,7 +237,8 @@ export default class Labels {
 
     if (typeof yLbTitleFormatter !== 'function') {
       yLbTitleFormatter = function (label) {
-        return label
+        // refrence used from line: 966 in Options.js
+        return label ? label + ': ' : ''
       }
     }
 
@@ -308,7 +309,11 @@ export default class Labels {
         pColor = w.config.tooltip.marker.fillColors[t]
       }
 
-      ttItemsChildren[0].style.backgroundColor = pColor
+      if (w.config.tooltip.fillSeriesColor) {
+        ttItemsChildren[0].style.backgroundColor = pColor
+      } else {
+        ttItemsChildren[0].style.color = pColor
+      }
     }
 
     if (!w.config.tooltip.marker.show) {
@@ -324,7 +329,7 @@ export default class Labels {
 
     if (goalVals.length && w.globals.seriesGoals[t]) {
       const createGoalsHtml = () => {
-        let gLabels = '<div >'
+        let gLabels = '<div>'
         let gVals = '<div>'
         goalVals.forEach((goal, gi) => {
           gLabels += ` <div style="display: flex"><span class="apexcharts-tooltip-marker" style="background-color: ${goal.attrs.strokeColor}; height: 3px; border-radius: 0; top: 5px;"></span> ${goal.attrs.name}</div>`
@@ -522,8 +527,7 @@ export default class Labels {
       fn = fn[i]
     }
 
-    // override everything with a custom html tooltip and replace it
-    tooltipEl.innerHTML = fn({
+    const customTooltip = fn({
       ctx: this.ctx,
       series: w.globals.series,
       seriesIndex: i,
@@ -532,5 +536,18 @@ export default class Labels {
       y2,
       w,
     })
+
+    if (
+      typeof customTooltip === 'string' ||
+      typeof customTooltip === 'number'
+    ) {
+      tooltipEl.innerHTML = customTooltip
+    } else if (
+      customTooltip instanceof Element ||
+      typeof customTooltip.nodeName === 'string'
+    ) {
+      tooltipEl.innerHTML = ''
+      tooltipEl.appendChild(customTooltip.cloneNode(true))
+    }
   }
 }

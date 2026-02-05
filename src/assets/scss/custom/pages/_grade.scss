@@ -115,7 +115,7 @@
   // Occupancy Statuses
   &.grade-event--full {
     background-color: rgba($danger, 0.02);
-    border-left: 4px solid $danger;
+    // border-left removed
 
     .grade-event__capacity {
       color: $danger;
@@ -125,7 +125,7 @@
 
   &.grade-event--busy {
     background-color: rgba($warning, 0.02);
-    border-left: 4px solid $warning;
+    // border-left removed
 
     .grade-event__capacity {
       color: shade-color($warning, 20%);
@@ -134,7 +134,7 @@
   }
 
   &.grade-event--ok {
-    border-left: 4px solid $success;
+    // border-left removed
 
     .grade-event__capacity {
       color: $success;

@@ -1,0 +1,115 @@
+/* Estilos para Grade de Matrícula/Experimental */
+
+/* Footer fixo com ações */
+.enrollment-actions-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    padding: 0 1rem 1rem;
+    background: linear-gradient(0deg, rgba(255, 255, 255, 1) 80%, rgba(255, 255, 255, 0) 100%);
+    pointer-events: none;
+}
+
+.enrollment-actions-footer .card {
+    pointer-events: all;
+}
+
+/* Estilos de Seleção Minimalistas (Cor Primary) */
+.grade-cell--selected,
+.grade-cell--enrolled,
+.grade-cell--selected-trial {
+    transition: all 0.2s ease-in-out !important;
+    position: relative;
+    border-radius: 8px !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Estado Selecionado (Regular e Experimental) */
+.grade-cell--selected,
+.grade-cell--selected-trial {
+    background-color: rgba(85, 110, 230, 0.12) !important;
+    /* Primary Lexa Suave */
+}
+
+/* Estado Já Matriculado */
+.grade-cell--enrolled {
+    background-color: rgba(85, 110, 230, 0.06) !important;
+    /* Primary Lexa Mais Suave ainda */
+}
+
+/* Removendo marcadores visuais extras (linhas e ícones anteriores) */
+.grade-cell--selected::before,
+.grade-cell--enrolled::before,
+.grade-cell--selected-trial::before,
+.grade-cell--selected::after,
+.grade-cell--enrolled::after,
+.grade-cell--selected-trial::after {
+    display: none !important;
+    content: none !important;
+}
+
+.grade-cell--selected:hover,
+.grade-cell--enrolled:hover,
+.grade-cell--selected-trial:hover {
+    transform: translateY(-2px);
+    background-color: rgba(85, 110, 230, 0.18) !important;
+    box-shadow: 0 4px 12px rgba(85, 110, 230, 0.1) !important;
+}
+
+/* Se estiver selecionado E matriculado (Unificação na cor primary) */
+.grade-cell--selected.grade-cell--enrolled {
+    background-color: rgba(85, 110, 230, 0.2) !important;
+}
+
+/* Células desabilitadas (sessões passadas) */
+.grade-cell--disabled {
+    opacity: 0.4;
+    cursor: not-allowed !important;
+    pointer-events: none;
+    filter: grayscale(0.8);
+}
+
+/* Badge de seleção no header */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #556ee6 0%, #405de6 100%);
+}
+
+/* Animação de entrada */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.enrollment-actions-footer .card {
+    animation: fadeInUp 0.3s ease;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .enrollment-actions-footer {
+        padding: 0 0.5rem 0.5rem;
+    }
+
+    .enrollment-actions-footer .card-body {
+        padding: 0.75rem !important;
+    }
+
+    .enrollment-actions-footer h6 {
+        font-size: 0.875rem;
+    }
+
+    .enrollment-actions-footer .btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+}

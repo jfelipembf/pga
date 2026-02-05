@@ -4,7 +4,7 @@ import classnames from "classnames";
 
 //Import Action to copy breadcrumb items from local state to redux state
 import { setBreadcrumbItems } from "../../store/actions";
-import SimpleBar from 'simplebar-react/dist';
+import SimpleBar from 'simplebar-react';
 import user2 from "../../assets/images/users/user-2.jpg";
 import { Card, CardBody, Dropdown, Col, DropdownItem, DropdownMenu, DropdownToggle, Nav, NavLink, NavItem, TabContent, TabPane, Row, UncontrolledDropdown, Button, Input, UncontrolledAlert } from 'reactstrap';
 import { Link } from 'react-router-dom';
@@ -79,8 +79,8 @@ const Chat = (props) => {
         dispatch(onGetContacts());
         dispatch(onGetMessages(currentRoomId));
     }, [currentRoomId, dispatch]);
-    
-    
+
+
     useEffect(() => {
         const a = (messages || []).find(i => i.id);
         const a1 = a?.usermessages[a?.usermessages.length - 2]
@@ -206,7 +206,7 @@ const Chat = (props) => {
                                     toggle={() => setSinglebtn(!singlebtn)}
 
                                 >
-                                    <DropdownToggle  tag="a" className="p-0">
+                                    <DropdownToggle tag="a" className="p-0">
                                         <i className="mdi mdi-cog"></i>
                                     </DropdownToggle>
                                     <DropdownMenu className="dropdown-menu-end">
@@ -545,16 +545,16 @@ const Chat = (props) => {
                                             value={curMessage}
                                             onKeyPress={onKeyPress}
                                             onChange={e => { setcurMessage(e.target.value); setDisable(true) }}
-                                             className="form-control border chat-input" placeholder="Enter Message..." />
+                                            className="form-control border chat-input" placeholder="Enter Message..." />
                                     </div>
                                 </div>
                                 <div className="col-auto">
                                     <Button
-                                    type="button"
-                                    color="primary" 
-                                    disabled={!isdisable}
-                                    onClick={() => addMessage()}
-                                    className="chat-send w-md waves-effect waves-light">
+                                        type="button"
+                                        color="primary"
+                                        disabled={!isdisable}
+                                        onClick={() => addMessage()}
+                                        className="chat-send w-md waves-effect waves-light">
                                         <span className="d-none d-sm-inline-block me-2">
                                             Send</span> <i className="mdi mdi-send float-end"></i></Button>
                                 </div>

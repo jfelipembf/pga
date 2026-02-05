@@ -1,0 +1,303 @@
+import moment from 'moment'
+import { enrollmentRepository } from '../../data/repositories/EnrollmentRepository'
+import { sessionRepository } from '../../data/repositories/SessionRepository'
+import { classRepository } from '../../data/repositories/ClassRepository'
+import { activityRepository } from '../../data/repositories/ActivityRepository'
+import { staffRepository } from '../../data/repositories/StaffRepository'
+import { EnrollmentSchema, ENROLLMENT_TYPE } from '../../data/schemas/Clients/EnrollmentSchema'
+import { AuditService } from '../Audit/AuditService'
+import { query, where, getDocs, orderBy } from 'firebase/firestore'
+
+/**
+ * Serviço para Gestão de Matrículas
+ */
+export const EnrollmentService = {
+    /**
+     * Matricula um aluno em uma ou mais turmas (sessões futuras)
+     */
+    enrollStudent: async (idTenant, idBranch, user, enrollmentData) => {
+        const { idClient, idContract, classIds, clientName } = enrollmentData
+        const userId = user.uid
+        const userName = user.displayName || user.email || 'Sistema'
+
+        if (!idContract) {
+            throw new Error('Cliente deve ter um contrato ativo para realizar matrícula')
+        }
+
+        if (!classIds || classIds.length === 0) {
+            throw new Error('Selecione ao menos uma turma para matrícula')
+        }
+
+        const todayStr = moment().format('YYYY-MM-DD')
+
+        // 1. Otimização: Buscar todas as matrículas ativas do cliente UMA única vez
+        const allActiveEnrollments = await enrollmentRepository.findActiveByClient(idTenant, idBranch, idClient)
+
+        // 2. PARALELIZAÇÃO TOTAL: Processar todas as turmas ao mesmo tempo
+        const enrollmentPromises = classIds.map(async (idClass) => {
+            // Verificar duplicidade localmente
+            if (allActiveEnrollments.find(e => e.idClass === idClass)) {
+                console.warn(`[EnrollmentService] Cliente já possui matrícula ativa na turma ${idClass}. Pulando...`)
+                return null
+            }
+
+            // A. Buscar todas as sessões FUTURAS desta turma
+            const sessionsCollectionRef = sessionRepository.getCollectionRef(idTenant, idBranch)
+            const q = query(
+                sessionsCollectionRef,
+                where('idClass', '==', idClass),
+                where('sessionDate', '>=', todayStr),
+                where('deletedAt', '==', null), // Usar padrão do repositório
+                orderBy('sessionDate', 'asc')
+            )
+
+            const sessionsSnapshot = await getDocs(q)
+            const futureSessions = sessionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+
+            if (futureSessions.length === 0) {
+                console.warn(`[EnrollmentService] Nenhuma sessão futura encontrada para a turma ${idClass}`)
+                return null
+            }
+
+            const firstSession = futureSessions[0]
+
+            // B. Enriquecer dados (Em paralelo)
+            const [classData, activityData, staffData] = await Promise.all([
+                classRepository.findById(idTenant, idBranch, idClass),
+                firstSession.idActivity ? activityRepository.findById(idTenant, idBranch, firstSession.idActivity) : Promise.resolve(null),
+                firstSession.idStaff ? staffRepository.findById(idTenant, idBranch, firstSession.idStaff) : Promise.resolve(null)
+            ])
+
+            const enrollmentDoc = {
+                idClient,
+                idContract,
+                idClass,
+                clientName,
+                className: classData?.name || firstSession.className || null,
+                activityName: activityData?.name || firstSession.activityName || null,
+                startTime: firstSession.startTime || null,
+                endTime: firstSession.endTime || null,
+                weekday: firstSession.weekday || null,
+                instructorName: staffData?.name || firstSession.instructorName || firstSession.employeeName || null,
+                areaName: firstSession.areaName || null,
+                enrollmentType: ENROLLMENT_TYPE.REGULAR,
+                status: 'active',
+                enrolledAt: new Date(),
+                startDate: firstSession.sessionDate,
+                endDate: null,
+                totalSessions: futureSessions.length,
+                attendedSessions: 0,
+                missedSessions: 0,
+                createdBy: userId,
+                updatedBy: userId
+            }
+
+            await EnrollmentSchema.validate(enrollmentDoc)
+            const newEnrollment = await enrollmentRepository.create(idTenant, idBranch, enrollmentDoc)
+
+            // C. Atualizar TODAS as sessões em paralelo
+            const sessionPromises = futureSessions.map(async (session) => {
+                if (session.enrolledCount >= (session.maxCapacity || 999)) return null
+
+                return Promise.all([
+                    enrollmentRepository.addClientToSession(idTenant, idBranch, session.id, {
+                        enrollmentId: newEnrollment.id,
+                        idClient,
+                        clientName,
+                        enrollmentType: ENROLLMENT_TYPE.REGULAR,
+                        attended: null,
+                        createdBy: userId
+                    }),
+                    enrollmentRepository.incrementSessionCounters(idTenant, idBranch, session.id, false)
+                ])
+            })
+
+            await Promise.all([
+                ...sessionPromises,
+                enrollmentRepository.incrementClassCounters(idTenant, idBranch, idClass)
+            ])
+
+            // D. Auditoria e Log
+            AuditService.log({
+                idTenant, idBranch, userId, userName,
+                action: 'ENROLLMENT_CREATED',
+                entityType: 'enrollment',
+                entityId: newEnrollment.id,
+                description: `${clientName} matriculado(a) na turma ${classData?.name || idClass}`
+            })
+
+
+
+            return newEnrollment
+        })
+
+        const results = await Promise.all(enrollmentPromises)
+        return results.filter(r => r !== null)
+    },
+
+    /**
+     * Agenda uma aula experimental (1 sessão específica)
+     */
+    scheduleTrialClass: async (idTenant, idBranch, user, trialData) => {
+        const { idClient, sessionId, clientName } = trialData
+        const userId = user.uid
+        const userName = user.displayName || user.email || 'Sistema'
+
+        const session = await sessionRepository.findById(idTenant, idBranch, sessionId)
+        if (!session) throw new Error('Sessão não encontrada')
+
+        if (moment(session.sessionDate).isBefore(moment(), 'day')) {
+            throw new Error('Não é possível agendar experimental em sessões passadas')
+        }
+
+        if (session.enrolledCount >= (session.maxCapacity || 999)) {
+            throw new Error('Sessão já está com capacidade máxima')
+        }
+
+        const existingEnrollments = await enrollmentRepository.findByClient(idTenant, idBranch, idClient)
+        if (existingEnrollments.some(e => e.enrollmentType === ENROLLMENT_TYPE.TRIAL && e.idClass === session.idClass && e.status === 'active')) {
+            throw new Error('Cliente já possui uma aula experimental agendada para esta atividade')
+        }
+
+        const [classData, activityData, staffData] = await Promise.all([
+            classRepository.findById(idTenant, idBranch, session.idClass),
+            session.idActivity ? activityRepository.findById(idTenant, idBranch, session.idActivity) : Promise.resolve(null),
+            session.idStaff ? staffRepository.findById(idTenant, idBranch, session.idStaff) : Promise.resolve(null)
+        ])
+
+        const enrollmentDoc = {
+            idClient,
+            idContract: null,
+            idClass: session.idClass,
+            clientName,
+            className: classData?.name || session.className || null,
+            activityName: activityData?.name || session.activityName || null,
+            startTime: session.startTime || null,
+            endTime: session.endTime || null,
+            weekday: session.weekday || null,
+            instructorName: staffData?.name || session.instructorName || session.employeeName || null,
+            areaName: session.areaName || null,
+            enrollmentType: ENROLLMENT_TYPE.TRIAL,
+            status: 'active',
+            enrolledAt: new Date(),
+            startDate: session.sessionDate,
+            endDate: session.sessionDate,
+            totalSessions: 1,
+            attendedSessions: 0,
+            missedSessions: 0,
+            createdBy: userId,
+            updatedBy: userId
+        }
+
+        await EnrollmentSchema.validate(enrollmentDoc)
+        const newEnrollment = await enrollmentRepository.create(idTenant, idBranch, enrollmentDoc)
+
+        await Promise.all([
+            enrollmentRepository.addClientToSession(idTenant, idBranch, sessionId, {
+                enrollmentId: newEnrollment.id,
+                idClient,
+                clientName,
+                enrollmentType: ENROLLMENT_TYPE.TRIAL,
+                attended: null,
+                createdBy: userId
+            }),
+            enrollmentRepository.incrementSessionCounters(idTenant, idBranch, sessionId, true),
+            enrollmentRepository.incrementClassCounters(idTenant, idBranch, session.idClass)
+        ])
+
+        AuditService.log({
+            idTenant, idBranch, userId, userName,
+            action: 'TRIAL_SCHEDULED',
+            entityType: 'enrollment',
+            entityId: newEnrollment.id,
+            description: `Aula experimental agendada para ${clientName} na sessão ${sessionId}`
+        })
+
+
+
+        return newEnrollment
+    },
+
+    /**
+     * Cancela uma matrícula e remove aluno de sessões futuras
+     */
+    cancelEnrollment: async (idTenant, idBranch, user, enrollmentId, reason) => {
+        const userId = user.uid
+        const userName = user.displayName || user.email || 'Sistema'
+
+        // 1. Buscar detalhes da matrícula
+        const enrollment = await enrollmentRepository.findById(idTenant, idBranch, enrollmentId)
+        if (!enrollment) throw new Error('Matrícula não encontrada')
+
+        const today = moment().format('YYYY-MM-DD')
+        const sessionsCollectionRef = sessionRepository.getCollectionRef(idTenant, idBranch)
+
+        // 2. Buscar sessões (Filtro corrigido para deletedAt)
+        const q = query(
+            sessionsCollectionRef,
+            where('idClass', '==', enrollment.idClass),
+            where('sessionDate', '>=', today),
+            where('deletedAt', '==', null)
+        )
+
+        const sessionsSnapshot = await getDocs(q)
+        const allFutureSessions = sessionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+
+        // 3. Criar lista plana de tarefas
+        const writeTasks = []
+
+        allFutureSessions.forEach(session => {
+            writeTasks.push(enrollmentRepository.removeClientFromSession(idTenant, idBranch, session.id, enrollmentId))
+            writeTasks.push(enrollmentRepository.decrementSessionCounters(
+                idTenant, idBranch, session.id, enrollment.enrollmentType === ENROLLMENT_TYPE.TRIAL
+            ))
+        })
+
+        writeTasks.push(enrollmentRepository.decrementClassCounters(idTenant, idBranch, enrollment.idClass))
+        writeTasks.push(enrollmentRepository.update(idTenant, idBranch, enrollmentId, {
+            status: 'cancelled',
+            cancelReason: reason || '',
+            cancelledAt: new Date(),
+            cancelledBy: userId
+        }))
+
+        // 4. PARALELIZAÇÃO TOTAL
+        await Promise.all(writeTasks)
+
+        AuditService.log({
+            idTenant, idBranch, userId, userName,
+            action: 'ENROLLMENT_CANCELLED',
+            entityType: 'enrollment',
+            entityId: enrollmentId,
+            description: `Matrícula de ${enrollment.clientName} cancelada em ${allFutureSessions.length} sessões.`
+        })
+
+
+
+        return { enrollmentId, affectedSessions: allFutureSessions.length }
+    },
+
+    /**
+     * Lista matrículas de um cliente
+     */
+    listClientEnrollments: async (idTenant, idBranch, idClient) => {
+        return await enrollmentRepository.findByClient(idTenant, idBranch, idClient)
+    },
+
+    /**
+     * Obtém estatísticas de uma matrícula
+     */
+    getEnrollmentStats: async (idTenant, idBranch, enrollmentId) => {
+        const enrollment = await enrollmentRepository.findById(idTenant, idBranch, enrollmentId)
+        if (!enrollment) throw new Error('Matrícula não encontrada')
+
+        return {
+            totalSessions: enrollment.totalSessions,
+            attendedSessions: enrollment.attendedSessions,
+            missedSessions: enrollment.missedSessions,
+            attendanceRate: enrollment.totalSessions > 0
+                ? ((enrollment.attendedSessions / enrollment.totalSessions) * 100).toFixed(1)
+                : 0
+        }
+    }
+}

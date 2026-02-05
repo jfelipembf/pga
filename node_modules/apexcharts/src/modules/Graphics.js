@@ -84,7 +84,7 @@ class Graphics {
 
     // Split apart the path, handing concatonated letters and numbers
     var pathParts = pathString.split(/[,\s]/).reduce(function (parts, part) {
-      var match = part.match('([a-zA-Z])(.+)')
+      var match = part.match(/^([a-zA-Z])(.+)/)
       if (match) {
         parts.push(match[1])
         parts.push(match[2])
@@ -405,6 +405,14 @@ class Graphics {
     let dynamicAnim =
       initialAnim && this.w.config.chart.animations.dynamicAnimation.enabled
 
+    // Fix for paths starting with M 0 0
+    if (pathFrom && pathFrom.startsWith('M 0 0') && pathTo) {
+      const moveCommand = pathTo.match(/^M\s+[\d.-]+\s+[\d.-]+/)
+      if (moveCommand) {
+        pathFrom = pathFrom.replace(/^M\s+0\s+0/, moveCommand[0])
+      }
+    }
+
     let d
     let shouldAnimate = !!(
       (initialAnim && !w.globals.resized) ||
@@ -454,15 +462,8 @@ class Graphics {
       }
     }
 
-    // const defaultFilter = el.filterer
-
-    if (w.config.states.normal.filter.type !== 'none') {
-      filters.getDefaultFilter(el, realIndex)
-    } else {
-      if (w.config.chart.dropShadow.enabled && drawShadow) {
-        const shadow = w.config.chart.dropShadow
-        filters.dropShadow(el, shadow, realIndex)
-      }
+    if (w.config.chart.dropShadow.enabled && drawShadow) {
+      filters.dropShadow(el, w.config.chart.dropShadow, realIndex)
     }
 
     if (bindEventsOnPaths) {
@@ -555,7 +556,7 @@ class Graphics {
     opacityTo,
     size = null,
     stops = null,
-    colorStops = null,
+    colorStops = [],
     i = 0
   ) {
     let w = this.w
@@ -588,22 +589,22 @@ class Graphics {
       w.config.chart.type === 'bubble'
     )
 
-    if (colorStops === null || colorStops.length === 0) {
-      g = w.globals.dom.Paper.gradient(radial ? 'radial' : 'linear', (stop) => {
-        stop.at(stop1, gfrom, opacityFrom)
-        stop.at(stop2, gto, opacityTo)
-        stop.at(stop3, gto, opacityTo)
+    if (!colorStops || colorStops.length === 0) {
+      g = w.globals.dom.Paper.gradient(radial ? 'radial' : 'linear', (add) => {
+        add.stop(stop1, gfrom, opacityFrom)
+        add.stop(stop2, gto, opacityTo)
+        add.stop(stop3, gto, opacityTo)
         if (stop4 !== null) {
-          stop.at(stop4, gfrom, opacityFrom)
+          add.stop(stop4, gfrom, opacityFrom)
         }
       })
     } else {
-      g = w.globals.dom.Paper.gradient(radial ? 'radial' : 'linear', (stop) => {
+      g = w.globals.dom.Paper.gradient(radial ? 'radial' : 'linear', (add) => {
         let gradientStops = Array.isArray(colorStops[i])
           ? colorStops[i]
           : colorStops
         gradientStops.forEach((s) => {
-          stop.at(s.offset / 100, s.color, s.opacity)
+          add.stop(s.offset / 100, s.color, s.opacity)
         })
       })
     }
@@ -889,7 +890,7 @@ class Graphics {
     if (w.config.states.hover.filter.type !== 'none') {
       if (!w.globals.isTouchDevice) {
         let hoverFilter = w.config.states.hover.filter
-        filters.applyFilter(path, i, hoverFilter.type, hoverFilter.value)
+        filters.applyFilter(path, i, hoverFilter.type)
       }
     }
   }
@@ -946,12 +947,12 @@ class Graphics {
         w.globals.selectedDataPoints.length > 0
       ) {
         w.globals.selectedDataPoints = []
-        const elPaths = w.globals.dom.Paper.select(
-          '.apexcharts-series path'
-        ).members
-        const elCircles = w.globals.dom.Paper.select(
-          '.apexcharts-series circle, .apexcharts-series rect'
-        ).members
+        const elPaths = w.globals.dom.Paper.find(
+          '.apexcharts-series path:not(.apexcharts-decoration-element)'
+        )
+        const elCircles = w.globals.dom.Paper.find(
+          '.apexcharts-series circle:not(.apexcharts-decoration-element), .apexcharts-series rect:not(.apexcharts-decoration-element)'
+        )
 
         const deSelect = (els) => {
           Array.prototype.forEach.call(els, (el) => {
@@ -975,13 +976,13 @@ class Graphics {
     if (selected === 'true') {
       let activeFilter = w.config.states.active.filter
       if (activeFilter !== 'none') {
-        filters.applyFilter(path, i, activeFilter.type, activeFilter.value)
+        filters.applyFilter(path, i, activeFilter.type)
       } else {
         // Reapply the hover filter in case it was removed by `deselect`when there is no active filter and it is not a touch device
         if (w.config.states.hover.filter !== 'none') {
           if (!w.globals.isTouchDevice) {
             var hoverFilter = w.config.states.hover.filter
-            filters.applyFilter(path, i, hoverFilter.type, hoverFilter.value)
+            filters.applyFilter(path, i, hoverFilter.type)
           }
         }
       }
@@ -993,7 +994,7 @@ class Graphics {
           !w.globals.isTouchDevice
         ) {
           var hoverFilter = w.config.states.hover.filter
-          filters.applyFilter(path, i, hoverFilter.type, hoverFilter.value)
+          filters.applyFilter(path, i, hoverFilter.type)
         } else {
           filters.getDefaultFilter(path, i)
         }

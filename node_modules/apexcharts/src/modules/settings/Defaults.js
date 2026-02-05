@@ -148,11 +148,6 @@ export default class Defaults {
 
   line() {
     return {
-      chart: {
-        animations: {
-          easing: 'swing',
-        },
-      },
       dataLabels: {
         enabled: false,
       },
@@ -294,9 +289,6 @@ export default class Defaults {
     return {
       chart: {
         stacked: false,
-        animations: {
-          easing: 'swing',
-        },
       },
       plotOptions: {
         bar: {
@@ -315,7 +307,7 @@ export default class Defaults {
       },
       stroke: {
         width: 0,
-        lineCap: 'round',
+        lineCap: 'square',
       },
       fill: {
         opacity: 0.85,
@@ -358,7 +350,6 @@ export default class Defaults {
       ...this.bar(),
       chart: {
         animations: {
-          easing: 'linear',
           speed: 800,
           animateGradually: {
             enabled: false,
@@ -403,7 +394,6 @@ export default class Defaults {
     return {
       stroke: {
         width: 1,
-        colors: ['#333'],
       },
       fill: {
         opacity: 1,

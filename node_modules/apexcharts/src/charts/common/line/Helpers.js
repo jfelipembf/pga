@@ -34,41 +34,35 @@ export default class Helpers {
     let ptX = []
     let ptY = []
 
-    if (j === 0) {
-      let xPT1st =
-        this.lineCtx.categoryAxisCorrection + w.config.markers.offsetX
-      // the first point for line series
-      // we need to check whether it's not a time series, because a time series may
-      // start from the middle of the x axis
-      if (w.globals.isXNumeric) {
-        xPT1st =
-          (w.globals.seriesX[realIndex][0] - w.globals.minX) /
-            this.lineCtx.xRatio +
-          w.config.markers.offsetX
-      }
+    let xPT1st = this.lineCtx.categoryAxisCorrection + w.config.markers.offsetX
 
-      // push 2 points for the first data values
+    // the first point for line series
+    // we need to check whether it's not a time series, because a time series may
+    // start from the middle of the x axis
+    if (w.globals.isXNumeric) {
+      xPT1st =
+        (w.globals.seriesX[realIndex][0] - w.globals.minX) /
+          this.lineCtx.xRatio +
+        w.config.markers.offsetX
+    }
+
+    // push 2 points for the first data values
+    if (j === 0) {
       ptX.push(xPT1st)
       ptY.push(
         Utils.isNumber(series[i][0]) ? prevY + w.config.markers.offsetY : null
       )
-      ptX.push(x + w.config.markers.offsetX)
-      ptY.push(
-        Utils.isNumber(series[i][j + 1]) ? y + w.config.markers.offsetY : null
-      )
-    } else {
-      ptX.push(x + w.config.markers.offsetX)
-      ptY.push(
-        Utils.isNumber(series[i][j + 1]) ? y + w.config.markers.offsetY : null
-      )
     }
 
-    let pointsPos = {
+    ptX.push(x + w.config.markers.offsetX)
+    ptY.push(
+      Utils.isNumber(series[i][j + 1]) ? y + w.config.markers.offsetY : null
+    )
+
+    return {
       x: ptX,
       y: ptY,
     }
-
-    return pointsPos
   }
 
   checkPreviousPaths({ pathFromLine, pathFromArea, realIndex }) {
@@ -102,15 +96,22 @@ export default class Helpers {
     }
   }
 
-  determineFirstPrevY({ i, realIndex, series, prevY, lineYPosition, translationsIndex }) {
+  determineFirstPrevY({
+    i,
+    realIndex,
+    series,
+    prevY,
+    lineYPosition,
+    translationsIndex,
+  }) {
     let w = this.w
     let stackSeries =
       (w.config.chart.stacked && !w.globals.comboCharts) ||
       (w.config.chart.stacked &&
         w.globals.comboCharts &&
         (!this.w.config.chart.stackOnlyBar ||
-          this.w.config.series[realIndex]?.type === 'bar'
-          || this.w.config.series[realIndex]?.type === 'column'))
+          this.w.config.series[realIndex]?.type === 'bar' ||
+          this.w.config.series[realIndex]?.type === 'column'))
 
     if (typeof series[i]?.[0] !== 'undefined') {
       if (stackSeries) {
@@ -127,8 +128,10 @@ export default class Helpers {
       prevY =
         lineYPosition -
         series[i][0] / this.lineCtx.yRatio[translationsIndex] +
-        (this.lineCtx.isReversed 
-          ? series[i][0] / this.lineCtx.yRatio[translationsIndex] : 0) * 2
+        (this.lineCtx.isReversed
+          ? series[i][0] / this.lineCtx.yRatio[translationsIndex]
+          : 0) *
+          2
     } else {
       // the first value in the current series is null
       if (stackSeries && i > 0 && typeof series[i][0] === 'undefined') {

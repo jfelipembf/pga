@@ -29,6 +29,12 @@ const GradeGrid = ({
   selectedScheduleKey,
   onToggleSelection,
   selectedClassId,
+  // Novos props para modo de seleção (matrícula)
+  mode = 'view', // 'view' | 'selection'
+  selectedClasses = [],
+  selectedSession = null,
+  isClassSelected = null,
+  isClassEnrolled = null, // Nova prop para indicar turmas já matriculadas
 }) => {
   const { days, timeRows, getCellSchedules } = useGradeGrid({
     turn,
@@ -91,16 +97,21 @@ const GradeGrid = ({
                               : undefined
                         }
                         isSelected={
-                          selectedClassId
-                            ? String(s.idClass) === String(selectedClassId)
-                            : selectedScheduleKey
-                              ? selectedScheduleKey === `${String(s.id)}|${iso}`
-                              : selectedSet.size > 0
-                                ? selectedSet.has(String(s.id))
-                                : selectedScheduleId
-                                  ? String(s.id) === selectedScheduleId
-                                  : false
+                          mode === 'selection'
+                            ? (isClassSelected ? isClassSelected(s) : false)
+                            : selectedClassId
+                              ? String(s.idClass) === String(selectedClassId)
+                              : selectedScheduleKey
+                                ? selectedScheduleKey === `${String(s.id)}|${iso}`
+                                : selectedSet.size > 0
+                                  ? selectedSet.has(String(s.id))
+                                  : selectedScheduleId
+                                    ? String(s.id) === selectedScheduleId
+                                    : false
                         }
+                        selectionMode={mode === 'selection'}
+                        selectionType={selectedSession === s.id ? 'trial' : 'regular'}
+                        isEnrolled={isClassEnrolled ? isClassEnrolled(s) : false}
                       />
                     </div>
                   ))}

@@ -143,12 +143,16 @@ export default class Position {
     let cx = w.globals.translateYAxisX[index] - 2
 
     if (w.config.yaxis[index].opposite) {
-      cx = cx - 26
+      cx = cx - yAxisTTRect.width
     }
 
     cy = cy - yAxisTTHeight / 2
 
-    if (w.globals.ignoreYAxisIndexes.indexOf(index) === -1) {
+    if (
+      w.globals.ignoreYAxisIndexes.indexOf(index) === -1 &&
+      cy > 0 &&
+      cy < w.globals.gridHeight
+    ) {
       ttCtx.yaxisTTEls[index].classList.add('apexcharts-active')
       ttCtx.yaxisTTEls[index].style.top = cy + 'px'
       ttCtx.yaxisTTEls[index].style.left =
@@ -309,10 +313,13 @@ export default class Position {
       cx = pointsArr[activeSeries][j][0]
       cy = pointsArr[activeSeries][j][1]
     }
+    if (isNaN(cx)) {
+      return
+    }
 
     let points = ttCtx.tooltipUtil.getAllMarkers()
 
-    if (points !== null) {
+    if (points.length) {
       for (let p = 0; p < w.globals.series.length; p++) {
         let pointArr = pointsArr[p]
 
@@ -367,6 +374,10 @@ export default class Position {
       ? w.globals.columnSeries.length
       : w.globals.series.length
 
+    if (w.config.chart.stacked) {
+      barLen = w.globals.barGroups.length
+    }
+
     let i =
       barLen >= 2 && barLen % 2 === 0
         ? Math.floor(barLen / 2)
@@ -407,8 +418,7 @@ export default class Position {
 
       if (
         jBar && // fixes apexcharts.js#2354
-        isBoxOrCandle &&
-        w.globals.comboCharts
+        isBoxOrCandle
       ) {
         bcx = bcx - bw / 2
       }

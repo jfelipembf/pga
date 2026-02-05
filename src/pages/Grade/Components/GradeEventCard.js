@@ -4,7 +4,14 @@ import classNames from "classnames"
 import { parseMaxCapacity, getOccupancyPct } from "../Utils/occupancy"
 import { getEventColor } from "../Utils/gridUtils"
 
-const GradeEventCard = ({ schedule, onClick, isSelected }) => {
+const GradeEventCard = ({
+  schedule,
+  onClick,
+  isSelected,
+  selectionMode = false,
+  selectionType = 'regular',
+  isEnrolled = false // Nova prop para indicar matrícula existente
+}) => {
   const startTime = String(schedule?.startTime || "")
   const endTime = String(schedule?.endTime || "")
 
@@ -21,7 +28,7 @@ const GradeEventCard = ({ schedule, onClick, isSelected }) => {
   const color = getEventColor(schedule)
 
   const occupancyClass =
-    occupancyPct === null
+    selectionMode || occupancyPct === null
       ? ""
       : occupancyPct >= 1
         ? "grade-event--full"
@@ -31,8 +38,14 @@ const GradeEventCard = ({ schedule, onClick, isSelected }) => {
 
   return (
     <div
-      className={classNames("grade-event", { "grade-event--selected": isSelected })}
-      style={color ? { borderTop: `3px solid ${color}` } : undefined}
+      className={classNames("grade-event", occupancyClass, {
+        "grade-event--selected": isSelected && !selectionMode,
+        "grade-cell--selected": isSelected && selectionMode && selectionType === 'regular',
+        "grade-cell--selected-trial": isSelected && selectionMode && selectionType === 'trial',
+        "grade-cell--enrolled": isEnrolled && selectionMode, // Nova classe para matrícula existente
+        "selectable": selectionMode
+      })}
+      style={undefined}
       onClick={onClick}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
@@ -45,7 +58,10 @@ const GradeEventCard = ({ schedule, onClick, isSelected }) => {
           {enrolledCount}/{maxCapacity === "-" ? "—" : maxCapacity}
         </span>
       </div>
-      <div className="grade-event__title">{activityName}</div>
+      <div className="grade-event__title">
+        {activityName}
+
+      </div>
 
       <div className="grade-event__details">
         {employeeName && (
@@ -68,7 +84,7 @@ const GradeEventCard = ({ schedule, onClick, isSelected }) => {
         </div>
       )}
 
-      {color && (
+      {color && !selectionMode && (
         <svg className="grade-event__wave" viewBox="0 0 120 25" preserveAspectRatio="none">
           <path d="M0,20 Q30,22 60,18 T120,15 L120,25 L0,25 Z" fill={color} fillOpacity="0.12" />
           <path d="M0,15 Q20,18 40,14 T80,12 Q100,10 120,13 L120,25 L0,25 Z" fill={color} fillOpacity="0.06" />

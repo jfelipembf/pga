@@ -47,6 +47,7 @@ export const SessionSchema = Yup.object().shape({
     weekday: Yup.number().required(),
     maxCapacity: Yup.number().required(),
     enrolledCount: Yup.number().default(0),
+    trialCount: Yup.number().default(0),
     presentCount: Yup.number().default(0),
     absentCount: Yup.number().default(0),
     attendanceRecorded: Yup.boolean().default(false),
