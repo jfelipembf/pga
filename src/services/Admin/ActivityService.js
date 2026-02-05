@@ -1,7 +1,7 @@
 import { activityRepository } from '../../data/repositories/ActivityRepository'
 import { objectiveRepository } from '../../data/repositories/ObjectiveRepository'
 import { topicRepository } from '../../data/repositories/TopicRepository'
-import { AuditService } from '../Audit/AuditService'
+import { AuditService } from '../Core/AuditService'
 import { ActivitySchema } from '../../data/schemas/Admin/ActivitySchema'
 import { normalizeDate } from '../../utils/date'
 import { collection, getDocs, doc } from 'firebase/firestore'

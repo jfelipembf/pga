@@ -1,5 +1,5 @@
 import { clientRepository } from '../../data/repositories/ClientRepository'
-import { AuditService } from '../Audit/AuditService'
+import { AuditService } from '../Core/AuditService'
 import { ClientSchema } from '../../data/schemas/Clients/ClientSchema'
 import { generateClientId } from '../../utils/sequence'
 import { normalizeDate } from '../../utils/date'

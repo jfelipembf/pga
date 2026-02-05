@@ -1,6 +1,6 @@
 import { evaluationRepository } from '../../data/repositories/EvaluationRepository'
 import { EvaluationSchema } from '../../data/schemas/Evaluations/EvaluationSchema'
-import { AuditService } from '../Audit/AuditService'
+import { AuditService } from '../Core/AuditService'
 
 /**
  * Serviço para Gestão de Avaliações de Alunos

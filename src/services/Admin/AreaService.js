@@ -1,5 +1,5 @@
 import { areaRepository } from '../../data/repositories/AreaRepository';
-import { AuditService } from '../Audit/AuditService';
+import { AuditService } from '../Core/AuditService';
 
 export const AreaService = {
     /**

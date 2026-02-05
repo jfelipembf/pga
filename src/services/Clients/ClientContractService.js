@@ -2,7 +2,7 @@ import { runTransaction, doc, arrayUnion, query, where, collection, getDocs } fr
 import { getFirebaseBackend } from '../../helpers/firebase_helper'
 import { clientContractRepository } from '../../data/repositories/ClientContractRepository'
 import { ClientContractSchema } from '../../data/schemas/Clients/ClientContractSchema'
-import { AuditService } from '../Audit/AuditService'
+import { AuditService } from '../Core/AuditService'
 import { DashboardSummaryService } from '../Dashboard/DashboardSummaryService'
 import { LedgerService } from '../Ledger/LedgerService'
 import { CashierService } from '../Financial/CashierService'

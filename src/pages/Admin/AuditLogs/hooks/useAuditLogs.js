@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { AuditService } from '../../../../services/Audit/AuditService'
+import { AuditService } from '../../../../services/Core/AuditService'
 import { useTenant } from '../../../../hooks/useTenant'
 import { staffRepository } from '../../../../data/repositories/StaffRepository'
 

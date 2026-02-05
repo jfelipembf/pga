@@ -13,7 +13,7 @@ import {
 } from "reactstrap"
 import PhotoPreview from "../../../components/Common/PhotoPreview"
 import { useTenant } from "../../../hooks/useTenant"
-import { StorageService } from "../../../services/Storage/StorageService"
+import { StorageService } from "../../../services/Core/StorageService"
 import { FormSwitch } from "../../../components/Common/FormSwitch"
 
 const defaultState = {

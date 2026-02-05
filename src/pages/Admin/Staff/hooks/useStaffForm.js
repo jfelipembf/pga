@@ -4,7 +4,7 @@ import { toast } from "react-toastify"
 import { useTenant } from "../../../../hooks/useTenant"
 import { StaffSchema } from "../../../../data/schemas/Admin/StaffSchema"
 import { StaffService } from "../../../../services/Admin/StaffService"
-import { StorageService } from "../../../../services/Storage/StorageService"
+import { StorageService } from "../../../../services/Core/StorageService"
 import { getAddressByCep } from "../../../../services/External/AddressService"
 
 export const useStaffForm = ({ onStaffAdded, toggle, roles }) => {

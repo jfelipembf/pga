@@ -5,7 +5,7 @@ import { classRepository } from '../../data/repositories/ClassRepository'
 import { activityRepository } from '../../data/repositories/ActivityRepository'
 import { staffRepository } from '../../data/repositories/StaffRepository'
 import { EnrollmentSchema, ENROLLMENT_TYPE } from '../../data/schemas/Clients/EnrollmentSchema'
-import { AuditService } from '../Audit/AuditService'
+import { AuditService } from '../Core/AuditService'
 import { query, where, getDocs, orderBy } from 'firebase/firestore'
 
 /**

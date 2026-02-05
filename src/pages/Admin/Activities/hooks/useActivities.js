@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTenant } from '../../../../hooks/useTenant'
 import { ActivityService } from '../../../../services/Admin/ActivityService'
-import { AuditService } from '../../../../services/Audit/AuditService'
+import { AuditService } from '../../../../services/Core/AuditService'
 import { toast } from 'react-toastify'
 
 /**

@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTenant } from '../../../../hooks/useTenant';
 import { SalesService } from '../../../../services/Sales/SalesService';
 import { AcquirerService } from '../../../../services/Financial/AcquirerService';
-import { ContractService } from '../../../../services/Clients';
+import { ContractService } from '../../../../services/Financial/ContractService';
 import { toast } from 'react-toastify';
 
 /**

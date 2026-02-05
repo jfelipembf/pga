@@ -1,6 +1,6 @@
 import { eventRepository } from '../../data/repositories/EventRepository'
 import { EventSchema } from '../../data/schemas/Events/EventSchema'
-import { AuditService } from '../Audit/AuditService'
+import { AuditService } from '../Core/AuditService'
 import moment from 'moment'
 
 /**

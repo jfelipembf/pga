@@ -1,11 +1,20 @@
 /**
- * @deprecated Este arquivo é um wrapper legado para compatibilidade.
- * MIGRAÇÃO GRADUAL: Use ClassService diretamente de services/Admin/ClassService
+ * Classes Domain - Gerenciamento de Turmas, Sessões e Presença
  * 
- * Módulos que ainda usam este wrapper:
- * - Classes page (useClassesPage, useClassFormLogic)
- * - Grade (useGradeData)
+ * Estrutura:
+ * - ClassService: Gestão de turmas (grade de horários)
+ * - SessionService: Gestão de sessões individuais (aulas)
+ * - AttendanceService: Controle de presença
  */
+
+// Serviços principais
+export { ClassService } from './ClassService'
+export { SessionService } from './SessionService'
+export { AttendanceService } from './AttendanceService'
+
+// ===============================================
+// WRAPPER LEGADO - Manter para compatibilidade
+// ===============================================
 import { ClassService } from './ClassService'
 
 export const listClasses = async (idTenant, idBranch, filters = {}) => {

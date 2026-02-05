@@ -1,6 +1,6 @@
 import { contractRepository } from '../../data/repositories/ContractRepository'
 import { ContractSchema } from '../../data/schemas/Financial/ContractSchema'
-import { AuditService } from '../Audit/AuditService'
+import { AuditService } from '../Core/AuditService'
 
 /**
  * Serviço de Contratos (Planos)

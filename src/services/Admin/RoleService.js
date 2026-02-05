@@ -1,5 +1,5 @@
 import { roleRepository } from '../../data/repositories/RoleRepository'
-import { AuditService } from '../Audit/AuditService'
+import { AuditService } from '../Core/AuditService'
 import { RoleSchema } from '../../data/schemas/Admin/RoleSchema'
 import { normalizeDate } from '../../utils/date'
 

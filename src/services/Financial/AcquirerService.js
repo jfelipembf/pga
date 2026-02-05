@@ -1,6 +1,6 @@
 import { acquirerRepository } from "../../data/repositories/AcquirerRepository"
 import { AcquirerSchema } from "../../data/schemas/FinancialSchemas"
-import { AuditService } from "../Audit/AuditService"
+import { AuditService } from "../Core/AuditService"
 import { normalizeDate } from "../../utils/date"
 
 export const AcquirerService = {

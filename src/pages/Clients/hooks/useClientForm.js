@@ -7,7 +7,7 @@ import { useTenant } from "../../../hooks/useTenant"
 
 import { ClientService } from "../../../services/Clients"
 import { ClientSchema } from "../../../data/schemas/Clients/ClientSchema"
-import { StorageService } from "../../../services/Storage/StorageService"
+import { StorageService } from "../../../services/Core/StorageService"
 import { getAddressByCep } from "../../../services/External/AddressService"
 
 export const useClientForm = ({ onClientAdded, toggle }) => {

@@ -1,7 +1,7 @@
 import { receivableRepository } from '../../data/repositories/ReceivableRepository'
 import { salesRepository } from '../../data/repositories/SalesRepository'
 import { CashierService } from './CashierService'
-import { AuditService } from '../Audit/AuditService'
+import { AuditService } from '../Core/AuditService'
 import { LedgerService } from '../Ledger/LedgerService'
 import { normalizeDate } from '../../utils/date'
 

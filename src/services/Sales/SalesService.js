@@ -1,6 +1,6 @@
 import { salesRepository } from '../../data/repositories/SalesRepository'
 import { contractRepository } from '../../data/repositories/ContractRepository'
-import { AuditService } from '../Audit/AuditService'
+import { AuditService } from '../Core/AuditService'
 import { LedgerService, STANDARD_ACCOUNTS } from '../Ledger/LedgerService'
 import { SalesPaymentProcessor } from './SalesPaymentProcessor'
 import { SaleSchema } from '../../data/schemas/Financial/SaleSchema'

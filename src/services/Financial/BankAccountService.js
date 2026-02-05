@@ -2,7 +2,7 @@ import { bankAccountRepository } from "../../data/repositories/BankAccountReposi
 import { transactionRepository } from "../../data/repositories/TransactionRepository"
 import { BankAccountSchema } from "../../data/schemas/FinancialSchemas"
 import { LedgerService } from "../Ledger/LedgerService"
-import { AuditService } from "../Audit/AuditService"
+import { AuditService } from "../Core/AuditService"
 import { normalizeDate } from "../../utils/date"
 
 export const BankAccountService = {

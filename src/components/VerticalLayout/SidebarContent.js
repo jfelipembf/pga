@@ -150,21 +150,14 @@ const SidebarContent = props => {
       <SimpleBar style={{ maxHeight: "100%" }} ref={ref}>
         <div id="sidebar-menu">
           <ul className="metismenu list-unstyled" id="side-menu">
-            <li className="menu-title">{props.t("Menu de Navegação")}</li>
+            <li className="menu-title">{props.t("Menu")}</li>
 
+            {/* ========== OPERACIONAL ========== */}
             <li>
-              <Link to="/#" className="has-arrow waves-effect">
+              <Link to={linkTo("/dashboard")} className="waves-effect">
                 <i className="mdi mdi-view-dashboard-outline"></i>
                 <span>{props.t("Dashboard")}</span>
               </Link>
-              <ul className="sub-menu">
-                <li>
-                  <Link to={linkTo("/dashboard")}>{props.t("Gerencial")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/dashboard-operational")}>{props.t("Operacional")}</Link>
-                </li>
-              </ul>
             </li>
 
             <li>
@@ -182,16 +175,67 @@ const SidebarContent = props => {
             </li>
 
             <li>
-              <Link to="/#" className="waves-effect">
-                <i className="mdi mdi-dumbbell"></i>
-                <span>{props.t("Treinos")}</span>
+              <Link to={linkTo("/evaluation")} className="waves-effect">
+                <i className="mdi mdi-file-check-outline"></i>
+                <span>{props.t("Avaliações")}</span>
               </Link>
             </li>
 
+            {/* ========== FINANCEIRO ========== */}
             <li>
               <Link to="/#" className="has-arrow waves-effect">
-                <i className="mdi mdi-office-building-outline"></i>
-                <span>{props.t("Administrativo")}</span>
+                <i className="mdi mdi-cash-multiple"></i>
+                <span>{props.t("Financeiro")}</span>
+              </Link>
+              <ul className="sub-menu">
+                <li>
+                  <Link to={linkTo("/financial/dashboard")}>{props.t("Resumo")}</Link>
+                </li>
+                <li>
+                  <Link to={linkTo("/financial/cashier")}>{props.t("Caixa")}</Link>
+                </li>
+                <li>
+                  <Link to={linkTo("/financial/receivables")}>{props.t("Recebíveis")}</Link>
+                </li>
+                <li>
+                  <Link to={linkTo("/financial/payables")}>{props.t("Pagáveis")}</Link>
+                </li>
+                <li>
+                  <Link to={linkTo("/financial/cash-flow")}>{props.t("Fluxo de Caixa")}</Link>
+                </li>
+                <li>
+                  <Link to={linkTo("/financial/dre")}>{props.t("DRE")}</Link>
+                </li>
+              </ul>
+            </li>
+
+            {/* ========== GERENCIAL ========== */}
+            <li>
+              <Link to="/#" className="has-arrow waves-effect">
+                <i className="mdi mdi-chart-areaspline"></i>
+                <span>{props.t("Gerencial")}</span>
+              </Link>
+              <ul className="sub-menu">
+                <li>
+                  <Link to={linkTo("/admin/staff")}>{props.t("Colaboradores")}</Link>
+                </li>
+                <li>
+                  <Link to={linkTo("/admin/classes")}>{props.t("Turmas")}</Link>
+                </li>
+                <li>
+                  <Link to={linkTo("/admin/events")}>{props.t("Eventos")}</Link>
+                </li>
+                <li>
+                  <Link to={linkTo("/admin/audit-logs")}>{props.t("Auditoria")}</Link>
+                </li>
+              </ul>
+            </li>
+
+            {/* ========== ADMINISTRATIVO ========== */}
+            <li>
+              <Link to="/#" className="has-arrow waves-effect">
+                <i className="mdi mdi-cog-outline"></i>
+                <span>{props.t("Cadastros")}</span>
               </Link>
               <ul className="sub-menu">
                 <li>
@@ -201,93 +245,31 @@ const SidebarContent = props => {
                   <Link to={linkTo("/admin/areas")}>{props.t("Áreas")}</Link>
                 </li>
                 <li>
-                  <Link to={linkTo("/admin/roles")}>{props.t("Funções/Cargos")}</Link>
+                  <Link to={linkTo("/admin/roles")}>{props.t("Cargos")}</Link>
                 </li>
                 <li>
-                  <Link to={linkTo("/admin/evaluation-levels")}>{props.t("Níveis de Avaliação")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/admin/staff")}>{props.t("Colaboradores")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/admin/classes")}>{props.t("Turmas")}</Link>
+                  <Link to={linkTo("/admin/evaluation-levels")}>{props.t("Níveis")}</Link>
                 </li>
                 <li>
                   <Link to={linkTo("/admin/catalog")}>{props.t("Catálogo")}</Link>
                 </li>
                 <li>
-                  <Link to={linkTo("/admin/events")}>{props.t("Ciclos de Avaliação")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/admin/audit-logs")}>{props.t("Auditoria")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/financial/contracts")}>{props.t("Planos e Contratos")}</Link>
-                </li>
-              </ul>
-            </li>
-
-            <li>
-              <Link to="/#" className="has-arrow waves-effect">
-                <i className="mdi mdi-cash-multiple"></i>
-                <span>{props.t("Financeiro")}</span>
-              </Link>
-              <ul className="sub-menu">
-                <li>
-                  <Link to={linkTo("/financial/dashboard")}>{props.t("Resumo Financeiro")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/financial/cash-flow")}>{props.t("Fluxo de Caixa")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/financial/dre")}>{props.t("DRE Gerencial")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/sales/new")}>{props.t("Ponto de Venda (PDV)")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/financial/cashier")}>{props.t("Gestão de Caixa")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/financial/payables")}>{props.t("Contas a Pagar")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/financial/receivables")}>{props.t("Contas a Receber")}</Link>
+                  <Link to={linkTo("/financial/contracts")}>{props.t("Contratos")}</Link>
                 </li>
                 <li>
                   <Link to={linkTo("/financial/bank-accounts")}>{props.t("Contas Bancárias")}</Link>
                 </li>
                 <li>
-                  <Link to={linkTo("/financial/acquirers")}>{props.t("Maquininhas (Adquirentes)")}</Link>
+                  <Link to={linkTo("/financial/acquirers")}>{props.t("Adquirentes")}</Link>
                 </li>
               </ul>
             </li>
 
-            <li>
-              <Link to="/#" className="waves-effect">
-                <i className="mdi mdi-chart-areaspline"></i>
-                <span>{props.t("Gerencial")}</span>
-              </Link>
-            </li>
-
-            <li>
-              <Link to={linkTo("/evaluation")} className="waves-effect">
-                <i className="mdi mdi-file-check-outline"></i>
-                <span>{props.t("Testes e Avaliação")}</span>
-              </Link>
-            </li>
-
-            <li>
-              <Link to="/#" className="waves-effect">
-                <i className="mdi mdi-cog-outline"></i>
-                <span>{props.t("Configuração")}</span>
-              </Link>
-            </li>
-
+            {/* ========== AJUDA ========== */}
             <li>
               <Link to="/#" className="waves-effect">
                 <i className="mdi mdi-help-circle-outline"></i>
-                <span>{props.t("Central de Ajuda")}</span>
+                <span>{props.t("Ajuda")}</span>
               </Link>
             </li>
           </ul>

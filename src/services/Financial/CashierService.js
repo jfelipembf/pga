@@ -1,6 +1,6 @@
 import { cashierRepository } from '../../data/repositories/CashierRepository'
 import { transactionRepository } from '../../data/repositories/TransactionRepository'
-import { AuditService } from '../Audit/AuditService'
+import { AuditService } from '../Core/AuditService'
 import { CashierSessionSchema, TransactionSchema } from '../../data/schemas/FinancialSchemas'
 import { LedgerService } from '../Ledger/LedgerService'
 import { normalizeDate } from '../../utils/date'

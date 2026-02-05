@@ -1,7 +1,7 @@
 import { payableRepository } from '../../data/repositories/PayableRepository'
 import { bankAccountRepository } from '../../data/repositories/BankAccountRepository'
 import { CashierService } from './CashierService'
-import { AuditService } from '../Audit/AuditService'
+import { AuditService } from '../Core/AuditService'
 import { PayableSchema } from '../../data/schemas/Financial/PayableSchema'
 import { generatePayableId } from '../../utils/sequence'
 import { LedgerService } from '../Ledger/LedgerService'

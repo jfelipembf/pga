@@ -12,8 +12,9 @@ import { useGradeData } from "./Hooks/useGradeData"
 import PageLoader from "../../components/Common/PageLoader"
 
 
+
 import { useTenant } from "../../hooks/useTenant"
-import { SessionCounterFixer } from "../../services/Maintenance/SessionCounterFixer"
+import { SessionCounterFixer } from "../../services/Core/SessionCounterFixer"
 
 const Grade = ({ setBreadcrumbItems }) => {
   const { idTenant, idBranch } = useTenant()

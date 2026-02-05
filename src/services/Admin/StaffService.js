@@ -1,5 +1,5 @@
 import { staffRepository } from '../../data/repositories/StaffRepository'
-import { AuditService } from '../Audit/AuditService'
+import { AuditService } from '../Core/AuditService'
 import { StaffSchema } from '../../data/schemas/Admin/StaffSchema'
 import { initializeApp, deleteApp } from "firebase/app"
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth"

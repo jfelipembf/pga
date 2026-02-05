@@ -1,6 +1,6 @@
 import { testResultRepository } from '../../data/repositories/TestResultRepository'
 import { TestResultSchema } from '../../data/schemas/Events/TestResultSchema'
-import { AuditService } from '../Audit/AuditService'
+import { AuditService } from '../Core/AuditService'
 import { clientRepository } from '../../data/repositories/ClientRepository'
 import moment from 'moment'
 

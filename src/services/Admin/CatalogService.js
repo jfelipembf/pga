@@ -1,5 +1,5 @@
 import { catalogRepository } from '../../data/repositories/CatalogRepository'
-import { AuditService } from '../Audit/AuditService'
+import { AuditService } from '../Core/AuditService'
 import { CatalogSchema } from '../../data/schemas/Admin/CatalogSchema'
 
 /**
