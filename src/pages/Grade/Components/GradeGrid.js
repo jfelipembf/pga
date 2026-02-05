@@ -3,14 +3,10 @@ import React, { useMemo } from "react"
 import OverlayLoader from "../../../components/Common/OverlayLoader"
 
 import {
-  addDays,
   formatDayHeaderLabel,
   toISODate,
   isSameDay,
-  minutesToTime,
 } from "../../../utils/sharedUtils"
-import { buildVisibleMinutes, isWithinTurn, occursOnDate } from "../Utils/gridUtils"
-import { normalizeDate } from "../../../utils/sharedUtils"
 import GradeEventCard from "./GradeEventCard"
 
 import { useGradeGrid } from "../Hooks/useGradeGrid"
