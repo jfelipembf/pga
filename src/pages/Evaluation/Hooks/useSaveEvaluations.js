@@ -61,7 +61,7 @@ export const useSaveEvaluations = ({
                             id: topicId,
                             name: meta.title || "Tópico",
                             idLevel: levelId,
-                            levelName: levelDoc?.name || "Avaliado", // Aqui salvamos o nome do nível!
+                            levelName: levelDoc?.title || "Avaliado", // Aqui salvamos o nome do nível!
                             achieved: levelDoc?.isPassing !== false,
                             updatedAt: new Date()
                         }

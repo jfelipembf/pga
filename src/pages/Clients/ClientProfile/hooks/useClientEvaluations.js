@@ -77,7 +77,7 @@ export const useClientEvaluations = () => {
 
                         // Resolve level name
                         const realLevel = levels.find(l => String(l.id) === String(criterion.idLevel))
-                        return realLevel ? realLevel.name : (criterion.levelName || "Avaliado")
+                        return realLevel ? realLevel.title : (criterion.levelName || "Avaliado")
                     })
 
                     return {
