@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { AcquirerService } from '../../../services/Financial/AcquirerService'
+import { AcquirerService } from '../../../../services/Financial/AcquirerService'
 import { toast } from 'react-toastify'
-import { useTenant } from '../../../hooks/useTenant'
+import { useTenant } from '../../../../hooks/useTenant'
 
 /**
  * Hook para gerenciar a lógica de Adquirentes (Máquinas de Cartão)

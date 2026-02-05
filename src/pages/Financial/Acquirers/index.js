@@ -1,8 +1,8 @@
 import React from "react"
 import ManagementLayout from "../../../components/Common/ManagementLayout"
-import { AcquirerForm } from "../../../features/financial/components/AcquirerForm"
+import { AcquirerForm } from "./components/AcquirerForm"
 import { AcquirerListItem } from "./AcquirerListItem"
-import { useAcquirers } from "../../../features/financial/hooks/useAcquirers"
+import { useAcquirers } from "./hooks/useAcquirers"
 
 const AcquirerList = () => {
     document.title = "Adquirentes | Lexa Admin"

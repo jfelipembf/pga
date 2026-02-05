@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useFormik } from "formik"
-import { AcquirerSchema } from "../../../data/schemas/Financial/AcquirerSchema"
+import { AcquirerSchema } from "../../../../data/schemas/Financial/AcquirerSchema"
 import { generateFees, calculateInitialValues } from "../utils/acquirerUtils"
 import { BASIC_BRANDS } from "../constants/AcquirerDefaults"
 
