@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react"
 import { connect } from "react-redux"
-import { Card, CardBody, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from "reactstrap"
+import { Card, CardBody } from "reactstrap"
 import { useAutomation } from "./hooks/useAutomation"
 import { AutomationForm } from "./components/AutomationForm"
 import { IntegrationSettings } from "./components/IntegrationSettings"
+import { TemplateEditor } from "./components/TemplateEditor"
 import ManagementLayout from "../../components/Common/ManagementLayout"
 import { setBreadcrumbItems } from "../../store/actions"
 
@@ -16,11 +17,10 @@ const AutomationPage = ({ setBreadcrumbItems }) => {
         loading,
         saving,
         saveWorkflow,
-        deleteWorkflow,
         saveIntegrations
     } = useAutomation()
 
-    const [viewMode, setViewMode] = useState('empty') // 'empty', 'edit', 'create', 'settings'
+    const [viewMode, setViewMode] = useState('empty') // 'empty', 'edit', 'create', 'settings', 'templates'
     const [selectedId, setSelectedId] = useState(null)
     const [formData, setFormData] = useState(null)
 
@@ -51,6 +51,11 @@ const AutomationPage = ({ setBreadcrumbItems }) => {
         setViewMode('settings')
     }
 
+    const handleTemplatesClick = () => {
+        setSelectedId('templates')
+        setViewMode('templates')
+    }
+
     const handleSaveForm = async (data) => {
         const success = await saveWorkflow(data)
         if (success) {
@@ -62,23 +67,37 @@ const AutomationPage = ({ setBreadcrumbItems }) => {
     const handleSaveSettings = async (data) => {
         const success = await saveIntegrations(data)
         if (success) {
-            // Mantém na tela de settings
+            // Mantém na tela
+        }
+    }
+
+    const handleSaveTemplates = async (templates) => {
+        const newData = { ...integrationConfig, messageTemplates: templates };
+        const success = await saveIntegrations(newData);
+        if (success) {
+            // Sucesso
         }
     }
 
     // --- Sidebar Content (Lista) ---
     const SidebarContent = (
         <div className="d-flex flex-column h-100">
-            <div className="mb-3">
+            <div className="mb-3 d-grid gap-2">
                 <button
-                    className={`btn btn-outline-secondary w-100 text-start ${viewMode === 'settings' ? 'active bg-soft-secondary' : ''}`}
+                    className={`btn btn-outline-secondary text-start ${viewMode === 'settings' ? 'active bg-soft-secondary' : ''}`}
                     onClick={handleSettingsClick}
                 >
                     <i className="mdi mdi-cog-outline me-2"></i> Configurar Credenciais
                 </button>
+                <button
+                    className={`btn btn-outline-secondary text-start ${viewMode === 'templates' ? 'active bg-soft-secondary' : ''}`}
+                    onClick={handleTemplatesClick}
+                >
+                    <i className="mdi mdi-message-text-outline me-2"></i> Mensagens Padrão
+                </button>
             </div>
 
-            <h6 className="text-muted text-uppercase font-size-11 mb-2">Meus Fluxos</h6>
+            <h6 className="text-muted text-uppercase font-size-11 mb-2 mt-2">Meus Fluxos</h6>
 
             <div className="flex-grow-1 overflow-auto">
                 {loading && workflows.length === 0 && <p className="text-muted small p-2">Carregando...</p>}
@@ -120,6 +139,16 @@ const AutomationPage = ({ setBreadcrumbItems }) => {
             )
         }
 
+        if (viewMode === 'templates') {
+            return (
+                <TemplateEditor
+                    customTemplates={integrationConfig?.messageTemplates}
+                    onSave={handleSaveTemplates}
+                    loading={saving}
+                />
+            )
+        }
+
         if (viewMode === 'create' || (viewMode === 'edit' && formData)) {
             return (
                 <AutomationForm
@@ -148,7 +177,7 @@ const AutomationPage = ({ setBreadcrumbItems }) => {
                     <button className="btn btn-primary" onClick={handleAddClick}>
                         <i className="mdi mdi-plus me-1"></i> Criar Primeira Automação
                     </button>
-                    <button className="btn btn-link text-muted ms-3" onClick={handleSettingsClick}>Configurar Credenciais</button>
+                    <button className="btn btn-link text-muted ms-3" onClick={handleTemplatesClick}>Editar Templates</button>
                 </div>
             </div>
         )
