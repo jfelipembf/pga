@@ -9,7 +9,8 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
         evolutionInstanceToken: '',
         openaiKey: '',
         openaiModel: 'gpt-4o-mini',
-        geminiKey: ''
+        geminiKey: '',
+        geminiModel: 'gemini-1.5-flash'
     });
 
     useEffect(() => {
@@ -125,14 +126,32 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
 
                         <Col md={12} className="border-top pt-3">
                             <Label className="fw-bold"><i className="mdi mdi-google me-1"></i> Google Gemini</Label>
-                            <Input
-                                type="password"
-                                name="geminiKey"
-                                value={data.geminiKey}
-                                onChange={handleChange}
-                                placeholder="AIza..."
-                            />
-                            <small className="text-muted">Opção alternativa econômica para geração de texto</small>
+                            <Row>
+                                <Col md={8}>
+                                    <Label className="small">API Key</Label>
+                                    <Input
+                                        type="password"
+                                        name="geminiKey"
+                                        value={data.geminiKey}
+                                        onChange={handleChange}
+                                        placeholder="Insira sua API Key do Google AI Studio"
+                                    />
+                                </Col>
+                                <Col md={4}>
+                                    <Label className="small">Modelo Padrão</Label>
+                                    <Input
+                                        type="select"
+                                        name="geminiModel"
+                                        value={data.geminiModel || 'gemini-1.5-flash'}
+                                        onChange={handleChange}
+                                    >
+                                        <option value="gemini-1.5-flash">Gemini 1.5 Flash (Rápido)</option>
+                                        <option value="gemini-1.5-pro">Gemini 1.5 Pro (Robusto)</option>
+                                        <option value="gemini-pro">Gemini 1.0 Pro</option>
+                                    </Input>
+                                </Col>
+                            </Row>
+                            <small className="text-muted mt-1 d-block">Gere sua chave no Google AI Studio.</small>
                         </Col>
                     </Row>
                 </CardBody>
