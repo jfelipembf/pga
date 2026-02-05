@@ -1,11 +1,14 @@
 import { Card, CardBody, Row, Col, Badge, Table } from 'reactstrap'
 import { formatDate } from '../../../../utils/date'
 import { useClientFinancial } from '../hooks/useClientFinancial'
+import { useClientEnrollments } from '../hooks/useClientEnrollments'
 import { formatCurrency } from '../../../../utils/format'
 import StatusBadge from '../../../../components/Common/StatusBadge'
+import ClientAttendanceMetrics from './ClientAttendanceMetrics'
 
 const ClientSummary = ({ client }) => {
     const { summary, contracts, loading } = useClientFinancial()
+    const { activeEnrollments } = useClientEnrollments()
 
     const activeContracts = contracts?.filter(c => ['active', 'suspended'].includes(c.status)) || []
 
@@ -64,6 +67,9 @@ const ClientSummary = ({ client }) => {
             <Row>
                 {/* Coluna da Esquerda: Contratos e Atividade */}
                 <Col lg={7}>
+                    {/* Resumo de Presença e Risco */}
+                    <ClientAttendanceMetrics enrollments={activeEnrollments} />
+
                     <Card className="border-0 shadow-sm mb-4">
                         <CardBody>
                             <div className="d-flex align-items-center justify-content-between mb-4">

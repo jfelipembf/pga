@@ -12,8 +12,25 @@ import { useGradeData } from "./Hooks/useGradeData"
 import PageLoader from "../../components/Common/PageLoader"
 
 
+import { useTenant } from "../../hooks/useTenant"
+import { SessionCounterFixer } from "../../services/Maintenance/SessionCounterFixer"
+
 const Grade = ({ setBreadcrumbItems }) => {
+  const { idTenant, idBranch } = useTenant()
   const [turn, setTurn] = useState("all")
+  // ...
+
+  // Script temporário para correção de contadores
+  useEffect(() => {
+    window.SessionCounterFixer = SessionCounterFixer
+    window.runCountFix = () => SessionCounterFixer.fixAllSessionCounters(idTenant, idBranch)
+
+    console.log(
+      "%c[MANUTENÇÃO] Para corrigir os contadores de matrícula, execute: window.runCountFix()",
+      "color: orange; font-weight: bold; font-size: 14px;"
+    )
+  }, [idTenant, idBranch])
+
   const [view, setView] = useState("week")
   const [referenceDate, setReferenceDate] = useState(new Date())
   const [showOccupancy, setShowOccupancy] = useState(true)

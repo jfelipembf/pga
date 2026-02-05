@@ -28,7 +28,7 @@ const GradeEventCard = ({
   const color = getEventColor(schedule)
 
   const occupancyClass =
-    selectionMode || occupancyPct === null
+    occupancyPct === null
       ? ""
       : occupancyPct >= 1
         ? "grade-event--full"
@@ -45,7 +45,7 @@ const GradeEventCard = ({
         "grade-cell--enrolled": isEnrolled && selectionMode, // Nova classe para matrícula existente
         "selectable": selectionMode
       })}
-      style={undefined}
+      style={{}}
       onClick={onClick}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
@@ -84,7 +84,7 @@ const GradeEventCard = ({
         </div>
       )}
 
-      {color && !selectionMode && (
+      {color && (
         <svg className="grade-event__wave" viewBox="0 0 120 25" preserveAspectRatio="none">
           <path d="M0,20 Q30,22 60,18 T120,15 L120,25 L0,25 Z" fill={color} fillOpacity="0.12" />
           <path d="M0,15 Q20,18 40,14 T80,12 Q100,10 120,13 L120,25 L0,25 Z" fill={color} fillOpacity="0.06" />

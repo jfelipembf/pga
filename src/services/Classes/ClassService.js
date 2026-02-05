@@ -4,7 +4,8 @@ import { sessionRepository } from '../../data/repositories/SessionRepository'
 import { CreateGradeSchema, ClassSchema, SessionSchema } from '../../data/schemas/Classes/ClassSchema'
 import { AuditService } from '../Audit/AuditService'
 import { timeToMinutes } from '../../utils/sharedUtils'
-import { query, where, getDocs, writeBatch } from 'firebase/firestore'
+import { query, where, getDocs, writeBatch, increment } from 'firebase/firestore'
+import { enrollmentRepository } from '../../data/repositories/EnrollmentRepository'
 
 /**
  * Serviço para Gestão de Turmas e Sessões
@@ -157,6 +158,13 @@ export const ClassService = {
     },
 
     /**
+     * Lista os alunos matriculados na turma dessa sessão
+     */
+    getStudentsForClass: async (idTenant, idBranch, idClass) => {
+        return await enrollmentRepository.findByClass(idTenant, idBranch, idClass)
+    },
+
+    /**
      * Atualiza uma turma existente
      */
     updateClass: async (idTenant, idBranch, user, id, data) => {
@@ -291,6 +299,56 @@ export const ClassService = {
             absentCount: attendanceData.absentCount,
             updatedBy: userId
         })
+
+        // 2. Atualizar estatísticas nas matrículas individuais
+        // Isso permite rastrear frequência global e risco de abandono
+        // 2. Atualizar estatísticas nas matrículas individuais com lógica diferencial
+        // Isso previne contagem dupla ao alterar de presente <-> ausente
+        if (attendanceData.clients && attendanceData.clients.length > 0) {
+
+            // Buscar snapshot anterior para comparação
+            const currentSession = await sessionRepository.findById(idTenant, idBranch, idSession)
+            const previousSnapshot = currentSession?.attendanceSnapshot || []
+            const previousStatusMap = {}
+
+            // Mapear status anterior: enrollmentId -> status
+            previousSnapshot.forEach(c => {
+                if (c.enrollmentId) previousStatusMap[c.enrollmentId] = c.status
+            })
+
+            const promises = attendanceData.clients.map(async (client) => {
+                if (!client.enrollmentId) return
+
+                const newStatus = client.status
+                const oldStatus = previousStatusMap[client.enrollmentId]
+
+                // Se não mudou, não faz nada
+                if (newStatus === oldStatus) return
+
+                // Lógica de Atualização Diferencial
+                const updates = {}
+
+                // Remover contagem do status antigo
+                if (oldStatus === 'present') {
+                    updates.attendedSessions = increment(-1)
+                } else if (oldStatus === 'absent') {
+                    updates.missedSessions = increment(-1)
+                }
+
+                // Adicionar contagem do status novo
+                if (newStatus === 'present') {
+                    updates.attendedSessions = increment(1)
+                } else if (newStatus === 'absent') {
+                    updates.missedSessions = increment(1)
+                }
+
+                if (Object.keys(updates).length > 0) {
+                    await enrollmentRepository.update(idTenant, idBranch, client.enrollmentId, updates)
+                }
+            })
+
+            await Promise.all(promises)
+        }
 
         await AuditService.log({
             idTenant, idBranch, userId, userName,

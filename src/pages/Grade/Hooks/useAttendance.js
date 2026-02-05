@@ -12,6 +12,7 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
     const [allClients, setAllClients] = useState([])
     const { isLoading, withLoading } = useLoading()
     const [justAddedId, setJustAddedId] = useState(null)
+    const [isDirty, setIsDirty] = useState(false)
 
     // Load attendance and all clients for search
     useEffect(() => {
@@ -28,8 +29,36 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
                     if (schedule.attendanceRecorded && schedule.attendanceSnapshot) {
                         setClients(schedule.attendanceSnapshot)
                     } else {
-                        // In the future, load enrolled students for this class
-                        setClients([])
+                        // Load enrolled students for this class automatically
+                        // Se não tiver idClass (sessão avulsa sem turma?), tenta buscar por sessão ou retorna vazio
+                        if (!schedule.idClass) {
+                            setClients([])
+                            return
+                        }
+
+                        const enrolled = await ClassService.getStudentsForClass(idTenant, idBranch, schedule.idClass)
+
+                        // Enriquecer com dados atuais dos clientes (foto, status, etc)
+                        const mappedClients = enrolled.map(c => {
+                            // Tenta encontrar dados atualizados na lista de clientes carregada
+                            const clientInfo = clientsList.find(cl => cl.id === c.idClient) || {}
+
+                            return {
+                                id: c.idClient,
+                                idClient: c.idClient,
+                                enrollmentId: c.id,
+                                name: clientInfo.name || c.clientName || c.name || "Aluno",
+                                photo: clientInfo.photoUrl || c.photoUrl || null,
+                                status: "present", // Default attendance status
+                                clientStatus: clientInfo.lifecycleStatus || "active", // Status do Cliente (LifeCycle)
+                                justification: "",
+                                present: true,
+                                tag: "Matriculado",
+                                friendlyId: clientInfo.friendlyId || c.friendlyId
+                            }
+                        })
+
+                        setClients(mappedClients)
                     }
                 })
             } catch (error) {
@@ -94,6 +123,7 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
             }
 
             setJustAddedId(idClient)
+            setIsDirty(true)
             onEnrollmentChange?.({ id: schedule.id, action: 'add' })
             return [newClient, ...prev]
         })
@@ -103,20 +133,22 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
         setClients(prev =>
             prev.map(s => (s.id === id ? { ...s, status: "editing", justification: "" } : s))
         )
+        setIsDirty(true)
     }, [])
 
     const handleConfirmAbsence = useCallback((id) => {
         setClients(prev => prev.map(s => (s.id === id ? { ...s, status: "absent" } : s)))
-        toast.success("Ausência registrada!")
+        setIsDirty(true)
     }, [])
 
     const handleMarkPresent = useCallback((id) => {
         setClients(prev => prev.map(s => (s.id === id ? { ...s, status: "present", justification: "" } : s)))
-        toast.success("Presença confirmada!")
+        setIsDirty(true)
     }, [])
 
     const handleChangeJustification = useCallback((id, text) => {
         setClients(prev => prev.map(s => (s.id === id ? { ...s, justification: text } : s)))
+        setIsDirty(true)
     }, [])
 
     const handleSave = async (onClose) => {
@@ -158,6 +190,7 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
         setSearchText,
         searchResults,
         isLoading,
+        isDirty,
         justAddedId,
         attendanceStats,
         handleSelectSearchClient,
