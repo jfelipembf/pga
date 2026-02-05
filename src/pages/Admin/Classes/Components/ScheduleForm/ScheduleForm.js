@@ -2,8 +2,8 @@ import React from "react"
 import PropTypes from "prop-types"
 import { Button, FormGroup, Label, Input, Row, Col, Alert } from "reactstrap"
 
-import { WEEKDAY_OPTIONS, WEEKDAY_LABELS, WEEKDAY_SHORT_LABELS } from "../../../../constants/weekdays"
-import ButtonLoader from "../../../../components/Common/ButtonLoader"
+import { WEEKDAY_OPTIONS, WEEKDAY_LABELS, WEEKDAY_SHORT_LABELS } from "../../../../../constants/weekdays"
+import ButtonLoader from "../../../../../components/Common/ButtonLoader"
 import { useScheduleFormHandlers } from "./Hooks/useScheduleFormHandlers"
 
 const ScheduleForm = ({

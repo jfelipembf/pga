@@ -2,12 +2,10 @@ import React from "react"
 import { connect } from "react-redux"
 import { Card, CardBody, Container } from "reactstrap"
 
-import {
-  ScheduleForm,
-  ClassesGradeCard,
-  useClassesPage,
-  useGradeControls
-} from "../../../features/classes"
+import ScheduleForm from "./Components/ScheduleForm/ScheduleForm"
+import ClassesGradeCard from "./Components/ClassesGradeCard"
+import { useClassesPage } from "./hooks/useClassesPage"
+import { useGradeControls } from "./hooks/useGradeControls"
 import PageLoader from "../../../components/Common/PageLoader"
 import { setBreadcrumbItems } from "../../../store/actions"
 

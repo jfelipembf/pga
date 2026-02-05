@@ -1,9 +1,9 @@
 import React from "react"
 import { Card, CardBody } from "reactstrap"
 
-import GradeGrid from "../../../../pages/Grade/Components/GradeGrid"
-import GradeHeader from "../../../../pages/Grade/Components/GradeHeader"
-import { getStartOfWeek } from "../../../../utils/sharedUtils"
+import GradeGrid from "../../../../Grade/Components/GradeGrid"
+import GradeHeader from "../../../../Grade/Components/GradeHeader"
+import { getStartOfWeek } from "../../../../../utils/sharedUtils"
 
 export default function ClassesGradeCard({
   turn,

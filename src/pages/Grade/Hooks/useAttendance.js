@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback, useMemo } from "react"
 import { toast } from "react-toastify"
 import { useLoading } from "../../../hooks/useLoading"
 import { useTenant } from "../../../hooks/useTenant"
-import { ClassService } from "../../../features/classes"
-import { ClientService } from "../../../features/clients/services/ClientService"
+import { ClassService } from "../../../services/Classes/ClassService"
+import { ClientService } from "../../../services/Clients/ClientService"
 
 export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentChange) => {
     const { idTenant, idBranch, user, isReady } = useTenant()

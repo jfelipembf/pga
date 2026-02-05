@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom"
 import { useTenant } from "../../../../hooks/useTenant"
 import { ReceivableService } from "../../../../services/Financial/ReceivableService"
 import { SalesService } from "../../../../services/Sales/SalesService"
-import { ClientContractService } from "../../../../features/clients/services/ClientContractService"
+import { ClientContractService } from "../../../../services/Clients/ClientContractService"
 import { toast } from "react-toastify"
 
 /**

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react"
 import { useTenant } from "../../../hooks/useTenant"
-import { ClientService } from "../../../features/clients"
+import { ClientService } from "../../../services/Clients"
 import { toast } from "react-toastify"
 
 export const useClientList = () => {

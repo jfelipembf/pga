@@ -1,7 +1,7 @@
-import { contractRepository } from "../repositories/ContractRepository"
-import { ContractSchema } from "../../../data/schemas/FinancialSchemas"
-import { AuditService } from "../../../services/Audit/AuditService"
-import { normalizeDate } from "../../../utils/date"
+import { contractRepository } from "../../data/repositories/ContractRepository"
+import { ContractSchema } from "../../data/schemas/FinancialSchemas"
+import { AuditService } from "../Audit/AuditService"
+import { normalizeDate } from "../../utils/date"
 
 /**
  * Service Layer para Contratos.
@@ -96,7 +96,7 @@ export const ContractService = {
      */
     deleteContract: async (idTenant, idBranch, userId, idContract) => {
         // 1. CHECK: Existem alunos usando este plano?
-        const { clientContractRepository } = await import('../repositories/ClientContractRepository')
+        const { clientContractRepository } = await import('../../data/repositories/ClientContractRepository')
         const usages = await clientContractRepository.findWhere(idTenant, idBranch, [
             ['idPlan', '==', idContract],
             ['status', '==', 'active']

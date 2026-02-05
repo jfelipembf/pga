@@ -1,5 +1,5 @@
 import { salesRepository } from '../../data/repositories/SalesRepository'
-import { contractRepository } from '../../features/clients'
+import { contractRepository } from '../../data/repositories/ContractRepository'
 import { AuditService } from '../Audit/AuditService'
 import { LedgerService, STANDARD_ACCOUNTS } from '../Ledger/LedgerService'
 import { SalesPaymentProcessor } from './SalesPaymentProcessor'
@@ -126,7 +126,7 @@ export const SalesService = {
         // 7. Gerar Contratos do Cliente e Atualizar Status (Nova Arquitetura)
         if (saleData.items && saleData.items.length > 0) {
             // Importa o serviço uma única vez
-            const { ClientContractService } = await import('../../features/clients')
+            const { ClientContractService } = await import('../Clients/ClientContractService')
 
             for (const item of saleData.items) {
                 const itemType = String(item.type || '').toLowerCase();

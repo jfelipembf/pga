@@ -1,5 +1,5 @@
 import React from "react"
-import { getStartOfWeek } from "../../../utils/sharedUtils"
+import { getStartOfWeek } from "../../../../utils/sharedUtils"
 
 export const useGradeControls = () => {
   const [referenceDate, setReferenceDate] = React.useState(new Date())

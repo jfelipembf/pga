@@ -1,8 +1,8 @@
-import { clientRepository } from '../repositories/ClientRepository'
-import { AuditService } from '../../../services/Audit/AuditService'
-import { ClientSchema } from '../schemas/ClientSchema'
-import { generateClientId } from '../../../utils/sequence'
-import { normalizeDate } from '../../../utils/date'
+import { clientRepository } from '../../data/repositories/ClientRepository'
+import { AuditService } from '../Audit/AuditService'
+import { ClientSchema } from '../../data/schemas/Clients/ClientSchema'
+import { generateClientId } from '../../utils/sequence'
+import { normalizeDate } from '../../utils/date'
 
 /**
  * Serviço de Clientes que orquestra Negócio, Persistência e Auditoria.
@@ -183,7 +183,7 @@ export const ClientService = {
 
         // 2. CHECK: Contratos Ativos
         // Importa repositório aqui para evitar dependência circular se possível, ou usa injeção
-        const { clientContractRepository } = await import('../repositories/ClientContractRepository')
+        const { clientContractRepository } = await import('../../data/repositories/ClientContractRepository')
         const activeContracts = await clientContractRepository.findByClient(idTenant, idBranch, id)
         const hasActiveContracts = activeContracts.some(c => c.status === 'active' || c.status === 'suspended')
 
@@ -192,7 +192,7 @@ export const ClientService = {
         }
 
         // 3. CHECK: Financeiro em Aberto
-        const { receivableRepository } = await import('../../../data/repositories/ReceivableRepository')
+        const { receivableRepository } = await import('../../data/repositories/ReceivableRepository')
         const openReceivables = await receivableRepository.findWhere(idTenant, idBranch, [
             ['idClient', '==', id],
             ['status', '==', 'open'],
@@ -231,7 +231,7 @@ export const ClientService = {
      * Valida transições e registra auditoria.
      */
     updateLifecycleStatus: async (idTenant, idBranch, idClient, newStatus, metadata = {}) => {
-        const { VALID_TRANSITIONS } = await import('../schemas/ClientSchema')
+        const { VALID_TRANSITIONS } = await import('../../data/schemas/Clients/ClientSchema')
 
         // 1. Busca cliente atual
         const client = await clientRepository.findById(idTenant, idBranch, idClient)

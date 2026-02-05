@@ -4,7 +4,7 @@ import { useClientFinancial } from '../hooks/useClientFinancial'
 import { formatCurrency } from '../../../../utils/format'
 import { formatDate } from '../../../../utils/date'
 import StatusBadge from '../../../../components/Common/StatusBadge'
-import { ClientContractService } from '../../../../features/clients/services/ClientContractService'
+import { ClientContractService } from '../../../../services/Clients/ClientContractService'
 import { useTenant } from '../../../../hooks/useTenant'
 import { toast } from 'react-toastify'
 

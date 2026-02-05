@@ -1,12 +1,12 @@
 import { useMemo } from "react"
-import { createEmptyClassForm } from "../constants"
+import { createEmptyClassForm } from "../Constants/classesDefaults"
 import {
     getStartOfWeek,
     addDays,
     getDay,
     parseISO,
     format
-} from "../../../utils/sharedUtils"
+} from "../../../../utils/sharedUtils"
 
 export const useClassGridLogic = ({ data, formState, setFormState, referenceDate }) => {
 

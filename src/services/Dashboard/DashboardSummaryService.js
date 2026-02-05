@@ -137,8 +137,8 @@ export const DashboardSummaryService = {
      * Esta função é cara, deve rodar apenas via Cloud Function agendada.
      */
     async recalculate(idTenant, idBranch) {
-        const { clientRepository } = await import('../../features/clients')
-        const { clientContractRepository } = await import('../../features/clients')
+        const { clientRepository } = await import('../../data/repositories/ClientRepository')
+        const { clientContractRepository } = await import('../../data/repositories/ClientContractRepository')
 
         // Conta clientes reais
         const allClients = await clientRepository.findAll(idTenant, idBranch)

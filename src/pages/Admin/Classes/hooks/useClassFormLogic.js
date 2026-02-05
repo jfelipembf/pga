@@ -1,7 +1,7 @@
 import { useState } from "react"
-import { useTenant } from "../../../hooks/useTenant"
-import { ClassService } from ".."
-import { createEmptyClassForm } from "../constants"
+import { useTenant } from "../../../../hooks/useTenant"
+import { ClassService } from "../../../../services/Classes/ClassService"
+import { createEmptyClassForm } from "../Constants/classesDefaults"
 
 export const useClassFormLogic = ({ toast, withLoading, reloadData }) => {
     const [formState, setFormState] = useState(createEmptyClassForm())

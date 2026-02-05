@@ -1,12 +1,32 @@
-import { BaseRepository } from './BaseRepository'
+import { BaseRepository } from "./BaseRepository";
 
 /**
- * Repository para gerenciar Contratos (Planos) no Firestore
+ * Repositório focado apenas na persistência de Contratos (Planos).
+ * Não deve conter validações complexas de negócio, apenas CRUD e queries.
  */
-class ContractRepository extends BaseRepository {
+export class ContractRepository extends BaseRepository {
     constructor() {
-        super('contracts')
+        super("contracts"); // Coleção 'contracts' dentro de tenant/branch
+    }
+
+    /**
+     * Lista planos ativos e visíveis
+     */
+    async findActivePlans(idTenant, idBranch) {
+        return await this.findWhere(idTenant, idBranch, [
+            ['isActive', '==', true],
+            ['deletedAt', '==', null]
+        ]);
+    }
+
+    /**
+     * Lista todos os planos não deletados (mesmo os inativos)
+     */
+    async findVisiblePlans(idTenant, idBranch) {
+        return await this.findWhere(idTenant, idBranch, [
+            ['deletedAt', '==', null]
+        ]);
     }
 }
 
-export const contractRepository = new ContractRepository()
+export const contractRepository = new ContractRepository();

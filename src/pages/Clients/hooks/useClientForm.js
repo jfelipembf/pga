@@ -5,7 +5,8 @@ import { getAuth } from "firebase/auth"
 
 import { useTenant } from "../../../hooks/useTenant"
 
-import { ClientSchema, ClientService } from "../../../features/clients"
+import { ClientService } from "../../../services/Clients"
+import { ClientSchema } from "../../../data/schemas/Clients/ClientSchema"
 import { StorageService } from "../../../services/Storage/StorageService"
 import { getAddressByCep } from "../../../services/External/AddressService"
 

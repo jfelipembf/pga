@@ -7,7 +7,7 @@ import { useTenant } from "../../../hooks/useTenant"
 import { useClientProfile } from "./hooks/useClientProfile"
 import { useClientFinancial } from "./hooks/useClientFinancial"
 import { TAB_LIST, PROFILE_TABS } from "./constants/profileConstants"
-import { ClientService } from "../../../features/clients"
+import { ClientService } from "../../../services/Clients/ClientService"
 
 // Componentes Comuns
 import PageLoader from "../../../components/Common/PageLoader"
