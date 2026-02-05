@@ -12,9 +12,8 @@ class ClientRepository extends BaseRepository {
      * Lista todos os clientes ativos (não deletados)
      */
     async findActive(idTenant, idBranch) {
-        return this.findWhere(idTenant, idBranch, [
-            ['deletedAt', '==', null]
-        ])
+        const docs = await this.findAll(idTenant, idBranch)
+        return docs.filter(d => (d.deletedAt === null || d.deletedAt === undefined) && d.deleted !== true)
     }
 
     /**

@@ -77,6 +77,7 @@ const ClassBar = ({
                   schedule={schedule}
                   showOccupancyMask={true}
                   onClick={() => onScheduleSelect?.(schedule)}
+                  isSelected={schedule.id === selectedId}
                 />
               </div>
             ))}

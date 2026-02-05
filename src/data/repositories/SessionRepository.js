@@ -15,31 +15,30 @@ class SessionRepository extends BaseRepository {
      * Suporta compatibilidade entre campos 'deleted' e 'deletedAt'
      */
     async findByDateRange(idTenant, idBranch, startDate, endDate) {
-        return await this.findWhere(idTenant, idBranch, [
+        const docs = await this.findWhere(idTenant, idBranch, [
             ['sessionDate', '>=', startDate],
-            ['sessionDate', '<=', endDate],
-            ['deletedAt', '==', null]
+            ['sessionDate', '<=', endDate]
         ]);
+
+        return docs.filter(d => (d.deletedAt === null || d.deletedAt === undefined) && d.deleted !== true);
     }
 
     /**
      * Busca sessões ativas (não canceladas/deletadas)
      */
     async findActive(idTenant, idBranch) {
-        return await this.findWhere(idTenant, idBranch, [
-            ['isActive', '==', true],
-            ['deletedAt', '==', null]
-        ]);
+        const docs = await this.findAll(idTenant, idBranch);
+        return docs.filter(d => (d.deletedAt === null || d.deletedAt === undefined) && d.deleted !== true);
     }
 
     /**
      * Busca sessões específicas de uma turma
      */
     async findByClass(idTenant, idBranch, idClass) {
-        return await this.findWhere(idTenant, idBranch, [
-            ['idClass', '==', idClass],
-            ['deletedAt', '==', null]
+        const docs = await this.findWhere(idTenant, idBranch, [
+            ['idClass', '==', idClass]
         ])
+        return docs.filter(d => (d.deletedAt === null || d.deletedAt === undefined) && d.deleted !== true);
     }
 }
 

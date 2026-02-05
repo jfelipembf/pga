@@ -13,7 +13,7 @@ import ConfirmDialog from '../../../../components/Common/ConfirmDialog'
 const ClientEnrollments = ({ client }) => {
     const navigate = useNavigate()
     const { idTenant, idBranch, tenantSlug, branchSlug, user } = useTenant()
-    const { activeEnrollments, pastEnrollments, loading, refreshData } = useClientEnrollments()
+    const { activeEnrollments, pastEnrollments, loading, refreshData } = useClientEnrollments(client?.id)
     const { contracts } = useClientFinancial()
 
     const [cancelModal, setCancelModal] = useState({ open: false, enrollment: null })

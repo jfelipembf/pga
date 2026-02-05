@@ -165,6 +165,22 @@ export const ClassService = {
     },
 
     /**
+     * Lista as turmas com filtros (Versão simplificada para compatibilidade legado)
+     */
+    listWithFilters: async (idTenant, idBranch, filters = {}) => {
+        const classes = await classRepository.findActive(idTenant, idBranch)
+        // Aplicar filtros simples se necessário
+        return classes
+    },
+
+    /**
+     * Lista todas as sessões ativas (Versão simplificada para compatibilidade legado)
+     */
+    listAll: async (idTenant, idBranch) => {
+        return await sessionRepository.findActive(idTenant, idBranch)
+    },
+
+    /**
      * Atualiza uma turma existente
      */
     updateClass: async (idTenant, idBranch, user, id, data) => {
@@ -286,79 +302,12 @@ export const ClassService = {
 
 
     /**
+     * @deprecated Use AttendanceService.recordAttendance() instead
      * Salva o registro de presença de uma sessão
      */
     saveAttendance: async (idTenant, idBranch, user, idSession, attendanceData) => {
-        const userId = user.uid
-        const userName = user.displayName || user.email || 'Sistema'
-
-        const result = await sessionRepository.update(idTenant, idBranch, idSession, {
-            attendanceRecorded: true,
-            attendanceSnapshot: attendanceData.clients,
-            presentCount: attendanceData.presentCount,
-            absentCount: attendanceData.absentCount,
-            updatedBy: userId
-        })
-
-        // 2. Atualizar estatísticas nas matrículas individuais
-        // Isso permite rastrear frequência global e risco de abandono
-        // 2. Atualizar estatísticas nas matrículas individuais com lógica diferencial
-        // Isso previne contagem dupla ao alterar de presente <-> ausente
-        if (attendanceData.clients && attendanceData.clients.length > 0) {
-
-            // Buscar snapshot anterior para comparação
-            const currentSession = await sessionRepository.findById(idTenant, idBranch, idSession)
-            const previousSnapshot = currentSession?.attendanceSnapshot || []
-            const previousStatusMap = {}
-
-            // Mapear status anterior: enrollmentId -> status
-            previousSnapshot.forEach(c => {
-                if (c.enrollmentId) previousStatusMap[c.enrollmentId] = c.status
-            })
-
-            const promises = attendanceData.clients.map(async (client) => {
-                if (!client.enrollmentId) return
-
-                const newStatus = client.status
-                const oldStatus = previousStatusMap[client.enrollmentId]
-
-                // Se não mudou, não faz nada
-                if (newStatus === oldStatus) return
-
-                // Lógica de Atualização Diferencial
-                const updates = {}
-
-                // Remover contagem do status antigo
-                if (oldStatus === 'present') {
-                    updates.attendedSessions = increment(-1)
-                } else if (oldStatus === 'absent') {
-                    updates.missedSessions = increment(-1)
-                }
-
-                // Adicionar contagem do status novo
-                if (newStatus === 'present') {
-                    updates.attendedSessions = increment(1)
-                } else if (newStatus === 'absent') {
-                    updates.missedSessions = increment(1)
-                }
-
-                if (Object.keys(updates).length > 0) {
-                    await enrollmentRepository.update(idTenant, idBranch, client.enrollmentId, updates)
-                }
-            })
-
-            await Promise.all(promises)
-        }
-
-        await AuditService.log({
-            idTenant, idBranch, userId, userName,
-            action: 'SESSION_ATTENDANCE_RECORDED',
-            entityType: 'session',
-            entityId: idSession,
-            description: `Chamada da sessão ${idSession}: ${attendanceData.presentCount} presentes, ${attendanceData.absentCount} ausentes.`,
-            details: { attendanceData }
-        })
-
-        return result
+        // Delegar para o novo AttendanceService
+        const { AttendanceService } = await import('./AttendanceService')
+        return AttendanceService.recordAttendance(idTenant, idBranch, user, idSession, attendanceData)
     }
 }

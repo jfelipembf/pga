@@ -216,6 +216,9 @@ const SidebarContent = props => {
                   <Link to={linkTo("/admin/catalog")}>{props.t("Catálogo")}</Link>
                 </li>
                 <li>
+                  <Link to={linkTo("/admin/events")}>{props.t("Ciclos de Avaliação")}</Link>
+                </li>
+                <li>
                   <Link to={linkTo("/admin/audit-logs")}>{props.t("Auditoria")}</Link>
                 </li>
                 <li>
@@ -268,7 +271,7 @@ const SidebarContent = props => {
             </li>
 
             <li>
-              <Link to="/#" className="waves-effect">
+              <Link to={linkTo("/evaluation")} className="waves-effect">
                 <i className="mdi mdi-file-check-outline"></i>
                 <span>{props.t("Testes e Avaliação")}</span>
               </Link>

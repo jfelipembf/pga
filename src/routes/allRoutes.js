@@ -7,6 +7,7 @@ import UserProfile from "../pages/Authentication/user-profile"
 // Pages Grade
 import Grade from "../pages/Grade/index"
 import EnrollmentGrade from "../pages/Grade/EnrollmentGrade/index"
+import Evaluation from "../pages/Evaluation/index"
 
 //Email
 import EmailInbox from "../pages/Email/email-inbox"
@@ -114,6 +115,7 @@ import EvaluationLevelsPage from "../pages/Admin/EvaluationLevels/index"
 import StaffList from "../pages/Admin/Staff/List"
 import ClassesPage from "../pages/Admin/Classes/index"
 import CatalogPage from "../pages/Admin/Catalog/index"
+import EventsPage from "../pages/Admin/Events/index"
 
 import OperationalDashboard from "../pages/Dashboard/Operational/index"
 
@@ -141,6 +143,10 @@ const userRoutes = [
   { path: "/grade", component: <Grade /> },
   { path: "/grade/enroll", component: <EnrollmentGrade /> },
 
+  // Evaluation
+  { path: "/evaluation", component: <Evaluation /> },
+
+
   { path: "/chat", component: <Chat /> },
   { path: "/kanbanboard", component: <Kanban /> },
 
@@ -152,6 +158,7 @@ const userRoutes = [
   { path: "/admin/staff", component: <StaffList /> },
   { path: "/admin/classes", component: <ClassesPage /> },
   { path: "/admin/catalog", component: <CatalogPage /> },
+  { path: "/admin/events", component: <EventsPage /> },
   { path: "/admin/audit-logs", component: <AuditLogsPage /> },
 
   // // //profile

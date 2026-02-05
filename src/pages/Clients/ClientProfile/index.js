@@ -21,6 +21,7 @@ import ClientProfileForm from "./components/ClientProfileForm"
 import ClientFinancial from "./components/ClientFinancial"
 import ClientContracts from "./components/ClientContracts"
 import ClientEnrollments from "./components/ClientEnrollments"
+import ClientEvaluations from "./components/ClientEvaluations"
 
 
 // Estilos
@@ -206,6 +207,9 @@ const ClientProfile = () => {
                         )}
                         {activeTab === PROFILE_TABS.ENROLLMENTS && (
                             <ClientEnrollments client={client} />
+                        )}
+                        {activeTab === PROFILE_TABS.EVALUATIONS && (
+                            <ClientEvaluations client={client} />
                         )}
                         {/* Abas removidas conforme solicitado */}
                     </Col>

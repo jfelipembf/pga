@@ -6,7 +6,7 @@
  * - Classes page (useClassesPage, useClassFormLogic)
  * - Grade (useGradeData)
  */
-import { ClassService } from '../Admin/ClassService'
+import { ClassService } from './ClassService'
 
 export const listClasses = async (idTenant, idBranch, filters = {}) => {
     return await ClassService.listWithFilters(idTenant, idBranch, filters)

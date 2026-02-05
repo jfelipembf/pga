@@ -1,0 +1,268 @@
+import { sessionRepository } from '../../data/repositories/SessionRepository'
+import { enrollmentRepository } from '../../data/repositories/EnrollmentRepository'
+import { AuditService } from '../Audit/AuditService'
+
+/**
+ * Serviço de Controle de Presença (Attendance)
+ * 
+ * Responsabilidades:
+ * - Registrar presença/ausência de alunos em sessões
+ * - Atualizar contadores de frequência nas matrículas
+ * - Fornecer métricas de frequência por aluno
+ * 
+ * Fluxo de Dados:
+ * 1. Modal de Presença chama `recordAttendance()` com a lista de alunos e seus status
+ * 2. O serviço salva o snapshot na sessão
+ * 3. Para cada aluno COM matrícula válida, atualiza os contadores (attendedSessions/missedSessions)
+ * 4. Registra log de auditoria
+ */
+export const AttendanceService = {
+    /**
+     * Registra a presença de uma sessão
+     * 
+     * LÓGICA DIFERENCIAL:
+     * - Se é a primeira chamada: incrementa contadores normalmente
+     * - Se é edição: compara status anterior vs novo e ajusta contadores
+     * 
+     * @param {string} idTenant - ID do tenant
+     * @param {string} idBranch - ID da filial
+     * @param {object} user - Usuário logado { uid, displayName, email }
+     * @param {string} idSession - ID da sessão
+     * @param {object} attendanceData - Dados da chamada
+     * @param {array} attendanceData.clients - Lista de alunos com { id, enrollmentId, name, status }
+     */
+    recordAttendance: async (idTenant, idBranch, user, idSession, attendanceData) => {
+        const userId = user.uid
+        const userName = user.displayName || user.email || 'Sistema'
+
+        if (!idSession) {
+            throw new Error('ID da sessão é obrigatório')
+        }
+
+        if (!attendanceData?.clients || attendanceData.clients.length === 0) {
+            throw new Error('Lista de alunos é obrigatória')
+        }
+
+        // 1. Buscar snapshot anterior para lógica diferencial
+        const currentSession = await sessionRepository.findById(idTenant, idBranch, idSession)
+        const previousSnapshot = currentSession?.attendanceSnapshot || []
+
+        // Criar mapa: enrollmentId -> status anterior
+        const previousStatusMap = new Map()
+        previousSnapshot.forEach(client => {
+            if (client.enrollmentId) {
+                previousStatusMap.set(client.enrollmentId, client.status)
+            }
+        })
+
+        const isFirstAttendance = previousSnapshot.length === 0
+        console.log(`[AttendanceService] ${isFirstAttendance ? 'NOVA' : 'EDIÇÃO de'} chamada para sessão ${idSession}`)
+
+        // 2. Calcular estatísticas
+        const presentList = attendanceData.clients.filter(c => c.status !== 'absent')
+        const absentList = attendanceData.clients.filter(c => c.status === 'absent')
+
+        // 3. Salvar snapshot na sessão
+        await sessionRepository.update(idTenant, idBranch, idSession, {
+            attendanceRecorded: true,
+            attendanceSnapshot: attendanceData.clients,
+            presentCount: presentList.length,
+            absentCount: absentList.length,
+            attendanceRecordedAt: new Date(),
+            attendanceRecordedBy: userId
+        })
+
+        // 4. Atualizar contadores com LÓGICA DIFERENCIAL
+        let enrollmentsUpdated = 0
+
+        const updatePromises = attendanceData.clients.map(async (client) => {
+            // Alunos extras (sem matrícula) são ignorados
+            if (!client.enrollmentId) {
+                return null
+            }
+
+            const newStatus = client.status
+            const oldStatus = previousStatusMap.get(client.enrollmentId) // undefined se é novo
+
+            // Se o status NÃO mudou, não faz nada
+            if (oldStatus === newStatus) {
+                console.log(`[AttendanceService] Matrícula ${client.enrollmentId}: sem alteração (${newStatus})`)
+                return null
+            }
+
+            // Buscar dados atuais da matrícula
+            const enrollment = await enrollmentRepository.findById(idTenant, idBranch, client.enrollmentId)
+            if (!enrollment) {
+                console.warn(`[AttendanceService] Matrícula ${client.enrollmentId} não encontrada`)
+                return null
+            }
+
+            const updates = {}
+            let attendedDelta = 0
+            let missedDelta = 0
+
+            // REVERTER contagem do status antigo (se existia)
+            if (oldStatus === 'present' || (oldStatus && oldStatus !== 'absent')) {
+                attendedDelta -= 1
+            } else if (oldStatus === 'absent') {
+                missedDelta -= 1
+            }
+
+            // INCREMENTAR contagem do status novo
+            if (newStatus === 'absent') {
+                missedDelta += 1
+            } else {
+                // present, late, etc = considera como presença
+                attendedDelta += 1
+            }
+
+            // Aplicar deltas (evita números negativos)
+            if (attendedDelta !== 0) {
+                updates.attendedSessions = Math.max(0, (enrollment.attendedSessions || 0) + attendedDelta)
+            }
+            if (missedDelta !== 0) {
+                updates.missedSessions = Math.max(0, (enrollment.missedSessions || 0) + missedDelta)
+            }
+
+            // Só atualiza se houver mudança real
+            if (Object.keys(updates).length > 0) {
+                updates.lastAttendanceDate = new Date()
+                updates.lastAttendanceSessionId = idSession
+
+                await enrollmentRepository.update(idTenant, idBranch, client.enrollmentId, updates)
+                enrollmentsUpdated++
+
+                console.log(`[AttendanceService] Matrícula ${client.enrollmentId}: ${oldStatus || 'NOVO'} → ${newStatus}`, updates)
+            }
+
+            return { enrollmentId: client.enrollmentId, oldStatus, newStatus, ...updates }
+        })
+
+        await Promise.all(updatePromises)
+
+        // 5. Auditoria
+        await AuditService.log({
+            idTenant, idBranch, userId, userName,
+            action: isFirstAttendance ? 'ATTENDANCE_RECORDED' : 'ATTENDANCE_UPDATED',
+            entityType: 'session',
+            entityId: idSession,
+            description: `Chamada ${isFirstAttendance ? 'registrada' : 'atualizada'}: ${presentList.length} presentes, ${absentList.length} ausentes`,
+            details: {
+                presentCount: presentList.length,
+                absentCount: absentList.length,
+                totalClients: attendanceData.clients.length,
+                enrollmentsUpdated,
+                isEdit: !isFirstAttendance
+            }
+        })
+
+        return {
+            success: true,
+            idSession,
+            presentCount: presentList.length,
+            absentCount: absentList.length,
+            enrollmentsUpdated,
+            isEdit: !isFirstAttendance
+        }
+    },
+
+    /**
+     * Obtém métricas de frequência de um aluno baseado em suas matrículas
+     * 
+     * @param {string} idTenant - ID do tenant
+     * @param {string} idBranch - ID da filial
+     * @param {string} idClient - ID do cliente
+     * @returns {object} Métricas consolidadas de frequência
+     */
+    getClientAttendanceMetrics: async (idTenant, idBranch, idClient) => {
+        // Buscar todas as matrículas do cliente
+        const enrollments = await enrollmentRepository.findByClient(idTenant, idBranch, idClient)
+
+        // Filtrar apenas matrículas ativas/suspensas para métricas
+        const activeEnrollments = enrollments.filter(e =>
+            ['active', 'suspended'].includes(e.status)
+        )
+
+        // Consolidar estatísticas
+        let totalAttended = 0
+        let totalMissed = 0
+
+        activeEnrollments.forEach(enrollment => {
+            totalAttended += enrollment.attendedSessions || 0
+            totalMissed += enrollment.missedSessions || 0
+        })
+
+        const totalSessions = totalAttended + totalMissed
+        const frequencyRate = totalSessions > 0 ? (totalAttended / totalSessions) * 100 : 0
+
+        // Cálculo de Risco de Evasão (inverso da frequência)
+        const riskScore = totalSessions > 0 ? (100 - frequencyRate) : 0
+        let riskLevel = 'Baixo'
+        if (riskScore >= 70) riskLevel = 'Alto'
+        else if (riskScore >= 30) riskLevel = 'Médio'
+
+        return {
+            totalSessions,
+            attended: totalAttended,
+            missed: totalMissed,
+            frequencyRate: Math.round(frequencyRate * 10) / 10, // 1 casa decimal
+            riskScore: Math.round(riskScore * 10) / 10,
+            riskLevel,
+            enrollmentsCount: activeEnrollments.length
+        }
+    },
+
+    /**
+     * Lista os alunos matriculados em uma turma para a chamada
+     * Retorna dados enriquecidos prontos para o modal de presença
+     * 
+     * @param {string} idTenant - ID do tenant
+     * @param {string} idBranch - ID da filial
+     * @param {string} idClass - ID da turma
+     * @returns {array} Lista de alunos com dados para chamada
+     */
+    getStudentsForAttendance: async (idTenant, idBranch, idClass) => {
+        // Buscar matrículas ativas na turma
+        const enrollments = await enrollmentRepository.findByClass(idTenant, idBranch, idClass)
+
+        // Mapear para formato do modal de presença
+        return enrollments.map(enrollment => ({
+            id: enrollment.idClient,
+            idClient: enrollment.idClient,
+            enrollmentId: enrollment.id, // CRÍTICO: ID da matrícula para atualização
+            name: enrollment.clientName,
+            status: 'present', // Default para presença
+            justification: '',
+            tag: 'Matriculado',
+            enrollmentType: enrollment.enrollmentType || 'regular',
+            // Dados extras para exibição
+            attendedSessions: enrollment.attendedSessions || 0,
+            missedSessions: enrollment.missedSessions || 0
+        }))
+    },
+
+    /**
+     * Recupera o histórico de presença de uma sessão específica
+     * 
+     * @param {string} idTenant - ID do tenant
+     * @param {string} idBranch - ID da filial
+     * @param {string} idSession - ID da sessão
+     * @returns {object|null} Dados de presença ou null se não registrado
+     */
+    getSessionAttendance: async (idTenant, idBranch, idSession) => {
+        const session = await sessionRepository.findById(idTenant, idBranch, idSession)
+
+        if (!session || !session.attendanceRecorded) {
+            return null
+        }
+
+        return {
+            recorded: true,
+            recordedAt: session.attendanceRecordedAt,
+            recordedBy: session.attendanceRecordedBy,
+            presentCount: session.presentCount || 0,
+            absentCount: session.absentCount || 0,
+            clients: session.attendanceSnapshot || []
+        }
+    }
+}

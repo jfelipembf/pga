@@ -1,17 +1,20 @@
 import { useState, useMemo, useEffect } from "react"
-import { listEvaluationLevels } from "../../../services/EvaluationLevels"
-import { getActiveEvaluationEvent } from "../../../services/Events/events.service"
+import { useTenant } from "../../../hooks/useTenant"
 import { useLoading } from "../../../hooks/useLoading"
-import { useActiveClientsPool } from "../../../hooks/evaluation/useActiveClientsPool"
-import { useClassClients } from "../../../hooks/evaluation/useClassClients"
+import { EvaluationLevelService } from "../../../services/Admin/EvaluationLevelService"
+import { useActiveClientsPool } from "./useActiveClientsPool"
+import { useClassClients } from "./useClassClients"
+import { EventService } from "../../../services/Events/EventService"
 
 export const useEvaluationFormLogic = ({ classId }) => {
+    const { idTenant, idBranch } = useTenant()
     const { isLoading, anyLoading, withLoading } = useLoading()
     const [extraClients, setExtraClients] = useState([])
     const [searchText, setSearchText] = useState("")
     const [excludedClientIds, setExcludedClientIds] = useState(() => new Set())
     const [levels, setLevels] = useState([])
-    const [activeEvent, setActiveEvent] = useState(null)
+    const [activeEvent, setActiveEvent] = useState(null) // Cliclo de Avaliação Técnica
+    const [activeTestEvent, setActiveTestEvent] = useState(null) // Ciclo de Testes
 
     const { clients: classClients } = useClassClients({ classId, withLoading })
     const { clients: activeClientsPool } = useActiveClientsPool({ enabled: true })
@@ -47,8 +50,8 @@ export const useEvaluationFormLogic = ({ classId }) => {
             .filter(s => !existingIds.has(String(s.id)))
             .filter(s => {
                 const name = (s.name || "").toLowerCase()
-                const gym = (s.idGym || "").toLowerCase()
-                return name.includes(q) || gym.includes(q)
+                // const gym = (s.idGym || "").toLowerCase() // Assuming idGym might not be present in simplified obj
+                return name.includes(q)
             })
             .slice(0, 8)
     }, [activeClientsPool, allClients, searchText])
@@ -64,7 +67,7 @@ export const useEvaluationFormLogic = ({ classId }) => {
         const load = async () => {
             try {
                 await withLoading("levels", async () => {
-                    const data = await listEvaluationLevels()
+                    const data = await EvaluationLevelService.listAll(idTenant, idBranch)
                     if (!cancelled) setLevels(Array.isArray(data) ? data : [])
                 })
             } catch (e) {
@@ -84,18 +87,24 @@ export const useEvaluationFormLogic = ({ classId }) => {
     }, [levels])
 
     useEffect(() => {
+        if (!idTenant || !idBranch) return
+
         const checkEvent = async () => {
             try {
                 await withLoading('checkEvent', async () => {
-                    const evt = await getActiveEvaluationEvent()
-                    setActiveEvent(evt)
+                    const [evalEvt, testEvt] = await Promise.all([
+                        EventService.getActiveEvent(idTenant, idBranch, 'evaluation'),
+                        EventService.getActiveEvent(idTenant, idBranch, 'test')
+                    ])
+                    setActiveEvent(evalEvt || null)
+                    setActiveTestEvent(testEvt || null)
                 })
             } catch (e) {
                 console.error("Erro ao verificar evento ativo", e)
             }
         }
         checkEvent()
-    }, [withLoading])
+    }, [idTenant, idBranch, withLoading])
 
     const toggleExcludeClient = (idClient) => {
         const key = String(idClient)
@@ -130,6 +139,7 @@ export const useEvaluationFormLogic = ({ classId }) => {
         setSearchText,
         levels,
         activeEvent,
+        activeTestEvent,
         allClients,
         evaluationClients,
         addCandidates,
@@ -138,6 +148,6 @@ export const useEvaluationFormLogic = ({ classId }) => {
         toggleExcludeClient,
         handleAddClient,
         excludedClientIds,
-        classClients // exported if needed for initial check
+        classClients
     }
 }

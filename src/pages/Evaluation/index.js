@@ -1,42 +1,64 @@
 import React, { useMemo, useState, useEffect } from "react"
 import { Col, Container, Row, Nav, NavItem, NavLink, Input } from "reactstrap"
 import classnames from "classnames"
+import moment from "moment"
 
 import ClassBar from "../Grade/Components/ClassBar"
 
 import EvaluationCard from "./Components/evaluationCard"
-import TestCard from "./Components/TestCard"
+// import TestCard from "./Components/TestCard" // TODO: Migrate TestCard
 import { useEvaluationData } from "./Hooks/useEvaluationData"
 import { mapSessionsToEvaluationSchedules } from "./Utils/mappers"
-import { toISODate, addDays } from "@pga/shared"
-import { isWithinTurn, occursOnDate } from "../Grade/Utils/gridUtils"
+import { toISODate, normalizeDate } from "../../utils/date"
 import PageLoader from "../../components/Common/PageLoader"
 
-import { getActiveTestEvent } from "../../services/Events/events.service"
+// import { getActiveTestEvent } from "../../services/Events/events.service" // TODO: Create Events Service
 
 import { connect } from "react-redux"
 import { setBreadcrumbItems } from "../../store/actions"
 
-const Evaluation = ({ setBreadcrumbItems }) => {
+// Local Helpers to avoid circular dependencies with Grade module
+const isWithinTurn = (turn, startTime) => {
+  if (!startTime) return false
+  if (!turn || turn === 'all') return true
+  const hour = parseInt(startTime.split(':')[0])
+  if (turn === 'morning') return hour < 12
+  if (turn === 'afternoon') return hour >= 12 && hour < 18
+  if (turn === 'night') return hour >= 18
+  return true
+}
+
+const occursOnDate = (schedule, isoDate, dayIndex) => {
+  const sessionDate = schedule?.sessionDate || null
+  if (sessionDate) {
+    const d = normalizeDate(sessionDate)
+    if (!d) return false
+    return toISODate(d) === String(isoDate).slice(0, 10)
+  }
+  const weekDays = Array.isArray(schedule?.weekDays) ? schedule.weekDays : []
+  if (weekDays.length > 0) {
+    if (!weekDays.includes(dayIndex)) return false
+    const startDate = schedule?.startDate ? toISODate(normalizeDate(schedule.startDate)) : null
+    const endDate = schedule?.endDate ? toISODate(normalizeDate(schedule.endDate)) : null
+    const targetIso = String(isoDate).slice(0, 10)
+    if (startDate && targetIso < startDate) return false
+    if (endDate && targetIso > endDate) return false
+    return true
+  }
+  return false
+}
+
+const EvaluationPage = ({ setBreadcrumbItems }) => {
   const [currentDate, setCurrentDate] = useState(() => new Date())
   const [selectedSchedule, setSelectedSchedule] = useState(null)
-  const [activeTab, setActiveTab] = useState("avaliacao")
-  const [activeTestEvent, setActiveTestEvent] = useState(null) // Renamed from selectedTestEvent to be clear it's global/active
+  const [activeTab, setActiveTab] = useState("technical")
   const [selectedStaffId, setSelectedStaffId] = useState("")
-  const { sessions, activities, areas, staff, isLoading } = useEvaluationData()
+  const { sessions, activities, areas, staff, isLoading } = useEvaluationData(currentDate)
 
   useEffect(() => {
     const breadcrumbItems = [{ title: "Avaliação", link: "/evaluation" }]
     setBreadcrumbItems("Avaliação", breadcrumbItems)
   }, [setBreadcrumbItems])
-
-  useEffect(() => {
-    const loadTestEvent = async () => {
-      const evt = await getActiveTestEvent()
-      setActiveTestEvent(evt)
-    }
-    loadTestEvent()
-  }, [])
 
   const schedules = useMemo(() => {
     return mapSessionsToEvaluationSchedules(sessions, activities, areas, staff)
@@ -46,7 +68,7 @@ const Evaluation = ({ setBreadcrumbItems }) => {
     const todayISO = toISODate(currentDate)
     const todayDayIndex = currentDate.getDay()
 
-    const dailySchedules = schedules.filter(schedule => {
+    const dailySchedules = (schedules || []).filter(schedule => {
       if (!schedule) return false
       if (!isWithinTurn("all", schedule.startTime)) return false
       return occursOnDate(schedule, todayISO, todayDayIndex)
@@ -64,26 +86,20 @@ const Evaluation = ({ setBreadcrumbItems }) => {
   }, [schedules, currentDate, selectedStaffId])
 
   const instructors = useMemo(() => {
-    // Get unique instructors from the current day's classes
-    const todayISO = toISODate(currentDate)
-    const todayDayIndex = currentDate.getDay()
-
-    const dailySchedules = schedules.filter(schedule => {
-      if (!schedule) return false
-      if (!isWithinTurn("all", schedule.startTime)) return false
-      return occursOnDate(schedule, todayISO, todayDayIndex)
+    // Retornamos todos os professores para facilitar a busca, ordenados por nome
+    return [...staff].sort((a, b) => {
+      const nameA = a.name || `${a.firstName || ""} ${a.lastName || ""}`.trim()
+      const nameB = b.name || `${b.firstName || ""} ${b.lastName || ""}`.trim()
+      return nameA.localeCompare(nameB)
     })
-
-    const staffIdsOfToday = new Set(dailySchedules.map(s => s.idStaff).filter(Boolean))
-    return staff.filter(s => staffIdsOfToday.has(s.id))
-  }, [schedules, currentDate, staff])
+  }, [staff])
 
   const handlePrevDay = () => {
-    setCurrentDate(prev => addDays(prev, -1))
+    setCurrentDate(prev => moment(prev).subtract(1, 'days').toDate())
   }
 
   const handleNextDay = () => {
-    setCurrentDate(prev => addDays(prev, 1))
+    setCurrentDate(prev => moment(prev).add(1, 'days').toDate())
   }
 
   if (isLoading("page") && !sessions.length) {
@@ -94,22 +110,26 @@ const Evaluation = ({ setBreadcrumbItems }) => {
     <Container fluid>
       <Row className="g-4">
         <Col xs="12" md="3" lg="3">
-          <Nav pills className="mb-3 nav-justified bg-light p-1 rounded">
+          <Nav pills className="mb-3 nav-justified bg-light p-1 rounded shadow-sm">
             <NavItem>
               <NavLink
-                className={classnames({ active: activeTab === "avaliacao" })}
-                onClick={() => setActiveTab("avaliacao")}
+                active={activeTab === "technical"}
+                onClick={() => setActiveTab("technical")}
                 style={{ cursor: "pointer" }}
+                className={classnames({ "bg-white text-primary shadow-sm": activeTab === "technical" })}
               >
+                <i className="mdi mdi-medal-outline me-1"></i>
                 Avaliação
               </NavLink>
             </NavItem>
             <NavItem>
               <NavLink
-                className={classnames({ active: activeTab === "testes" })}
-                onClick={() => setActiveTab("testes")}
+                active={activeTab === "performance"}
+                onClick={() => setActiveTab("performance")}
                 style={{ cursor: "pointer" }}
+                className={classnames({ "bg-white text-primary shadow-sm": activeTab === "performance" })}
               >
+                <i className="mdi mdi-timer-outline me-1"></i>
                 Testes
               </NavLink>
             </NavItem>
@@ -135,26 +155,21 @@ const Evaluation = ({ setBreadcrumbItems }) => {
             date={currentDate}
             onPrevDay={handlePrevDay}
             onNextDay={handleNextDay}
-            schedules={todaySchedules} // Always show classes
+            schedules={todaySchedules}
             emptyLabel="Nenhuma aula encontrada para este dia."
-            onScheduleSelect={setSelectedSchedule} // Always select a schedule (class)
-            selectedSchedule={selectedSchedule}
+            onScheduleSelect={setSelectedSchedule}
+            selectedId={selectedSchedule?.id}
           />
         </Col>
         <Col xs="12" md="9" lg="9">
-          {activeTab === 'testes' ? (
-            <TestCard
-              schedule={selectedSchedule}
-              testEvent={activeTestEvent}
-            />
-          ) : (
-            <EvaluationCard schedule={selectedSchedule} />
-          )}
+          <EvaluationCard
+            schedule={selectedSchedule}
+            activeMode={activeTab} // 'technical' or 'performance'
+          />
         </Col>
       </Row>
     </Container>
   )
 }
 
-
-export default connect(null, { setBreadcrumbItems })(Evaluation)
+export default connect(null, { setBreadcrumbItems })(EvaluationPage)

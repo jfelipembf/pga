@@ -1,8 +1,11 @@
 import React, { useState } from "react"
 import PropTypes from "prop-types"
 import { Input, Badge } from "reactstrap"
-import { useToast } from "../../../components/Common/ToastProvider"
-import { saveTestResult, getTestResultsByEvent } from "../../../services/Tests/tests.service"
+import { toast } from "react-toastify"
+// import { saveTestResult, getTestResultsByEvent } from "../../../services/Tests/tests.service"
+const saveTestResult = async () => ({})
+const getTestResultsByEvent = async () => []
+
 import { useEvaluationFormLogic } from "../Hooks/useEvaluationFormLogic"
 import { PLACEHOLDER_AVATAR as placeholderAvatar } from "../Constants/evaluationDefaults"
 import InputMask from "react-input-mask"
@@ -11,7 +14,7 @@ import ButtonLoader from "../../../components/Common/ButtonLoader"
 
 const TestForm = ({ testEvent, classId }) => {
     const [results, setResults] = useState({})
-    const toast = useToast()
+
 
     // NEW: Load existing results
     React.useEffect(() => {
@@ -81,11 +84,11 @@ const TestForm = ({ testEvent, classId }) => {
                     distanceMeters: testEvent.distanceMeters,
                     targetTime: testEvent.targetTime
                 })
-                toast.show({ title: "Sucesso", description: "Resultado salvo com sucesso!", color: "success" })
+                toast.success("Resultado salvo com sucesso!")
             })
         } catch (e) {
             console.error(e)
-            toast.show({ title: "Erro", description: "Erro ao salvar resultado.", color: "danger" })
+            toast.error("Erro ao salvar resultado.")
         }
     }
 

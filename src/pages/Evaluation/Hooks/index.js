@@ -1,1 +1,1 @@
-/* AUTO-GENERATED barrel */
+// Empty barrel

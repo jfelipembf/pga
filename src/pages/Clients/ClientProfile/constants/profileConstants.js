@@ -7,6 +7,7 @@ export const PROFILE_TABS = {
     FINANCIAL: "Financeiro",
     CONTRACTS: "Contratos",
     ENROLLMENTS: "Matrículas",
+    EVALUATIONS: "Avaliações",
 }
 
 export const TAB_LIST = Object.values(PROFILE_TABS)

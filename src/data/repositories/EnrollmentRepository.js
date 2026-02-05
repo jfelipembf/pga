@@ -83,13 +83,23 @@ export const enrollmentRepository = {
         const collectionRef = enrollmentRepository.getCollectionRef(idTenant, idBranch)
         const q = query(
             collectionRef,
-            where('idClient', '==', idClient),
-            where('deleted', '==', false),
-            orderBy('enrolledAt', 'desc')
+            where('idClient', '==', idClient)
         )
 
         const querySnapshot = await getDocs(q)
-        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        const docs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+
+        // Filtro em memória (Robustez)
+        const filtered = docs.filter(d =>
+            (d.deletedAt === null || d.deletedAt === undefined) &&
+            d.deleted !== true
+        )
+
+        return filtered.sort((a, b) => {
+            const dateA = a.enrolledAt?.toDate ? a.enrolledAt.toDate() : new Date(a.enrolledAt || 0)
+            const dateB = b.enrolledAt?.toDate ? b.enrolledAt.toDate() : new Date(b.enrolledAt || 0)
+            return dateB - dateA
+        })
     },
 
     /**
@@ -99,30 +109,58 @@ export const enrollmentRepository = {
         const collectionRef = enrollmentRepository.getCollectionRef(idTenant, idBranch)
         const q = query(
             collectionRef,
-            where('idClient', '==', idClient),
-            where('status', '==', 'active'),
-            where('deleted', '==', false),
-            orderBy('enrolledAt', 'desc')
+            where('idClient', '==', idClient)
         )
 
         const querySnapshot = await getDocs(q)
-        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        const docs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+
+        // Filtro em memória (Robustez)
+        const active = docs.filter(d =>
+            d.status === 'active' &&
+            (d.deletedAt === null || d.deletedAt === undefined) &&
+            d.deleted !== true
+        )
+
+        return active.sort((a, b) => {
+            const dateA = a.enrolledAt?.toDate ? a.enrolledAt.toDate() : new Date(a.enrolledAt || 0)
+            const dateB = b.enrolledAt?.toDate ? b.enrolledAt.toDate() : new Date(b.enrolledAt || 0)
+            return dateB - dateA
+        })
     },
 
     /**
-     * Lista todos os alunos matriculados em uma turma
+     * Lista todos os alunos matriculados em uma turma (com status ativo)
      */
     findByClass: async (idTenant, idBranch, idClass) => {
         const collectionRef = enrollmentRepository.getCollectionRef(idTenant, idBranch)
         const q = query(
             collectionRef,
-            where('idClass', '==', idClass),
-            where('deleted', '==', false),
-            orderBy('enrolledAt', 'desc')
+            where('idClass', '==', idClass)
         )
 
         const querySnapshot = await getDocs(q)
-        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        const docs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+
+        // Filtro em memória (matrículas ativas e não deletadas)
+        const filtered = docs.filter(d =>
+            ['active', 'suspended'].includes(d.status) &&
+            (d.deletedAt === null || d.deletedAt === undefined) &&
+            d.deleted !== true
+        )
+
+        console.log('[EnrollmentRepository.findByClass] Resultado:', {
+            idClass,
+            totalDocs: docs.length,
+            filteredCount: filtered.length,
+            enrollmentIds: filtered.map(e => e.id)
+        })
+
+        return filtered.sort((a, b) => {
+            const dateA = a.enrolledAt?.toDate ? a.enrolledAt.toDate() : new Date(a.enrolledAt || 0)
+            const dateB = b.enrolledAt?.toDate ? b.enrolledAt.toDate() : new Date(b.enrolledAt || 0)
+            return dateB - dateA
+        })
     },
 
     /**

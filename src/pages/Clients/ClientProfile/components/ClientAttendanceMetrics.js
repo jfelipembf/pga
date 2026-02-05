@@ -5,15 +5,18 @@ import ReactApexChart from 'react-apexcharts'
 
 const ClientAttendanceMetrics = ({ enrollments = [] }) => {
 
-    // Calcular estatísticas agregadas de todas as matrículas ativas
+    // Calcular estatísticas agregadas de TODAS as matrículas (histórico completo)
+    // Inclui ativas, suspensas E canceladas para manter o registro histórico
     const stats = useMemo(() => {
         let totalSessions = 0
         let attended = 0
         let missed = 0
 
         enrollments.forEach(enr => {
-            if (enr.status === 'active' || enr.status === 'suspended') {
-                totalSessions += (enr.attendedSessions || 0) + (enr.missedSessions || 0)
+            // Considerar todas as matrículas que têm dados de frequência
+            const sessions = (enr.attendedSessions || 0) + (enr.missedSessions || 0)
+            if (sessions > 0) {
+                totalSessions += sessions
                 attended += enr.attendedSessions || 0
                 missed += enr.missedSessions || 0
             }

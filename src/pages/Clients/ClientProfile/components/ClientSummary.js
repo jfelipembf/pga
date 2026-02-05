@@ -8,7 +8,7 @@ import ClientAttendanceMetrics from './ClientAttendanceMetrics'
 
 const ClientSummary = ({ client }) => {
     const { summary, contracts, loading } = useClientFinancial()
-    const { activeEnrollments } = useClientEnrollments()
+    const { enrollments, activeEnrollments } = useClientEnrollments(client?.id)
 
     const activeContracts = contracts?.filter(c => ['active', 'suspended'].includes(c.status)) || []
 
@@ -67,8 +67,8 @@ const ClientSummary = ({ client }) => {
             <Row>
                 {/* Coluna da Esquerda: Contratos e Atividade */}
                 <Col lg={7}>
-                    {/* Resumo de Presença e Risco */}
-                    <ClientAttendanceMetrics enrollments={activeEnrollments} />
+                    {/* Resumo de Presença e Risco (histórico completo) */}
+                    <ClientAttendanceMetrics enrollments={enrollments} />
 
                     <Card className="border-0 shadow-sm mb-4">
                         <CardBody>

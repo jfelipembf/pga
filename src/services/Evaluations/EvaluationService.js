@@ -14,24 +14,64 @@ export const EvaluationService = {
      * @param {object} data - Dados da avaliação
      */
     registerEvaluation: async (idTenant, idBranch, user, data) => {
-        // 1. Validar entrada
+        // 1. Validar se há um evento ativo para avaliação
+        if (!data.idEvent) {
+            throw new Error("Não é possível registrar avaliações fora de um período (ciclo) ativo.")
+        }
+
+        // 2. Validar entrada
         const validData = await EvaluationSchema.validate(data, { abortEarly: false, stripUnknown: true })
 
-        // 2. Preparar payload (adicionar metadados se necessário)
+        // 3. Verificar se o aluno já foi avaliado nesta atividade dentro DESTE ciclo (idEvent)
+        const existingEvaluation = await evaluationRepository.findByStudentActivityEvent(
+            idTenant, idBranch,
+            validData.idStudent,
+            validData.idActivity,
+            validData.idEvent
+        )
+
+        if (existingEvaluation) {
+            // Caso já exista, atualizamos o documento existente (Edição)
+            const updatePayload = {
+                ...validData,
+                updatedBy: user.uid,
+                updatedByName: user.displayName || user.email,
+                updatedAt: new Date()
+            }
+            await evaluationRepository.update(idTenant, idBranch, existingEvaluation.id, updatePayload)
+
+            await AuditService.log({
+                idTenant, idBranch,
+                userId: user.uid,
+                userName: user.displayName || user.email,
+                action: 'EVALUATION_UPDATED',
+                entityType: 'evaluation',
+                entityId: existingEvaluation.id,
+                description: `Avaliação do aluno ID ${validData.idStudent} atualizada dentro do ciclo ${validData.idEvent}`,
+                details: { studentId: validData.idStudent, activityId: validData.idActivity }
+            })
+
+            return { id: existingEvaluation.id, ...updatePayload, isUpdate: true }
+        }
+
+        // 4. Caso contrário, criamos uma nova (Criação)
         const payload = {
             ...validData,
             createdBy: user.uid,
             createdByName: user.displayName || user.email,
         }
 
-        // 3. Salvar no repositório
         const result = await evaluationRepository.create(idTenant, idBranch, payload)
 
-        // 4. Auditoria
-        await AuditService.log(idTenant, idBranch, user, 'EVALUATION_CREATED', {
-            evaluationId: result.id,
-            studentId: payload.idStudent,
-            activityId: payload.idActivity
+        await AuditService.log({
+            idTenant, idBranch,
+            userId: user.uid,
+            userName: user.displayName || user.email,
+            action: 'EVALUATION_CREATED',
+            entityType: 'evaluation',
+            entityId: result.id,
+            description: `Nova avaliação registrada para o aluno ID ${payload.idStudent} no ciclo ${payload.idEvent}`,
+            details: { studentId: payload.idStudent, activityId: payload.idActivity }
         })
 
         return result
@@ -55,9 +95,18 @@ export const EvaluationService = {
 
         await evaluationRepository.update(idTenant, idBranch, idEvaluation, payload)
 
-        await AuditService.log(idTenant, idBranch, user, 'EVALUATION_UPDATED', {
-            evaluationId: idEvaluation,
-            changes: Object.keys(data)
+        await AuditService.log({
+            idTenant,
+            idBranch,
+            userId: user.uid,
+            userName: user.displayName || user.email,
+            action: 'EVALUATION_UPDATED',
+            entityType: 'evaluation',
+            entityId: idEvaluation,
+            description: `Avaliação ${idEvaluation} atualizada`,
+            details: {
+                changes: Object.keys(data)
+            }
         })
 
         return true
@@ -76,10 +125,53 @@ export const EvaluationService = {
     deleteEvaluation: async (idTenant, idBranch, user, idEvaluation) => {
         await evaluationRepository.delete(idTenant, idBranch, idEvaluation)
 
-        await AuditService.log(idTenant, idBranch, user, 'EVALUATION_DELETED', {
-            evaluationId: idEvaluation
+        await AuditService.log({
+            idTenant,
+            idBranch,
+            userId: user.uid,
+            userName: user.displayName || user.email,
+            action: 'EVALUATION_DELETED',
+            entityType: 'evaluation',
+            entityId: idEvaluation,
+            description: `Avaliação ${idEvaluation} removida`
         })
 
         return true
+    },
+
+    /**
+     * Busca os últimos níveis registrados para uma lista de alunos em uma atividade específica.
+     * Útil para pré-preencher o formulário de avaliação com o progresso anterior.
+     */
+    getLatestLevelsForClients: async (idTenant, idBranch, idActivity, clientIds) => {
+        if (!clientIds || clientIds.length === 0) return {}
+
+        // Busca todas as avaliações dessa atividade (idealmente filtraríamos mais, mas para performance em turmas pequenas funciona)
+        // Uma alternativa mais escalável seria buscar apenas as últimas N avaliações ou usar um índice composto aluno+atividade.
+        const evaluations = await evaluationRepository.findWhere(idTenant, idBranch, [
+            ['idActivity', '==', idActivity],
+            ['deletedAt', '==', null]
+        ], { field: 'date', direction: 'desc' })
+
+        const latestLevels = {}
+        clientIds.forEach(clientId => {
+            const studentEval = evaluations.find(e => e.idStudent === clientId)
+            if (studentEval) {
+                latestLevels[clientId] = studentEval.idLevel
+            }
+        })
+
+        return latestLevels
+    },
+
+    /**
+     * Busca todas as avaliações de um ciclo para uma atividade específica
+     */
+    getEvaluationsByActivityEvent: async (idTenant, idBranch, idActivity, idEvent) => {
+        return await evaluationRepository.findWhere(idTenant, idBranch, [
+            ['idActivity', '==', idActivity],
+            ['idEvent', '==', idEvent],
+            ['deletedAt', '==', null]
+        ])
     }
 }

@@ -11,6 +11,7 @@ export const EvaluationSchema = Yup.object().shape({
     // Opcionais contextualizam a avaliação
     idSession: Yup.string().nullable(), // Sessão específica onde ocorreu
     idClass: Yup.string().nullable(),   // Turma recorrente
+    idEvent: Yup.string().nullable(),   // Ciclo de avaliação (Evento)
     idInstructor: Yup.string().required('O avaliador é obrigatório'),
 
     date: Yup.string().required('A data da avaliação é obrigatória'), // YYYY-MM-DD ou ISO
@@ -21,17 +22,20 @@ export const EvaluationSchema = Yup.object().shape({
     // Critérios avaliados (lista de objetos)
     criteria: Yup.array().of(
         Yup.object().shape({
-            id: Yup.string().omit(['created_at', 'updated_at']),
+            id: Yup.string(),
             name: Yup.string().required(),
-            score: Yup.number().min(0).max(10).nullable(), // Nota numérica ou
-            achieved: Yup.boolean().nullable(),            // Checkbox (conseguiu ou não)
-            comment: Yup.string()
+            idLevel: Yup.string().nullable(),
+            levelName: Yup.string().nullable(),
+            score: Yup.number().min(0).max(10).nullable(),
+            achieved: Yup.boolean().nullable(),
+            comment: Yup.string().nullable(),
+            updatedAt: Yup.mixed()
         })
     ).nullable(),
 
     generalNotes: Yup.string().nullable(),
 
     // Campos de metadados padrão
-    createdAt: Yup.any(),
-    updatedAt: Yup.any(),
+    createdAt: Yup.mixed(),
+    updatedAt: Yup.mixed(),
 })

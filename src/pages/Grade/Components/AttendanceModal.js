@@ -336,7 +336,7 @@ const AttendanceModal = ({ isOpen, onClose, schedule, onAttendanceSaved, onEnrol
                   Salvando...
                 </>
               ) : (
-                'Salvar Chamada'
+                'Salvar'
               )}
             </Button>
           </div>

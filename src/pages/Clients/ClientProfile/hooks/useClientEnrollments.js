@@ -6,8 +6,9 @@ import { EnrollmentService } from '../../../../services/Clients/EnrollmentServic
 /**
  * Hook personalizado para gerenciar matrículas de um cliente
  */
-export const useClientEnrollments = () => {
-    const { id: idClient } = useParams()
+export const useClientEnrollments = (clientId = null) => {
+    const { id: idFromParams } = useParams()
+    const idClient = clientId || idFromParams
     const { idTenant, idBranch } = useTenant()
 
     const [enrollments, setEnrollments] = useState([])
@@ -19,6 +20,7 @@ export const useClientEnrollments = () => {
      */
     const fetchEnrollments = async () => {
         if (!idClient || !idTenant || !idBranch) {
+            console.log('[useClientEnrollments] Aguardando contexto:', { idClient, idTenant, idBranch })
             setLoading(false)
             return
         }
@@ -27,7 +29,19 @@ export const useClientEnrollments = () => {
             setLoading(true)
             setError(null)
 
+            console.log('[useClientEnrollments] Buscando matrículas para cliente:', idClient)
             const data = await EnrollmentService.listClientEnrollments(idTenant, idBranch, idClient)
+
+            console.log('[useClientEnrollments] Matrículas encontradas:', {
+                count: data?.length,
+                enrollments: data?.map(e => ({
+                    id: e.id,
+                    status: e.status,
+                    attendedSessions: e.attendedSessions,
+                    missedSessions: e.missedSessions
+                }))
+            })
+
             setEnrollments(data)
         } catch (err) {
             console.error('Erro ao buscar matrículas:', err)
@@ -50,8 +64,8 @@ export const useClientEnrollments = () => {
     }, [idClient, idTenant, idBranch])
 
     // Separar matrículas ativas e históricas
-    const activeEnrollments = enrollments.filter(e => e.status === 'active')
-    const pastEnrollments = enrollments.filter(e => e.status !== 'active')
+    const activeEnrollments = enrollments.filter(e => ['active', 'suspended'].includes(e.status))
+    const pastEnrollments = enrollments.filter(e => !['active', 'suspended'].includes(e.status))
 
     return {
         enrollments,

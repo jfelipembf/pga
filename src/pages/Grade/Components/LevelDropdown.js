@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react"
 import PropTypes from "prop-types"
 import { Badge, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from "reactstrap"
-import * as evaluationLevelsService from "../../../services/EvaluationLevels"
+import { useTenant } from "../../../hooks/useTenant"
+import { EvaluationLevelService } from "../../../services/Admin/EvaluationLevelService"
 
 const LevelDropdown = ({ clientId, currentLevel, onLevelChange, disabled = false, levels: levelsProp }) => {
+  const { tenantSlug: idTenant, branchSlug: idBranch } = useTenant()
   const [levelsState, setLevelsState] = useState([])
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -18,7 +20,7 @@ const LevelDropdown = ({ clientId, currentLevel, onLevelChange, disabled = false
 
       setLoading(true)
       try {
-        const levelsData = await evaluationLevelsService.listEvaluationLevels()
+        const levelsData = await EvaluationLevelService.listAll(idTenant, idBranch)
         setLevelsState(levelsData)
       } catch (error) {
         console.error("Erro ao carregar níveis:", error)
