@@ -38,7 +38,13 @@ class MessagingService {
             } : this.getInstanceConfig(tenantId);
 
             // Se customConfig tiver baseUrl, usa, senão usa do this.
-            const baseUrl = customConfig?.evolutionUrl || this.baseUrl;
+            let baseUrl = (customConfig?.evolutionUrl || this.baseUrl).trim();
+            if (!baseUrl.startsWith('http')) {
+                baseUrl = `https://${baseUrl}`;
+            }
+            if (baseUrl.endsWith('/')) {
+                baseUrl = baseUrl.slice(0, -1);
+            }
 
             // Formatar telefone (remover + e caracteres especiais)
             const cleanPhone = phone.replace(/\D/g, '');
@@ -65,11 +71,13 @@ class MessagingService {
                 }
             });
 
-            return { success: true, daa: response.data };
+            return { success: true, data: response.data };
 
         } catch (error) {
             console.error('[MessagingService] Error sending text:', error);
-            return { success: false, error: error.message };
+            const errorDetails = error.response?.data || error.message;
+            console.error('[MessagingService] Details:', errorDetails);
+            return { success: false, error: errorDetails };
         }
     }
 

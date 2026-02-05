@@ -89,7 +89,7 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
 
     return (
         <div className="animate__animated animate__fadeIn">
-            <Alert color="info" className="mb-4">
+            <Alert color="info" className="mb-4" fade={false}>
                 Aqui você conecta o sistema Lexa às ferramentas externas de IA e Mensageria.
                 Essas chaves são salvas com segurança.
             </Alert>

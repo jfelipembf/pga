@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTenant } from '../../../hooks/useTenant';
 import { workflowRepository } from '../../../data/repositories/Automation/WorkflowRepository';
+import { integrationRepository } from '../../../data/repositories/Automation/IntegrationRepository';
 import { toast } from 'react-toastify';
 
 export const useAutomation = () => {
@@ -16,10 +17,8 @@ export const useAutomation = () => {
         if (!idTenant) return;
         setLoading(true);
         try {
-            // Buscar Workflows
+            // Buscar Workflows (Mock por enquanto, até backend estar pronto)
             // const flows = await workflowRepository.findAll(idTenant) || [];
-
-            // Mock para dev enquanto back não retorna tudo
             const flows = [
                 {
                     id: '1',
@@ -40,9 +39,11 @@ export const useAutomation = () => {
             ];
             setWorkflows(flows);
 
-            // Carregar IntegrationConfig
-            // const config = await integrationRepo.get(idTenant);
-            // setIntegrationConfig(config);
+            // Carregar IntegrationConfig REAL e PERSISTENTE
+            const config = await integrationRepository.getSettings(idTenant);
+            if (config) {
+                setIntegrationConfig(config);
+            }
 
         } catch (error) {
             console.error("Erro ao carregar automações:", error);
@@ -60,11 +61,9 @@ export const useAutomation = () => {
         setSaving(true);
         try {
             if (data.id) {
-                // await workflowRepository.update(idTenant, null, data.id, data);
                 // Mock update
                 setWorkflows(prev => prev.map(w => w.id === data.id ? { ...w, ...data } : w));
             } else {
-                // await workflowRepository.create(idTenant, null, data);
                 // Mock create
                 setWorkflows(prev => [...prev, { ...data, id: String(Date.now()) }]);
             }
@@ -80,20 +79,19 @@ export const useAutomation = () => {
     };
 
     const deleteWorkflow = async (id) => {
-        if (!confirm("Tem certeza?")) return;
-        // ... implementation
+        // A confirmação é gerenciada pela UI. Aqui executamos a ação.
+        // Mock implementation
         setWorkflows(prev => prev.filter(w => w.id !== id));
         return true;
     };
 
     const saveIntegrations = async (config) => {
-        // Salvar credenciais
+        // Salvar credenciais de forma persistente
         setSaving(true);
         try {
-            console.log("Saving integration config:", config);
-            // await integrationRepo.save(idTenant, config);
+            await integrationRepository.saveSettings(idTenant, config);
             setIntegrationConfig(config);
-            toast.success("Credenciais atualizadas!");
+            toast.success("Credenciais atualizadas com sucesso!");
             return true;
         } catch (e) {
             toast.error("Erro ao salvar credenciais");
