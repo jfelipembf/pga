@@ -26,6 +26,10 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
     const [testingAi, setTestingAi] = useState(false);
     const [testAiProvider, setTestAiProvider] = useState('openai');
 
+    // Estado Conexão
+    const [connectionStatus, setConnectionStatus] = useState(null);
+    const [checkingStatus, setCheckingStatus] = useState(false);
+
     useEffect(() => {
         if (initialValues) {
             setData(prev => ({ ...prev, ...initialValues }));
@@ -37,11 +41,35 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
         setData(prev => ({ ...prev, [name]: value }));
     }
 
+    // --- CHECK CONNECTION ---
+    const checkConnection = async () => {
+        if (!data.evolutionUrl || !data.evolutionInstanceName) return toast.warning("Preencha URL e Nome da Instância");
+        setCheckingStatus(true);
+        setConnectionStatus(null);
+        try {
+            const res = await messagingService.getConnectionState(data);
+            if (res.success) {
+                // Tenta extrair status de vários formatos possíveis da API v1/v2
+                const state = res.data?.instance?.state || res.data?.state || (typeof res.data === 'string' ? res.data : 'unknown');
+                setConnectionStatus(state);
+                if (state === 'open') toast.success(`Conectado! Status: ${state}`);
+                else toast.warning(`Instância encontrada, mas status é: ${state}`);
+            } else {
+                setConnectionStatus('error');
+                toast.error('Erro ao verificar: ' + JSON.stringify(res.error));
+            }
+        } catch (e) {
+            toast.error('Erro: ' + e.message);
+        } finally {
+            setCheckingStatus(false);
+        }
+    };
+
     // --- TEST HANDLERS ---
     const runWhatsappTest = async () => {
         if (!testPhone) return toast.warning('Digite um telefone para o teste');
-        if (!data.evolutionUrl || (!data.evolutionKey && !data.evolutionInstanceToken)) {
-            return toast.error('Configure a URL e chaves do Evolution primeiro');
+        if (!data.evolutionUrl) {
+            return toast.error('Configure a URL do Evolution primeiro');
         }
 
         setTestingWhatsapp(true);
@@ -57,7 +85,7 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
             if (res.success) {
                 toast.success('Teste Enviado! Verifique seu WhatsApp.');
             } else {
-                toast.error('Ocorreu um erro: ' + JSON.stringify(res.error || res.daa));
+                toast.error('Ocorreu um erro: ' + JSON.stringify(res.error || res.data));
             }
         } catch (e) {
             toast.error('Erro ao conectar: ' + e.message);
@@ -144,6 +172,19 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
                                 onChange={handleChange}
                                 placeholder="Token específico da instância"
                             />
+                        </Col>
+                        <Col md={12} className="mb-2">
+                            <div className="d-flex align-items-center">
+                                <Button size="sm" color="info" outline onClick={checkConnection} disabled={checkingStatus}>
+                                    {checkingStatus ? <Spinner size="sm" className="me-1" /> : <i className="mdi mdi-connection me-1"></i>}
+                                    Verificar Conexão
+                                </Button>
+                                {connectionStatus && (
+                                    <span className={`ms-2 badge ${connectionStatus === 'open' ? 'bg-success' : connectionStatus === 'error' ? 'bg-danger' : 'bg-warning'} font-size-12`}>
+                                        {connectionStatus}
+                                    </span>
+                                )}
+                            </div>
                         </Col>
                     </Row>
                 </CardBody>

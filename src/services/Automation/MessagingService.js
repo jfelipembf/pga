@@ -5,52 +5,68 @@ import axios from 'axios';
  */
 class MessagingService {
     constructor() {
-        // Idealmente, estas configs viriam do Tenant Settings no banco de dados
-        // Para MVP, estamos lendo de variáveis de ambiente ou configs locais
         this.baseUrl = process.env.REACT_APP_EVOLUTION_API_URL || 'https://api.evolution.com';
         this.apiKey = process.env.REACT_APP_EVOLUTION_API_KEY;
     }
 
-    /**
-     * Get instance config for the current tenant
-     * Em um cenário multi-tenant, cada academia pode ter sua instância
-     */
-    getInstanceConfig(tenantId) {
-        // Simulação: buscar do banco ou usar padrão
+    _normalizeUrl(url) {
+        if (!url) return '';
+        let normalized = url.trim();
+        if (!normalized.startsWith('http')) {
+            normalized = `https://${normalized}`;
+        }
+        if (normalized.endsWith('/')) {
+            normalized = normalized.slice(0, -1);
+        }
+        return normalized;
+    }
+
+    _getConfig(tenantId, customConfig) {
+        if (customConfig) {
+            return {
+                instanceName: customConfig.evolutionInstanceName || customConfig.instanceName,
+                token: customConfig.evolutionInstanceToken || customConfig.evolutionKey || customConfig.apiKey,
+                baseUrl: this._normalizeUrl(customConfig.evolutionUrl || this.baseUrl)
+            };
+        }
         return {
-            instanceName: `tenant_${tenantId}`, // ex: tenant_academia_x
-            token: this.apiKey
+            instanceName: `tenant_${tenantId}`,
+            token: this.apiKey, // Padrão usa chave global ou env
+            baseUrl: this._normalizeUrl(this.baseUrl)
         };
     }
 
     /**
+     * Check connection state of the instance
+     */
+    async getConnectionState(customConfig) {
+        const config = this._getConfig(null, customConfig);
+        const url = `${config.baseUrl}/instance/connectionState/${config.instanceName}`;
+
+        try {
+            const response = await axios.get(url, {
+                headers: { 'apikey': config.token }
+            });
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error('[MessagingService] Error checking status:', error);
+            const errorDetails = error.response?.data || error.message;
+            return { success: false, error: errorDetails };
+        }
+    }
+
+    /**
      * Send a plain text message
-     * @param {string} tenantId - Tenant identifier
-     * @param {string} phone - Target phone number (E.164 format preferably)
-     * @param {string} message - Message content
      */
     async sendText(tenantId, phone, message, customConfig = null) {
         try {
-            const config = customConfig ? {
-                instanceName: customConfig.evolutionInstanceName || customConfig.instanceName,
-                token: customConfig.evolutionInstanceToken || customConfig.evolutionKey || customConfig.apiKey, // Tenta token da instancia ou chave global
-                baseUrl: customConfig.evolutionUrl || this.baseUrl
-            } : this.getInstanceConfig(tenantId);
+            const config = this._getConfig(tenantId, customConfig);
 
-            // Se customConfig tiver baseUrl, usa, senão usa do this.
-            let baseUrl = (customConfig?.evolutionUrl || this.baseUrl).trim();
-            if (!baseUrl.startsWith('http')) {
-                baseUrl = `https://${baseUrl}`;
-            }
-            if (baseUrl.endsWith('/')) {
-                baseUrl = baseUrl.slice(0, -1);
-            }
-
-            // Formatar telefone (remover + e caracteres especiais)
+            // Formatar telefone (Brasil default)
             const cleanPhone = phone.replace(/\D/g, '');
-            const formattedPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
+            const formattedPhone = cleanPhone.length > 0 && !cleanPhone.startsWith('55') ? `55${cleanPhone}` : cleanPhone;
 
-            const url = `${baseUrl}/message/sendText/${config.instanceName}`;
+            const url = `${config.baseUrl}/message/sendText/${config.instanceName}`;
 
             const payload = {
                 number: formattedPhone,
@@ -59,10 +75,10 @@ class MessagingService {
                     presence: "composing",
                     linkPreview: false
                 },
-                textMessage: {
-                    text: message
-                }
+                text: message
             };
+
+            console.log('[MessagingService] Sending payload:', JSON.stringify(payload));
 
             const response = await axios.post(url, payload, {
                 headers: {
@@ -75,17 +91,10 @@ class MessagingService {
 
         } catch (error) {
             console.error('[MessagingService] Error sending text:', error);
-            const errorDetails = error.response?.data || error.message;
+            const errorDetails = error.response?.data ? JSON.stringify(error.response.data) : error.message;
             console.error('[MessagingService] Details:', errorDetails);
             return { success: false, error: errorDetails };
         }
-    }
-
-    /**
-     * Send structured content (useful for templates and buttons if supported)
-     */
-    async sendTemplate(tenantId, phone, templateName, variables) {
-        // Placeholder para envio de template
     }
 }
 
