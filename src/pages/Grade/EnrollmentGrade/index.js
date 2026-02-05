@@ -190,45 +190,6 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
 
     return (
         <React.Fragment>
-            {/* Header com informações */}
-            <Card className="mb-3 border-0 shadow-sm">
-                <CardHeader className="bg-gradient-primary">
-                    <div className="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 className="mb-1 text-white">
-                                <i className={`mdi mdi-${mode === 'trial' ? 'star' : 'calendar-plus'} me-2`}></i>
-                                {mode === 'trial' ? 'Agendar Aula Experimental' : 'Matricular Aluno'}
-                            </h5>
-                            <p className="mb-0 text-white-50">
-                                Cliente: <strong className="text-white">{clientName || 'Não identificado'}</strong>
-                            </p>
-                        </div>
-                        <Badge color="light" className="px-3 py-2">
-                            {mode === 'trial'
-                                ? selectedSession ? '1 sessão selecionada' : 'Selecione uma sessão'
-                                : `${selectedClasses.length} turma(s) selecionada(s)`
-                            }
-                        </Badge>
-                    </div>
-                </CardHeader>
-            </Card>
-
-            {/* Instruções */}
-            <Alert color="info" className="mb-3" fade={false}>
-                <i className="mdi mdi-information me-2"></i>
-                {mode === 'trial' ? (
-                    <span>
-                        <strong>Modo Experimental:</strong> Clique em uma sessão para agendar uma aula experimental.
-                        Apenas sessões futuras podem ser selecionadas.
-                    </span>
-                ) : (
-                    <span>
-                        <strong>Modo Matrícula:</strong> Clique nas turmas desejadas. O aluno será matriculado em todas
-                        as sessões futuras das turmas selecionadas.
-                    </span>
-                )}
-            </Alert>
-
             {/* Controles da Grade */}
             <Card className="mb-3">
                 <CardBody className="pb-2">
