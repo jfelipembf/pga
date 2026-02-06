@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react"
-import { Col, Container, Row, Nav, NavItem, NavLink, Input } from "reactstrap"
+import { Col, Container, Row, Nav, NavItem, NavLink, Input, Button } from "reactstrap"
 import classnames from "classnames"
 import moment from "moment"
 
@@ -107,9 +107,9 @@ const EvaluationPage = ({ setBreadcrumbItems }) => {
   }
 
   return (
-    <Container fluid>
-      <Row className="g-4">
-        <Col xs="12" md="3" lg="3">
+    <div className="container-fluid p-0 p-md-2">
+      <Row className="g-2 g-md-4">
+        <Col xs="12" md="3" lg="3" className={selectedSchedule ? "d-none d-md-block" : ""}>
           <Nav pills className="mb-3 nav-justified bg-light p-1 rounded shadow-sm">
             <NavItem>
               <NavLink
@@ -161,14 +161,22 @@ const EvaluationPage = ({ setBreadcrumbItems }) => {
             selectedId={selectedSchedule?.id}
           />
         </Col>
-        <Col xs="12" md="9" lg="9">
+
+        <Col xs="12" md="9" lg="9" className={!selectedSchedule ? "d-none d-md-block" : ""}>
+          {/* Botão Voltar (Visível apenas Mobile) */}
+          <div className="d-md-none mb-3">
+            <Button color="light" className="w-100 shadow-sm border-0 fw-medium" onClick={() => setSelectedSchedule(null)}>
+              <i className="mdi mdi-arrow-left me-2"></i> Voltar para Lista de Turmas
+            </Button>
+          </div>
+
           <EvaluationCard
             schedule={selectedSchedule}
             activeMode={activeTab} // 'technical' or 'performance'
           />
         </Col>
       </Row>
-    </Container>
+    </div>
   )
 }
 

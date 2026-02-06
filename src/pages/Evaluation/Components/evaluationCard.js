@@ -102,7 +102,7 @@ const EvaluationCard = ({ schedule, activeMode = "technical" }) => {
           </div>
         </div>
       </CardHeader>
-      <CardBody className="pt-3">
+      <CardBody className="p-2 p-md-3">
         {schedule?.idClass ? (
           <EvaluationForm
             classId={schedule.idClass}

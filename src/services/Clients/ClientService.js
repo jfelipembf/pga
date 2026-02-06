@@ -11,6 +11,28 @@ export const ClientService = {
     /**
      * Cria um novo cliente com validação e auditoria.
      */
+    /**
+     * Lista todos os clientes ativos.
+     */
+    listClients: async (idTenant, idBranch) => {
+        return await clientRepository.findActive(idTenant, idBranch)
+    },
+
+    /**
+     * Busca clientes por termo (nome, email, cpf, telefone).
+     */
+    searchClients: async (idTenant, idBranch, term) => {
+        if (!term || term.length < 3) return []
+        const all = await clientRepository.findActive(idTenant, idBranch)
+        const lowerTerm = term.toLowerCase()
+        return all.filter(c =>
+            (c.name && c.name.toLowerCase().includes(lowerTerm)) ||
+            (c.email && c.email.toLowerCase().includes(lowerTerm)) ||
+            (c.cpf && c.cpf.includes(term)) ||
+            (c.phone && c.phone.includes(term))
+        ).slice(0, 10) // Limit to 10 results
+    },
+
     createClient: async (idTenant, idBranch, userId, rawData) => {
         try {
             // 1. Sanitização e Preparação Automática

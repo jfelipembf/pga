@@ -53,13 +53,17 @@ export const useGradeData = (referenceDate) => {
                 sessionsData,
                 activitiesData,
                 areasData,
-                staffData
+                staffData,
+                classesData
             ] = await Promise.all([
                 ClassService.listSessions(idTenant, idBranch, moment(startDate).format('YYYY-MM-DD'), moment(endDate).format('YYYY-MM-DD')),
                 ActivityService.listAll(idTenant, idBranch),
                 AreaService.listAreas(idTenant, idBranch),
-                StaffService.listAll(idTenant, idBranch)
+                StaffService.listAll(idTenant, idBranch),
+                ClassService.listClasses(idTenant, idBranch)
             ])
+
+            const activeClassIds = new Set((classesData || []).map(c => c.id))
 
             // Normalização de dados (Mapper)
             const normalizedSessions = (sessionsData || []).map(s => ({
@@ -73,7 +77,7 @@ export const useGradeData = (referenceDate) => {
                 idArea: s.idArea || s.areaId || s.id_area || s.locationId || s.idLocation,
                 idStaff: s.idStaff || s.staffId || s.idInstructor || s.instructorId || s.id_staff,
                 weekday: s.weekday !== undefined ? Number(s.weekday) : null,
-                deleted: s.deleted || false,
+                deleted: s.deleted || !!s.deletedAt || false,
                 isActive: s.isActive !== false,
                 status: s.status || 'scheduled',
                 // Auditoria
@@ -82,7 +86,7 @@ export const useGradeData = (referenceDate) => {
                 updatedBy: s.updatedBy || null,
                 idTenant: s.idTenant,
                 idBranch: s.idBranch
-            })).filter(s => !s.deleted && s.sessionDate && s.startTime)
+            })).filter(s => !s.deleted && s.sessionDate && s.startTime && activeClassIds.has(s.idClass))
 
             const loadedData = {
                 sessions: normalizedSessions,

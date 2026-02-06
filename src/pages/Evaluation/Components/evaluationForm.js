@@ -146,7 +146,7 @@ const EvaluationForm = ({
 
       {/* HEADER TÉCNICO (Apenas na Tab 1) */}
       {isTechnicalTab && activeEvent && (
-        <div className="mb-4 bg-light p-3 rounded border">
+        <div className="mb-4 bg-light p-2 p-md-3 rounded border">
           <Row className="g-2 align-items-end">
             <Col xs="12" md="5">
               <label className="form-label fw-bold mb-1 small text-uppercase">Objetivo</label>
@@ -209,16 +209,16 @@ const EvaluationForm = ({
 
       {/* HEADER TESTES (Apenas na Tab 2) */}
       {isTestTab && activeTestEvent && (
-        <div className="mb-4 bg-light p-3 rounded border">
+        <div className="mb-4 bg-light p-2 p-md-3 rounded border">
           <div className="d-flex align-items-center gap-3">
             <div className="flex-shrink-0 bg-white p-2 rounded border shadow-sm">
-              <i className={`mdi ${(['fixed-time', 'distance'].includes(activeTestEvent.testConfig?.measureType)) ? 'mdi-timer-sand' : 'mdi-run-fast'} fs-3 text-primary`}></i>
+              <i className={`mdi ${(['fixed-time', 'distance'].includes(activeTestEvent?.testConfig?.measureType)) ? 'mdi-timer-sand' : 'mdi-run-fast'} fs-3 text-primary`}></i>
             </div>
             <div>
               <h6 className="mb-1 fw-bold">{activeTestEvent.name}</h6>
               <div className="small text-muted">
                 <strong>Prova: </strong>
-                {(['fixed-time', 'distance'].includes(activeTestEvent.testConfig?.measureType))
+                {(['fixed-time', 'distance'].includes(activeTestEvent?.testConfig?.measureType))
                   ? `Tempo Fixo (${activeTestEvent.testConfig.referenceValue}${activeTestEvent.testConfig.unit}) - Medir Distância`
                   : `Distância Fixa (${activeTestEvent.testConfig.referenceValue}${activeTestEvent.testConfig.unit}) - Medir Tempo`
                 }
@@ -248,75 +248,109 @@ const EvaluationForm = ({
               const testDraft = testDrafts[sId] || { result: '', notes: '' }
 
               return (
-                <div key={sId} className="attendance-item">
-                  <div className="attendance-item__avatar">
-                    <img src={client.photo || placeholderAvatar} alt={client.name} />
-                  </div>
-
-                  <div className="attendance-item__content">
-                    <div className="d-flex align-items-center gap-2">
-                      <div className="fw-bold text-dark fs-5">{client.name}</div>
-                      {(client.friendlyId || client.idGym) && <span className="text-muted small">#{client.friendlyId || client.idGym}</span>}
-                    </div>
-                    <div className="d-flex gap-2 align-items-center mt-1">
-                      {client.tag && <span className="badge bg-light text-muted border px-2 py-1">{client.tag}</span>}
-
-                      {/* Status do Cliente */}
-                      {(client.lifecycleStatus || client.clientStatus) && (
-                        <Badge color={
-                          (client.lifecycleStatus || client.clientStatus) === 'active' ? 'success' :
-                            (client.lifecycleStatus || client.clientStatus) === 'suspended' ? 'warning' : 'secondary'
-                        } className="px-2 border">
-                          {(client.lifecycleStatus || client.clientStatus) === 'active' ? 'Ativo' :
-                            (client.lifecycleStatus || client.clientStatus) === 'suspended' ? 'Suspenso' :
-                              (client.lifecycleStatus || client.clientStatus) === 'inactive' ? 'Inativo' : (client.lifecycleStatus || client.clientStatus)}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* CAMPOS CONDICIONAIS POR TAB */}
-                  {isTechnicalTab ? (
-                    <LevelDropdown
-                      clientId={sId}
-                      currentLevel={currentLevel}
-                      onLevelChange={handleLevelChange}
-                      levels={levels}
-                      disabled={!selectedTopicId || isLoading("prefill") || !activeEvent}
-                    />
-                  ) : (
-                    <div className="d-flex align-items-center gap-2" style={{ maxWidth: '180px' }}>
-                      <Input
-                        placeholder={(['fixed-time', 'distance'].includes(activeTestEvent?.testConfig?.measureType)) ? "Metros" : "00:00:00"}
-                        className="bg-light border-0 fw-bold text-center"
-                        value={testDraft.result}
-                        onChange={(e) => handleResultChange(sId, e.target.value)}
-                        disabled={!activeTestEvent}
+                <div key={sId} className="d-flex flex-column flex-md-row align-items-md-center gap-3 p-2 p-md-3 bg-white rounded border shadow-sm">
+                  {/* ALUNO INFO */}
+                  <div className="d-flex align-items-center gap-3 flex-grow-1 border-bottom border-bottom-md-0 pb-3 pb-md-0 border-light">
+                    <div className="flex-shrink-0">
+                      <img
+                        src={client.photo || placeholderAvatar}
+                        alt={client.name}
+                        className="rounded-circle border"
+                        style={{ width: '48px', height: '48px', objectFit: 'cover' }}
                       />
-                      <Badge color="secondary" className="text-uppercase border" style={{ fontSize: '0.65rem' }}>
-                        {(['fixed-time', 'distance'].includes(activeTestEvent?.testConfig?.measureType)) ? 'Dist.' : 'Tempo'}
-                      </Badge>
                     </div>
-                  )}
 
-                  <Button
-                    color="link"
-                    className="text-success p-0 ms-2"
-                    type="button"
-                    title="Enviar Resultado via WhatsApp"
-                    onClick={() => sendEvaluationToClient(client)}
-                  >
-                    <i className="mdi mdi-whatsapp fs-5" />
-                  </Button>
+                    <div className="flex-grow-1">
+                      <div className="d-flex align-items-center gap-2 flex-wrap">
+                        <div className="fw-bold text-dark fs-5">{client.name}</div>
+                        {(client.friendlyId || client.idGym) && <span className="text-muted small">#{client.friendlyId || client.idGym}</span>}
+                      </div>
+                      <div className="d-flex gap-2 align-items-center mt-1 flex-wrap">
+                        {client.tag && <Badge color="light" className="text-muted border">{client.tag}</Badge>}
 
-                  <Button
-                    color="link"
-                    className="text-muted p-0 ms-2"
-                    type="button"
-                    onClick={() => toggleExcludeClient(sId)}
-                  >
-                    <i className="mdi mdi-close-circle-outline fs-5" />
-                  </Button>
+                        {(client.lifecycleStatus || client.clientStatus) && (
+                          <Badge color={
+                            (client.lifecycleStatus || client.clientStatus) === 'active' ? 'success' :
+                              (client.lifecycleStatus || client.clientStatus) === 'suspended' ? 'warning' : 'secondary'
+                          } className="border">
+                            {(client.lifecycleStatus || client.clientStatus) === 'active' ? 'Ativo' :
+                              (client.lifecycleStatus || client.clientStatus) === 'suspended' ? 'Suspenso' :
+                                (client.lifecycleStatus || client.clientStatus) === 'inactive' ? 'Inativo' : (client.lifecycleStatus || client.clientStatus)}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CONTROLES E AÇÕES */}
+                  <div className="w-100 w-md-auto">
+                    <div className="d-flex flex-column flex-md-row align-items-md-center gap-3 justify-content-end">
+
+                      {/* ÁREA DE INPUT COM LABEL MOBILE */}
+                      <div className="flex-grow-1 flex-md-grow-0 w-100" style={{ minWidth: '220px' }}>
+                        {/* Label visível apenas no mobile para contexto */}
+                        <div className="d-md-none small text-muted text-uppercase fw-bold mb-2">
+                          {isTechnicalTab ? "Atribuir Nível" : "Inserir Resultado"}
+                        </div>
+
+                        {isTechnicalTab ? (
+                          <LevelDropdown
+                            clientId={sId}
+                            currentLevel={currentLevel}
+                            onLevelChange={handleLevelChange}
+                            levels={levels}
+                            disabled={!selectedTopicId || isLoading("prefill") || !activeEvent}
+                            fullWidth={true} // Ocupa 100% no mobile e desktop
+                            toggleClassName="py-2" // Botão mais alto
+                          />
+                        ) : (
+                          <div className="d-flex align-items-center gap-2">
+                            <Input
+                              placeholder={(['fixed-time', 'distance'].includes(activeTestEvent?.testConfig?.measureType)) ? "Metros" : "00:00:00"}
+                              className="bg-light border-0 fw-bold text-center form-control-lg"
+                              style={{ fontSize: '1.1rem' }}
+                              value={testDraft.result}
+                              onChange={(e) => handleResultChange(sId, e.target.value)}
+                              disabled={!activeTestEvent}
+                            />
+                            <Badge color="secondary" className="text-uppercase border px-2 py-2" style={{ fontSize: '0.7rem' }}>
+                              {(['fixed-time', 'distance'].includes(activeTestEvent?.testConfig?.measureType)) ? 'Dist.' : 'Tempo'}
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* BOTÕES DE AÇÃO - MAIORES E SEPARADOS */}
+                      <div className="d-flex gap-2 w-100 w-md-auto mt-2 mt-md-0">
+                        {/* Botão de WhatsApp */}
+                        <Button
+                          color="success"
+                          className="flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center shadow-sm"
+                          style={{ height: '42px' }}
+                          type="button"
+                          title="Enviar Resultado"
+                          onClick={() => sendEvaluationToClient(client)}
+                        >
+                          <i className="mdi mdi-whatsapp fs-4 me-2" />
+                          <span className="d-md-none fw-bold">Enviar</span>
+                        </Button>
+
+                        {/* Botão de Remover */}
+                        <Button
+                          outline
+                          color="danger"
+                          className="flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center border-0"
+                          style={{ height: '42px' }}
+                          type="button"
+                          title="Remover da lista"
+                          onClick={() => toggleExcludeClient(sId)}
+                        >
+                          <i className="mdi mdi-close fs-4 me-2" />
+                          <span className="d-md-none fw-bold">Remover</span>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )
             })}

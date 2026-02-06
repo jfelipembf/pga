@@ -9,7 +9,8 @@ const ClientAddSearch = ({
     candidates = [],
     onSelect,
     showNoResults,
-    noResultsLabel = "Nenhum resultado encontrado."
+    noResultsLabel = "Nenhum resultado encontrado.",
+    placeholder = "Buscar aluno para adicionar..."
 }) => {
     const [showDropdown, setShowDropdown] = useState(false)
 
@@ -37,7 +38,7 @@ const ClientAddSearch = ({
                 <Input
                     type="text"
                     className="form-control border-start-0 ps-0"
-                    placeholder="Buscar aluno para adicionar..."
+                    placeholder={placeholder}
                     value={value}
                     onChange={handleChange}
                     onFocus={() => setShowDropdown(true)}
@@ -97,7 +98,8 @@ ClientAddSearch.propTypes = {
     candidates: PropTypes.array,
     onSelect: PropTypes.func,
     showNoResults: PropTypes.bool,
-    noResultsLabel: PropTypes.string
+    noResultsLabel: PropTypes.string,
+    placeholder: PropTypes.string
 }
 
 export default ClientAddSearch

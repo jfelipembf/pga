@@ -62,8 +62,6 @@ const ClassBar = ({
                 className="flex-grow-1"
                 style={{
                   width: "100%",
-                  minWidth: 240,
-                  maxWidth: 420,
                 }}
               >
                 <GradeEventCard

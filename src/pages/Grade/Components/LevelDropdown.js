@@ -4,7 +4,7 @@ import { Badge, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from "rea
 import { useTenant } from "../../../hooks/useTenant"
 import { EvaluationLevelService } from "../../../services/Admin/EvaluationLevelService"
 
-const LevelDropdown = ({ clientId, currentLevel, onLevelChange, disabled = false, levels: levelsProp }) => {
+const LevelDropdown = ({ clientId, currentLevel, onLevelChange, disabled = false, levels: levelsProp, className, toggleClassName, fullWidth = false }) => {
   const { tenantSlug: idTenant, branchSlug: idBranch } = useTenant()
   const [levelsState, setLevelsState] = useState([])
   const [isOpen, setIsOpen] = useState(false)
@@ -52,14 +52,13 @@ const LevelDropdown = ({ clientId, currentLevel, onLevelChange, disabled = false
   }
 
   return (
-    <Dropdown isOpen={isOpen} toggle={toggle} direction="down" disabled={disabled || loading}>
+    <Dropdown isOpen={isOpen} toggle={toggle} direction="down" disabled={disabled || loading} className={className} style={fullWidth ? { width: '100%' } : {}}>
       <DropdownToggle
         caret
         color={getLevelColor(currentLevelData?.value)}
-        size="sm"
-        className="d-flex align-items-center gap-1"
+        className={`d-flex align-items-center justify-content-between gap-2 ${toggleClassName || ''}`}
         disabled={disabled || loading}
-        style={{ minWidth: "100px" }}
+        style={{ minWidth: "100px", width: fullWidth ? '100%' : 'auto' }}
       >
         {loading ? (
           <>

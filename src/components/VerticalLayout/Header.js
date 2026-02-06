@@ -1,25 +1,23 @@
 import PropTypes from 'prop-types'
 import React, { useState } from "react"
-
 import { connect } from "react-redux"
-
 import { Link } from "react-router-dom"
-
-// Reactstrap
-import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from "reactstrap"
-
-// Import menuDropdown
-import LanguageDropdown from "../CommonForBoth/TopbarDropdown/LanguageDropdown"
-import NotificationDropdown from "../CommonForBoth/TopbarDropdown/NotificationDropdown"
-import ProfileMenu from "../CommonForBoth/TopbarDropdown/ProfileMenu"
-
-// import megamenuImg from "../../assets/images/megamenu-img.png"
-import logo from "../../assets/images/pgaLogo.png"
-
-//i18n
 import { withTranslation } from "react-i18next"
 
-// Redux Store
+// Components
+import ProfileMenu from "../CommonForBoth/TopbarDropdown/ProfileMenu"
+import ClientAddSearch from "../Common/ClientAddSearch"
+import ClientAddModal from "../../pages/Clients/ClientList/ClientAddModal"
+import withRouter from "../Common/withRouter"
+
+// Services
+import { ClientService } from "../../services/Clients/ClientService"
+
+// Images
+import logo from "../../assets/images/pgaLogo.png"
+import logoIcon from "../../assets/images/logoIcon.png"
+
+// Actions
 import {
   showRightSidebarAction,
   toggleLeftmenu,
@@ -27,67 +25,69 @@ import {
 } from "../../store/actions"
 
 const Header = props => {
-  const [search, setsearch] = useState(false)
-  const [createmenu, setCreateMenu] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState([])
+  const [clientModalOpen, setClientModalOpen] = useState(false)
 
-  // const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-
-  function toggleFullscreen() {
-    if (
-      !document.fullscreenElement &&
-      /* alternative standard method */ !document.mozFullScreenElement &&
-      !document.webkitFullscreenElement
-    ) {
-      // current working methods
-      if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen()
-      } else if (document.documentElement.mozRequestFullScreen) {
-        document.documentElement.mozRequestFullScreen()
-      } else if (document.documentElement.webkitRequestFullscreen) {
-        document.documentElement.webkitRequestFullscreen(
-          Element.ALLOW_KEYBOARD_INPUT
-        )
-      }
-    } else {
-      if (document.cancelFullScreen) {
-        document.cancelFullScreen()
-      } else if (document.mozCancelFullScreen) {
-        document.mozCancelFullScreen()
-      } else if (document.webkitCancelFullScreen) {
-        document.webkitCancelFullScreen()
-      }
-    }
-  }
+  const { activeTenant, activeBranch } = props
 
   function tToggle() {
     var body = document.body;
     body.classList.toggle("vertical-collpsed");
     body.classList.toggle("sidebar-enable");
   }
-  const { activeTenant, activeBranch } = props;
+
+  const handleSearch = async (term) => {
+    setSearchQuery(term)
+    if (term && term.length >= 3 && activeTenant && activeBranch) {
+      try {
+        const results = await ClientService.searchClients(activeTenant.idTenant, activeBranch.idBranch, term)
+        setSearchResults(results)
+      } catch (error) {
+        console.error("Search error:", error)
+        setSearchResults([])
+      }
+    } else {
+      setSearchResults([])
+    }
+  }
+
+  const handleSelectClient = (client) => {
+    if (activeTenant && activeBranch && props.router && props.router.navigate) {
+      props.router.navigate(`/${activeTenant.idTenant}/${activeBranch.idBranch}/clients/${client.id}`)
+    }
+  }
+
+  const handleClientAdded = (newClient) => {
+    setClientModalOpen(false)
+    if (activeTenant && activeBranch && props.router && props.router.navigate) {
+      props.router.navigate(`/${activeTenant.idTenant}/${activeBranch.idBranch}/clients/${newClient.id}`)
+    }
+  }
+
   const dashboardLink = activeTenant && activeBranch ? `/${activeTenant.idTenant}/${activeBranch.idBranch}/dashboard` : "/";
 
   return (
     <React.Fragment>
       <header id="page-topbar">
         <div className="navbar-header">
-          <div className="d-flex">
+          <div className="d-flex align-items-center">
             <div className="navbar-brand-box">
               <Link to={dashboardLink} className="logo logo-dark">
                 <span className="logo-sm">
-                  <img src={logo} alt="" height="22" />
+                  <img src={logoIcon} alt="" height="60" style={{ filter: "brightness(0) invert(1)", transform: "translateX(-15px)" }} />
                 </span>
                 <span className="logo-lg">
-                  <img src={logo} alt="" height="30" />
+                  <img src={logo} alt="" height="110" style={{ filter: "brightness(0) invert(1)" }} />
                 </span>
               </Link>
 
               <Link to={dashboardLink} className="logo logo-light">
                 <span className="logo-sm">
-                  <img src={logo} alt="" height="22" />
+                  <img src={logoIcon} alt="" height="60" style={{ filter: "brightness(0) invert(1)", transform: "translateX(-15px)" }} />
                 </span>
                 <span className="logo-lg">
-                  <img src={logo} alt="" height="30" />
+                  <img src={logo} alt="" height="110" style={{ filter: "brightness(0) invert(1)" }} />
                 </span>
               </Link>
             </div>
@@ -102,114 +102,42 @@ const Header = props => {
             >
               <i className="mdi mdi-menu"></i>
             </button>
-            <div className="d-none d-sm-block">
-              <Dropdown
-                isOpen={createmenu}
-                toggle={() => setCreateMenu(!createmenu)}
-                className="d-inline-block"
-              >
 
-                <div className="dropdown dropdown-topbar pt-3 mt-1 d-inline-block">
 
-                  <DropdownToggle
-                    className="btn btn-light"
-                    tag="button"
-                  >
-                    Create <i className="mdi mdi-chevron-down"></i>
-                  </DropdownToggle>
-
-                  <DropdownMenu className="dropdown-menu-end">
-                    <DropdownItem tag="a" href="#">Action</DropdownItem>
-                    <DropdownItem tag="a" href="#">Another action</DropdownItem>
-                    <DropdownItem tag="a" href="#">Something else here</DropdownItem>
-                    <div className="dropdown-divider"></div>
-                    <DropdownItem tag="a" href="#">Separated link</DropdownItem>
-                  </DropdownMenu>
-
-                </div>
-              </Dropdown>
-            </div>
           </div>
-          <div className="d-flex">
-            <form className="app-search d-none d-lg-block">
-              <div className="position-relative">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder={props.t("Search") + "..."}
-                />
-                <span className="fa fa-search"></span>
-              </div>
-            </form>
-            <div className="dropdown d-inline-block d-lg-none ms-2">
-              <button
-                onClick={() => {
-                  setsearch(!search)
-                }}
-                type="button"
-                className="btn header-item noti-icon waves-effect"
-                id="page-header-search-dropdown"
-              >
-                <i className="mdi mdi-magnify" />
-              </button>
-              <div
-                className={
-                  search
-                    ? "dropdown-menu dropdown-menu-lg dropdown-menu-right p-0 show"
-                    : "dropdown-menu dropdown-menu-lg dropdown-menu-right p-0"
-                }
-                aria-labelledby="page-header-search-dropdown"
-              >
-                <form className="p-3">
-                  <div className="form-group m-0">
-                    <div className="input-group">
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Search ..."
-                        aria-label="Recipient's username"
-                      />
-                      <div className="input-group-append">
-                        <button className="btn btn-primary" type="submit">
-                          <i className="mdi mdi-magnify" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </form>
-              </div>
+
+          <div className="d-flex align-items-center">
+            <div className="d-none d-lg-block me-2" style={{ minWidth: '350px' }}>
+              <ClientAddSearch
+                value={searchQuery}
+                onChange={handleSearch}
+                candidates={searchResults}
+                onSelect={handleSelectClient}
+                placeholder="Buscar Aluno (Nome, CPF ou Email)..."
+                showNoResults={true}
+              />
             </div>
-            <LanguageDropdown />
-            <div className="dropdown d-none d-lg-inline-block">
-              <button
-                type="button"
-                onClick={() => {
-                  toggleFullscreen()
-                }}
-                className="btn header-item noti-icon waves-effect"
-                data-toggle="fullscreen"
-              >
-                <i className="mdi mdi-fullscreen font-size-24"></i>
-              </button>
-            </div>
-            <NotificationDropdown />
-            <ProfileMenu />
-            <div
-              onClick={() => {
-                props.showRightSidebarAction(!props.showRightSidebar)
-              }}
-              className="dropdown d-inline-block"
+            {/* Add Client Button */}
+            <button
+              onClick={() => setClientModalOpen(true)}
+              className="btn header-item waves-effect"
+              title="Novo Aluno"
             >
-              <button
-                type="button"
-                className="btn header-item noti-icon right-bar-toggle waves-effect"
-              >
-                <i className="mdi mdi-spin mdi-cog"></i>
-              </button>
-            </div>
+              <i className="mdi mdi-account-plus-outline font-size-24"></i>
+            </button>
+
+            <ProfileMenu />
           </div>
         </div>
       </header>
+
+      {activeTenant && activeBranch && (
+        <ClientAddModal
+          isOpen={clientModalOpen}
+          toggle={() => setClientModalOpen(!clientModalOpen)}
+          onClientAdded={handleClientAdded}
+        />
+      )}
     </React.Fragment>
   )
 }
@@ -223,7 +151,8 @@ Header.propTypes = {
   t: PropTypes.any,
   toggleLeftmenu: PropTypes.func,
   activeTenant: PropTypes.object,
-  activeBranch: PropTypes.object
+  activeBranch: PropTypes.object,
+  router: PropTypes.object
 }
 
 const mapStatetoProps = state => {
@@ -241,4 +170,4 @@ export default connect(mapStatetoProps, {
   showRightSidebarAction,
   toggleLeftmenu,
   changeSidebarType,
-})(withTranslation()(Header))
+})(withRouter(withTranslation()(Header)))

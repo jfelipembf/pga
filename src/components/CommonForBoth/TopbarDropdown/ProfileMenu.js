@@ -25,6 +25,7 @@ const ProfileMenu = props => {
 
   const { activeBranch, branches, setActiveBranch } = props;
   const { idTenant, idBranch } = props.router.params;
+  const authUser = JSON.parse(localStorage.getItem("authUser")) || {};
 
   return (
     <React.Fragment>
@@ -38,14 +39,17 @@ const ProfileMenu = props => {
           id="page-header-user-dropdown"
           tag="button"
         >
+
           <img
             className="rounded-circle header-profile-user"
-            src={user1}
+            src={authUser.photoURL || user1}
             alt="Header Avatar"
+            style={{ objectFit: "cover" }}
           />
-          <span className="d-none d-xl-inline-block ms-1">
-            {JSON.parse(localStorage.getItem("authUser"))?.displayName || JSON.parse(localStorage.getItem("authUser"))?.email || "Usuário"}
-          </span>
+          <div className="d-none d-xl-inline-block ms-2 text-start" style={{ lineHeight: '1.2', verticalAlign: 'middle' }}>
+            <span className="d-block font-size-14">{authUser.displayName || "Usuário"}</span>
+            <span className="d-block text-muted font-size-12">{authUser.email}</span>
+          </div>
           <i className="mdi mdi-chevron-down d-none d-xl-inline-block"></i>
         </DropdownToggle>
         <DropdownMenu className="dropdown-menu-end">
