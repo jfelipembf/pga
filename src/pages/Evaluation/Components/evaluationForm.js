@@ -248,9 +248,9 @@ const EvaluationForm = ({
               const testDraft = testDrafts[sId] || { result: '', notes: '' }
 
               return (
-                <div key={sId} className="d-flex flex-column flex-md-row align-items-md-center gap-3 p-2 p-md-3 bg-white rounded border shadow-sm">
-                  {/* ALUNO INFO */}
-                  <div className="d-flex align-items-center gap-3 flex-grow-1 border-bottom border-bottom-md-0 pb-3 pb-md-0 border-light">
+                <div key={sId} className="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 p-3 bg-white rounded border shadow-sm mb-2">
+                  {/* LADO ESQUERDO: INFO ALUNO */}
+                  <div className="d-flex align-items-center gap-3 w-100 w-md-auto">
                     <div className="flex-shrink-0">
                       <img
                         src={client.photo || placeholderAvatar}
@@ -265,90 +265,79 @@ const EvaluationForm = ({
                         <div className="fw-bold text-dark fs-5">{client.name}</div>
                         {(client.friendlyId || client.idGym) && <span className="text-muted small">#{client.friendlyId || client.idGym}</span>}
                       </div>
-                      <div className="d-flex gap-2 align-items-center mt-1 flex-wrap">
-                        {client.tag && <Badge color="light" className="text-muted border">{client.tag}</Badge>}
-
+                      <div className="d-flex gap-2 align-items-center mt-1">
                         {(client.lifecycleStatus || client.clientStatus) && (
                           <Badge color={
                             (client.lifecycleStatus || client.clientStatus) === 'active' ? 'success' :
                               (client.lifecycleStatus || client.clientStatus) === 'suspended' ? 'warning' : 'secondary'
-                          } className="border">
-                            {(client.lifecycleStatus || client.clientStatus) === 'active' ? 'Ativo' :
-                              (client.lifecycleStatus || client.clientStatus) === 'suspended' ? 'Suspenso' :
-                                (client.lifecycleStatus || client.clientStatus) === 'inactive' ? 'Inativo' : (client.lifecycleStatus || client.clientStatus)}
+                          } className="border px-2 text-capitalize">
+                            {client.lifecycleStatus === 'active' ? 'Ativo' : client.lifecycleStatus}
                           </Badge>
                         )}
+                        {client.tag && <Badge color="light" className="text-muted border d-none d-md-inline-block">{client.tag}</Badge>}
                       </div>
                     </div>
                   </div>
 
-                  {/* CONTROLES E AÇÕES */}
-                  <div className="w-100 w-md-auto">
-                    <div className="d-flex flex-column flex-md-row align-items-md-center gap-3 justify-content-end">
+                  {/* LADO DIREITO: CONTROLES */}
+                  <div className="d-flex flex-column flex-md-row align-items-center gap-2 gap-md-3 w-100 w-md-auto ms-auto">
 
-                      {/* ÁREA DE INPUT COM LABEL MOBILE */}
-                      <div className="flex-grow-1 flex-md-grow-0 w-100" style={{ minWidth: '220px' }}>
-                        {/* Label visível apenas no mobile para contexto */}
-                        <div className="d-md-none small text-muted text-uppercase fw-bold mb-2">
-                          {isTechnicalTab ? "Atribuir Nível" : "Inserir Resultado"}
-                        </div>
+                    {/* INPUT / DROPDOWN */}
+                    <div className="w-100 w-md-auto" style={{ minWidth: '160px' }}>
+                      <div className="d-md-none small text-muted text-uppercase fw-bold mb-1 text-center">
+                        {isTechnicalTab ? "Atribuir Nível" : "Inserir Resultado"}
+                      </div>
 
-                        {isTechnicalTab ? (
-                          <LevelDropdown
-                            clientId={sId}
-                            currentLevel={currentLevel}
-                            onLevelChange={handleLevelChange}
-                            levels={levels}
-                            disabled={!selectedTopicId || isLoading("prefill") || !activeEvent}
-                            fullWidth={true} // Ocupa 100% no mobile e desktop
-                            toggleClassName="py-2" // Botão mais alto
+                      {isTechnicalTab ? (
+                        <LevelDropdown
+                          clientId={sId}
+                          currentLevel={currentLevel}
+                          onLevelChange={handleLevelChange}
+                          levels={levels}
+                          disabled={!selectedTopicId || isLoading("prefill") || !activeEvent}
+                          fullWidth={true}
+                          className="w-100 w-md-auto"
+                          toggleClassName="w-100 py-2 py-md-1"
+                        />
+                      ) : (
+                        <div className="d-flex align-items-center gap-2">
+                          <Input
+                            placeholder={(['fixed-time', 'distance'].includes(activeTestEvent?.testConfig?.measureType)) ? "Metros" : "00:00:00"}
+                            className="bg-light border-0 fw-bold text-center"
+                            style={{ height: '38px', minWidth: '150px' }}
+                            value={testDraft.result}
+                            onChange={(e) => handleResultChange(sId, e.target.value)}
+                            disabled={!activeTestEvent}
                           />
-                        ) : (
-                          <div className="d-flex align-items-center gap-2">
-                            <Input
-                              placeholder={(['fixed-time', 'distance'].includes(activeTestEvent?.testConfig?.measureType)) ? "Metros" : "00:00:00"}
-                              className="bg-light border-0 fw-bold text-center form-control-lg"
-                              style={{ fontSize: '1.1rem' }}
-                              value={testDraft.result}
-                              onChange={(e) => handleResultChange(sId, e.target.value)}
-                              disabled={!activeTestEvent}
-                            />
-                            <Badge color="secondary" className="text-uppercase border px-2 py-2" style={{ fontSize: '0.7rem' }}>
-                              {(['fixed-time', 'distance'].includes(activeTestEvent?.testConfig?.measureType)) ? 'Dist.' : 'Tempo'}
-                            </Badge>
-                          </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
+                    </div>
 
-                      {/* BOTÕES DE AÇÃO - MAIORES E SEPARADOS */}
-                      <div className="d-flex gap-2 w-100 w-md-auto mt-2 mt-md-0">
-                        {/* Botão de WhatsApp */}
-                        <Button
-                          color="success"
-                          className="flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center shadow-sm"
-                          style={{ height: '42px' }}
-                          type="button"
-                          title="Enviar Resultado"
-                          onClick={() => sendEvaluationToClient(client)}
-                        >
-                          <i className="mdi mdi-whatsapp fs-4 me-2" />
-                          <span className="d-md-none fw-bold">Enviar</span>
-                        </Button>
+                    {/* BOTÕES */}
+                    <div className="d-flex align-items-center gap-2 w-100 w-md-auto justify-content-center">
+                      <Button
+                        color="success"
+                        outline
+                        className="d-flex align-items-center justify-content-center shadow-sm flex-grow-1 flex-md-grow-0"
+                        style={{ height: '38px', minWidth: '42px' }}
+                        onClick={() => sendEvaluationToClient(client)}
+                        title="Enviar WhatsApp"
+                      >
+                        <i className="mdi mdi-whatsapp fs-4" />
+                        <span className="ms-2 d-md-none fw-bold">Enviar</span>
+                      </Button>
 
-                        {/* Botão de Remover */}
-                        <Button
-                          outline
-                          color="danger"
-                          className="flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center border-0"
-                          style={{ height: '42px' }}
-                          type="button"
-                          title="Remover da lista"
-                          onClick={() => toggleExcludeClient(sId)}
-                        >
-                          <i className="mdi mdi-close fs-4 me-2" />
-                          <span className="d-md-none fw-bold">Remover</span>
-                        </Button>
-                      </div>
+                      <Button
+                        outline
+                        color="danger"
+                        className="d-flex align-items-center justify-content-center flex-grow-1 flex-md-grow-0 border-0"
+                        style={{ height: '38px', minWidth: '42px' }}
+                        onClick={() => toggleExcludeClient(sId)}
+                        title="Remover da lista"
+                      >
+                        <i className="mdi mdi-close-circle-outline fs-4" />
+                        <span className="ms-2 d-md-none fw-bold">Remover</span>
+                      </Button>
                     </div>
                   </div>
                 </div>

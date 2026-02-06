@@ -16,11 +16,22 @@ export const StaffSchema = yup.object().shape({
     photo: yup.string().nullable(),
     roleId: yup.string().required('Cargo é obrigatório'),
     roleName: yup.string().nullable(),
-    areaId: yup.string().nullable(),
-    areaName: yup.string().nullable(),
     isActive: yup.boolean().default(true),
-    status: yup.string().oneOf(['active', 'inactive', 'deleted']).default('active'),
+    status: yup.string().oneOf(['active', 'inactive', 'suspended', 'deleted']).default('active'),
     hireDate: yup.date().nullable(),
     birthDate: yup.date().nullable(),
+
+    // Novos campos Profissionais e Endereço
+    professionalId: yup.string().nullable(), // Conselho (CRM, CREF, etc)
+    salary: yup.number().nullable(),
+
+    zipCode: yup.string().nullable(),
+    street: yup.string().nullable(),
+    number: yup.string().nullable(),
+    complement: yup.string().nullable(),
+    neighborhood: yup.string().nullable(),
+    city: yup.string().nullable(),
+    state: yup.string().nullable(),
+
     metadata: yup.object().nullable()
 })

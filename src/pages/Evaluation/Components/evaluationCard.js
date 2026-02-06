@@ -1,11 +1,9 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Card, CardBody, CardHeader, Badge, Nav, NavItem, NavLink } from "reactstrap"
-import classnames from "classnames"
+import { Card, CardBody, CardHeader, Badge } from "reactstrap"
 import EvaluationForm from "./evaluationForm"
 import { useEvaluationFormLogic } from "../Hooks/useEvaluationFormLogic"
 import ClientAddSearch from "../../../components/Common/ClientAddSearch"
-import ConfirmDialog from "../../../components/Common/ConfirmDialog"
 
 const EvaluationCard = ({ schedule, activeMode = "technical" }) => {
   const {

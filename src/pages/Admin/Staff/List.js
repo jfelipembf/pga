@@ -61,14 +61,23 @@ const StaffList = ({ setBreadcrumbItems }) => {
       label: "Colaborador",
       render: item => (
         <div className="d-flex align-items-center gap-3">
-          <img
-            src={item.photo || placeholderAvatar}
-            alt={item.name}
-            className="rounded-circle"
-            style={{ objectFit: "cover", flexShrink: 0 }}
-            width="48"
-            height="48"
-          />
+          {item.photo ? (
+            <img
+              src={item.photo}
+              alt={item.name}
+              className="rounded-circle"
+              style={{ objectFit: "cover", flexShrink: 0 }}
+              width="48"
+              height="48"
+            />
+          ) : (
+            <div
+              className="rounded-circle bg-soft-primary d-flex align-items-center justify-content-center text-primary"
+              style={{ width: "48px", height: "48px", flexShrink: 0 }}
+            >
+              <i className="mdi mdi-account fs-3" />
+            </div>
+          )}
           <div>
             <div className="fw-semibold">{item.name}</div>
             {item.birthDate ? (
@@ -120,8 +129,8 @@ const StaffList = ({ setBreadcrumbItems }) => {
       key: "actions",
       label: "Ações",
       render: item => (
-        <Button color="link" className="p-0" onClick={() => navigate(`../profile?id=${item.id}`)}>
-          Ver
+        <Button color="link" className="p-0 fw-bold" onClick={() => navigate(`${item.id}`)}>
+          Ver Perfil
         </Button>
       ),
     },

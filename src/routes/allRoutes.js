@@ -115,6 +115,7 @@ import ActivitiesPage from "../pages/Admin/Activities/ActivitiesPage"
 import RolesPage from "../pages/Admin/Roles/index"
 import EvaluationLevelsPage from "../pages/Admin/EvaluationLevels/index"
 import StaffList from "../pages/Admin/Staff/List"
+import StaffProfile from "../pages/Admin/Staff/StaffProfile"
 import ClassesPage from "../pages/Admin/Classes/index"
 import CatalogPage from "../pages/Admin/Catalog/index"
 import EventsPage from "../pages/Admin/Events/index"
@@ -163,6 +164,7 @@ const userRoutes = [
   { path: "/admin/roles", component: <RolesPage /> },
   { path: "/admin/evaluation-levels", component: <EvaluationLevelsPage /> },
   { path: "/admin/staff", component: <StaffList /> },
+  { path: "/admin/staff/:id", component: <StaffProfile /> },
   { path: "/admin/classes", component: <ClassesPage /> },
   { path: "/admin/catalog", component: <CatalogPage /> },
   { path: "/admin/events", component: <EventsPage /> },

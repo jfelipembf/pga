@@ -1,0 +1,165 @@
+import React from "react"
+import { Row, Col, Button, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Spinner, Card, CardBody } from "reactstrap"
+import { connect } from "react-redux"
+import { setBreadcrumbItems } from "../../../store/actions"
+import { useStaffProfile } from "./hooks/useStaffProfile"
+import PageLoader from "../../../components/Common/PageLoader"
+import StaffProfileForm from "./Components/StaffProfileForm"
+import StaffSchedule from "./Components/StaffSchedule"
+import "./StaffProfile.scss"
+
+const StaffProfile = ({ setBreadcrumbItems }) => {
+    const {
+        staff,
+        loading,
+        activeTab,
+        setActiveTab,
+        roles,
+        formik,
+        photoPreview,
+        handlePhotoChange,
+        handleDelete,
+        handlePasswordChange,
+        isChangingPassword,
+        schedule,
+        scheduleLoading,
+        activities,
+        areas: scheduleAreas
+    } = useStaffProfile()
+
+    const [menuOpen, setMenuOpen] = React.useState(false)
+
+    React.useEffect(() => {
+        const breadcrumbItems = [
+            { title: "Administrativo", link: "#" },
+            { title: "Colaboradores", link: "/admin/staff" },
+            { title: staff?.name || "Perfil", link: "#" },
+        ]
+        setBreadcrumbItems("Perfil do Colaborador", breadcrumbItems)
+    }, [setBreadcrumbItems, staff])
+
+    if (loading) return <PageLoader />
+
+    const roleName = roles.find(r => r.id === staff?.roleId)?.name || staff?.roleName || "Colaborador"
+
+    return (
+        <React.Fragment>
+            <div className="staff-profile">
+                {/* Hero section */}
+                <div className="staff-profile__hero" style={{
+                    backgroundImage: 'url("https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop")',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                }}>
+                    <div className="staff-profile__content">
+                        <div className="d-flex align-items-center gap-4">
+                            <div className="staff-profile__avatar-wrapper">
+                                <div
+                                    className="staff-profile__avatar"
+                                    style={{
+                                        backgroundImage: photoPreview ? `url("${photoPreview}")` : 'none',
+                                        backgroundColor: photoPreview ? 'transparent' : '#e9ecef',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '2rem',
+                                        color: '#adb5bd'
+                                    }}
+                                >
+                                    {!photoPreview && <i className="mdi mdi-account" />}
+                                </div>
+                                <label htmlFor="staff-photo-input" className="staff-profile__camera">
+                                    <i className="mdi mdi-camera" />
+                                </label>
+                                <input
+                                    type="file"
+                                    id="staff-photo-input"
+                                    accept="image/*"
+                                    onChange={handlePhotoChange}
+                                    style={{ display: 'none' }}
+                                />
+                            </div>
+                            <div className="text-white">
+                                <h3 className="mb-1 text-white">{staff?.name}</h3>
+                                <div className="d-flex align-items-center gap-2 flex-wrap">
+                                    <span className="badge bg-soft-light text-white">{roleName}</span>
+                                    <span className={`badge bg-${staff?.status === 'active' ? 'success' : 'warning'}`}>
+                                        {staff?.status === 'active' ? 'Ativo' : staff?.status}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="d-flex gap-2">
+                            <Button
+                                color="info"
+                                className="d-flex align-items-center gap-2"
+                                onClick={() => formik.handleSubmit()}
+                                disabled={formik.isSubmitting}
+                            >
+                                {formik.isSubmitting ? <Spinner size="sm" /> : <i className="mdi mdi-content-save" />}
+                                Salvar Alterações
+                            </Button>
+
+                            <Dropdown isOpen={menuOpen} toggle={() => setMenuOpen(!menuOpen)}>
+                                <DropdownToggle color="transparent" className="p-0 border-0 text-white">
+                                    <i className="mdi mdi-dots-vertical fs-4" />
+                                </DropdownToggle>
+                                <DropdownMenu end>
+                                    <DropdownItem onClick={handleDelete} className="text-danger">
+                                        <i className="mdi mdi-trash-can-outline me-2" />
+                                        Excluir Colaborador
+                                    </DropdownItem>
+                                </DropdownMenu>
+                            </Dropdown>
+                        </div>
+                    </div>
+
+                    <div className="staff-profile__tabs">
+                        {["Perfil", "Documentos", "Agenda"].map(tab => (
+                            <button
+                                key={tab}
+                                type="button"
+                                className={`staff-profile__tab ${activeTab === tab ? "staff-profile__tab--active" : ""}`}
+                                onClick={() => setActiveTab(tab)}
+                            >
+                                {tab}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <Row className="mt-4">
+                    <Col lg={12}>
+                        {activeTab === "Perfil" && (
+                            <StaffProfileForm
+                                formik={formik}
+                                roles={roles}
+                                handlePasswordChange={handlePasswordChange}
+                                isChangingPassword={isChangingPassword}
+                            />
+                        )}
+                        {activeTab === "Agenda" && (
+                            <StaffSchedule
+                                schedule={schedule}
+                                loading={scheduleLoading}
+                                activities={activities}
+                                areas={scheduleAreas}
+                            />
+                        )}
+                        {activeTab === "Documentos" && (
+                            <Card>
+                                <CardBody className="text-center py-5">
+                                    <i className="mdi mdi-folder-outline fs-1 text-muted opacity-50" />
+                                    <h5 className="mt-3 text-muted">Aba de Documentos em desenvolvimento</h5>
+                                </CardBody>
+                            </Card>
+                        )}
+                    </Col>
+                </Row>
+            </div>
+        </React.Fragment>
+    )
+}
+
+export default connect(null, { setBreadcrumbItems })(StaffProfile)
