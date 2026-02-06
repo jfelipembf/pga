@@ -9,6 +9,7 @@ import Grade from "../pages/Grade/index"
 import EnrollmentGrade from "../pages/Grade/EnrollmentGrade/index"
 import Evaluation from "../pages/Evaluation/index"
 import AutomationList from "../pages/Automation/AutomationList"
+import IntegrationPage from "../pages/Integration/index"
 
 //Email
 import EmailInbox from "../pages/Email/email-inbox"
@@ -147,8 +148,10 @@ const userRoutes = [
   // Evaluation
   { path: "/evaluation", component: <Evaluation /> },
 
+
   // Automation
   { path: "/automation", component: <AutomationList /> },
+  { path: "/settings/integrations", component: <IntegrationPage /> },
 
 
   { path: "/chat", component: <Chat /> },

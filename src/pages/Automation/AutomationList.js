@@ -1,196 +1,85 @@
 import React, { useEffect, useState } from "react"
 import { connect } from "react-redux"
-import { Card, CardBody } from "reactstrap"
 import { useAutomation } from "./hooks/useAutomation"
-import { AutomationForm } from "./components/AutomationForm"
-import { IntegrationSettings } from "./components/IntegrationSettings"
 import { TemplateEditor } from "./components/TemplateEditor"
 import ManagementLayout from "../../components/Common/ManagementLayout"
 import { setBreadcrumbItems } from "../../store/actions"
+import { TRIGGER_CONFIG } from "./config/triggers"
+import { Link } from "react-router-dom"
 
 const AutomationPage = ({ setBreadcrumbItems }) => {
-    document.title = "Automação Inteligente | Lexa Admin"
+    document.title = "Mensagens Automáticas | Lexa Admin"
 
     const {
-        workflows,
         integrationConfig,
         loading,
         saving,
-        saveWorkflow,
         saveIntegrations
     } = useAutomation()
 
-    const [viewMode, setViewMode] = useState('empty') // 'empty', 'edit', 'create', 'settings', 'templates'
-    const [selectedId, setSelectedId] = useState(null)
-    const [formData, setFormData] = useState(null)
+    const [selectedCategory, setSelectedCategory] = useState(null)
+    const categories = Array.from(new Set(Object.values(TRIGGER_CONFIG).map(c => c.category))).sort();
 
-    // Configurar Breadcrumb
     useEffect(() => {
         setBreadcrumbItems("Central de Inteligência", [
             { title: "Gestão", link: "#" },
-            { title: "Automação", link: "/automation" }
+            { title: "Mensagens", link: "/automation" }
         ])
-    }, [setBreadcrumbItems])
 
-    // Handlers
-    const handleAddClick = () => {
-        setFormData({})
-        setSelectedId(null)
-        setViewMode('create')
-    }
-
-    const handleItemClick = (item) => {
-        setSelectedId(item.id)
-        setFormData(item)
-        setViewMode('edit')
-    }
-
-    const handleSettingsClick = () => {
-        setSelectedId('settings')
-        setFormData(integrationConfig)
-        setViewMode('settings')
-    }
-
-    const handleTemplatesClick = () => {
-        setSelectedId('templates')
-        setViewMode('templates')
-    }
-
-    const handleSaveForm = async (data) => {
-        const success = await saveWorkflow(data)
-        if (success) {
-            setViewMode('empty')
-            setSelectedId(null)
+        // Selecionar primeira categoria por padrão (Leads ou Aulas Experimentais)
+        if (!selectedCategory && categories.length > 0) {
+            setSelectedCategory(categories[0]);
         }
-    }
-
-    const handleSaveSettings = async (data) => {
-        const success = await saveIntegrations(data)
-        if (success) {
-            // Mantém na tela
-        }
-    }
+    }, [setBreadcrumbItems]) // Removed categories/selectedCategory dependencies to avoid loop
 
     const handleSaveTemplates = async (templates) => {
         const newData = { ...integrationConfig, messageTemplates: templates };
-        const success = await saveIntegrations(newData);
-        if (success) {
-            // Sucesso
-        }
+        await saveIntegrations(newData);
     }
 
-    // --- Sidebar Content (Lista) ---
+    // Sidebar Content (Lista de Categorias apenas)
     const SidebarContent = (
         <div className="d-flex flex-column h-100">
-            <div className="mb-3 d-grid gap-2">
-                <button
-                    className={`btn btn-outline-secondary text-start ${viewMode === 'settings' ? 'active bg-soft-secondary' : ''}`}
-                    onClick={handleSettingsClick}
-                >
-                    <i className="mdi mdi-cog-outline me-2"></i> Configurar Credenciais
-                </button>
-                <button
-                    className={`btn btn-outline-secondary text-start ${viewMode === 'templates' ? 'active bg-soft-secondary' : ''}`}
-                    onClick={handleTemplatesClick}
-                >
-                    <i className="mdi mdi-message-text-outline me-2"></i> Mensagens Padrão
-                </button>
+            <h6 className="text-muted text-uppercase font-size-11 mb-3 mt-2">Navegação</h6>
+            <div className="d-grid gap-1 mb-4">
+                {categories.map(cat => (
+                    <button
+                        key={cat}
+                        className={`btn btn-sm text-start ${selectedCategory === cat ? 'active bg-soft-info text-info fw-bold' : 'btn-ghost-secondary text-muted'}`}
+                        onClick={() => setSelectedCategory(cat)}
+                        style={{ border: 'none', paddingLeft: '0.5rem' }}
+                    >
+                        <i className="mdi mdi-folder-text-outline me-2"></i> {cat}
+                    </button>
+                ))}
             </div>
 
-            <h6 className="text-muted text-uppercase font-size-11 mb-2 mt-2">Meus Fluxos</h6>
-
-            <div className="flex-grow-1 overflow-auto">
-                {loading && workflows.length === 0 && <p className="text-muted small p-2">Carregando...</p>}
-
-                {workflows.map(flow => (
-                    <Card
-                        key={flow.id}
-                        className={`mb-2 shadow-sm border cursor-pointer ${selectedId === flow.id ? 'border-primary bg-soft-light' : ''}`}
-                        onClick={() => handleItemClick(flow)}
-                        style={{ cursor: 'pointer' }}
-                    >
-                        <CardBody className="p-3">
-                            <div className="d-flex justify-content-between align-items-start">
-                                <div className="overflow-hidden">
-                                    <h5 className="font-size-13 text-truncate mb-1 text-dark">{flow.name}</h5>
-                                    <p className="text-muted font-size-12 mb-0 mb-1">
-                                        <i className={`mdi mdi-${flow.aiConfig?.enabled ? 'robot' : 'flash'} me-1 ${flow.aiConfig?.enabled ? 'text-info' : 'text-warning'}`}></i>
-                                        {flow.trigger}
-                                    </p>
-                                </div>
-                                <div className={`badge badge-soft-${flow.isActive ? 'success' : 'secondary'} font-size-10 p-1 rounded-circle p-1`} style={{ width: 8, height: 8, minWidth: 8 }}> </div>
-                            </div>
-                        </CardBody>
-                    </Card>
-                ))}
+            <div className="mt-auto border-top pt-3">
+                <div className="alert alert-info font-size-12 mb-0 p-2">
+                    <i className="mdi mdi-information-outline me-1"></i>
+                    Para configurar o envio (WhatsApp/IA), acesse <Link to="/settings/integrations" className="fw-bold text-info text-decoration-underline">Integrações</Link>.
+                </div>
             </div>
         </div>
     )
 
-    // --- Main Content (Formulário) ---
-    const MainContent = (() => {
-        if (viewMode === 'settings') {
-            return (
-                <IntegrationSettings
-                    initialValues={integrationConfig}
-                    onSave={handleSaveSettings}
-                    loading={saving}
-                />
-            )
-        }
-
-        if (viewMode === 'templates') {
-            return (
-                <TemplateEditor
-                    customTemplates={integrationConfig?.messageTemplates}
-                    onSave={handleSaveTemplates}
-                    loading={saving}
-                />
-            )
-        }
-
-        if (viewMode === 'create' || (viewMode === 'edit' && formData)) {
-            return (
-                <AutomationForm
-                    value={formData}
-                    saving={saving}
-                    onSave={handleSaveForm}
-                    onCancel={() => setViewMode('empty')}
-                    onChange={setFormData}
-                />
-            )
-        }
-
-        return (
-            <div className="text-center py-5 text-muted mt-5">
-                <div className="mb-4">
-                    <div className="avatar-lg mx-auto bg-soft-primary rounded-circle d-flex align-items-center justify-content-center">
-                        <i className="mdi mdi-robot-excited-outline font-size-40 text-primary"></i>
-                    </div>
-                </div>
-                <h4>Central de Inteligência</h4>
-                <p style={{ maxWidth: 400 }} className="mx-auto mt-3">
-                    Gerencie automações de mensagens e use Inteligência Artificial para encantar seus clientes.
-                    Selecione um item ao lado ou crie uma nova automação.
-                </p>
-                <div className="mt-4">
-                    <button className="btn btn-primary" onClick={handleAddClick}>
-                        <i className="mdi mdi-plus me-1"></i> Criar Primeira Automação
-                    </button>
-                    <button className="btn btn-link text-muted ms-3" onClick={handleTemplatesClick}>Editar Templates</button>
-                </div>
-            </div>
-        )
-    })()
+    // Main Content (Template Editor)
+    const MainContent = (
+        <TemplateEditor
+            customTemplates={integrationConfig?.messageTemplates}
+            onSave={handleSaveTemplates}
+            loading={saving}
+            filterCategory={selectedCategory}
+        />
+    )
 
     return (
         <React.Fragment>
             <ManagementLayout
-                sidebarTitle="Automação"
+                sidebarTitle="Modelos"
                 sidebarContent={SidebarContent}
                 mainContent={MainContent}
-                onAddClick={handleAddClick}
-                addLabel="Nova Automação"
+                onAddClick={null}
                 isLoading={loading}
             />
         </React.Fragment>
