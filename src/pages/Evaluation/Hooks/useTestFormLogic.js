@@ -42,7 +42,7 @@ export const useTestFormLogic = ({
         }
 
         loadExistingResults()
-    }, [idTenant, idBranch, idActivity, activeEvent?.id, withLoading])
+    }, [idTenant, idBranch, idActivity, activeEvent?.id, withLoading, activeEvent?.testConfig?.measureType])
 
     const formatTime = (value) => {
         // Remove tudo que não é número

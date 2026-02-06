@@ -1,12 +1,16 @@
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
-const { createScheduledTrigger } = require("./utils");
 
 /**
  * Fecha automaticamente os caixas abertos se a configuração permitir.
- * Executa todo dia às 23:59.
+ * Executa todo dia às 23:55 (Horário de Brasília).
  */
-module.exports = createScheduledTrigger("55 2 * * *", "autoCloseCashier", async () => {
+module.exports = onSchedule({
+    schedule: "55 23 * * *",
+    timeZone: "America/Sao_Paulo",
+    region: "us-central1",
+}, async (event) => {
     const db = admin.firestore();
 
     try {
@@ -21,20 +25,7 @@ module.exports = createScheduledTrigger("55 2 * * *", "autoCloseCashier", async 
             await Promise.all(branchesSnap.docs.map(async (branchDoc) => {
                 const branchId = branchDoc.id;
 
-                const settingsRef = db.doc(`tenants/${tenantId}/branches/${branchId}/settings/general`);
-                const settingsSnap = await settingsRef.get();
-
-                if (!settingsSnap.exists) {
-                    console.log(`[DEBUG] Settings não encontradas para ${branchId}`);
-                    return;
-                }
-
-                const settings = settingsSnap.data();
-                const autoClose = settings.finance?.autoCloseCashier === true;
-
-                console.log(`[DEBUG] Branch ${branchId} - AutoClose Habilitado: ${autoClose}`);
-
-                if (!autoClose) return;
+                console.log(`[DEBUG] Processando fechamento automático para Branch ${branchId}`);
 
                 const cashierRef = db.collection(`tenants/${tenantId}/branches/${branchId}/cashierSessions`);
                 const openSessionsSnap = await cashierRef.where("status", "==", "open").get();
@@ -53,8 +44,12 @@ module.exports = createScheduledTrigger("55 2 * * *", "autoCloseCashier", async 
                         status: "closed",
                         closedAt: now,
                         autoClosed: true,
-                        closingBalance: data.currentBalance || data.openingBalance || 0,
+                        // Use expectedBalance as the truth for auto-closing
+                        actualBalance: data.expectedBalance || 0,
+                        difference: 0,
+                        closingNotes: "Fechamento Automático pelo Sistema",
                         updatedAt: now,
+                        updatedBy: "SYSTEM"
                     });
                     ops++;
                 });

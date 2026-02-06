@@ -8,9 +8,10 @@ import { createSelector } from "reselect";
 import PropTypes from "prop-types";
 
 // Formik validation
-import * as Yup from "yup";
+
 import { useFormik } from "formik";
 import withRouter from 'components/Common/withRouter';
+import { loginSchema } from '../../validations/authSchemas';
 
 // actions
 import { loginUser } from "../../store/actions";
@@ -28,10 +29,7 @@ const Login = props => {
       email: "admin@themesbrand.com" || '',
       password: "123456" || '',
     },
-    validationSchema: Yup.object({
-      email: Yup.string().required("Por favor, digite seu email"),
-      password: Yup.string().required("Por favor, digite sua senha"),
-    }),
+    validationSchema: loginSchema,
     onSubmit: (values) => {
       const { idTenant, idBranch } = props.router.params;
       dispatch(loginUser({ ...values, idTenant, idBranch }, props.router.navigate));

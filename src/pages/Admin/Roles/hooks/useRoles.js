@@ -104,7 +104,7 @@ export const useRoles = () => {
 
     const handleDelete = async (roleOrId) => {
         const id = typeof roleOrId === 'object' ? roleOrId.id : roleOrId
-        const roleName = typeof roleOrId === 'object' ? (roleOrId.name || roleOrId.label) : id
+
 
         try {
             setDeleting(true)

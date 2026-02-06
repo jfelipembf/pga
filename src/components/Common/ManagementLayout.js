@@ -1,6 +1,7 @@
 import React from "react"
 import PropTypes from "prop-types"
 import { Row, Col, Card, CardBody, Button, Input } from "reactstrap"
+import PageLoader from "./PageLoader"
 
 const ManagementLayout = ({
     sidebarTitle,
@@ -10,6 +11,8 @@ const ManagementLayout = ({
     mainContent,
     isLoading
 }) => {
+    if (isLoading) return <PageLoader />
+
     return (
         <React.Fragment>
             <Row>

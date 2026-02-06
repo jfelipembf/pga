@@ -102,7 +102,7 @@ export const useClassesPage = ({ setBreadcrumbItems, referenceDate }) => {
             isInitialLoadRef.current = false
             setIsNavigationLoading(false)
         }
-    }, [idTenant, idBranch, isReady, referenceDate, cache.get, cache.set])
+    }, [idTenant, idBranch, isReady, referenceDate, cache])
 
     useEffect(() => {
         loadData()

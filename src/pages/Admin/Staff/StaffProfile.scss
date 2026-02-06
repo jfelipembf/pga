@@ -259,4 +259,27 @@
             }
         }
     }
+
+    .staff-metrics {
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+            &:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+            }
+        }
+
+        .progress {
+            background-color: rgba(0, 0, 0, 0.05);
+            overflow: visible;
+        }
+
+        .table {
+            td {
+                vertical-align: middle;
+                padding: 0.75rem 0.5rem;
+            }
+        }
+    }
 }

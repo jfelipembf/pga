@@ -1,12 +1,12 @@
 import React from 'react'
-import { Row, Col, Card, CardBody, Button, Input, Label, Modal, ModalHeader, ModalBody, FormFeedback, Badge } from 'reactstrap'
-import { useFormik } from 'formik'
-import * as Yup from 'yup'
+import { Row, Col, Card, CardBody, Button, Input, Label, Badge } from 'reactstrap'
 import { formatCurrency } from '../../../utils/format'
 import { formatDate } from '../../../utils/date'
 import { useCashier } from './hooks/useCashier'
 import { CashierTransactionsTable } from './components/CashierTransactionsTable'
 import { CashierMovementModal } from './components/CashierMovementModal'
+import CashierOpenModal from './components/CashierOpenModal'
+import CashierCloseModal from './components/CashierCloseModal'
 import CashierPrintTemplate from './components/CashierPrintTemplate'
 import Flatpickr from "react-flatpickr"
 import "flatpickr/dist/themes/material_blue.css"
@@ -38,23 +38,6 @@ const CashierPage = () => {
         setSelectedDate
     } = useCashier()
 
-    // Formik: Abrir Caixa
-    const formikOpen = useFormik({
-        initialValues: { openingBalance: '0', notes: '' },
-        validationSchema: Yup.object({
-            openingBalance: Yup.number().min(0, 'Valor inválido').required('Obrigatório'),
-        }),
-        onSubmit: handleOpenCashier
-    })
-
-    // Formik: Fechar Caixa
-    const formikClose = useFormik({
-        initialValues: { actualBalance: '', notes: '' },
-        validationSchema: Yup.object({
-            actualBalance: Yup.number().min(0).required('Informe o valor em caixa'),
-        }),
-        onSubmit: handleCloseCashier
-    })
 
     if (loading) return (
         <div className="p-5 text-center">
@@ -229,72 +212,19 @@ const CashierPage = () => {
                 </Row>
 
                 {/* MODAIS */}
-                <Modal isOpen={modalOpen} toggle={() => setModalOpen(!modalOpen)} centered>
-                    <ModalHeader toggle={() => setModalOpen(!modalOpen)}>Abrir Caixa</ModalHeader>
-                    <ModalBody className="p-4">
-                        <form onSubmit={formikOpen.handleSubmit}>
-                            <div className="mb-4">
-                                <Label className="fw-bold">Saldo Inicial (Fundo de Troco)</Label>
-                                <Input
-                                    name="openingBalance"
-                                    type="number"
-                                    step="0.01"
-                                    className="form-control-lg text-primary fw-bold"
-                                    placeholder="0,00"
-                                    onChange={formikOpen.handleChange}
-                                    onBlur={formikOpen.handleBlur}
-                                    value={formikOpen.values.openingBalance}
-                                    invalid={!!(formikOpen.touched.openingBalance && formikOpen.errors.openingBalance)}
-                                />
-                                {formikOpen.touched.openingBalance && formikOpen.errors.openingBalance && (
-                                    <FormFeedback>{formikOpen.errors.openingBalance}</FormFeedback>
-                                )}
-                            </div>
-                            <Button type="submit" color="primary" block size="lg" className="fw-bold">
-                                CONFIRMAR ABERTURA
-                            </Button>
-                        </form>
-                    </ModalBody>
-                </Modal>
+                {/* MODAIS */}
+                <CashierOpenModal
+                    isOpen={modalOpen}
+                    toggle={() => setModalOpen(!modalOpen)}
+                    onConfirm={handleOpenCashier}
+                />
 
-                <Modal isOpen={modalClose} toggle={() => setModalClose(!modalClose)} centered>
-                    <ModalHeader toggle={() => setModalClose(!modalClose)}>Fechar Caixa</ModalHeader>
-                    <ModalBody className="p-4">
-                        <div className="text-center mb-4 p-3">
-                            <p className="mb-1 text-muted text-uppercase font-size-11 fw-bold">Saldo Esperado em Gaveta</p>
-                            <h3 className="text-dark fw-bold m-0">{formatCurrency(currentSession?.expectedBalance)}</h3>
-                        </div>
-                        <form onSubmit={formikClose.handleSubmit}>
-                            <div className="mb-3">
-                                <Label className="fw-bold">Valor Conferido Fisicamente</Label>
-                                <Input
-                                    name="actualBalance"
-                                    type="number"
-                                    step="0.01"
-                                    className="form-control-lg fw-bold"
-                                    placeholder="0,00"
-                                    onChange={formikClose.handleChange}
-                                    value={formikClose.values.actualBalance}
-                                    invalid={!!(formikClose.touched.actualBalance && formikClose.errors.actualBalance)}
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <Label className="fw-bold">Observações do Fechamento</Label>
-                                <Input
-                                    name="notes"
-                                    type="textarea"
-                                    rows="3"
-                                    placeholder="Caso haja diferença, explique aqui..."
-                                    onChange={formikClose.handleChange}
-                                    value={formikClose.values.notes}
-                                />
-                            </div>
-                            <Button type="submit" color="danger" block size="lg" className="fw-bold">
-                                CONFIRMAR FECHAMENTO E TRAVAR
-                            </Button>
-                        </form>
-                    </ModalBody>
-                </Modal>
+                <CashierCloseModal
+                    isOpen={modalClose}
+                    toggle={() => setModalClose(!modalClose)}
+                    onConfirm={handleCloseCashier}
+                    expectedBalance={currentSession?.expectedBalance}
+                />
 
                 <CashierMovementModal
                     isOpen={!!movementModalType}

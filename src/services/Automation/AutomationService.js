@@ -1,4 +1,3 @@
-import { workflowRepository } from "../../data/repositories/Automation/WorkflowRepository";
 import { integrationRepository } from "../../data/repositories/Automation/IntegrationRepository";
 import { DEFAULT_MESSAGES } from "../../pages/Automation/config/triggers";
 import { aiService } from "./AIService";

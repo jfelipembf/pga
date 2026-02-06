@@ -7,6 +7,7 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import { useCashFlow } from "./hooks/useCashFlow"
 import { formatCurrency } from "../../../utils/format"
 import { formatDate } from "../../../utils/date"
+import PageLoader from "../../../components/Common/PageLoader"
 import { PAYMENT_METHOD_LABELS } from "../../../utils/constants"
 import "flatpickr/dist/themes/material_blue.css"
 import Flatpickr from "react-flatpickr"
@@ -92,12 +93,7 @@ const CashFlowPage = () => {
         }
     ], []);
 
-    if (loading && transactions.length === 0) return (
-        <div className="p-5 text-center">
-            <div className="spinner-border text-primary" role="status"></div>
-            <p className="mt-2">Carregando fluxo de caixa...</p>
-        </div>
-    )
+    if (loading && transactions.length === 0) return <PageLoader />
 
     return (
         <React.Fragment>

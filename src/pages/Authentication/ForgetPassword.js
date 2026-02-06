@@ -8,14 +8,15 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createSelector } from "reselect";
 import withRouter from 'components/Common/withRouter';
 // Formik Validation
-import * as Yup from "yup";
+
 import { useFormik } from "formik";
+import { forgotPasswordSchema } from '../../validations/authSchemas';
 
 // action
 import { userForgetPassword } from "../../store/actions";
 
 const ForgetPasswordPage = props => {
-  document.title = "Forget Password | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Recuperar Senha | PGA System";
 
   const dispatch = useDispatch();
 
@@ -26,9 +27,7 @@ const ForgetPasswordPage = props => {
     initialValues: {
       email: '',
     },
-    validationSchema: Yup.object({
-      email: Yup.string().required("Please Enter Your Email"),
-    }),
+    validationSchema: forgotPasswordSchema,
     onSubmit: (values) => {
       dispatch(userForgetPassword(values, props.history));
     }
@@ -112,7 +111,7 @@ const ForgetPasswordPage = props => {
               </Card>
               <div className="mt-5 text-center">
                 <p>Remember It ? <Link to="/login" className="text-primary"> Sign In Here </Link> </p>
-                © {new Date().getFullYear()} Lexa <span className="d-none d-sm-inline-block"> - Crafted with <i className="mdi mdi-heart text-danger"></i> by Themesbrand.</span>
+                © {new Date().getFullYear()} PGA System
               </div>
             </Col>
           </Row>

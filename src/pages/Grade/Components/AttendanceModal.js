@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useMemo, useState } from "react"
 import PropTypes from "prop-types"
 import classNames from "classnames"
 import {
@@ -326,16 +326,15 @@ const AttendanceModal = ({ isOpen, onClose, schedule, onAttendanceSaved, onEnrol
             <Button color="light" className="btn-rounded px-4" onClick={handleClose}>
               Fechar
             </Button>
-            <Button color="primary" className="btn-rounded px-4 shadow-primary" onClick={() => handleSave(onClose)} disabled={isLoading('save')}>
-              {isLoading('save') ? (
-                <>
-                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                  Salvando...
-                </>
-              ) : (
-                'Salvar'
-              )}
-            </Button>
+            <ButtonLoader
+              color="primary"
+              className="btn-rounded px-4 shadow-primary"
+              onClick={() => handleSave(onClose)}
+              loading={isLoading('save')}
+              loadingText="Salvando..."
+            >
+              Salvar
+            </ButtonLoader>
           </div>
         </div>
       </Modal>

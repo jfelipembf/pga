@@ -1,5 +1,5 @@
 import React from "react"
-import { Row, Col, Button, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Spinner } from "reactstrap"
+import { Row, Col, Button, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from "reactstrap"
 import { useNavigate } from "react-router-dom"
 import { useTenant } from "../../../hooks/useTenant"
 
@@ -11,6 +11,7 @@ import { ClientService } from "../../../services/Clients/ClientService"
 
 // Componentes Comuns
 import PageLoader from "../../../components/Common/PageLoader"
+import ButtonLoader from "../../../components/Common/ButtonLoader"
 import StatusBadge from "../../../components/Common/StatusBadge"
 import ConfirmDialog from "../../../components/Common/ConfirmDialog"
 import { formatCurrency } from "../../../utils/format"
@@ -150,15 +151,15 @@ const ClientProfile = () => {
                             </Button>
 
                             {activeTab === PROFILE_TABS.PROFILE && (
-                                <Button
+                                <ButtonLoader
                                     color="info"
                                     className="d-flex align-items-center gap-2 shadow-sm"
                                     onClick={() => formik.handleSubmit()}
-                                    disabled={formik.isSubmitting}
+                                    loading={formik.isSubmitting}
+                                    loadingText="Salvando..."
                                 >
-                                    {formik.isSubmitting ? <Spinner size="sm" /> : <i className="mdi mdi-content-save" />}
-                                    {formik.isSubmitting ? "Salvando..." : "Salvar Alterações"}
-                                </Button>
+                                    <i className="mdi mdi-content-save" /> Salvar Alterações
+                                </ButtonLoader>
                             )}
 
                             <div className="ms-2 border-start ps-3">

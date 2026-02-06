@@ -18,13 +18,14 @@ import "flatpickr/dist/themes/material_blue.css"
 import Flatpickr from "react-flatpickr"
 import { Portuguese } from "flatpickr/dist/l10n/pt.js"
 
-import Miniwidget from '../../Dashboard/Miniwidget';
+import PageLoader from "../../../components/Common/PageLoader"
 
 // Hook
 import { useReceivablesList } from './hooks/useReceivablesList';
 import ReceivableSettlementModal from './ReceivableSettlementModal';
 import ReceivableDetailsModal from './ReceivableDetailsModal';
 import ReceivableAnticipationModal from './ReceivableAnticipationModal';
+import Miniwidget from '../../Dashboard/Miniwidget';
 
 /**
  * Página de Contas a Receber (Receivables)
@@ -250,12 +251,7 @@ const ReceivablesPage = () => {
         }
     }
 
-    if (isLoading && receivables.length === 0) return (
-        <div className="p-5 text-center">
-            <div className="spinner-border text-primary" role="status"></div>
-            <p className="mt-2">Carregando contas a receber...</p>
-        </div>
-    );
+    if (isLoading && receivables.length === 0) return <PageLoader />
 
     return (
         <React.Fragment>

@@ -4,6 +4,7 @@ import PropTypes from "prop-types"
 
 const ButtonLoader = ({
   loading = false,
+  loadingText = "Carregando...",
   children,
   disabled,
   onClick,
@@ -26,7 +27,7 @@ const ButtonLoader = ({
       {loading ? (
         <>
           <Spinner size="sm" className="me-2" />
-          Carregando...
+          {loadingText}
         </>
       ) : (
         children
@@ -37,6 +38,7 @@ const ButtonLoader = ({
 
 ButtonLoader.propTypes = {
   loading: PropTypes.bool,
+  loadingText: PropTypes.string,
   children: PropTypes.node,
   disabled: PropTypes.bool,
   onClick: PropTypes.func,

@@ -23,7 +23,10 @@ export const AreaService = {
             const isUpdate = !!data.id;
             let result;
 
+            let oldData = null;
+
             if (isUpdate) {
+                oldData = await areaRepository.findById(idTenant, idBranch, data.id);
                 const { id, ...updateData } = data;
                 await areaRepository.update(idTenant, idBranch, id, updateData);
                 result = { id, ...updateData };
@@ -33,16 +36,30 @@ export const AreaService = {
             }
 
             // Log de Auditoria
-            await AuditService.log({
-                idTenant,
-                idBranch,
-                userId,
-                userName: data.userName,
-                action: isUpdate ? 'AREA_UPDATED' : 'AREA_CREATED',
-                entityType: 'area',
-                entityId: result.id,
-                description: `${isUpdate ? 'Área atualizada' : 'Nova área criada'}: ${result.name}`
-            });
+            if (isUpdate) {
+                await AuditService.logUpdate({
+                    idTenant,
+                    idBranch,
+                    userId,
+                    userName: data.userName,
+                    entityType: 'area',
+                    entityId: data.id,
+                    oldData,
+                    newData: data,
+                    description: `Área atualizada: ${result.name}`
+                });
+            } else {
+                await AuditService.log({
+                    idTenant,
+                    idBranch,
+                    userId,
+                    userName: data.userName,
+                    action: 'AREA_CREATED',
+                    entityType: 'area',
+                    entityId: result.id,
+                    description: `Nova área criada: ${result.name}`
+                });
+            }
 
             return result;
         } catch (error) {
@@ -71,7 +88,8 @@ export const AreaService = {
                 action: 'AREA_DELETED',
                 entityType: 'area',
                 entityId: area.id,
-                description: `Área excluída: ${area.name}`
+                description: `Área excluída: ${area.name}`,
+                details: { snapshot: area } // O objeto area passado já é completo? Sim, geralmente. Mas garantindo is good. O caller passa 'area' que parece ser o objeto.
             });
 
             return true;

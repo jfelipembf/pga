@@ -112,5 +112,63 @@ export const AuditService = {
             console.error("Erro ao buscar logs de auditoria:", error);
             return [];
         }
+    },
+
+    /**
+     * Helper para calcular e logar as diferenças (Diff) entre dois objetos (Update).
+     * Padroniza o registro de alterações em todo o sistema.
+     */
+    logUpdate: async ({
+        idTenant,
+        idBranch,
+        userId,
+        userName,
+        entityType,
+        entityId,
+        oldData,
+        newData,
+        description
+    }) => {
+        try {
+            // Calcular Diff
+            const changes = {}
+            const allKeys = new Set([...Object.keys(oldData || {}), ...Object.keys(newData || {})])
+
+            // Campos técnicos para ignorar na comparação visual
+            const ignoredFields = ['updatedAt', 'updatedBy', 'updatedByName', 'createdAt', 'createdBy', 'createdByName', 'id']
+
+            allKeys.forEach(key => {
+                if (ignoredFields.includes(key)) return
+
+                // Comparação robusta (JSON stringify para objetos/arrays)
+                const valOld = JSON.stringify(oldData?.[key])
+                const valNew = JSON.stringify(newData?.[key])
+
+                if (valOld !== valNew) {
+                    changes[key] = {
+                        from: oldData?.[key] === undefined ? null : oldData[key],
+                        to: newData?.[key] === undefined ? null : newData[key]
+                    }
+                }
+            })
+
+            // Se nada mudou, não precisa logar (ou logar apenas acesso, mas aqui é update)
+            if (Object.keys(changes).length === 0) return null
+
+            return AuditService.log({
+                idTenant,
+                idBranch,
+                userId,
+                userName,
+                action: `${entityType.toUpperCase()}_UPDATED`,
+                entityType,
+                entityId,
+                description: description || `Atualização de registro em ${entityType}`,
+                details: { changes }
+            })
+        } catch (error) {
+            console.error("Erro ao calcular diff para auditoria:", error)
+            return false // Não deve falhar o fluxo principal
+        }
     }
 }

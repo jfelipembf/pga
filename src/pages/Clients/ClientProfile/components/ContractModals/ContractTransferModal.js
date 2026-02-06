@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Form, FormGroup, Label, Input } from 'reactstrap'
+import ButtonLoader from '../../../../../components/Common/ButtonLoader'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 
@@ -79,9 +80,16 @@ const ContractTransferModal = ({ isOpen, toggle, contract, onConfirm }) => {
                 </ModalBody>
                 <ModalFooter className="bg-light border-top">
                     <Button color="secondary" outline className="btn-rounded" onClick={toggle}>Cancelar</Button>
-                    <Button color="primary" type="submit" className="btn-rounded px-4" disabled={formik.isSubmitting || !searchTerm}>
+                    <ButtonLoader
+                        color="primary"
+                        type="submit"
+                        className="btn-rounded px-4"
+                        disabled={formik.isSubmitting || !searchTerm}
+                        loading={formik.isSubmitting}
+                        loadingText="Transferindo..."
+                    >
                         Confirmar Transferência
-                    </Button>
+                    </ButtonLoader>
                 </ModalFooter>
             </Form>
         </Modal>

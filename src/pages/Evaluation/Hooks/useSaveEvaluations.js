@@ -19,6 +19,37 @@ export const useSaveEvaluations = ({
 }) => {
     const { idTenant, idBranch, user } = useTenant()
 
+    const processAutomations = useCallback(async (tenantId, results) => {
+        try {
+            const promises = results.map(({ client, criteria }) => {
+                // Formatar resultados para mensagem com estilo (Agrupado por Objetivo)
+                const groupedByObjective = criteria.reduce((acc, curr) => {
+                    const objectiveTitle = topicMetaById[curr.id]?.objectiveTitle || "Geral"
+                    if (!acc[objectiveTitle]) acc[objectiveTitle] = []
+                    acc[objectiveTitle].push(curr)
+                    return acc
+                }, {})
+
+                const resultsText = Object.entries(groupedByObjective).map(([objective, items]) => {
+                    const itemsText = items.map(c => `🔹 ${c.name}\n   ⭐ ${c.levelName}`).join('\n\n')
+                    return `🏊 ${objective}\n\n${itemsText}`
+                }).join('\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n')
+
+                return automationService.emit(tenantId, 'EVALUATION_RESULT', {
+                    student: client.name,
+                    studentName: client.name, // Fallback alias
+                    name: client.name, // Fallback alias
+                    phone: client.phone || client.cellPhone || client.responsavelPhone,
+                    results: resultsText,
+                    date: new Date().toLocaleDateString('pt-BR')
+                })
+            })
+            await Promise.allSettled(promises)
+        } catch (e) {
+            console.error("Erro ao processar automações de avaliação", e)
+        }
+    }, [topicMetaById])
+
     const saveAll = useCallback(async () => {
         if (!withLoading || !idActivity || !activeEventId) return
 
@@ -105,39 +136,8 @@ export const useSaveEvaluations = ({
     }, [
         idTenant, idBranch, user, idActivity, classId, clients, excludedIds,
         draftLevelsByTopicId, allTopicIds, topicMetaById, defaultLevelId,
-        levels, withLoading, activeEventId
+        levels, withLoading, activeEventId, processAutomations
     ])
-
-    const processAutomations = async (tenantId, results) => {
-        try {
-            const promises = results.map(({ client, criteria }) => {
-                // Formatar resultados para mensagem com estilo (Agrupado por Objetivo)
-                const groupedByObjective = criteria.reduce((acc, curr) => {
-                    const objectiveTitle = topicMetaById[curr.id]?.objectiveTitle || "Geral"
-                    if (!acc[objectiveTitle]) acc[objectiveTitle] = []
-                    acc[objectiveTitle].push(curr)
-                    return acc
-                }, {})
-
-                const resultsText = Object.entries(groupedByObjective).map(([objective, items]) => {
-                    const itemsText = items.map(c => `🔹 ${c.name}\n   ⭐ ${c.levelName}`).join('\n\n')
-                    return `🏊 ${objective}\n\n${itemsText}`
-                }).join('\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n')
-
-                return automationService.emit(tenantId, 'EVALUATION_RESULT', {
-                    student: client.name,
-                    studentName: client.name, // Fallback alias
-                    name: client.name, // Fallback alias
-                    phone: client.phone || client.cellPhone || client.responsavelPhone,
-                    results: resultsText,
-                    date: new Date().toLocaleDateString('pt-BR')
-                })
-            })
-            await Promise.allSettled(promises)
-        } catch (e) {
-            console.error("Erro ao processar automações de avaliação", e)
-        }
-    }
 
     const sendEvaluationToClient = useCallback(async (client) => {
         const clientId = String(client.id)

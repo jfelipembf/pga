@@ -5,6 +5,7 @@ import { useFinancialDashboard } from "./hooks/useFinancialDashboard"
 import { formatCurrency } from "../../../utils/format"
 import { Line } from "react-chartjs-2"
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js'
+import PageLoader from "../../../components/Common/PageLoader"
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler)
 
@@ -28,7 +29,11 @@ const chartOptions = {
 const FinancialDashboard = () => {
     document.title = "Dashboard Financeiro | Lexa Admin"
 
-    const { data, chartData } = useFinancialDashboard()
+    const { data, chartData, loading } = useFinancialDashboard()
+
+    if (loading) {
+        return <PageLoader />
+    }
 
     // KPIs Superiores
     const reports = [

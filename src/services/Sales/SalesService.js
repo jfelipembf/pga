@@ -22,7 +22,7 @@ export const SalesService = {
         // 2. Garantir tipagem segura para cálculos financeiros (Anti-NaN)
         const saleData = {
             ...rawSaleData,
-            saleDate: normalizeDate(rawSaleData.saleDate) || new Date(),
+            saleDate: normalizeDate(rawSaleData.saleDate) || normalizeDate(new Date()),
             subtotal: parseFloat(rawSaleData.subtotal) || 0,
             total: parseFloat(rawSaleData.total) || 0,
             totalPaid: parseFloat(rawSaleData.totalPaid) || 0,
@@ -54,7 +54,7 @@ export const SalesService = {
             friendlyId: saleNumber,
             status: saleData.balance > 0.01 ? 'partial' : 'paid',
             createdBy: userId, // ✅ Fundamental para o Dashboard Operacional
-            createdAt: new Date(),
+            createdAt: normalizeDate(new Date()),
             deletedAt: null
         })
 
@@ -90,7 +90,6 @@ export const SalesService = {
         // 6. Saldo Remanescente (Contas a Receber direto do cliente)
         // 6. Saldo Remanescente (Contas a Receber direto do cliente)
         if (saleData.balance > 0) {
-            console.log(`[SalesService] Processando saldo devedor. Valor: ${saleData.balance}`);
 
             // Robust Date Handling
             let balanceDate;
@@ -99,14 +98,12 @@ export const SalesService = {
             } else if (saleData.firstPaymentDate) {
                 balanceDate = saleData.firstPaymentDate;
             } else {
-                console.warn("[SalesService] Data de vencimento do saldo não informada. Usando fallback (30 dias).");
                 balanceDate = moment().add(30, 'days').toDate();
             }
 
             // Garantir que é Date
             balanceDate = normalizeDate(balanceDate);
 
-            console.log(`[SalesService] Data Vencimento Definida: ${balanceDate}`);
 
             await SalesPaymentProcessor.processRemainingBalance(
                 idTenant,
@@ -138,7 +135,7 @@ export const SalesService = {
 
                         if (contractTemplate) {
                             // Calcular datas com base no template
-                            const startDate = normalizeDate(item.startDate) || new Date()
+                            const startDate = normalizeDate(item.startDate) || normalizeDate(new Date())
                             const duration = parseInt(contractTemplate.duration) || 12
                             const durationType = contractTemplate.durationType || 'months'
 
@@ -190,7 +187,6 @@ export const SalesService = {
                                 }
                             })
 
-                            console.log(`✅ Contrato criado e cliente atualizado para 'active'`)
                         } else {
                             console.warn(`⚠️ [DEBUG] Template de contrato não encontrado para idItem: ${item.idItem}`)
                         }
@@ -198,12 +194,8 @@ export const SalesService = {
                         console.error(`❌ Erro ao criar contrato para ${item.name}:`, err)
                         // Não aborta a venda, mas registra o erro
                     }
-                } else {
-                    console.log(`⏭️ [DEBUG] Item "${item.name}" NÃO é contrato (tipo: "${item.type}")`)
                 }
             }
-        } else {
-            console.warn('⚠️ [DEBUG] Nenhum item encontrado na venda!')
         }
 
         // 8. ✅ LANÇAMENTO CONTÁBIL (Partidas Dobradas)
@@ -312,7 +304,10 @@ export const SalesService = {
             action: 'SALE_DELETED',
             entityType: 'sale',
             entityId: idSale,
-            description: `Venda #${sale.saleNumber} excluída (soft delete). Todos os títulos em aberto foram removidos.`
+            description: `Venda #${sale.saleNumber} excluída (soft delete). Todos os títulos em aberto foram removidos.`,
+            details: {
+                snapshot: sale
+            }
         })
 
         return { success: true }

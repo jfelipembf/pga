@@ -12,97 +12,6 @@ export const ClientService = {
      * Cria um novo cliente com validação e auditoria.
      */
     /**
-     * Lista todos os clientes ativos.
-     */
-    listClients: async (idTenant, idBranch) => {
-        return await clientRepository.findActive(idTenant, idBranch)
-    },
-
-    /**
-     * Busca clientes por termo (nome, email, cpf, telefone).
-     */
-    searchClients: async (idTenant, idBranch, term) => {
-        if (!term || term.length < 3) return []
-        const all = await clientRepository.findActive(idTenant, idBranch)
-        const lowerTerm = term.toLowerCase()
-        return all.filter(c =>
-            (c.name && c.name.toLowerCase().includes(lowerTerm)) ||
-            (c.email && c.email.toLowerCase().includes(lowerTerm)) ||
-            (c.cpf && c.cpf.includes(term)) ||
-            (c.phone && c.phone.includes(term))
-        ).slice(0, 10) // Limit to 10 results
-    },
-
-    createClient: async (idTenant, idBranch, userId, rawData) => {
-        try {
-            // 1. Sanitização e Preparação Automática
-            const sanitize = (val) => val === undefined ? null : val
-
-            // Unifica nome e garante estrutura aninhada se não vier do form
-            const firstName = sanitize(rawData.firstName)
-            const lastName = sanitize(rawData.lastName)
-            const name = rawData.name || `${firstName || ''} ${lastName || ''}`.trim()
-
-            const clientData = {
-                ...rawData,
-                firstName,
-                lastName,
-                name,
-                photoUrl: rawData.photoUrl || null,
-                cpf: sanitize(rawData.cpf),
-                gender: sanitize(rawData.gender) || 'unspecified',
-                // Garante objetos aninhados se vierem flat do formulário
-                address: rawData.address || {
-                    zipCode: sanitize(rawData.zipCode),
-                    street: sanitize(rawData.street),
-                    number: sanitize(rawData.number),
-                    complement: sanitize(rawData.complement),
-                    neighborhood: sanitize(rawData.neighborhood),
-                    city: sanitize(rawData.city),
-                    state: sanitize(rawData.state)
-                },
-                emergencyContact: rawData.emergencyContact || {
-                    name: sanitize(rawData.emergencyName),
-                    phone: sanitize(rawData.emergencyPhone),
-                    email: sanitize(rawData.emergencyEmail)
-                },
-                healthObservations: sanitize(rawData.healthObservations) || null
-            }
-
-            // 2. Validação (Business Logic)
-            await ClientSchema.validate(clientData, { abortEarly: false })
-
-            // 3. Gerar ID Amigável (GYM ID)
-            const friendlyId = await generateClientId(idTenant, idBranch)
-
-            // 4. Persistência (Data Layer)
-            const newClient = await clientRepository.create(idTenant, idBranch, {
-                ...clientData,
-                friendlyId,
-                lifecycleStatus: clientData.lifecycleStatus || 'lead'
-            })
-
-            // 3. Auditoria (Audit Service)
-            await AuditService.log({
-                idTenant,
-                idBranch,
-                userId,
-                userName: clientData.userName,
-                action: 'CREATE',
-                entityType: 'client',
-                entityId: newClient.id,
-                description: `Cliente criado: ${newClient.name}`,
-                details: { name: newClient.name, email: newClient.email }
-            })
-
-            return newClient
-        } catch (error) {
-            console.error("Erro no ClientService.createClient:", error)
-            throw error // Repassa o erro de validação ou de banco para a UI tratar
-        }
-    },
-
-    /**
      * Lista todos os clientes do contexto atual.
      */
     listClients: async (idTenant, idBranch) => {
@@ -250,22 +159,17 @@ export const ClientService = {
             // 4. Persistência
             await clientRepository.update(idTenant, idBranch, idClient, clientData)
 
-            // 5. Auditoria
-            const changedFields = {}
-            Object.keys(clientData).forEach(key => {
-                if (JSON.stringify(clientData[key]) !== JSON.stringify(oldData[key])) {
-                    changedFields[key] = { from: oldData[key], to: clientData[key] }
-                }
-            })
-
-            await AuditService.log({
-                idTenant, idBranch, userId,
+            // 5. Auditoria Centralizada com Diff
+            await AuditService.logUpdate({
+                idTenant,
+                idBranch,
+                userId,
                 userName: rawData.userName,
-                action: 'UPDATE',
                 entityType: 'client',
                 entityId: idClient,
-                description: `Perfil do cliente atualizado: ${clientData.name}`,
-                details: changedFields
+                oldData,
+                newData: clientData,
+                description: `Atualizou o perfil do cliente ${oldData.name}`
             })
 
             return { id: idClient, ...clientData }
@@ -323,8 +227,7 @@ export const ClientService = {
             entityId: id,
             description: `Cliente excluído: ${client.name}`,
             details: {
-                name: client.name,
-                reason: 'User request',
+                snapshot: client,
                 method: 'soft_delete'
             }
         })

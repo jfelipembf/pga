@@ -1,12 +1,18 @@
-import React, { useEffect } from "react"
+import React from "react"
 import { Row, Col, Card, CardBody } from "reactstrap"
 import Miniwidget from "./Miniwidget"
 import { useGeneralDashboard } from "./hooks/useGeneralDashboard"
 import { formatCurrency } from "../../utils/format"
+import PageLoader from "../../components/Common/PageLoader"
+
 const Dashboard = () => {
   document.title = "Dashboard Geral | Lexa Admin"
 
   const { loading, data } = useGeneralDashboard('manager')
+
+  if (loading) {
+    return <PageLoader />
+  }
 
   // Organizando os 6 cards desejados: 3 em cima, 3 embaixo
   const reports = [

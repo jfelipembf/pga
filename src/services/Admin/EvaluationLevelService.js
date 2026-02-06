@@ -47,14 +47,14 @@ export const EvaluationLevelService = {
      */
     listWithFilters: async (idTenant, idBranch, filters = {}, limitCount = 100) => {
         const allLevels = await evaluationLevelRepository.findAllOrdered(idTenant, idBranch)
-        
+
         let levels = allLevels.filter(level => !level.deletedAt)
-        
+
         // Filtro por ativo/inativo
         if (filters.isActive !== undefined) {
             levels = levels.filter(level => level.isActive === filters.isActive)
         }
-        
+
         return levels.slice(0, limitCount)
     },
 
@@ -69,17 +69,21 @@ export const EvaluationLevelService = {
      * Atualiza um nível de avaliação
      */
     updateLevel: async (idTenant, idBranch, userId, id, data) => {
+        // 1. Snapshot
+        const oldData = await evaluationLevelRepository.findById(idTenant, idBranch, id)
+
         const result = await evaluationLevelRepository.update(idTenant, idBranch, id, {
             ...data,
             updatedAt: normalizeDate(new Date())
         })
 
-        await AuditService.log({
+        await AuditService.logUpdate({
             idTenant, idBranch, userId,
             userName: data.userName,
-            action: 'EVALUATION_LEVEL_UPDATED',
             entityType: 'evaluationLevel',
             entityId: id,
+            oldData,
+            newData: data,
             description: `Nível de avaliação atualizado: ${data.title || id}`
         })
 
@@ -120,7 +124,8 @@ export const EvaluationLevelService = {
             action: 'EVALUATION_LEVEL_DELETED',
             entityType: 'evaluationLevel',
             entityId: id,
-            description: `Nível de avaliação excluído: ${level.title || id}`
+            description: `Nível de avaliação excluído: ${level.title || id}`,
+            details: { snapshot: level }
         })
 
         return result

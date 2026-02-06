@@ -1,11 +1,12 @@
 import React from "react"
-import { Row, Col, Button, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Spinner, Card, CardBody } from "reactstrap"
+import { Row, Col, Button, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Spinner } from "reactstrap"
 import { connect } from "react-redux"
 import { setBreadcrumbItems } from "../../../store/actions"
 import { useStaffProfile } from "./hooks/useStaffProfile"
 import PageLoader from "../../../components/Common/PageLoader"
 import StaffProfileForm from "./Components/StaffProfileForm"
 import StaffSchedule from "./Components/StaffSchedule"
+import StaffMetrics from "./Components/StaffMetrics"
 import "./StaffProfile.scss"
 
 const StaffProfile = ({ setBreadcrumbItems }) => {
@@ -21,10 +22,15 @@ const StaffProfile = ({ setBreadcrumbItems }) => {
         handleDelete,
         handlePasswordChange,
         isChangingPassword,
+        handleCepBlur,
+        isLoadingCep,
         schedule,
         scheduleLoading,
         activities,
-        areas: scheduleAreas
+        areas: scheduleAreas,
+        metrics,
+        metricsLoading,
+        loadMetrics
     } = useStaffProfile()
 
     const [menuOpen, setMenuOpen] = React.useState(false)
@@ -47,7 +53,7 @@ const StaffProfile = ({ setBreadcrumbItems }) => {
             <div className="staff-profile">
                 {/* Hero section */}
                 <div className="staff-profile__hero" style={{
-                    backgroundImage: 'url("https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop")',
+                    backgroundImage: 'url("https://images.unsplash.com/photo-1519315901367-f34ff9154487?q=80&w=2070&auto=format&fit=crop")',
                     backgroundSize: 'cover',
                     backgroundPosition: 'center'
                 }}>
@@ -116,7 +122,7 @@ const StaffProfile = ({ setBreadcrumbItems }) => {
                     </div>
 
                     <div className="staff-profile__tabs">
-                        {["Perfil", "Documentos", "Agenda"].map(tab => (
+                        {["Perfil", "Agenda", "Métricas"].map(tab => (
                             <button
                                 key={tab}
                                 type="button"
@@ -137,6 +143,8 @@ const StaffProfile = ({ setBreadcrumbItems }) => {
                                 roles={roles}
                                 handlePasswordChange={handlePasswordChange}
                                 isChangingPassword={isChangingPassword}
+                                handleCepBlur={handleCepBlur}
+                                isLoadingCep={isLoadingCep}
                             />
                         )}
                         {activeTab === "Agenda" && (
@@ -147,13 +155,12 @@ const StaffProfile = ({ setBreadcrumbItems }) => {
                                 areas={scheduleAreas}
                             />
                         )}
-                        {activeTab === "Documentos" && (
-                            <Card>
-                                <CardBody className="text-center py-5">
-                                    <i className="mdi mdi-folder-outline fs-1 text-muted opacity-50" />
-                                    <h5 className="mt-3 text-muted">Aba de Documentos em desenvolvimento</h5>
-                                </CardBody>
-                            </Card>
+                        {activeTab === "Métricas" && (
+                            <StaffMetrics
+                                metrics={metrics}
+                                loading={metricsLoading}
+                                refresh={loadMetrics}
+                            />
                         )}
                     </Col>
                 </Row>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, ModalHeader, ModalBody, Button, Row, Col, Label, Input, Alert, Table } from 'reactstrap';
+import ButtonLoader from '../../../components/Common/ButtonLoader';
 import { formatCurrency } from '../../../utils/format';
 import { bankAccountRepository } from '../../../data/repositories/BankAccountRepository';
 import { useTenant } from '../../../hooks/useTenant';
@@ -130,14 +131,16 @@ const ReceivableAnticipationModal = ({ isOpen, toggle, selectedReceivables, onAn
 
                 <div className="d-flex justify-content-end gap-2">
                     <Button color="light" onClick={toggle} disabled={loading}>Cancelar</Button>
-                    <Button
+                    <ButtonLoader
                         color="primary"
                         className="px-4 fw-bold shadow-sm"
                         onClick={handleSubmit}
                         disabled={loading || !idBankAccount}
+                        loading={loading}
+                        loadingText="Processando..."
                     >
-                        {loading ? 'Processando...' : `CONFIRMAR ANTECIPAÇÃO DE ${formatCurrency(totalNet)}`}
-                    </Button>
+                        CONFIRMAR ANTECIPAÇÃO DE {formatCurrency(totalNet)}
+                    </ButtonLoader>
                 </div>
             </ModalBody>
         </Modal>

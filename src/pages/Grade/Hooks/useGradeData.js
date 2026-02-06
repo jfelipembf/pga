@@ -110,7 +110,7 @@ export const useGradeData = (referenceDate) => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch, isReady, referenceDate, cache.get, cache.set])
+    }, [idTenant, idBranch, isReady, referenceDate, cache])
 
     useEffect(() => {
         loadData()

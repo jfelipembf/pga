@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { useTenant } from '../../../../hooks/useTenant'
 import { EnrollmentService } from '../../../../services/Clients/EnrollmentService'
@@ -18,7 +18,7 @@ export const useClientEnrollments = (clientId = null) => {
     /**
      * Busca as matrículas do cliente
      */
-    const fetchEnrollments = async () => {
+    const fetchEnrollments = useCallback(async () => {
         if (!idClient || !idTenant || !idBranch) {
             setLoading(false)
             return
@@ -37,7 +37,7 @@ export const useClientEnrollments = (clientId = null) => {
         } finally {
             setLoading(false)
         }
-    }
+    }, [idClient, idTenant, idBranch])
 
     /**
      * Força atualização dos dados
@@ -49,7 +49,7 @@ export const useClientEnrollments = (clientId = null) => {
     // Carrega inicialmente
     useEffect(() => {
         fetchEnrollments()
-    }, [idClient, idTenant, idBranch])
+    }, [idClient, idTenant, idBranch, fetchEnrollments])
 
     // Separar matrículas ativas e históricas
     const activeEnrollments = enrollments.filter(e => ['active', 'suspended'].includes(e.status))

@@ -42,15 +42,19 @@ export const AcquirerService = {
     },
 
     update: async (idTenant, idBranch, userId, id, data) => {
+        // 1. Snapshot
+        const oldData = await acquirerRepository.findById(idTenant, idBranch, id)
+
         const payload = { ...data, updatedAt: normalizeDate(new Date()) }
         const result = await acquirerRepository.update(idTenant, idBranch, id, payload)
 
-        await AuditService.log({
+        await AuditService.logUpdate({
             idTenant, idBranch, userId,
             userName: data.userName,
-            action: 'ACQUIRER_UPDATED',
             entityType: 'acquirer',
             entityId: id,
+            oldData,
+            newData: payload,
             description: `Configuração da credenciadora atualizada: ${data.name || id}`
         });
 
@@ -93,7 +97,11 @@ export const AcquirerService = {
             action: 'ACQUIRER_DELETED',
             entityType: 'acquirer',
             entityId: id,
-            description: `Credenciadora excluída (soft delete).`
+            description: `Credenciadora excluída (soft delete).`,
+            details: {
+                snapshot: await acquirerRepository.findById(idTenant, idBranch, id) // Fetch if needed or assume we can't reliably get it if simple delete. But here we can fetch before delete if we want. But let's assume simple log for delete is ok OR enhance. Let's enhance.
+                // Actually, AcquirerService.delete doesn't fetch 'acquirer' first in my previous view_file. Let's fetch it for snapshot.
+            }
         });
 
         return result

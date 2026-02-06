@@ -68,13 +68,13 @@ export const ActivityService = {
     listWithFilters: async (idTenant, idBranch, filters = {}, limitCount = 100) => {
         // Busca todas as atividades e filtra em memória
         const allActivities = await activityRepository.findAll(idTenant, idBranch)
-        
+
         // Filtra deletados em memória
         const activities = allActivities
             .filter(a => !a.deletedAt)
             .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
             .slice(0, limitCount)
-        
+
         if (activities.length === 0) {
             return []
         }
@@ -84,7 +84,7 @@ export const ActivityService = {
             const activityDocRef = doc(activityRepository.getCollectionRef(idTenant, idBranch), activity.id)
             const objectivesRef = collection(activityDocRef, 'objectives')
             const objectivesSnapshot = await getDocs(objectivesRef)
-            
+
             return {
                 activityId: activity.id,
                 objectives: objectivesSnapshot.docs
@@ -97,7 +97,7 @@ export const ActivityService = {
             objectives.map(async (objDoc) => {
                 const topicsRef = collection(objDoc.ref, 'topics')
                 const topicsSnapshot = await getDocs(topicsRef)
-                
+
                 return {
                     activityId,
                     objectiveId: objDoc.id,
@@ -144,9 +144,12 @@ export const ActivityService = {
      * Atualiza uma atividade (com suporte a upload de foto)
      */
     updateActivity: async (idTenant, idBranch, userId, id, data) => {
+        // 1. Snapshot Anterior
+        const oldData = await activityRepository.findById(idTenant, idBranch, id)
+
         // Se há photoFile, fazer upload primeiro
         let photoUrl = data.photo || data.photoUrl
-        
+
         if (data.photoFile) {
             const { getStorage, ref, uploadBytes, getDownloadURL } = await import('firebase/storage')
             const storage = getStorage()
@@ -157,22 +160,28 @@ export const ActivityService = {
         }
 
         // Remove photoFile dos dados antes de salvar
+        // Remove photoFile dos dados antes de salvar
         const { photoFile, ...dataToSave } = data
 
-        const result = await activityRepository.update(idTenant, idBranch, id, {
+        const newData = {
             ...dataToSave,
             photo: photoUrl,
             photoUrl: photoUrl,
             updatedAt: normalizeDate(new Date())
-        })
+        }
 
-        await AuditService.log({
-            idTenant, idBranch, userId,
+        const result = await activityRepository.update(idTenant, idBranch, id, newData)
+
+        await AuditService.logUpdate({
+            idTenant,
+            idBranch,
+            userId,
             userName: data.userName,
-            action: 'ACTIVITY_UPDATED',
             entityType: 'activity',
             entityId: id,
-            description: `Atividade atualizada: ${data.name || id}`
+            oldData,
+            newData,
+            description: `Atualizou a atividade ${oldData?.name || id}`
         })
 
         return result
@@ -182,10 +191,10 @@ export const ActivityService = {
      * Reordena atividades
      */
     reorderActivities: async (idTenant, idBranch, userId, orderedIds) => {
-        const updates = orderedIds.map((id, index) => 
+        const updates = orderedIds.map((id, index) =>
             activityRepository.update(idTenant, idBranch, id, { order: index })
         )
-        
+
         await Promise.all(updates)
         return { success: true }
     },
@@ -219,7 +228,7 @@ export const ActivityService = {
      */
     createObjective: async (idTenant, idBranch, userId, activityId, objectiveData) => {
         const objectiveId = objectiveData.id || `obj-${Date.now()}`
-        
+
         await objectiveRepository.create(idTenant, idBranch, activityId, objectiveId, {
             ...objectiveData,
             deleted: false
@@ -251,7 +260,7 @@ export const ActivityService = {
      */
     createTopic: async (idTenant, idBranch, userId, activityId, objectiveId, topicData) => {
         const topicId = topicData.id || `topic-${Date.now()}`
-        
+
         await topicRepository.create(idTenant, idBranch, activityId, objectiveId, topicId, {
             ...topicData,
             deleted: false

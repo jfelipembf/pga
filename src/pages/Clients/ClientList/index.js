@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom"
 // Components
 import BasicTable from "../../../components/Common/BasicTable"
 import ClientAddModal from "./ClientAddModal"
+import PageLoader from "../../../components/Common/PageLoader"
 
 // Hooks
 import { useClientList } from "../hooks/useClientList"
@@ -37,6 +38,10 @@ const ClientsList = ({ setBreadcrumbItems }) => {
         ]
         setBreadcrumbItems("Listagem de Clientes", breadcrumbItems)
     }, [setBreadcrumbItems])
+
+    if (loadingPage && !clients.length) {
+        return <PageLoader />
+    }
 
     return (
         <React.Fragment>

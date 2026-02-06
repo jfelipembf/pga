@@ -1,8 +1,8 @@
 import React from 'react'
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Form, FormGroup, Label, Input, Row, Col, Alert, Badge } from 'reactstrap'
+import ButtonLoader from '../../../../../components/Common/ButtonLoader'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import { formatDate } from '../../../../../utils/date'
 import moment from 'moment'
 
 const ContractSuspendModal = ({ isOpen, toggle, contract, onConfirm }) => {
@@ -137,9 +137,16 @@ const ContractSuspendModal = ({ isOpen, toggle, contract, onConfirm }) => {
                 </ModalBody>
                 <ModalFooter className="bg-light border-top">
                     <Button color="secondary" outline className="btn-rounded" onClick={toggle}>Fechar</Button>
-                    <Button color="warning" type="submit" className="btn-rounded px-4" disabled={formik.isSubmitting || !canSuspend}>
+                    <ButtonLoader
+                        color="warning"
+                        type="submit"
+                        className="btn-rounded px-4"
+                        disabled={formik.isSubmitting || !canSuspend}
+                        loading={formik.isSubmitting}
+                        loadingText="Suspendendo..."
+                    >
                         Confirmar Suspensão
-                    </Button>
+                    </ButtonLoader>
                 </ModalFooter>
             </Form>
         </Modal>

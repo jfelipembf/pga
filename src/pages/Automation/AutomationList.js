@@ -18,7 +18,7 @@ const AutomationPage = ({ setBreadcrumbItems }) => {
     } = useAutomation()
 
     const [selectedCategory, setSelectedCategory] = useState(null)
-    const categories = Array.from(new Set(Object.values(TRIGGER_CONFIG).map(c => c.category))).sort();
+    const categories = React.useMemo(() => Array.from(new Set(Object.values(TRIGGER_CONFIG).map(c => c.category))).sort(), []);
 
     useEffect(() => {
         setBreadcrumbItems("Central de Inteligência", [
@@ -30,7 +30,7 @@ const AutomationPage = ({ setBreadcrumbItems }) => {
         if (!selectedCategory && categories.length > 0) {
             setSelectedCategory(categories[0]);
         }
-    }, [setBreadcrumbItems]) // Removed categories/selectedCategory dependencies to avoid loop
+    }, [setBreadcrumbItems, categories, selectedCategory])
 
     const handleSaveTemplates = async ({ templates, activeStatus }) => {
         const newData = {

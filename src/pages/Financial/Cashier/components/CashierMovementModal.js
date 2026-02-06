@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react'
-import { Modal, ModalHeader, ModalBody, Button, Label, Input, FormFeedback, Row, Col } from 'reactstrap'
+import { Modal, ModalHeader, ModalBody, Label, Input, FormFeedback, Row, Col } from 'reactstrap'
+import ButtonLoader from "../../../../components/Common/ButtonLoader"
 import { useFormik } from 'formik'
-import * as Yup from 'yup'
+import { cashierMovementSchema } from '../../../../validations/financialSchemas'
 
 export const CashierMovementModal = ({ isOpen, toggle, onSave, type }) => {
     const isIncome = type === 'income'
@@ -14,10 +15,7 @@ export const CashierMovementModal = ({ isOpen, toggle, onSave, type }) => {
             description: '',
             notes: ''
         },
-        validationSchema: Yup.object({
-            amount: Yup.number().positive('Valor deve ser maior que zero').required('Obrigatório'),
-            description: Yup.string().required('Descrição é obrigatória'),
-        }),
+        validationSchema: cashierMovementSchema,
         onSubmit: (values) => {
             onSave({
                 ...values,
@@ -82,9 +80,17 @@ export const CashierMovementModal = ({ isOpen, toggle, onSave, type }) => {
                             />
                         </Col>
                     </Row>
-                    <Button type="submit" color={color} block size="lg" className="fw-bold" disabled={formik.isSubmitting}>
+                    <ButtonLoader
+                        type="submit"
+                        color={color}
+                        block
+                        size="lg"
+                        className="fw-bold"
+                        loading={formik.isSubmitting}
+                        loadingText="Processando..."
+                    >
                         CONFIRMAR {isIncome ? 'ENTRADA' : 'SAÍDA'}
-                    </Button>
+                    </ButtonLoader>
                 </form>
             </ModalBody>
         </Modal>

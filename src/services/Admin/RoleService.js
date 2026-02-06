@@ -49,12 +49,12 @@ export const RoleService = {
      */
     listWithFilters: async (idTenant, idBranch, filters = {}, limitCount = 100) => {
         const allRoles = await roleRepository.findAll(idTenant, idBranch)
-        
+
         const roles = allRoles
             .filter(r => !r.deletedAt)
             .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
             .slice(0, limitCount)
-        
+
         return roles
     },
 
@@ -69,18 +69,26 @@ export const RoleService = {
      * Atualiza uma função
      */
     updateRole: async (idTenant, idBranch, userId, id, data) => {
+        // 1. Snapshot Anterior
+        const oldData = await roleRepository.findById(idTenant, idBranch, id)
+
+        // 2. Persistir
         const result = await roleRepository.update(idTenant, idBranch, id, {
             ...data,
             updatedAt: normalizeDate(new Date())
         })
 
-        await AuditService.log({
-            idTenant, idBranch, userId,
+        // 3. Auditoria com Diff
+        await AuditService.logUpdate({
+            idTenant,
+            idBranch,
+            userId,
             userName: data.userName,
-            action: 'ROLE_UPDATED',
             entityType: 'role',
             entityId: id,
-            description: `Função atualizada: ${data.name || data.label || id}`
+            oldData,
+            newData: data,
+            description: `Atualizou a função ${oldData?.name || id}`
         })
 
         return result

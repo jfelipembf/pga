@@ -1,6 +1,7 @@
 import { evaluationRepository } from '../../data/repositories/EvaluationRepository'
 import { EvaluationSchema } from '../../data/schemas/Evaluations/EvaluationSchema'
 import { AuditService } from '../Core/AuditService'
+import { normalizeDate } from '../../utils/date'
 
 /**
  * Serviço para Gestão de Avaliações de Alunos
@@ -36,7 +37,7 @@ export const EvaluationService = {
                 ...validData,
                 updatedBy: user.uid,
                 updatedByName: user.displayName || user.email,
-                updatedAt: new Date()
+                updatedAt: normalizeDate(new Date())
             }
             await evaluationRepository.update(idTenant, idBranch, existingEvaluation.id, updatePayload)
 
@@ -106,32 +107,30 @@ export const EvaluationService = {
      * Atualiza uma avaliação existente
      */
     updateEvaluation: async (idTenant, idBranch, user, idEvaluation, data) => {
-        // Validar parcialmente
-        // (Pode-se criar um schema específico para update se necessário, por enquanto usamos o mesmo permitindo partial se implementado, mas o yup.validate padrão não aceita partial facilmente sem configurar. Vamos validar os campos enviados apenas se formos rigorosos, ou confiar no FE. Aqui validarei apenas o que for enviado se possível, mas o validate do yup valida tudo. Para update, geralmente validamos apenas os campos presentes ou assumimos que o FE envia tudo.)
-
-        // Simplesmente passamos para o repo por hora, assumindo que a validação de regras de negócio ocorre no front ou aqui manualmente.
-        // Se quiser validar schema no update: const validData = await EvaluationSchema.validate(data, { abortEarly: false }) - mas isso exige todos os campos required.
+        // 1. Snapshot Anterior (para Auditoria)
+        const oldData = await evaluationRepository.findById(idTenant, idBranch, idEvaluation)
+        if (!oldData) throw new Error("Avaliação não encontrada para atualização")
 
         const payload = {
             ...data,
             updatedBy: user.uid,
-            updatedAt: new Date() // BaseRepo deve lidar com Data, mas forçamos aqui
+            updatedByName: user.displayName || user.email,
+            updatedAt: new Date()
         }
 
+        // 2. Persistir
         await evaluationRepository.update(idTenant, idBranch, idEvaluation, payload)
 
-        await AuditService.log({
-            idTenant,
-            idBranch,
+        // 3. Auditoria Detalhada (Antes vs Depois)
+        await AuditService.logUpdate({
+            idTenant, idBranch,
             userId: user.uid,
             userName: user.displayName || user.email,
-            action: 'EVALUATION_UPDATED',
             entityType: 'evaluation',
             entityId: idEvaluation,
-            description: `Avaliação ${idEvaluation} atualizada`,
-            details: {
-                changes: Object.keys(data)
-            }
+            oldData,
+            newData: payload,
+            description: `Atualizou a avaliação do aluno ID ${oldData.idStudent}`
         })
 
         return true
@@ -148,17 +147,24 @@ export const EvaluationService = {
      * Remove uma avaliação
      */
     deleteEvaluation: async (idTenant, idBranch, user, idEvaluation) => {
+        // 1. Snapshot Antes de Deletar
+        const oldData = await evaluationRepository.findById(idTenant, idBranch, idEvaluation)
+
         await evaluationRepository.delete(idTenant, idBranch, idEvaluation)
 
         await AuditService.log({
-            idTenant,
-            idBranch,
+            idTenant, idBranch,
             userId: user.uid,
             userName: user.displayName || user.email,
             action: 'EVALUATION_DELETED',
             entityType: 'evaluation',
             entityId: idEvaluation,
-            description: `Avaliação ${idEvaluation} removida`
+            description: oldData
+                ? `Excluiu a avaliação do aluno ID ${oldData.idStudent} na atividade ${oldData.idActivity}`
+                : `Avaliação ${idEvaluation} removida`,
+            details: {
+                snapshot: oldData || "Dados não encontrados antes da exclusão"
+            }
         })
 
         return true

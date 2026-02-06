@@ -46,7 +46,7 @@ export const useAreas = () => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch, fetchLimit, lastLoadTime])
+    }, [idTenant, idBranch, fetchLimit, lastLoadTime, CACHE_DURATION])
 
     useEffect(() => {
         loadAreas()

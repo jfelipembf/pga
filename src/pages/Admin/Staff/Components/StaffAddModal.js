@@ -13,8 +13,10 @@ import {
     FormGroup
 } from "reactstrap"
 import { useStaffForm } from "../hooks/useStaffForm"
+import { maskCPF, maskPhone } from "../../../../utils/maskUtils"
 import PhotoPreview from "../../../../components/Common/PhotoPreview"
 import OverlayLoader from "../../../../components/Common/OverlayLoader"
+import ButtonLoader from "../../../../components/Common/ButtonLoader"
 import logoIcon from "../../../../assets/images/logoIcon.png"
 
 const StaffAddModal = ({ isOpen, toggle, onStaffAdded, roles = [], loadingRoles = false }) => {
@@ -188,7 +190,7 @@ const StaffAddModal = ({ isOpen, toggle, onStaffAdded, roles = [], loadingRoles 
                                 name="phone"
                                 placeholder="(00) 00000-0000"
                                 value={formik.values.phone}
-                                onChange={formik.handleChange}
+                                onChange={(e) => formik.setFieldValue("phone", maskPhone(e.target.value))}
                             />
                         </FormGroup>
                     </Col>
@@ -199,7 +201,7 @@ const StaffAddModal = ({ isOpen, toggle, onStaffAdded, roles = [], loadingRoles 
                                 name="cpf"
                                 placeholder="000.000.000-00"
                                 value={formik.values.cpf}
-                                onChange={formik.handleChange}
+                                onChange={(e) => formik.setFieldValue("cpf", maskCPF(e.target.value))}
                             />
                         </FormGroup>
                     </Col>
@@ -232,9 +234,15 @@ const StaffAddModal = ({ isOpen, toggle, onStaffAdded, roles = [], loadingRoles 
                 <Button color="secondary" outline onClick={toggle} disabled={formik.isSubmitting}>
                     Cancelar
                 </Button>
-                <Button color="primary" onClick={formik.handleSubmit} disabled={formik.isSubmitting} className="px-4">
-                    {formik.isSubmitting ? "Processando..." : "Salvar Colaborador"}
-                </Button>
+                <ButtonLoader
+                    color="primary"
+                    onClick={formik.handleSubmit}
+                    loading={formik.isSubmitting}
+                    className="px-4"
+                    loadingText="Processando..."
+                >
+                    Salvar Colaborador
+                </ButtonLoader>
             </ModalFooter>
         </Modal>
     )

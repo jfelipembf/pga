@@ -29,7 +29,7 @@ const LevelDropdown = ({ clientId, currentLevel, onLevelChange, disabled = false
       }
     }
     loadLevels()
-  }, [levelsProp])
+  }, [levelsProp, idTenant, idBranch])
 
   const currentLevelData = levels.find(level => level.id === currentLevel) || levels[0]
 

@@ -8,7 +8,7 @@ import { useTenant } from "../../../hooks/useTenant"
 import { ClientService } from "../../../services/Clients"
 import { ClientSchema } from "../../../data/schemas/Clients/ClientSchema"
 import { StorageService } from "../../../services/Core/StorageService"
-import { getAddressByCep } from "../../../services/External/AddressService"
+import { useAddressLookup } from "../../../hooks/useAddressLookup"
 
 export const useClientForm = ({ onClientAdded, toggle }) => {
     // Obter IDs reais via Hook Centralizado
@@ -16,7 +16,6 @@ export const useClientForm = ({ onClientAdded, toggle }) => {
 
     const [selectedPhoto, setSelectedPhoto] = useState(null)
     const [photoPreview, setPhotoPreview] = useState(null)
-    const [isLoadingCep, setIsLoadingCep] = useState(false)
     const auth = getAuth()
 
     const handlePhotoChange = (e) => {
@@ -105,22 +104,7 @@ export const useClientForm = ({ onClientAdded, toggle }) => {
         }
     })
 
-    const handleCepBlur = async (e) => {
-        const cep = e.target.value
-        if (!cep) return
-
-        setIsLoadingCep(true)
-        const address = await getAddressByCep(cep)
-        setIsLoadingCep(false)
-
-        if (address) {
-            formik.setFieldValue("street", address.logradouro)
-            formik.setFieldValue("neighborhood", address.bairro)
-            formik.setFieldValue("city", address.localidade)
-            formik.setFieldValue("state", address.uf)
-            document.getElementById("number")?.focus()
-        }
-    }
+    const { isLoadingCep, handleCepBlur } = useAddressLookup(formik)
 
     return {
         formik,

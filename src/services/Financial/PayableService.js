@@ -29,7 +29,7 @@ export const PayableService = {
             dueDate: normalizeDate(payableData.dueDate),
             status: payableData.status || 'open',
             createdBy: userId,
-            createdAt: new Date(),
+            createdAt: normalizeDate(new Date()),
             deletedAt: null
         })
 
@@ -100,7 +100,7 @@ export const PayableService = {
         const newBalance = currentBalance - finalAmount;
         await bankAccountRepository.update(idTenant, idBranch, idBankAccount, {
             currentBalance: newBalance,
-            updatedAt: new Date()
+            updatedAt: normalizeDate(new Date())
         });
 
         // 4. ✅ LANÇAMENTO CONTÁBIL (Partidas Dobradas)
@@ -124,8 +124,8 @@ export const PayableService = {
             paymentMethod: paymentMethod,
             idBankAccount: idBankAccount,
             amountPaid: finalAmount,
-            paidAt: new Date(),
-            updatedAt: new Date()
+            paidAt: normalizeDate(new Date()),
+            updatedAt: normalizeDate(new Date())
         })
 
         // 6. Auditoria
@@ -202,18 +202,26 @@ export const PayableService = {
      * Atualiza uma conta existente
      */
     updatePayable: async (idTenant, idBranch, userId, id, data) => {
+        // 1. Snapshot Anterior
+        const oldData = await payableRepository.findById(idTenant, idBranch, id)
+
+        // 2. Persistir
         const result = await payableRepository.update(idTenant, idBranch, id, {
             ...data,
-            updatedAt: new Date()
+            updatedAt: normalizeDate(new Date())
         })
 
-        await AuditService.log({
-            idTenant, idBranch, userId,
+        // 3. Auditoria com Diff
+        await AuditService.logUpdate({
+            idTenant,
+            idBranch,
+            userId,
             userName: data.userName,
-            action: 'PAYABLE_UPDATED',
             entityType: 'payable',
             entityId: id,
-            description: `Conta a pagar atualizada: ${data.description || data.title || id}`
+            oldData,
+            newData: data,
+            description: `Atualizou a conta a pagar ${oldData?.description || id}`
         })
 
         return result
@@ -237,7 +245,10 @@ export const PayableService = {
             action: 'PAYABLE_DELETED',
             entityType: 'payable',
             entityId: idPayable,
-            description: `Conta a pagar excluída (soft delete): ${payable.expenseNumber || idPayable}`
+            description: `Conta a pagar excluída (soft delete): ${payable.expenseNumber || idPayable}`,
+            details: {
+                snapshot: payable
+            }
         })
 
         return result

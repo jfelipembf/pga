@@ -53,7 +53,7 @@ export const ReceivableService = {
             const newBalance = currentBalance + netAmount;
             await bankAccountRepository.update(idTenant, idBranch, idBankAccount, {
                 currentBalance: newBalance,
-                updatedAt: new Date()
+                updatedAt: normalizeDate(new Date())
             });
         }
 
@@ -63,12 +63,12 @@ export const ReceivableService = {
             paid: (receivable.paid || 0) + settlementAmount,
             pending: remaining,
             status: remaining <= 0.01 ? 'paid' : 'open',
-            settlementDate: normalizeDate(paymentData.settlementDate) || new Date(),
+            settlementDate: normalizeDate(paymentData.settlementDate) || normalizeDate(new Date()),
             amountReceived: netAmount,
             extraFeeAmount: feeAmount,
             idBankAccount: idBankAccount,
-            paidAt: new Date(),
-            updatedAt: new Date()
+            paidAt: normalizeDate(new Date()),
+            updatedAt: normalizeDate(new Date())
         }
 
         await receivableRepository.update(idTenant, idBranch, idReceivable, updatedData)
@@ -114,7 +114,7 @@ export const ReceivableService = {
             if (otherPending.filter(p => p.id !== idReceivable).length === 0) {
                 await salesRepository.update(idTenant, idBranch, receivable.idSale, {
                     status: 'paid',
-                    updatedAt: new Date()
+                    updatedAt: normalizeDate(new Date())
                 });
             }
         }
@@ -243,7 +243,7 @@ export const ReceivableService = {
         await receivableRepository.update(idTenant, idBranch, idReceivable, {
             status: 'cancelled',
             description: `Cancelado: ${reason}`,
-            updatedAt: new Date()
+            updatedAt: normalizeDate(new Date())
         })
 
         await AuditService.log({
@@ -273,7 +273,8 @@ export const ReceivableService = {
             action: 'RECEIVABLE_DELETED',
             entityType: 'receivable',
             entityId: idReceivable,
-            description: `Título a receber excluído (soft delete): ${receivable.description || idReceivable}`
+            description: `Título a receber excluído (soft delete): ${receivable.description || idReceivable}`,
+            details: { snapshot: receivable }
         })
     },
 
@@ -304,7 +305,7 @@ export const ReceivableService = {
                 extraFeeAmount: feeShare,
                 idBankAccount,
                 notes: `Antecipado via Bulk. Taxa: ${anticipationFee}%`,
-                updatedAt: new Date()
+                updatedAt: normalizeDate(new Date())
             });
 
             // Lançamento Contábil (Individual por recebível para o Ledger bater)
@@ -329,7 +330,7 @@ export const ReceivableService = {
             category: 'Movimentação Interna (Antecipação)',
             idBankAccount,
             sourceType: 'receivable_bulk',
-            createdAt: new Date(),
+            createdAt: normalizeDate(new Date()),
             userName: userName
         });
 
@@ -340,7 +341,7 @@ export const ReceivableService = {
             type: 'expense',
             idBankAccount,
             sourceType: 'receivable_fee',
-            createdAt: new Date(),
+            createdAt: normalizeDate(new Date()),
             userName: userName
         });
 
@@ -349,7 +350,7 @@ export const ReceivableService = {
         const newBalance = currentBalance + Number(totalNet);
         await bankAccountRepository.update(idTenant, idBranch, idBankAccount, {
             currentBalance: newBalance,
-            updatedAt: new Date()
+            updatedAt: normalizeDate(new Date())
         });
 
         // 5. Auditoria

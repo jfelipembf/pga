@@ -93,14 +93,14 @@ export const BankAccountService = {
 
         const result = await bankAccountRepository.update(idTenant, idBranch, id, payload)
 
-        await AuditService.log({
+        await AuditService.logUpdate({
             idTenant, idBranch, userId,
             userName: data.userName,
-            action: 'BANK_ACCOUNT_UPDATED',
             entityType: 'bankAccount',
             entityId: id,
-            description: `Conta bancária atualizada: ${currentAccount.name}`,
-            details: data
+            oldData: currentAccount,
+            newData: payload,
+            description: `Conta bancária atualizada: ${currentAccount.name}`
         });
 
         return result
@@ -147,7 +147,8 @@ export const BankAccountService = {
             action: 'BANK_ACCOUNT_DELETED',
             entityType: 'bankAccount',
             entityId: id,
-            description: `Conta bancária excluída (soft delete): ${account?.name}`
+            description: `Conta bancária excluída (soft delete): ${account?.name}`,
+            details: { snapshot: account }
         });
 
         return result

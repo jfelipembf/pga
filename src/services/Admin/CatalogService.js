@@ -66,7 +66,7 @@ export const CatalogService = {
         }
 
         const rawData = await catalogRepository.findWhere(
-            idTenant, 
+            idTenant,
             idBranch,
             whereClauses,
             { field: 'name', direction: 'asc' }
@@ -86,17 +86,21 @@ export const CatalogService = {
      * Atualiza um item do catálogo
      */
     updateCatalogItem: async (idTenant, idBranch, userId, id, data) => {
+        // 1. Snapshot
+        const oldData = await catalogRepository.findById(idTenant, idBranch, id)
+
         const result = await catalogRepository.update(idTenant, idBranch, id, {
             ...data,
             updatedAt: new Date()
         })
 
-        await AuditService.log({
+        await AuditService.logUpdate({
             idTenant, idBranch, userId,
             userName: data.userName,
-            action: 'CATALOG_ITEM_UPDATED',
             entityType: 'catalog',
             entityId: id,
+            oldData,
+            newData: data,
             description: `Item atualizado: ${data.name || id}`
         })
 
@@ -154,7 +158,8 @@ export const CatalogService = {
             action: 'CATALOG_ITEM_DELETED',
             entityType: 'catalog',
             entityId: id,
-            description: `Item excluído: ${item.name || id}`
+            description: `Item excluído: ${item.name || id}`,
+            details: { snapshot: item }
         })
 
         return result

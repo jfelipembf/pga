@@ -1,6 +1,7 @@
 import { contractRepository } from '../../data/repositories/ContractRepository'
 import { ContractSchema } from '../../data/schemas/Financial/ContractSchema'
 import { AuditService } from '../Core/AuditService'
+import { normalizeDate } from '../../utils/date'
 
 /**
  * Serviço de Contratos (Planos)
@@ -26,11 +27,11 @@ export const ContractService = {
     async listWithFilters(idTenant, idBranch, filters = {}) {
         try {
             const whereConditions = []
-            
+
             if (filters.isActive !== undefined) {
                 whereConditions.push({ field: 'isActive', operator: '==', value: filters.isActive })
             }
-            
+
             if (filters.durationType) {
                 whereConditions.push({ field: 'durationType', operator: '==', value: filters.durationType })
             }
@@ -65,8 +66,8 @@ export const ContractService = {
 
             const newContract = await contractRepository.create(idTenant, idBranch, {
                 ...contractData,
-                createdAt: new Date(),
-                updatedAt: new Date(),
+                createdAt: normalizeDate(new Date()),
+                updatedAt: normalizeDate(new Date()),
                 deleted: false,
                 deletedAt: null
             })
@@ -103,23 +104,20 @@ export const ContractService = {
 
             const updatedContract = await contractRepository.update(idTenant, idBranch, idContract, {
                 ...contractData,
-                updatedAt: new Date()
+                updatedAt: normalizeDate(new Date())
             })
 
             // Auditoria
-            await AuditService.log({
+            await AuditService.logUpdate({
                 idTenant,
                 idBranch,
                 userId,
                 userName: contractData.userName || 'Sistema',
-                action: 'CONTRACT_UPDATED',
                 entityType: 'contract',
                 entityId: idContract,
-                entityName: contractData.title,
-                changes: {
-                    before: oldContract,
-                    after: updatedContract
-                }
+                oldData: oldContract,
+                newData: contractData,
+                description: `Contrato atualizado: ${contractData.title || idContract}`
             })
 
             return updatedContract
@@ -148,7 +146,8 @@ export const ContractService = {
                 entityType: 'contract',
                 entityId: idContract,
                 entityName: contract.title,
-                changes: { deleted: true }
+                description: `Contrato excluído: ${contract.title}`,
+                details: { snapshot: contract }
             })
 
             return true

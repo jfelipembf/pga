@@ -8,6 +8,37 @@ const AuditLogDetailsModal = ({ isOpen, toggle, log, userName }) => {
     const renderDetails = (details) => {
         if (!details || Object.keys(details).length === 0) return <p className="text-muted">Sem detalhes adicionais.</p>;
 
+        // Tratamento especial para Diffs (changes)
+        if (details.changes) {
+            return (
+                <div className="table-responsive border rounded">
+                    <table className="table table-nowrap table-sm mb-0">
+                        <thead className="bg-light">
+                            <tr>
+                                <th style={{ width: '20%' }}>Campo</th>
+                                <th style={{ width: '40%' }}>Antes</th>
+                                <th style={{ width: '40%' }}>Depois</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {Object.entries(details.changes).map(([key, change]) => (
+                                <tr key={key}>
+                                    <td className="fw-bold text-dark">{key}</td>
+                                    <td className="text-danger bg-soft-danger">
+                                        {typeof change.from === 'object' ? JSON.stringify(change.from) : (String(change.from || 'Vazio'))}
+                                    </td>
+                                    <td className="text-success bg-soft-success">
+                                        {typeof change.to === 'object' ? JSON.stringify(change.to) : (String(change.to || 'Vazio'))}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )
+        }
+
+        // Fallback para JSON normal
         return (
             <pre className="bg-light p-3 rounded border" style={{ maxHeight: '400px', overflow: 'auto', fontSize: '13px' }}>
                 {JSON.stringify(details, null, 2)}

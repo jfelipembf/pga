@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from "react"
+import React, { useState } from "react"
 import {
-    Row, Col, Card, CardBody, Badge,
-    Label, Button, Spinner, Collapse, Input
+    Row, Col, Card, CardBody,
+    Label, Button, Collapse, Input
 } from "reactstrap"
 import BasicTable from "../../../components/Common/BasicTable"
 import { useAuditLogs } from "./hooks/useAuditLogs"
@@ -10,6 +10,7 @@ import AuditLogDetailsModal from "./AuditLogDetailsModal"
 import Flatpickr from "react-flatpickr"
 import { Portuguese } from "flatpickr/dist/l10n/pt.js"
 import "flatpickr/dist/themes/material_blue.css"
+import PageLoader from "../../../components/Common/PageLoader"
 
 const AuditLogsPage = () => {
     document.title = "Logs de Auditoria | Lexa Admin"
@@ -156,6 +157,10 @@ const AuditLogsPage = () => {
         { id: 'plan', label: 'Planos/Contratos' },
         { id: 'technical_log', label: 'Logs Técnicos (Erros)' }
     ]
+
+    if (loading && !logs.length) {
+        return <PageLoader />
+    }
 
     return (
         <React.Fragment>

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Row, Col, Card, CardBody, Spinner, Badge } from 'reactstrap'
+import { Card, CardBody, Spinner, Badge } from 'reactstrap'
 import classNames from 'classnames'
 
 const DAYS_OF_WEEK = {
@@ -59,10 +59,13 @@ const StaffSchedule = ({ schedule = [], loading, activities = [], areas = [] }) 
                     <div className="bg-soft-primary text-primary avatar-xs rounded-circle d-flex align-items-center justify-content-center me-2">
                         <i className="mdi mdi-calendar-clock font-size-16" />
                     </div>
-                    <h5 className="mb-0 font-size-15 fw-bold text-dark">Agenda de Turmas</h5>
+                    <div>
+                        <h5 className="mb-0 font-size-15 fw-bold text-dark">Agenda da Semana</h5>
+                        <p className="text-muted mb-0 font-size-11">Sessões programadas para esta semana</p>
+                    </div>
                 </div>
                 <Badge color="soft-primary" className="font-size-12 px-3 py-2">
-                    {schedule.length} Turmas Ativas
+                    {schedule.length} Aulas na Semana
                 </Badge>
             </div>
 
@@ -92,26 +95,27 @@ const StaffSchedule = ({ schedule = [], loading, activities = [], areas = [] }) 
                                         dayClasses.map((item, idx) => {
                                             const activity = getActivity(item.idActivity)
                                             const color = activity?.color || activity?.colorHex || '#5b73e8'
+                                            const hasAttendance = item.attendanceRecorded
 
                                             return (
-                                                <div key={idx} className="grade-event">
+                                                <div key={idx} className={classNames("grade-event", { "border-success": hasAttendance })}>
                                                     <div className="grade-event__top">
                                                         <span className="grade-event__time text-primary">
                                                             {item.startTime}
                                                         </span>
-                                                        <span className="grade-event__capacity">
-                                                            {item.maxCapacity}
+                                                        <span className={classNames("badge rounded-pill font-size-10", hasAttendance ? "bg-soft-success text-success" : "bg-soft-light text-muted border")}>
+                                                            {hasAttendance ? <><i className="mdi mdi-check-circle me-1"></i>Lista</> : `${item.enrolledCount || 0}/${item.maxCapacity}`}
                                                         </span>
                                                     </div>
 
                                                     <div className="grade-event__title text-dark">
-                                                        {activity?.name || 'Atividade'}
+                                                        {activity?.name || item.activityName || 'Atividade'}
                                                     </div>
 
                                                     <div className="grade-event__details">
                                                         <div className="grade-event__meta">
                                                             <i className="mdi mdi-map-marker-outline me-1 text-info"></i>
-                                                            {getAreaName(item.idArea)}
+                                                            {item.areaName || getAreaName(item.idArea)}
                                                         </div>
                                                     </div>
 

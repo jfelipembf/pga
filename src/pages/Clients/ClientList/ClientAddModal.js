@@ -18,6 +18,7 @@ import InputMask from "react-input-mask"
 // Components & Utils
 import PhotoPreview from "../../../components/Common/PhotoPreview"
 import OverlayLoader from "../../../components/Common/OverlayLoader"
+import ButtonLoader from "../../../components/Common/ButtonLoader"
 import { GENDER_OPTIONS } from "../../../utils/constants"
 import { useClientForm } from "../hooks/useClientForm"
 import logoIcon from "../../../assets/images/logoIcon.png"
@@ -388,9 +389,15 @@ const ClientAddModal = ({ isOpen, toggle, onClientAdded }) => {
                 <Button color="secondary" outline onClick={toggle} disabled={formik.isSubmitting}>
                     Cancelar
                 </Button>
-                <Button color="primary" onClick={formik.handleSubmit} disabled={formik.isSubmitting} className="px-4">
-                    {formik.isSubmitting ? "Sessão sendo salva..." : "Salvar Cadastro"}
-                </Button>
+                <ButtonLoader
+                    color="primary"
+                    onClick={formik.handleSubmit}
+                    loading={formik.isSubmitting}
+                    className="px-4"
+                    loadingText="Salvando..."
+                >
+                    Salvar Cadastro
+                </ButtonLoader>
             </ModalFooter>
         </Modal>
     )

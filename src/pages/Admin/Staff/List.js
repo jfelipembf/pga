@@ -7,7 +7,6 @@ import { setBreadcrumbItems } from "../../../store/actions"
 import { useNavigate } from "react-router-dom"
 import { useStaff } from "./hooks/useStaff"
 import { RoleService } from "../../../services/Admin/RoleService"
-import { PLACEHOLDER_AVATAR as placeholderAvatar } from "../../Clients/Constants/defaults"
 import PageLoader from "../../../components/Common/PageLoader"
 import StaffAddModal from "./Components/StaffAddModal"
 

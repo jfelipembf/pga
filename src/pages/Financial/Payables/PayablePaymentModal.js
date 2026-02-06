@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, ModalHeader, ModalBody, Button, Row, Col, Label, Input, FormFeedback } from 'reactstrap';
+import ButtonLoader from '../../../components/Common/ButtonLoader';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { formatCurrency } from '../../../utils/format';
@@ -193,9 +194,14 @@ const PayablePaymentModal = ({ isOpen, toggle, payable, onPay }) => {
                         <Button color="secondary" outline onClick={toggle} type="button">
                             Cancelar
                         </Button>
-                        <Button color="success" type="submit">
+                        <ButtonLoader
+                            color="success"
+                            type="submit"
+                            loading={formik.isSubmitting}
+                            loadingText="Processando..."
+                        >
                             <i className="mdi mdi-check me-1"></i> Confirmar Pagamento
-                        </Button>
+                        </ButtonLoader>
                     </div>
                 </form>
             </ModalBody>

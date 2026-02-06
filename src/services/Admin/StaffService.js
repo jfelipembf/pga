@@ -4,6 +4,7 @@ import { StaffSchema } from '../../data/schemas/Admin/StaffSchema'
 import { initializeApp, deleteApp } from "firebase/app"
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth"
 import { firebaseConfig } from "../../helpers/firebase_config"
+import { normalizeDate } from '../../utils/date'
 
 /**
  * Serviço para Gestão de Colaboradores (Staff)
@@ -120,18 +121,27 @@ export const StaffService = {
      * Atualiza um colaborador
      */
     updateStaff: async (idTenant, idBranch, userId, id, data) => {
+        // 1. Snapshot Anterior
+        const oldData = await staffRepository.findById(idTenant, idBranch, id)
+
+        // 2. Persistir
         const result = await staffRepository.update(idTenant, idBranch, id, {
             ...data,
-            updatedAt: new Date()
+            updatedBy: userId,
+            updatedAt: normalizeDate(new Date())
         })
 
-        await AuditService.log({
-            idTenant, idBranch, userId,
+        // 3. Auditoria com Diff Automático
+        await AuditService.logUpdate({
+            idTenant,
+            idBranch,
+            userId,
             userName: data.userName,
-            action: 'STAFF_UPDATED',
             entityType: 'staff',
             entityId: id,
-            description: `Colaborador atualizado: ${data.name || id}`
+            oldData,
+            newData: data,
+            description: `Atualizou o colaborador ${oldData?.name || id}`
         })
 
         return result
@@ -151,8 +161,22 @@ export const StaffService = {
             action: 'STAFF_DELETED',
             entityType: 'staff',
             entityId: id,
-            description: `Colaborador excluído: ${staff.name || id}`
+            description: `Colaborador excluído: ${staff.name || id}`,
+            details: { snapshot: staff }
         })
+
+        return result
+    },
+
+    /**
+     * Altera a senha de um colaborador via Cloud Function
+     */
+    updatePassword: async (userId, targetUid, newPassword) => {
+        const { getFunctions, httpsCallable } = await import("firebase/functions")
+        const functions = getFunctions()
+        const updateUserPassword = httpsCallable(functions, 'updateUserPassword')
+
+        const result = await updateUserPassword({ uid: targetUid, newPassword })
 
         return result
     }

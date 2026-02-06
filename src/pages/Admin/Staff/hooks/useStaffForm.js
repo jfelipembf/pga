@@ -5,14 +5,11 @@ import { useTenant } from "../../../../hooks/useTenant"
 import { StaffSchema } from "../../../../data/schemas/Admin/StaffSchema"
 import { StaffService } from "../../../../services/Admin/StaffService"
 import { StorageService } from "../../../../services/Core/StorageService"
-import { getAddressByCep } from "../../../../services/External/AddressService"
 
 export const useStaffForm = ({ onStaffAdded, toggle, roles }) => {
     const { idTenant, idBranch } = useTenant()
     const [selectedPhoto, setSelectedPhoto] = useState(null)
     const [photoPreview, setPhotoPreview] = useState(null)
-    const [isLoadingCep, setIsLoadingCep] = useState(false)
-
     const user = useMemo(() => {
         const authUser = localStorage.getItem("authUser")
         return authUser ? JSON.parse(authUser) : null
@@ -58,7 +55,13 @@ export const useStaffForm = ({ onStaffAdded, toggle, roles }) => {
 
                 // 1. Upload da Foto se houver
                 if (selectedPhoto) {
-                    photoUrl = await StorageService.uploadFile(selectedPhoto, `staff/profile_${Date.now()}`)
+                    photoUrl = await StorageService.uploadProfileImage(selectedPhoto, {
+                        idTenant,
+                        idBranch,
+                        entityType: "staff",
+                        entityId: "new-" + Date.now(),
+                        currentPhotoUrl: null
+                    })
                 }
 
                 // 2. Buscar o nome do cargo selecionado para o Snapshot
@@ -96,7 +99,6 @@ export const useStaffForm = ({ onStaffAdded, toggle, roles }) => {
         formik,
         photoPreview,
         handlePhotoChange,
-        isLoadingCep,
         handleCepBlur
     }
 }

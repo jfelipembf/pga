@@ -1,31 +1,43 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { getAuth } from "firebase/auth"
 import { useTenant } from '../../../../hooks/useTenant'
+import { useAddressLookup } from '../../../../hooks/useAddressLookup'
 import { StaffService } from '../../../../services/Admin/StaffService'
 import { RoleService } from '../../../../services/Admin/RoleService'
 import { ClassService } from '../../../../services/Classes/ClassService'
 import { ActivityService } from '../../../../services/Admin/ActivityService'
 import { AreaService } from '../../../../services/Admin/AreaService'
-import { getFunctions, httpsCallable } from "firebase/functions"
+import { StorageService } from '../../../../services/Core/StorageService'
 import { toast } from 'react-toastify'
 import { useFormik } from 'formik'
 import { StaffSchema } from '../../../../data/schemas/Admin/StaffSchema'
+import { StaffMetricsService } from '../../../../services/Admin/StaffMetricsService'
+import moment from 'moment'
 
 export const useStaffProfile = () => {
     const { id } = useParams()
     const navigate = useNavigate()
     const { idTenant, idBranch } = useTenant()
+    const auth = getAuth()
 
     const [staff, setStaff] = useState(null)
     const [loading, setLoading] = useState(true)
     const [activeTab, setActiveTab] = useState("Perfil")
     const [roles, setRoles] = useState([])
     const [photoPreview, setPhotoPreview] = useState(null)
+    const [selectedPhoto, setSelectedPhoto] = useState(null)
     const [isChangingPassword, setIsChangingPassword] = useState(false)
+
+    // Agenda
     const [schedule, setSchedule] = useState([])
     const [scheduleLoading, setScheduleLoading] = useState(false)
     const [activities, setActivities] = useState([])
     const [areas, setAreas] = useState([])
+
+    // Métricas
+    const [metrics, setMetrics] = useState(null)
+    const [metricsLoading, setMetricsLoading] = useState(false)
 
     const loadStaffData = useCallback(async () => {
         if (!id || !idTenant || !idBranch) return
@@ -61,16 +73,22 @@ export const useStaffProfile = () => {
         if (!id || !idTenant || !idBranch) return
         try {
             setScheduleLoading(true)
-            const [classesData, activitiesData, areasData] = await Promise.all([
-                ClassService.listWithFilters(idTenant, idBranch, { idStaff: id }),
+
+            // Definir o intervalo da semana atual (Segunda a Domingo)
+            const today = moment()
+            const startOfWeek = today.clone().startOf('isoWeek').format('YYYY-MM-DD')
+            const endOfWeek = today.clone().endOf('isoWeek').format('YYYY-MM-DD')
+
+            const [sessionsData, activitiesData, areasData] = await Promise.all([
+                ClassService.listSessions(idTenant, idBranch, startOfWeek, endOfWeek),
                 ActivityService.listAll(idTenant, idBranch),
                 AreaService.listAreas(idTenant, idBranch)
             ])
 
-            // Filtrar classes do professor específico (caso o listWithFilters não filtre no banco)
-            const teacherClasses = classesData.filter(c => c.idStaff === id)
+            // Filtrar sessões do professor específico
+            const teacherSessions = sessionsData.filter(s => s.idStaff === id)
 
-            setSchedule(teacherClasses)
+            setSchedule(teacherSessions)
             setActivities(activitiesData)
             setAreas(areasData)
         } catch (error) {
@@ -86,6 +104,25 @@ export const useStaffProfile = () => {
         }
     }, [activeTab, loadSchedule])
 
+    const loadMetrics = useCallback(async () => {
+        if (!id || !idTenant || !idBranch) return
+        try {
+            setMetricsLoading(true)
+            const metricsData = await StaffMetricsService.getStaffMonthlyMetrics(idTenant, idBranch, id)
+            setMetrics(metricsData)
+        } catch (error) {
+            console.error("Erro ao carregar métricas:", error)
+        } finally {
+            setMetricsLoading(false)
+        }
+    }, [id, idTenant, idBranch])
+
+    useEffect(() => {
+        if (activeTab === "Métricas") {
+            loadMetrics()
+        }
+    }, [activeTab, loadMetrics])
+
     const formik = useFormik({
         enableReinitialize: true,
         initialValues: {
@@ -99,7 +136,6 @@ export const useStaffProfile = () => {
             hireDate: staff?.hireDate || '',
             photo: staff?.photo || '',
 
-            // Novos campos
             professionalId: staff?.professionalId || '',
             salary: staff?.salary || '',
             zipCode: staff?.zipCode || '',
@@ -110,24 +146,39 @@ export const useStaffProfile = () => {
             city: staff?.city || '',
             state: staff?.state || '',
         },
-        validationSchema: StaffSchema, // Note: Schema might need adjustment for password being optional on edit
+        validationSchema: StaffSchema,
         onSubmit: async (values) => {
             try {
-                const currentUser = JSON.parse(localStorage.getItem("authUser"))
-                // Remove password fields if they haven't been changed (placeholder)
+                if (!auth.currentUser) {
+                    toast.error("Usuário não autenticado")
+                    return
+                }
+
+                let finalPhotoUrl = values.photo
+
+                // 1. Upload de Foto se houver nova selecionada
+                if (selectedPhoto) {
+                    finalPhotoUrl = await StorageService.uploadProfileImage(selectedPhoto, {
+                        idTenant,
+                        idBranch,
+                        entityType: "staff",
+                        entityId: id,
+                        currentPhotoUrl: staff?.photo
+                    })
+                }
+
+                const currentUserData = JSON.parse(localStorage.getItem("authUser")) || {}
                 const { password, confirmPassword, ...updateData } = values
 
                 const finalData = {
                     ...updateData,
-                    userName: currentUser.displayName || currentUser.email
+                    photo: finalPhotoUrl,
+                    userName: currentUserData.displayName || currentUserData.email
                 }
 
-                // If password was changed (not the mask), we handle it differently 
-                // but usually password update is a separate flow.
-                // For now, let's just update the profile.
-
-                await StaffService.updateStaff(idTenant, idBranch, currentUser.uid, id, finalData)
+                await StaffService.updateStaff(idTenant, idBranch, auth.currentUser.uid, id, finalData)
                 toast.success("Perfil atualizado com sucesso")
+                setSelectedPhoto(null)
                 loadStaffData()
             } catch (error) {
                 console.error("Erro ao atualizar colaborador:", error)
@@ -136,13 +187,15 @@ export const useStaffProfile = () => {
         }
     })
 
+    const { isLoadingCep, handleCepBlur } = useAddressLookup(formik)
+
     const handlePhotoChange = (e) => {
         const file = e.target.files[0]
         if (file) {
+            setSelectedPhoto(file)
             const reader = new FileReader()
             reader.onloadend = () => {
                 setPhotoPreview(reader.result)
-                formik.setFieldValue("photo", reader.result)
             }
             reader.readAsDataURL(file)
         }
@@ -151,8 +204,8 @@ export const useStaffProfile = () => {
     const handleDelete = async () => {
         if (!window.confirm("Tem certeza que deseja excluir este colaborador?")) return
         try {
-            const currentUser = JSON.parse(localStorage.getItem("authUser"))
-            await StaffService.deleteStaff(idTenant, idBranch, currentUser.uid, id)
+            if (!auth.currentUser) return
+            await StaffService.deleteStaff(idTenant, idBranch, auth.currentUser.uid, id)
             toast.success("Colaborador excluído com sucesso")
             navigate('/admin/staff')
         } catch (error) {
@@ -162,10 +215,9 @@ export const useStaffProfile = () => {
 
     const handlePasswordChange = async (newPassword) => {
         try {
+            if (!auth.currentUser) return
             setIsChangingPassword(true)
-            const functions = getFunctions()
-            const updateUserPassword = httpsCallable(functions, 'updateUserPassword')
-            await updateUserPassword({ uid: id, newPassword })
+            await StaffService.updatePassword(auth.currentUser.uid, id, newPassword)
             toast.success("Senha alterada com sucesso")
             return true
         } catch (error) {
@@ -189,9 +241,14 @@ export const useStaffProfile = () => {
         handleDelete,
         handlePasswordChange,
         isChangingPassword,
+        handleCepBlur,
+        isLoadingCep,
         schedule,
         scheduleLoading,
         activities,
-        areas
+        areas,
+        metrics,
+        metricsLoading,
+        loadMetrics
     }
 }

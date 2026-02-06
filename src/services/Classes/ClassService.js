@@ -4,8 +4,9 @@ import { sessionRepository } from '../../data/repositories/SessionRepository'
 import { CreateGradeSchema, ClassSchema, SessionSchema } from '../../data/schemas/Classes/ClassSchema'
 import { AuditService } from '../Core/AuditService'
 import { timeToMinutes } from '../../utils/sharedUtils'
-import { query, where, getDocs, writeBatch, increment } from 'firebase/firestore'
+import { query, where, getDocs, writeBatch } from 'firebase/firestore'
 import { enrollmentRepository } from '../../data/repositories/EnrollmentRepository'
+import { normalizeDate } from '../../utils/date'
 
 /**
  * Serviço para Gestão de Turmas e Sessões
@@ -187,6 +188,9 @@ export const ClassService = {
         const userId = user.uid
         const userName = user.displayName || user.email || 'Sistema'
 
+        // 1. Snapshot Anterior
+        const oldData = await classRepository.findById(idTenant, idBranch, id)
+
         const updateData = {
             ...data,
             updatedBy: userId
@@ -194,13 +198,16 @@ export const ClassService = {
 
         const result = await classRepository.update(idTenant, idBranch, id, updateData)
 
-        await AuditService.log({
-            idTenant, idBranch, userId, userName,
-            action: 'GRADE_CLASS_UPDATED',
+        await AuditService.logUpdate({
+            idTenant,
+            idBranch,
+            userId,
+            userName,
             entityType: 'class',
             entityId: id,
-            description: `Turma ${id} atualizada.`,
-            details: { updateData }
+            oldData,
+            newData: data,
+            description: `Atualizou a turma ${id}`
         })
 
         return result
@@ -240,10 +247,10 @@ export const ClassService = {
             const batch = writeBatch(db)
             sessionsSnapshot.docs.forEach(docSnap => {
                 batch.update(docSnap.ref, {
-                    deletedAt: new Date(),
+                    deletedAt: normalizeDate(new Date()),
                     deletedBy: userId,
                     updatedBy: userId,
-                    updatedAt: new Date()
+                    updatedAt: normalizeDate(new Date())
                 })
             })
 

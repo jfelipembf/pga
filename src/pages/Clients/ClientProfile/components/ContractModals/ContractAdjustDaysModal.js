@@ -1,5 +1,6 @@
 import React from 'react'
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Form, FormGroup, Label, Input, Row, Col, Alert } from 'reactstrap'
+import ButtonLoader from '../../../../../components/Common/ButtonLoader'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import { formatDate } from '../../../../../utils/date'
@@ -96,9 +97,15 @@ const ContractAdjustDaysModal = ({ isOpen, toggle, contract, mode, onConfirm }) 
                     <Button color="secondary" outline className="btn-rounded" onClick={toggle}>
                         Cancelar
                     </Button>
-                    <Button color={isAdding ? 'info' : 'warning'} className="btn-rounded px-4" type="submit" disabled={formik.isSubmitting}>
+                    <ButtonLoader
+                        color={isAdding ? 'info' : 'warning'}
+                        className="btn-rounded px-4"
+                        type="submit"
+                        loading={formik.isSubmitting}
+                        loadingText="Salvando..."
+                    >
                         {isAdding ? 'Adicionar Dias' : 'Debitar Dias'}
-                    </Button>
+                    </ButtonLoader>
                 </ModalFooter>
             </Form>
         </Modal>

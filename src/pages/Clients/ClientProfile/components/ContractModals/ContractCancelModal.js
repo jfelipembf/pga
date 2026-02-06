@@ -1,5 +1,6 @@
 import React from 'react'
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Form, FormGroup, Label, Input, Row, Col, Alert, Card, CardBody } from 'reactstrap'
+import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Form, FormGroup, Label, Input, Row, Col, Alert } from 'reactstrap'
+import ButtonLoader from '../../../../../components/Common/ButtonLoader'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import moment from 'moment'
@@ -163,9 +164,15 @@ const ContractCancelModal = ({ isOpen, toggle, contract, onConfirm }) => {
                 </ModalBody>
                 <ModalFooter className="bg-light border-top">
                     <Button color="secondary" outline className="btn-rounded" onClick={toggle}>Manter Contrato</Button>
-                    <Button color="danger" type="submit" className="btn-rounded px-4 shadow-sm" disabled={formik.isSubmitting}>
+                    <ButtonLoader
+                        color="danger"
+                        type="submit"
+                        className="btn-rounded px-4 shadow-sm"
+                        loading={formik.isSubmitting}
+                        loadingText="Cancelando..."
+                    >
                         Efetivar Cancelamento
-                    </Button>
+                    </ButtonLoader>
                 </ModalFooter>
             </Form>
         </Modal >

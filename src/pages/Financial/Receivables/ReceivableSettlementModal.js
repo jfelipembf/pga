@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Modal, ModalHeader, ModalBody, Button, Row, Col, Label, Input, FormFeedback, Alert } from 'reactstrap';
+import ButtonLoader from '../../../components/Common/ButtonLoader';
 import { useFormik } from 'formik';
-import * as Yup from 'yup';
+import { receivableSettlementSchema } from '../../../validations/financialSchemas';
 import { formatCurrency } from '../../../utils/format';
 import { bankAccountRepository } from '../../../data/repositories/BankAccountRepository';
 import { AcquirerService } from '../../../services/Financial/AcquirerService';
@@ -48,22 +49,7 @@ const ReceivableSettlementModal = ({ isOpen, toggle, receivable, onSettle }) => 
             keepRemainingOpen: false
         },
         enableReinitialize: true,
-        validationSchema: Yup.object({
-            settlementDate: Yup.date().required('Data obrigatória'),
-            amountReceived: Yup.number().positive('Valor deve ser positivo').required('Obrigatório'),
-            paymentMethod: Yup.string().required('Selecione a forma de pagamento'),
-            idBankAccount: Yup.string().required('Selecione a conta de destino'),
-            provider: Yup.string().when('paymentMethod', {
-                is: (val) => [PAYMENT_METHODS.CREDIT_CARD, PAYMENT_METHODS.DEBIT_CARD].includes(val),
-                then: (schema) => schema.required('Selecione a adquirente'),
-                otherwise: (schema) => schema.nullable()
-            }),
-            brand: Yup.string().when('paymentMethod', {
-                is: (val) => [PAYMENT_METHODS.CREDIT_CARD, PAYMENT_METHODS.DEBIT_CARD].includes(val),
-                then: (schema) => schema.required('Selecione a bandeira'),
-                otherwise: (schema) => schema.nullable()
-            })
-        }),
+        validationSchema: receivableSettlementSchema,
         onSubmit: (values) => {
             onSettle({
                 ...values,
@@ -353,9 +339,15 @@ const ReceivableSettlementModal = ({ isOpen, toggle, receivable, onSettle }) => 
 
                     <div className="d-flex justify-content-end gap-2 mt-4">
                         <Button color="light" onClick={toggle}>Cancelar</Button>
-                        <Button type="submit" color="primary" className="px-5 fw-bold btn-lg">
+                        <ButtonLoader
+                            type="submit"
+                            color="primary"
+                            className="px-5 fw-bold btn-lg"
+                            loading={formik.isSubmitting}
+                            loadingText="Processando..."
+                        >
                             <i className="mdi mdi-check-circle-outline me-1"></i> CONFIRMAR BAIXA
-                        </Button>
+                        </ButtonLoader>
                     </div>
                 </form>
             </ModalBody>

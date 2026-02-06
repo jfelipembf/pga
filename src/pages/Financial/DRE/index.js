@@ -2,6 +2,7 @@ import React from "react"
 import { Row, Col, Card, CardBody, Button } from "reactstrap"
 import { useDRE } from "./hooks/useDRE"
 import { CashFlowDRE } from "../CashFlow/components/CashFlowDRE"
+import PageLoader from "../../../components/Common/PageLoader"
 
 /**
  * Página de DRE Gerencial (Demonstrativo de Resultado do Exercício)
@@ -21,12 +22,7 @@ const DREPage = () => {
     const formatVal = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
 
 
-    if (loading && transactions.length === 0) return (
-        <div className="p-5 text-center">
-            <div className="spinner-border text-primary" role="status"></div>
-            <p className="mt-2">Gerando demonstrativo de resultados...</p>
-        </div>
-    )
+    if (loading && transactions.length === 0) return <PageLoader />
 
     return (
         <React.Fragment>
@@ -74,7 +70,7 @@ const DREPage = () => {
                     <Card className="bg-primary text-white-50 shadow-none border-0 overflow-hidden">
                         <CardBody>
                             <div className="d-flex align-items-center">
-                                <div className="avatar-md me-3">
+                                <div className="avatar-md me-3 flex-shrink-0">
                                     <span className="avatar-title rounded-circle bg-white text-primary font-size-24">
                                         <i className="mdi mdi-lightbulb-on-outline"></i>
                                     </span>

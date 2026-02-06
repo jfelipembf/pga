@@ -1,35 +1,17 @@
-import React, { useState } from 'react'
-import { Row, Col, Form, FormGroup, Label, Input, Button, FormFeedback, Spinner, Card, CardBody, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap'
-import InputMask from "react-input-mask"
-import { getAddressByCep } from "../../../../services/External/AddressService"
+import React from 'react'
+import { Row, Col, Form, FormGroup, Label, Input, Button, FormFeedback, Spinner } from 'reactstrap'
 
-const StaffProfileForm = ({ formik, roles = [], handlePasswordChange, isChangingPassword }) => {
-    const [isLoadingCep, setIsLoadingCep] = useState(false)
-    const [isPassModalOpen, setIsPassModalOpen] = useState(false)
-    const [newPassword, setNewPassword] = useState('')
+import { maskCPF, maskPhone, maskCEP } from '../../../../utils/maskUtils'
 
-    const handleCepBlur = async (e) => {
-        const cep = e.target.value?.replace(/\D/g, '')
-        if (!cep || cep.length !== 8) return
+import ChangePasswordModal from './ChangePasswordModal'
 
-        setIsLoadingCep(true)
-        const address = await getAddressByCep(cep)
-        setIsLoadingCep(false)
+const StaffProfileForm = ({ formik, roles = [], handlePasswordChange, isChangingPassword, handleCepBlur, isLoadingCep }) => {
+    const [isPassModalOpen, setIsPassModalOpen] = React.useState(false)
 
-        if (address) {
-            formik.setFieldValue("street", address.logradouro)
-            formik.setFieldValue("neighborhood", address.bairro)
-            formik.setFieldValue("city", address.localidade)
-            formik.setFieldValue("state", address.uf)
-        }
-    }
-
-    const onUpdatePassword = async () => {
-        if (newPassword.length < 6) return alert('A senha deve ter no mínimo 6 caracteres')
+    const onUpdatePassword = async (newPassword) => {
         const success = await handlePasswordChange(newPassword)
         if (success) {
             setIsPassModalOpen(false)
-            setNewPassword('')
         }
     }
 
@@ -75,11 +57,11 @@ const StaffProfileForm = ({ formik, roles = [], handlePasswordChange, isChanging
                             <FormGroup>
                                 <Label>Telefone</Label>
                                 <Input
-                                    tag={InputMask}
-                                    mask="(99) 99999-9999"
                                     name="phone"
+                                    placeholder="(00) 00000-0000"
                                     value={formik.values.phone}
-                                    onChange={formik.handleChange}
+                                    onChange={(e) => formik.setFieldValue("phone", maskPhone(e.target.value))}
+                                    onBlur={formik.handleBlur}
                                 />
                             </FormGroup>
                         </Col>
@@ -87,11 +69,11 @@ const StaffProfileForm = ({ formik, roles = [], handlePasswordChange, isChanging
                             <FormGroup>
                                 <Label>CPF</Label>
                                 <Input
-                                    tag={InputMask}
-                                    mask="999.999.999-99"
                                     name="cpf"
+                                    placeholder="000.000.000-00"
                                     value={formik.values.cpf}
-                                    onChange={formik.handleChange}
+                                    onChange={(e) => formik.setFieldValue("cpf", maskCPF(e.target.value))}
+                                    onBlur={formik.handleBlur}
                                 />
                             </FormGroup>
                         </Col>
@@ -220,11 +202,10 @@ const StaffProfileForm = ({ formik, roles = [], handlePasswordChange, isChanging
                                     {isLoadingCep && <Spinner size="sm" color="primary" />}
                                 </Label>
                                 <Input
-                                    tag={InputMask}
-                                    mask="99999-999"
                                     name="zipCode"
+                                    placeholder="00000-000"
                                     value={formik.values.zipCode}
-                                    onChange={formik.handleChange}
+                                    onChange={(e) => formik.setFieldValue("zipCode", maskCEP(e.target.value))}
                                     onBlur={handleCepBlur}
                                 />
                             </FormGroup>
@@ -314,31 +295,12 @@ const StaffProfileForm = ({ formik, roles = [], handlePasswordChange, isChanging
             </Form>
 
             {/* Modal de Alteração de Senha */}
-            <Modal isOpen={isPassModalOpen} toggle={() => setIsPassModalOpen(!isPassModalOpen)} centered>
-                <ModalHeader toggle={() => setIsPassModalOpen(!isPassModalOpen)}>
-                    Alterar Senha de Acesso
-                </ModalHeader>
-                <ModalBody>
-                    <p className="text-muted mb-4">
-                        A nova senha deve ter no mínimo 6 caracteres. O colaborador deverá utilizá-la em seu próximo login.
-                    </p>
-                    <FormGroup>
-                        <Label>Nova Senha</Label>
-                        <Input
-                            type="password"
-                            placeholder="Digite a nova senha"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                        />
-                    </FormGroup>
-                </ModalBody>
-                <ModalFooter>
-                    <Button color="secondary" outline onClick={() => setIsPassModalOpen(false)}>Cancelar</Button>
-                    <Button color="primary" onClick={onUpdatePassword} disabled={isChangingPassword}>
-                        {isChangingPassword ? <Spinner size="sm" /> : "Confirmar Alteração"}
-                    </Button>
-                </ModalFooter>
-            </Modal>
+            <ChangePasswordModal
+                isOpen={isPassModalOpen}
+                toggle={() => setIsPassModalOpen(!isPassModalOpen)}
+                onConfirm={onUpdatePassword}
+                loading={isChangingPassword}
+            />
         </div>
     )
 }
