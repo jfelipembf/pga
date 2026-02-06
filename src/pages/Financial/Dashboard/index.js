@@ -27,7 +27,7 @@ const chartOptions = {
 }
 
 const FinancialDashboard = () => {
-    document.title = "Dashboard Financeiro | Lexa Admin"
+    document.title = "Dashboard Financeiro | PGA Admin"
 
     const { data, chartData, loading } = useFinancialDashboard()
 

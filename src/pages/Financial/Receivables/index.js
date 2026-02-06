@@ -32,7 +32,7 @@ import Miniwidget from '../../Dashboard/Miniwidget';
  * View Component - Responsável apenas pela renderização
  */
 const ReceivablesPage = () => {
-    document.title = "Contas a Receber | Lexa Admin";
+    document.title = "Contas a Receber | PGA Admin";
 
     const {
         receivables,

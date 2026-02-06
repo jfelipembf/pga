@@ -17,10 +17,10 @@ import img1 from "../../assets/images/small/img-1.jpg";
 import img2 from "../../assets/images/small/img-2.jpg";
 
 const PagesTimeline = (props) => {
-    document.title = "Timeline | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+    document.title = "Timeline | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
     const breadcrumbItems = [
-        { title: "Lexa", link: "#" },
+        { title: "PGA", link: "#" },
         { title: "Pages", link: "#" },
         { title: "Timeline", link: "#" },
     ]
@@ -88,8 +88,8 @@ const PagesTimeline = (props) => {
                                         <h3>Timeline Event Four</h3>
                                         <p className="mb-4 text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Iusto, optio, dolorum provident rerum aut.</p>
                                         <div className="d-flex flex-wrap gap-3">
-                                        <img src={img1} alt="" className="rounded" width="120" />{" "}
-                                        <img src={img2} alt="" className="rounded" width="120" />
+                                            <img src={img1} alt="" className="rounded" width="120" />{" "}
+                                            <img src={img2} alt="" className="rounded" width="120" />
                                         </div>
                                         <span className="cd-date">Jun 14</span>
                                     </div>

@@ -10,7 +10,7 @@ class PayableRepository extends BaseRepository {
         super('payables')
     }
 
-    // Métodos específicos (como paginação complexa) podem ser adicionados aqui
+    // Métodos específicos (como paginação compPGA) podem ser adicionados aqui
     // se herdarem do BaseRepository, já ganham findAll, findById, create, update, delete.
 }
 

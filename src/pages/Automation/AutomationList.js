@@ -8,7 +8,7 @@ import { TRIGGER_CONFIG } from "./config/triggers"
 import { Link } from "react-router-dom"
 
 const AutomationPage = ({ setBreadcrumbItems }) => {
-    document.title = "Mensagens Automáticas | Lexa Admin"
+    document.title = "Mensagens Automáticas | PGA Admin"
 
     const {
         integrationConfig,

@@ -11,7 +11,7 @@ import ButtonLoader from "../../../components/Common/ButtonLoader"
 import ConfirmDialog from "../../../components/Common/ConfirmDialog"
 
 const EvaluationLevelsPage = ({ setBreadcrumbItems }) => {
-    document.title = "Níveis de Avaliação | Lexa Admin"
+    document.title = "Níveis de Avaliação | PGA Admin"
 
     const {
         levels,
@@ -92,8 +92,8 @@ const EvaluationLevelsPage = ({ setBreadcrumbItems }) => {
                 </h5>
                 <div className="d-flex gap-2">
                     {formData.id && (
-                        <button 
-                            className="btn btn-danger btn-sm" 
+                        <button
+                            className="btn btn-danger btn-sm"
                             onClick={() => {
                                 setLevelToDelete(formData)
                                 setDeleteModalOpen(true)

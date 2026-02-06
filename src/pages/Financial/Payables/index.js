@@ -20,7 +20,7 @@ import Flatpickr from "react-flatpickr"
 import { Portuguese } from "flatpickr/dist/l10n/pt.js"
 
 const PayablesPage = () => {
-    document.title = "Contas a Pagar | Lexa Admin"
+    document.title = "Contas a Pagar | PGA Admin"
 
     const {
         loading,

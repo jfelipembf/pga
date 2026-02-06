@@ -11,10 +11,10 @@ import "rc-slider/assets/index.css"
 
 const UiRangeSlider = props => {
   document.title =
-    "Range Slider | Lexa - Responsive Bootstrap 5 Admin Dashboard"
+    "Range Slider | PGA - Responsive Bootstrap 5 Admin Dashboard"
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "UI Elements", link: "#" },
     { title: "Range Slider", link: "#" },
   ]

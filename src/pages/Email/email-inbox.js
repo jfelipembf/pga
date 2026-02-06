@@ -1,4 +1,4 @@
-import React ,{useEffect} from "react"
+import React, { useEffect } from "react"
 import { connect } from "react-redux";
 
 import { Link } from "react-router-dom"
@@ -15,11 +15,11 @@ import EmailToolbar from "./email-toolbar"
 
 const EmailInbox = (props) => {
 
-  document.title = "Inbox | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Inbox | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "Email", link: "#" },
     { title: "Inbox", link: "#" },
   ]
@@ -31,7 +31,7 @@ const EmailInbox = (props) => {
   return (
     <React.Fragment>
 
-     <Row>
+      <Row>
         <Col xs="12">
           {/* Render Email SideBar */}
           <EmailSideBar />
@@ -49,7 +49,7 @@ const EmailInbox = (props) => {
                     </div>
                     <Link to="#" className="title">
                       Peter, me (3)
-                        </Link>
+                    </Link>
                     <span className="star-toggle far fa-star" />
                   </div>
                   <div className="col-mail col-mail-2">
@@ -58,7 +58,7 @@ const EmailInbox = (props) => {
                       <span className="teaser">
                         Trip home from Colombo has been arranged, then Jenna
                         will come get me from Stockholm. :)
-                          </span>
+                      </span>
                     </Link>
                     <div className="date">Mar 6</div>
                   </div>
@@ -72,20 +72,20 @@ const EmailInbox = (props) => {
                     </div>
                     <Link to="#" className="title">
                       me, Susanna (7)
-                        </Link>
+                    </Link>
                     <span className="star-toggle far fa-star" />
                   </div>
                   <div className="col-mail col-mail-2">
                     <Link to="#" className="subject">
                       <span className="bg-warning badge me-2">
                         Freelance
-                          </span>
-                          Since you asked... and i'm inconceivably bored at the
-                          train station –
-                          <span className="teaser">{" "}
-                            Alright thanks. I'll have to re-book that somehow,
-                            i'll get back to you.
-                          </span>
+                      </span>
+                      Since you asked... and i'm inconceivably bored at the
+                      train station –
+                      <span className="teaser">{" "}
+                        Alright thanks. I'll have to re-book that somehow,
+                        i'll get back to you.
+                      </span>
                     </Link>
                     <div className="date">Mar 6</div>
                   </div>
@@ -99,15 +99,15 @@ const EmailInbox = (props) => {
                     </div>
                     <Link to="#" className="title">
                       Web Support Dennis
-                        </Link>
+                    </Link>
                     <span className="star-toggle far fa-star" />
                   </div>
                   <div className="col-mail col-mail-2">
                     <Link to="#" className="subject">
                       Re: New mail settings –
-                          <span className="teaser">{" "}
-                            Will you answer him asap?
-                          </span>
+                      <span className="teaser">{" "}
+                        Will you answer him asap?
+                      </span>
                     </Link>
                     <div className="date">Mar 7</div>
                   </div>
@@ -120,17 +120,17 @@ const EmailInbox = (props) => {
                     </div>
                     <Link to="#" className="title">
                       me, Peter (2)
-                        </Link>
+                    </Link>
                     <span className="star-toggle far fa-star" />
                   </div>
                   <div className="col-mail col-mail-2">
                     <Link to="#" className="subject">
                       <span className="bg-info badge me-2">Support</span>
-                          Off on Thursday - {" "}
+                      Off on Thursday - {" "}
                       <span className="teaser">
                         Eff that place, you might as well stay here with us
                         instead! Sent from my iPhone 4 4 mar 2014 at 5:55 pm
-                          </span>
+                      </span>
                     </Link>
                     <div className="date">Mar 4</div>
                   </div>
@@ -143,19 +143,19 @@ const EmailInbox = (props) => {
                     </div>
                     <Link to="#" className="title">
                       Medium
-                        </Link>
+                    </Link>
                     <span className="star-toggle far fa-star" />
                   </div>
                   <div className="col-mail col-mail-2">
                     <Link to="#" className="subject">
                       <span className="bg-primary badge me-2">
                         Social
-                          </span>
-                          This Week's Top Stories –
-                          <span className="teaser">{" "}
-                            Our top pick for you on Medium this week The Man Who
-                            Destroyed America’s Ego
-                          </span>
+                      </span>
+                      This Week's Top Stories –
+                      <span className="teaser">{" "}
+                        Our top pick for you on Medium this week The Man Who
+                        Destroyed America’s Ego
+                      </span>
                     </Link>
                     <div className="date">Feb 28</div>
                   </div>
@@ -168,16 +168,16 @@ const EmailInbox = (props) => {
                     </div>
                     <Link to="#" className="title">
                       Death to Stock
-                        </Link>
+                    </Link>
                     <span className="star-toggle far fa-star" />
                   </div>
                   <div className="col-mail col-mail-2">
                     <Link to="#" className="subject">
                       Montly High-Res Photos –
-                          <span className="teaser">{" "}
-                            To create this month's pack, we hosted a party with
-                            local musician Jared Mahone here in Columbus, Ohio.
-                          </span>
+                      <span className="teaser">{" "}
+                        To create this month's pack, we hosted a party with
+                        local musician Jared Mahone here in Columbus, Ohio.
+                      </span>
                     </Link>
                     <div className="date">Feb 28</div>
                   </div>
@@ -191,21 +191,21 @@ const EmailInbox = (props) => {
                     </div>
                     <Link to="#" className="title">
                       Randy, me (5)
-                        </Link>
+                    </Link>
                     <span className="star-toggle far fa-star" />
                   </div>
                   <div className="col-mail col-mail-2">
                     <Link to="#" className="subject">
                       <span className="bg-success badge me-2">
                         Family
-                          </span>
-                          Last pic over my village –
-                          <span className="teaser">{" "}
-                            Yeah i'd like that! Do you remember the video you
-                            showed me of your train ride between Colombo and
-                            Kandy? The one with the mountain view? I would love
-                            to see that one again!
-                          </span>
+                      </span>
+                      Last pic over my village –
+                      <span className="teaser">{" "}
+                        Yeah i'd like that! Do you remember the video you
+                        showed me of your train ride between Colombo and
+                        Kandy? The one with the mountain view? I would love
+                        to see that one again!
+                      </span>
                     </Link>
                     <div className="date">5:01 am</div>
                   </div>
@@ -218,7 +218,7 @@ const EmailInbox = (props) => {
                     </div>
                     <Link to="#" className="title">
                       Andrew Zimmer
-                        </Link>
+                    </Link>
                     <span className="star-toggle far fa-star" />
                   </div>
                   <div className="col-mail col-mail-2">
@@ -228,7 +228,7 @@ const EmailInbox = (props) => {
                         You've been confirmed! Welcome to the ruling
                         className of the inbox. For your records, here is a
                         copy of the information you submitted to us...
-                          </span>
+                      </span>
                     </Link>
                     <div className="date">Mar 8</div>
                   </div>
@@ -241,17 +241,17 @@ const EmailInbox = (props) => {
                     </div>
                     <Link to="#" className="title">
                       Infinity HR
-                        </Link>
+                    </Link>
                     <span className="star-toggle far fa-star" />
                   </div>
                   <div className="col-mail col-mail-2">
                     <Link to="#" className="subject">
                       Sveriges Hetaste sommarjobb –
-                          <span className="teaser">{" "}
-                            Hej Nicklas Sandell! Vi vill bjuda in dig till
-                            "First tour 2014", ett rekryteringsevent som
-                            erbjuder jobb på 16 semesterorter iSverige.
-                          </span>
+                      <span className="teaser">{" "}
+                        Hej Nicklas Sandell! Vi vill bjuda in dig till
+                        "First tour 2014", ett rekryteringsevent som
+                        erbjuder jobb på 16 semesterorter iSverige.
+                      </span>
                     </Link>
                     <div className="date">Mar 8</div>
                   </div>
@@ -264,21 +264,21 @@ const EmailInbox = (props) => {
                     </div>
                     <Link to="#" className="title">
                       Revibe
-                        </Link>
+                    </Link>
                     <span className="star-toggle far fa-star" />
                   </div>
                   <div className="col-mail col-mail-2">
                     <Link to="#" className="subject">
                       <span className="bg-danger badge me-2">
                         Friends
-                          </span>
-                          Weekend on Revibe –
-                          <span className="teaser">{" "}
-                            Today's Friday and we thought maybe you want some
-                            music inspiration for the weekend. Here are some
-                            trending tracks and playlists we think you should
-                            give a listen!
-                          </span>
+                      </span>
+                      Weekend on Revibe –
+                      <span className="teaser">{" "}
+                        Today's Friday and we thought maybe you want some
+                        music inspiration for the weekend. Here are some
+                        trending tracks and playlists we think you should
+                        give a listen!
+                      </span>
                     </Link>
                     <div className="date">Feb 27</div>
                   </div>
@@ -291,15 +291,15 @@ const EmailInbox = (props) => {
                     </div>
                     <Link to="#" className="title">
                       Erik, me (5)
-                        </Link>
+                    </Link>
                     <span className="star-toggle far fa-star" />
                   </div>
                   <div className="col-mail col-mail-2">
                     <Link to="#" className="subject">
                       Regarding our meeting –
-                          <span className="teaser">{" "}
-                            That's great, see you on Thursday!
-                          </span>
+                      <span className="teaser">{" "}
+                        That's great, see you on Thursday!
+                      </span>
                     </Link>
                     <div className="date">Feb 24</div>
                   </div>
@@ -312,19 +312,19 @@ const EmailInbox = (props) => {
                     </div>
                     <Link to="#" className="title">
                       KanbanFlow
-                        </Link>
+                    </Link>
                     <span className="star-toggle far fa-star" />
                   </div>
                   <div className="col-mail col-mail-2">
                     <Link to="#" className="subject">
                       <span className="bg-primary badge me-2">
                         Social
-                          </span>
-                          Task assigned: Clone ARP's website –{" "}
+                      </span>
+                      Task assigned: Clone ARP's website –{" "}
                       <span className="teaser">
                         You have been assigned a task by Alex@Work on the
                         board Web.
-                          </span>
+                      </span>
                     </Link>
                     <div className="date">Feb 24</div>
                   </div>
@@ -337,7 +337,7 @@ const EmailInbox = (props) => {
                     </div>
                     <Link to="#" className="title">
                       Tobias Berggren
-                        </Link>
+                    </Link>
                     <span className="star-toggle far fa-star" />
                   </div>
                   <div className="col-mail col-mail-2">
@@ -346,7 +346,7 @@ const EmailInbox = (props) => {
                       <span className="teaser">
                         Hey, You wanna join me and Fred at the lake
                         tomorrow? It'll be awesome.
-                          </span>
+                      </span>
                     </Link>
                     <div className="date">Feb 23</div>
                   </div>
@@ -359,7 +359,7 @@ const EmailInbox = (props) => {
                     </div>
                     <Link to="#" className="title">
                       Charukaw, me (7)
-                        </Link>
+                    </Link>
                     <span className="star-toggle far fa-star" />
                   </div>
                   <div className="col-mail col-mail-2">
@@ -367,7 +367,7 @@ const EmailInbox = (props) => {
                       Hey man –{" "}
                       <span className="teaser">
                         Nah man sorry i don't. Should i get it?
-                          </span>
+                      </span>
                     </Link>
                     <div className="date">Feb 23</div>
                   </div>
@@ -380,16 +380,16 @@ const EmailInbox = (props) => {
                     </div>
                     <Link to="#" className="title">
                       me, Peter (5)
-                        </Link>
+                    </Link>
                     <span className="star-toggle far fa-star" />
                   </div>
                   <div className="col-mail col-mail-2">
                     <Link to="#" className="subject">
                       <span className="bg-info badge me-2">Support</span>
-                          Home again! –{" "}
+                      Home again! –{" "}
                       <span className="teaser">
                         That's just perfect! See you tomorrow.
-                          </span>
+                      </span>
                     </Link>
                     <div className="date">Feb 21</div>
                   </div>
@@ -402,7 +402,7 @@ const EmailInbox = (props) => {
                     </div>
                     <Link to="#" className="title">
                       Stack Exchange
-                        </Link>
+                    </Link>
                     <span className="star-toggle far fa-star" />
                   </div>
                   <div className="col-mail col-mail-2">
@@ -411,7 +411,7 @@ const EmailInbox = (props) => {
                       <span className="teaser">
                         The following items were added to your Stack
                         Exchange global inbox since you last checked it.
-                          </span>
+                      </span>
                     </Link>
                     <div className="date">Feb 21</div>
                   </div>
@@ -424,7 +424,7 @@ const EmailInbox = (props) => {
                     </div>
                     <Link to="#" className="title">
                       Google Drive Team
-                        </Link>
+                    </Link>
                     <span className="star-toggle far fa-star" />
                   </div>
                   <div className="col-mail col-mail-2">
@@ -433,7 +433,7 @@ const EmailInbox = (props) => {
                       <span className="teaser">
                         Hey Nicklas Sandell! Thank you for purchasing extra
                         storage space in Google Drive.
-                          </span>
+                      </span>
                     </Link>
                     <div className="date">Feb 20</div>
                   </div>
@@ -446,7 +446,7 @@ const EmailInbox = (props) => {
                     </div>
                     <Link to="#" className="title">
                       me, Susanna (11)
-                        </Link>
+                    </Link>
                     <span className="star-toggle far fa-star" />
                   </div>
                   <div className="col-mail col-mail-2">
@@ -455,7 +455,7 @@ const EmailInbox = (props) => {
                       <span className="teaser">
                         Yes ok, great! I'm not stuck in Stockholm anymore,
                         we're making progress.
-                          </span>
+                      </span>
                     </Link>
                     <div className="date">Feb 19</div>
                   </div>

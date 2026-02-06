@@ -5,7 +5,7 @@ import { BankAccountListItem } from "./BankAccountListItem"
 import { useBankAccounts } from "./hooks/useBankAccounts"
 
 const BankAccountList = () => {
-    document.title = "Contas Bancárias | Lexa Admin"
+    document.title = "Contas Bancárias | PGA Admin"
 
     const {
         accounts,

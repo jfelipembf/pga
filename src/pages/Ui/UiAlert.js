@@ -17,10 +17,10 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const UiAlert = (props) => {
-  document.title = "Alerts | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Alerts | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "UI Elements", link: "#" },
     { title: "Alerts", link: "#" },
   ]

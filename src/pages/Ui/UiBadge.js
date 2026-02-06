@@ -1,4 +1,4 @@
-import React,{useEffect} from 'react';
+import React, { useEffect } from 'react';
 import {
     Col,
     Row,
@@ -14,10 +14,10 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const UiBadge = (props) => {
-    document.title = "Badge | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+    document.title = "Badge | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
     const breadcrumbItems = [
-        { title: "Lexa", link: "#" },
+        { title: "PGA", link: "#" },
         { title: "UI Elements", link: "#" },
         { title: "Badge", link: "#" },
     ]

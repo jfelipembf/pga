@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-Este documento descreve a arquitetura de serviços do sistema Lexa Admin.
+Este documento descreve a arquitetura de serviços do sistema PGA Admin.
 
 ```
 services/

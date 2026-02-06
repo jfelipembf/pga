@@ -5,7 +5,7 @@ import { AcquirerListItem } from "./AcquirerListItem"
 import { useAcquirers } from "./hooks/useAcquirers"
 
 const AcquirerList = () => {
-    document.title = "Adquirentes | Lexa Admin"
+    document.title = "Adquirentes | PGA Admin"
 
     const {
         acquirers,

@@ -11,7 +11,7 @@ import { AreaForm } from "./Components/AreaForm"
 import ConfirmDialog from "../../../components/Common/ConfirmDialog"
 
 const AreasPage = ({ setBreadcrumbItems }) => {
-    document.title = "Gestão de Áreas | Lexa Admin"
+    document.title = "Gestão de Áreas | PGA Admin"
 
     const {
         filteredAreas: areas,
@@ -92,8 +92,8 @@ const AreasPage = ({ setBreadcrumbItems }) => {
                 <h5 className="mb-0">{formData.id ? 'Editar Área' : 'Nova Área'}</h5>
                 <div className="d-flex gap-2">
                     {formData.id && (
-                        <button 
-                            className="btn btn-danger btn-sm" 
+                        <button
+                            className="btn btn-danger btn-sm"
                             onClick={() => {
                                 setAreaToDelete(formData)
                                 setDeleteModalOpen(true)

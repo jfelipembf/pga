@@ -16,7 +16,7 @@ import { useClientTableColumns } from "../hooks/useClientTableColumns"
 import { setBreadcrumbItems } from "../../../store/actions"
 
 const ClientsList = ({ setBreadcrumbItems }) => {
-    document.title = "Clientes | Lexa Admin"
+    document.title = "Clientes | PGA Admin"
     const navigate = useNavigate()
 
     const {

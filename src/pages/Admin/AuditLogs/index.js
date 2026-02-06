@@ -13,7 +13,7 @@ import "flatpickr/dist/themes/material_blue.css"
 import PageLoader from "../../../components/Common/PageLoader"
 
 const AuditLogsPage = () => {
-    document.title = "Logs de Auditoria | Lexa Admin"
+    document.title = "Logs de Auditoria | PGA Admin"
 
     const {
         logs,

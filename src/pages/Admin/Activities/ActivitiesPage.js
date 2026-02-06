@@ -11,7 +11,7 @@ import ConfirmDialog from "../../../components/Common/ConfirmDialog"
 import { transformObjectivesToArray, hasObjectives } from "./utils/objectivesTransform"
 
 const ActivitiesPage = ({ setBreadcrumbItems }) => {
-    document.title = "Gestão de Atividades | Lexa Admin"
+    document.title = "Gestão de Atividades | PGA Admin"
 
     const {
         filteredActivities: activities,
@@ -92,8 +92,8 @@ const ActivitiesPage = ({ setBreadcrumbItems }) => {
                 <h5 className="mb-0">{formData.id ? 'Editar Atividade' : 'Nova Atividade'}</h5>
                 <div className="d-flex gap-2">
                     {formData.id && (
-                        <button 
-                            className="btn btn-danger btn-sm" 
+                        <button
+                            className="btn btn-danger btn-sm"
                             onClick={() => {
                                 setActivityToDelete(formData)
                                 setDeleteModalOpen(true)
@@ -136,7 +136,7 @@ const ActivitiesPage = ({ setBreadcrumbItems }) => {
                     {!hasObjectives(formData.objectives) ? (
                         <div className="alert alert-info">
                             <i className="mdi mdi-information-outline me-2"></i>
-                            Esta atividade ainda não possui objetivos cadastrados. 
+                            Esta atividade ainda não possui objetivos cadastrados.
                             {formData.name && ` Use o sistema antigo para adicionar objetivos à atividade "${formData.name}".`}
                         </div>
                     ) : (

@@ -1,4 +1,4 @@
-import React , {useEffect} from 'react';
+import React, { useEffect } from 'react';
 import { connect } from "react-redux";
 //Import Action to copy breadcrumb items from local state to redux state
 import { setBreadcrumbItems } from "../../store/actions";
@@ -6,10 +6,10 @@ import { Card, CardBody, CardTitle, Col, Row } from 'reactstrap';
 import { Link } from 'react-router-dom';
 
 const UiColors = (props) => {
-    document.title = "Colors | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+    document.title = "Colors | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
     const breadcrumbItems = [
-        { title: "Lexa", link: "#" },
+        { title: "PGA", link: "#" },
         { title: "UI Elements", link: "#" },
         { title: "Colors", link: "#" },
     ]
@@ -112,7 +112,7 @@ const UiColors = (props) => {
 
 
             <Row>
-            <Col xl={6}>
+                <Col xl={6}>
                     <Card>
                         <CardBody>
                             <h4 className="card-title">Text Opacity Colors</h4>

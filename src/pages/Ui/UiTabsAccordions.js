@@ -1,4 +1,4 @@
-import React, {  Component } from "react"
+import React, { Component } from "react"
 
 import {
   Card,
@@ -29,7 +29,7 @@ class UiTabsAccordions extends Component {
     super(props)
     this.state = {
       breadcrumbItems: [
-        { title: "Lexa", link: "#" },
+        { title: "PGA", link: "#" },
         { title: "UI Elements", link: "#" },
         { title: "Tabs & Accordions", link: "#" },
       ],
@@ -168,14 +168,14 @@ class UiTabsAccordions extends Component {
     }
   }
 
-  
+
 
 
   render() {
-    document.title = "Tabs & Accordions | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+    document.title = "Tabs & Accordions | PGA - Responsive Bootstrap 5 Admin Dashboard";
     return (
       <React.Fragment>
-       
+
         <Row>
           <Col lg={6}>
             <Card>
@@ -183,11 +183,11 @@ class UiTabsAccordions extends Component {
                 <CardTitle className="h4">Default Tabs</CardTitle>
                 <p className="card-title-desc">
                   Use the tab JavaScript plugin—include it individually or
-                      through the compiled{" "}
+                  through the compiled{" "}
                   <code className="highlighter-rouge">bootstrap.js</code>{" "}
-                      file—to extend our navigational tabs and pills to create
-                      tabbable panes of local content, even via dropdown menus.
-                    </p>
+                  file—to extend our navigational tabs and pills to create
+                  tabbable panes of local content, even via dropdown menus.
+                </p>
 
                 <Nav tabs>
                   <NavItem>
@@ -201,7 +201,7 @@ class UiTabsAccordions extends Component {
                       }}
                     >
                       Home
-                        </NavLink>
+                    </NavLink>
                   </NavItem>
                   <NavItem>
                     <NavLink
@@ -214,7 +214,7 @@ class UiTabsAccordions extends Component {
                       }}
                     >
                       Profile
-                        </NavLink>
+                    </NavLink>
                   </NavItem>
                   <NavItem>
                     <NavLink
@@ -227,7 +227,7 @@ class UiTabsAccordions extends Component {
                       }}
                     >
                       Messages
-                        </NavLink>
+                    </NavLink>
                   </NavItem>
                   <NavItem>
                     <NavLink
@@ -240,7 +240,7 @@ class UiTabsAccordions extends Component {
                       }}
                     >
                       Settings
-                        </NavLink>
+                    </NavLink>
                   </NavItem>
                 </Nav>
 
@@ -258,7 +258,7 @@ class UiTabsAccordions extends Component {
                           richardson ex squid. Aliquip placeat salvia cillum
                           iphone. Seitan aliquip quis cardigan american
                           apparel, butcher voluptate nisi qui.
-                            </CardText>
+                        </CardText>
                       </Col>
                     </Row>
                   </TabPane>
@@ -277,7 +277,7 @@ class UiTabsAccordions extends Component {
                           magna delectus mollit. Keytar helvetica VHS salvia
                           yr, vero magna velit sapiente labore stumptown.
                           Vegan fanny pack odio cillum wes anderson 8-bit.
-                            </CardText>
+                        </CardText>
                       </Col>
                     </Row>
                   </TabPane>
@@ -298,7 +298,7 @@ class UiTabsAccordions extends Component {
                           probably haven't heard of them, vinyl craft beer
                           blog stumptown. Pitchfork sustainable tofu synth
                           chambray yr.
-                            </CardText>
+                        </CardText>
                       </Col>
                     </Row>
                   </TabPane>
@@ -317,7 +317,7 @@ class UiTabsAccordions extends Component {
                           readymade thundercats keffiyeh craft beer marfa
                           ethical. Wolf salvia freegan, sartorial keffiyeh
                           echo park vegan.
-                            </CardText>
+                        </CardText>
                       </Col>
                     </Row>
                   </TabPane>
@@ -332,11 +332,11 @@ class UiTabsAccordions extends Component {
                 <CardTitle className="h4">Justify Tabs</CardTitle>
                 <p className="card-title-desc">
                   Use the tab JavaScript plugin—include it individually or
-                      through the compiled{" "}
+                  through the compiled{" "}
                   <code className="highlighter-rouge">bootstrap.js</code>{" "}
-                      file—to extend our navigational tabs and pills to create
-                      tabbable panes of local content, even via dropdown menus.
-                    </p>
+                  file—to extend our navigational tabs and pills to create
+                  tabbable panes of local content, even via dropdown menus.
+                </p>
 
                 <Nav pills className="navtab-bg nav-justified">
                   <NavItem>
@@ -350,7 +350,7 @@ class UiTabsAccordions extends Component {
                       }}
                     >
                       Home
-                        </NavLink>
+                    </NavLink>
                   </NavItem>
                   <NavItem>
                     <NavLink
@@ -363,7 +363,7 @@ class UiTabsAccordions extends Component {
                       }}
                     >
                       Profile
-                        </NavLink>
+                    </NavLink>
                   </NavItem>
                   <NavItem>
                     <NavLink
@@ -376,7 +376,7 @@ class UiTabsAccordions extends Component {
                       }}
                     >
                       Messages
-                        </NavLink>
+                    </NavLink>
                   </NavItem>
                   <NavItem>
                     <NavLink
@@ -389,7 +389,7 @@ class UiTabsAccordions extends Component {
                       }}
                     >
                       Settings
-                        </NavLink>
+                    </NavLink>
                   </NavItem>
                 </Nav>
 
@@ -407,7 +407,7 @@ class UiTabsAccordions extends Component {
                           richardson ex squid. Aliquip placeat salvia cillum
                           iphone. Seitan aliquip quis cardigan american
                           apparel, butcher voluptate nisi qui.
-                            </CardText>
+                        </CardText>
                       </Col>
                     </Row>
                   </TabPane>
@@ -426,7 +426,7 @@ class UiTabsAccordions extends Component {
                           magna delectus mollit. Keytar helvetica VHS salvia
                           yr, vero magna velit sapiente labore stumptown.
                           Vegan fanny pack odio cillum wes anderson 8-bit.
-                            </CardText>
+                        </CardText>
                       </Col>
                     </Row>
                   </TabPane>
@@ -447,7 +447,7 @@ class UiTabsAccordions extends Component {
                           probably haven't heard of them, vinyl craft beer
                           blog stumptown. Pitchfork sustainable tofu synth
                           chambray yr.
-                            </CardText>
+                        </CardText>
                       </Col>
                     </Row>
                   </TabPane>
@@ -467,7 +467,7 @@ class UiTabsAccordions extends Component {
                           readymade thundercats keffiyeh craft beer marfa
                           ethical. Wolf salvia freegan, sartorial keffiyeh
                           echo park vegan.
-                            </CardText>
+                        </CardText>
                       </Col>
                     </Row>
                   </TabPane>
@@ -484,7 +484,7 @@ class UiTabsAccordions extends Component {
                 <CardTitle className="h4">Custom Tabs</CardTitle>
                 <p className="card-title-desc">
                   Example of custom tabs
-                    </p>
+                </p>
 
                 <Nav tabs className="nav-tabs-custom">
                   <NavItem>
@@ -555,7 +555,7 @@ class UiTabsAccordions extends Component {
                           richardson ex squid. Aliquip placeat salvia cillum
                           iphone. Seitan aliquip quis cardigan american
                           apparel, butcher voluptate nisi qui.
-                            </CardText>
+                        </CardText>
                       </Col>
                     </Row>
                   </TabPane>
@@ -574,7 +574,7 @@ class UiTabsAccordions extends Component {
                           magna delectus mollit. Keytar helvetica VHS salvia
                           yr, vero magna velit sapiente labore stumptown.
                           Vegan fanny pack odio cillum wes anderson 8-bit.
-                            </CardText>
+                        </CardText>
                       </Col>
                     </Row>
                   </TabPane>
@@ -595,7 +595,7 @@ class UiTabsAccordions extends Component {
                           probably haven't heard of them, vinyl craft beer
                           blog stumptown. Pitchfork sustainable tofu synth
                           chambray yr.
-                            </CardText>
+                        </CardText>
                       </Col>
                     </Row>
                   </TabPane>
@@ -614,7 +614,7 @@ class UiTabsAccordions extends Component {
                           readymade thundercats keffiyeh craft beer marfa
                           ethical. Wolf salvia freegan, sartorial keffiyeh
                           echo park vegan.
-                            </CardText>
+                        </CardText>
                       </Col>
                     </Row>
                   </TabPane>
@@ -628,7 +628,7 @@ class UiTabsAccordions extends Component {
                 <CardTitle className="h4">Custom Tabs Justified</CardTitle>
                 <p className="card-title-desc">
                   Example of custom tabs
-                    </p>
+                </p>
 
                 <Nav tabs justified className="nav-tabs-custom">
                   <NavItem>
@@ -699,7 +699,7 @@ class UiTabsAccordions extends Component {
                           richardson ex squid. Aliquip placeat salvia cillum
                           iphone. Seitan aliquip quis cardigan american
                           apparel, butcher voluptate nisi qui.
-                            </CardText>
+                        </CardText>
                       </Col>
                     </Row>
                   </TabPane>
@@ -718,7 +718,7 @@ class UiTabsAccordions extends Component {
                           magna delectus mollit. Keytar helvetica VHS salvia
                           yr, vero magna velit sapiente labore stumptown.
                           Vegan fanny pack odio cillum wes anderson 8-bit.
-                            </CardText>
+                        </CardText>
                       </Col>
                     </Row>
                   </TabPane>
@@ -739,7 +739,7 @@ class UiTabsAccordions extends Component {
                           probably haven't heard of them, vinyl craft beer
                           blog stumptown. Pitchfork sustainable tofu synth
                           chambray yr.
-                            </CardText>
+                        </CardText>
                       </Col>
                     </Row>
                   </TabPane>
@@ -758,7 +758,7 @@ class UiTabsAccordions extends Component {
                           readymade thundercats keffiyeh craft beer marfa
                           ethical. Wolf salvia freegan, sartorial keffiyeh
                           echo park vegan.
-                            </CardText>
+                        </CardText>
                       </Col>
                     </Row>
                   </TabPane>
@@ -776,15 +776,15 @@ class UiTabsAccordions extends Component {
                 <p className="card-title-desc">
                   You can use a link with the{" "}
                   <code className="highlighter-rouge">href</code> attribute,
-                      or a button with the{" "}
+                  or a button with the{" "}
                   <code className="highlighter-rouge">data-target</code>{" "}
-                      attribute. In both cases, the{" "}
+                  attribute. In both cases, the{" "}
                   <code className="highlighter-rouge">
                     {" "}
-                        data-toggle="collapse"
-                      </code>{" "}
-                      is required.
-                    </p>
+                    data-toggle="collapse"
+                  </code>{" "}
+                  is required.
+                </p>
                 <div className="d-flex gap-2 flex-wrap mb-3">
                   <Link
                     to="#"
@@ -801,7 +801,7 @@ class UiTabsAccordions extends Component {
                     style={{ cursor: "pointer" }}
                   >
                     Button with data-target
-                             </button>
+                  </button>
                 </div>
                 <Collapse isOpen={this.state.col5}>
                   <Card>
@@ -810,7 +810,7 @@ class UiTabsAccordions extends Component {
                       life accusamus terry richardson ad squid. Nihil anim
                       keffiyeh helvetica, craft beer labore wes anderson
                       cred nesciunt sapiente ea proident.
-                              </CardBody>
+                    </CardBody>
                   </Card>
                 </Collapse>
               </CardBody>
@@ -821,7 +821,7 @@ class UiTabsAccordions extends Component {
               <CardBody>
                 <h4 className="card-title">Multiple targets</h4>
                 <p>A <code>&lt;button&gt;</code> or <code>&lt;a&gt;</code> can show and hide multiple elements by referencing them with a selector in its <code>href</code> or <code>data-bs-target</code> attribute.
-                                            Multiple <code>&lt;button&gt;</code> or <code>&lt;a&gt;</code> can show and hide an element if they each reference it with their <code>href</code> or <code>data-bs-target</code> attribute</p>
+                  Multiple <code>&lt;button&gt;</code> or <code>&lt;a&gt;</code> can show and hide an element if they each reference it with their <code>href</code> or <code>data-bs-target</code> attribute</p>
 
                 <div className="d-flex gap-2 flex-wrap mb-3">
                   <Link
@@ -831,7 +831,7 @@ class UiTabsAccordions extends Component {
                     className="btn btn-primary"
                   >
                     Toggle first element
-                            </Link>
+                  </Link>
                   <button
                     onClick={this.t_col7}
                     className="btn btn-primary"
@@ -839,7 +839,7 @@ class UiTabsAccordions extends Component {
                     style={{ cursor: "pointer" }}
                   >
                     Toggle second element
-                             </button>
+                  </button>
 
                   <button
                     onClick={this.t_col8}
@@ -848,7 +848,7 @@ class UiTabsAccordions extends Component {
                     style={{ cursor: "pointer" }}
                   >
                     Toggle both element
-                             </button>
+                  </button>
                 </div>
                 <div className="row">
                   <div className="col">
@@ -856,7 +856,7 @@ class UiTabsAccordions extends Component {
                       <Card>
                         <CardBody className="border shadow-none text-muted mb-0">
                           Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident.
-                              </CardBody>
+                        </CardBody>
                       </Card>
                     </Collapse>
                   </div>
@@ -868,7 +868,7 @@ class UiTabsAccordions extends Component {
                           life accusamus terry richardson ad squid. Nihil anim
                           keffiyeh helvetica, craft beer labore wes anderson
                           cred nesciunt sapiente ea proident.
-                                  </CardBody>
+                        </CardBody>
                       </Card>
                     </Collapse>
                   </div>
@@ -884,46 +884,46 @@ class UiTabsAccordions extends Component {
                 <CardTitle className="h4">Accordion example</CardTitle>
                 <p className="card-title-desc">
                   Click the accordions below to expand/collapse the accordion content.
-                    </p>
+                </p>
 
                 <div className="accordion" id="accordion">
                   <div className="accordion-item">
                     <h2 className="accordion-header" id="headingOne">
                       <button className="accordion-button fw-medium" type="button" onClick={this.t_col1} style={{ cursor: "pointer" }}>
                         Accordion Item #1
-                              </button>
+                      </button>
                     </h2>
 
 
                     <Collapse isOpen={this.state.col1} className="accordion-collapse">
-                      <div className="accordion-body text-muted">                        
-                          <strong className="text-dark">This is the first item's accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
-                              </div>                      
+                      <div className="accordion-body text-muted">
+                        <strong className="text-dark">This is the first item's accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+                      </div>
                     </Collapse>
                   </div>
                   <div className="accordion-item">
                     <h2 className="accordion-header" id="headingTwo">
                       <button className="accordion-button fw-medium collapsed" type="button" onClick={this.t_col2} style={{ cursor: "pointer" }}>
                         Accordion Item #2
-                              </button>
+                      </button>
                     </h2>
 
                     <Collapse isOpen={this.state.col2} className="accordion-collapse">
-                      <div className="accordion-body text-muted">                        
-                          <strong className="text-dark">This is the second item's accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
-                              </div>                      
+                      <div className="accordion-body text-muted">
+                        <strong className="text-dark">This is the second item's accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+                      </div>
                     </Collapse>
                   </div>
                   <div className="accordion-item">
                     <h2 className="accordion-header" id="headingThree">
                       <button className="accordion-button fw-medium collapsed" type="button" onClick={this.t_col3} style={{ cursor: "pointer" }}>
                         Accordion Item #3
-                              </button>
+                      </button>
                     </h2>
                     <Collapse isOpen={this.state.col3} className="accordion-collapse">
-                      <div className="accordion-body text-muted">                        
-                          <strong className="text-dark">This is the third item's accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
-                              </div>                      
+                      <div className="accordion-body text-muted">
+                        <strong className="text-dark">This is the third item's accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+                      </div>
                     </Collapse>
                   </div>
                 </div>
@@ -941,7 +941,7 @@ class UiTabsAccordions extends Component {
                     <h2 className="accordion-header" id="headingFlushOne">
                       <button className="accordion-button fw-medium" type="button" onClick={this.t_col9} style={{ cursor: "pointer" }}>
                         Accordion Item #1
-                              </button>
+                      </button>
                     </h2>
 
 
@@ -954,7 +954,7 @@ class UiTabsAccordions extends Component {
                     <h2 className="accordion-header" id="headingFlushTwo">
                       <button className="accordion-button fw-medium collapsed" type="button" onClick={this.t_col10} style={{ cursor: "pointer" }}>
                         Accordion Item #2
-                              </button>
+                      </button>
                     </h2>
 
                     <Collapse isOpen={this.state.col10} className="accordion-collapse">
@@ -965,7 +965,7 @@ class UiTabsAccordions extends Component {
                     <h2 className="accordion-header" id="headingFlushThree">
                       <button className="accordion-button fw-medium collapsed" type="button" onClick={this.t_col11} style={{ cursor: "pointer" }}>
                         Accordion Item #3
-                              </button>
+                      </button>
                     </h2>
                     <Collapse isOpen={this.state.col11} className="accordion-collapse">
                       <div className="accordion-body text-muted">Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.</div>

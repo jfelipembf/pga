@@ -28,7 +28,7 @@ var theme = {
     colors: ["#556ee6", "#34c38f", "#f46a6a", "#50a5f1", "#f1b44c"],
   },
 }
-TuiChart.registerTheme("lexaTheme", theme)
+TuiChart.registerTheme("PGATheme", theme)
 
 const PieChartToast = props => {
   const data = {

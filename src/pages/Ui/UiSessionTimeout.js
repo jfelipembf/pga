@@ -13,7 +13,7 @@ class UiSessionTimeout extends Component {
     super(props);
     this.state = {
       breadcrumbItems: [
-        { title: "Lexa", link: "#" },
+        { title: "PGA", link: "#" },
         { title: "UI Elements", link: "#" },
         { title: "Session Timeout", link: "#" },
       ],
@@ -64,9 +64,9 @@ class UiSessionTimeout extends Component {
     } else {
     }
   }
-  
+
   render() {
-    document.title = "Sessions timeout | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+    document.title = "Sessions timeout | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
     return (
       <React.Fragment>
@@ -81,7 +81,7 @@ class UiSessionTimeout extends Component {
                 <p className="sub-header">
                   Session timeout and keep-alive control with a nice
                   Bootstrap warning dialog.
-                    </p>
+                </p>
 
                 <div>
                   <p>
@@ -93,11 +93,11 @@ class UiSessionTimeout extends Component {
                     session is kept alive. If no option is selected after
                     another set amount of idle time, the page is
                     automatically redirected to a set timeout URL.
-                      </p>
+                  </p>
                   <p>
                     Idle time is defined as no mouse, keyboard or touch
                     event activity registered by the browser.
-                      </p>
+                  </p>
 
                   <p className="mb-0">
                     As long as the user is active, the (optional) keep-alive
@@ -107,7 +107,7 @@ class UiSessionTimeout extends Component {
                     a simple lock mechanism that redirects to your
                     lock-session or log-out URL after a set amount of idle
                     time.
-                      </p>
+                  </p>
                 </div>
               </CardBody>
             </Card>

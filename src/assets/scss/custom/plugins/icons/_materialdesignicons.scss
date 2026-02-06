@@ -1246,7 +1246,7 @@
   content: "\F002D";
 }
 
-.mdi-amazon-alexa::before {
+.mdi-amazon-aPGA::before {
   content: "\F08C6";
 }
 
@@ -23443,19 +23443,23 @@
   visibility: hidden;
 }
 
-.mdi-18px.mdi-set, .mdi-18px.mdi:before {
+.mdi-18px.mdi-set,
+.mdi-18px.mdi:before {
   font-size: 18px;
 }
 
-.mdi-24px.mdi-set, .mdi-24px.mdi:before {
+.mdi-24px.mdi-set,
+.mdi-24px.mdi:before {
   font-size: 24px;
 }
 
-.mdi-36px.mdi-set, .mdi-36px.mdi:before {
+.mdi-36px.mdi-set,
+.mdi-36px.mdi:before {
   font-size: 36px;
 }
 
-.mdi-48px.mdi-set, .mdi-48px.mdi:before {
+.mdi-48px.mdi-set,
+.mdi-48px.mdi:before {
   font-size: 48px;
 }
 
@@ -23674,6 +23678,7 @@
     -webkit-transform: rotate(0deg);
     transform: rotate(0deg);
   }
+
   100% {
     -webkit-transform: rotate(359deg);
     transform: rotate(359deg);
@@ -23685,6 +23690,7 @@
     -webkit-transform: rotate(0deg);
     transform: rotate(0deg);
   }
+
   100% {
     -webkit-transform: rotate(359deg);
     transform: rotate(359deg);

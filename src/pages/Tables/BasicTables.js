@@ -16,13 +16,13 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const BasicTable = (props) => {
-  document.title = "Basic Tables | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Basic Tables | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
-  
+
   const breadcrumbItems = [
-    { title : "Lexa", link : "#" },
-    { title : "Tables", link : "#" },
-    { title : "Basic Tables", link : "#" },
+    { title: "PGA", link: "#" },
+    { title: "Tables", link: "#" },
+    { title: "Basic Tables", link: "#" },
   ]
 
   useEffect(() => {
@@ -37,9 +37,9 @@ const BasicTable = (props) => {
               <CardTitle className="h4">Basic example</CardTitle>
               <p className="card-title-desc">
                 For basic styling—light padding and only horizontal
-                    dividers—add the base className <code>.table</code> to any
-                     <code>&lt;table&gt;</code>.
-                 </p>
+                dividers—add the base className <code>.table</code> to any
+                <code>&lt;table&gt;</code>.
+              </p>
 
               <div className="table-responsive">
                 <Table className="table mb-0">
@@ -83,8 +83,8 @@ const BasicTable = (props) => {
               <CardTitle className="h4">Dark table</CardTitle>
               <p className="card-title-desc">
                 You can also invert the colors—with light text on dark
-                    backgrounds—with <code>.table-dark</code>.
-                 </p>
+                backgrounds—with <code>.table-dark</code>.
+              </p>
 
               <div className="table-responsive">
                 <Table className="table table-dark mb-0">
@@ -131,7 +131,7 @@ const BasicTable = (props) => {
               <p className="card-title-desc">
                 Use one of two modifier className to make{" "}
                 <code>&lt;thead&gt;</code>s appear light or dark gray.
-                 </p>
+              </p>
 
               <div className="table-responsive">
                 <Table className="table mb-0">
@@ -175,8 +175,8 @@ const BasicTable = (props) => {
               <CardTitle className="h4">Striped rows</CardTitle>
               <p className="card-title-desc">
                 Use <code>.table-striped</code> to add zebra-striping to any
-                    table row within the <code>&lt;tbody&gt;</code>.
-                 </p>
+                table row within the <code>&lt;tbody&gt;</code>.
+              </p>
 
               <div className="table-responsive">
                 <Table className="table table-striped mb-0">
@@ -220,7 +220,7 @@ const BasicTable = (props) => {
             <div className="card-body">
               <h4 className="card-title">Colored table</h4>
               <p className="card-title-desc">You can also invert the colors—with light text on dark
-                                            backgrounds—with <code>.table-primary</code>.</p>
+                backgrounds—with <code>.table-primary</code>.</p>
 
 
               <div className="table-responsive">
@@ -266,7 +266,7 @@ const BasicTable = (props) => {
             <CardBody>
               <CardTitle className="h4">Colored Bordered table</CardTitle>
               <p className="card-title-desc">Add <code>.table-bordered</code> for borders on all sides of
-                                            the table and cells.</p>
+                the table and cells.</p>
 
               <div className="table-responsive">
                 <Table className="table-bordered border-primary mb-0">
@@ -313,8 +313,8 @@ const BasicTable = (props) => {
               <CardTitle className="h4">Bordered table</CardTitle>
               <p className="card-title-desc">
                 Add <code>.table-bordered</code> for borders on all sides of
-                    the table and cells.
-                 </p>
+                the table and cells.
+              </p>
 
               <div className="table-responsive">
                 <Table className="table table-bordered mb-0">
@@ -358,9 +358,9 @@ const BasicTable = (props) => {
               <CardTitle className="h4">Borderless table</CardTitle>
               <p className="card-title-desc">
                 {" "}
-                    Add <code>.table-borderless</code> for a table without
-                    borders.
-                 </p>
+                Add <code>.table-borderless</code> for a table without
+                borders.
+              </p>
 
               <div className="table-responsive">
                 <Table className="table table-borderless mb-0">
@@ -406,8 +406,8 @@ const BasicTable = (props) => {
               <CardTitle className="h4">Hoverable </CardTitle>
               <p className="card-title-desc">
                 Add <code>.table-hover</code> to enable a hover state on
-                    table rows within a <code>&lt;tbody&gt;</code>.
-                 </p>
+                table rows within a <code>&lt;tbody&gt;</code>.
+              </p>
 
               <div className="table-responsive">
                 <Table className="table table-hover mb-0">
@@ -451,9 +451,9 @@ const BasicTable = (props) => {
               <CardTitle className="h4">Small table </CardTitle>
               <p className="card-title-desc">
                 {" "}
-                    Add <code>.table-sm</code> to make tables more compact by
-                    cutting cell padding in half.
-                 </p>
+                Add <code>.table-sm</code> to make tables more compact by
+                cutting cell padding in half.
+              </p>
 
               <div className="table-responsive">
                 <Table className="table table-sm m-0">
@@ -511,7 +511,7 @@ const BasicTable = (props) => {
               <p className="card-title-desc">
                 Use contextual className to color table rows or individual
                 cells.
-                 </p>
+              </p>
 
               <div className="table-responsive">
                 <Table className="table mb-0">
@@ -571,10 +571,10 @@ const BasicTable = (props) => {
               <CardTitle className="h4">Captions </CardTitle>
               <p className="card-title-desc">
                 A <code>&lt;caption&gt;</code> functions like a heading for
-                    a table. It helps users with screen readers to find a table
-                    and understand what it’s about and decide if they want to
-                    read it.
-                 </p>
+                a table. It helps users with screen readers to find a table
+                and understand what it’s about and decide if they want to
+                read it.
+              </p>
 
               <div className="table-responsive">
                 <Table className="table mb-0">
@@ -621,10 +621,10 @@ const BasicTable = (props) => {
               <CardTitle className="h4">Responsive table </CardTitle>
               <p className="card-title-desc">
                 Create responsive tables by wrapping any <code>.table</code>{" "}
-                    in <code>.table-responsive</code>
-                    to make them scroll horizontally on small devices (under
-                    768px).
-                 </p>
+                in <code>.table-responsive</code>
+                to make them scroll horizontally on small devices (under
+                768px).
+              </p>
 
               <div className="table-responsive">
                 <Table className="table mb-0">

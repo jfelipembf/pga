@@ -29,7 +29,7 @@ Este documento reúne lições aprendidas e padrões obrigatórios para a criaç
 ## 🎨 Padrões de Interface (Frontend UI)
 
 ### 3. Autenticação e Usuário
-*   **NÃO CONFIE NO REDUX PARA DETALHES:** O `state.Login.user` do template Lexa atual armazena apenas dados superficiais de sessão.
+*   **NÃO CONFIE NO REDUX PARA DETALHES:** O `state.Login.user` do template PGA atual armazena apenas dados superficiais de sessão.
 *   **Padrão Seguro:** Para obter `uid`, `email` ou `role`, sempre leia do `localStorage`:
     ```javascript
     const getAuthUser = () => {

@@ -20,10 +20,10 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const FormEditors = (props) => {
-  document.title = "Form Editors | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Form Editors | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "Forms", link: "#" },
     { title: "Form Editors", link: "#" },
   ]
@@ -43,7 +43,7 @@ const FormEditors = (props) => {
                 Bootstrap-wysihtml5 is a javascript plugin that makes it
                 easy to create simple, beautiful wysiwyg editors with the
                 help of wysihtml5 and Twitter Bootstrap.
-                  </CardSubtitle>
+              </CardSubtitle>
 
               <Form method="post">
                 <Editor

@@ -5,7 +5,7 @@ import { useGeneralDashboard } from "../hooks/useGeneralDashboard"
 import { formatCurrency } from "../../../utils/format"
 
 const OperationalDashboard = () => {
-    document.title = "Dashboard Operacional | Lexa Admin"
+    document.title = "Dashboard Operacional | PGA Admin"
 
     const { loading, data } = useGeneralDashboard('operational')
 

@@ -1,4 +1,4 @@
-import React,{useEffect} from "react"
+import React, { useEffect } from "react"
 
 import { Row, Col, Card, CardBody, CardTitle } from "reactstrap"
 import { Table, Thead, Tbody, Tr, Th, Td } from "react-super-responsive-table"
@@ -10,10 +10,10 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const ResponsiveTables = (props) => {
-  document.title = "Responsive Table | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Responsive Table | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "Tables", link: "#" },
     { title: "Responsive Table", link: "#" },
   ]
@@ -26,7 +26,7 @@ const ResponsiveTables = (props) => {
   return (
     <React.Fragment>
 
-     <Row>
+      <Row>
         <Col>
           <Card>
             <CardBody>
@@ -34,7 +34,7 @@ const ResponsiveTables = (props) => {
               <p className="card-title-desc">
                 This is an experimental awesome solution for responsive
                 tables with complex data.
-                  </p>
+              </p>
 
               <div className="table-rep-plugin">
                 <div
@@ -104,7 +104,7 @@ const ResponsiveTables = (props) => {
                           ORCL{" "}
                           <span className="co-name">
                             Oracle Corporation
-                              </span>
+                          </span>
                         </Th>
                         <Td>31.15</Td>
                         <Td>12:44PM</Td>
@@ -120,7 +120,7 @@ const ResponsiveTables = (props) => {
                           MSFT{" "}
                           <span className="co-name">
                             Microsoft Corporation
-                              </span>
+                          </span>
                         </Th>
                         <Td>25.50</Td>
                         <Td>12:27PM</Td>
@@ -136,7 +136,7 @@ const ResponsiveTables = (props) => {
                           CSCO{" "}
                           <span className="co-name">
                             Cisco Systems, Inc.
-                              </span>
+                          </span>
                         </Th>
                         <Td>18.65</Td>
                         <Td>12:45PM</Td>
@@ -205,7 +205,7 @@ const ResponsiveTables = (props) => {
                           ORCL{" "}
                           <span className="co-name">
                             Oracle Corporation
-                              </span>
+                          </span>
                         </Th>
                         <Td>31.15</Td>
                         <Td>12:44PM</Td>
@@ -221,7 +221,7 @@ const ResponsiveTables = (props) => {
                           MSFT{" "}
                           <span className="co-name">
                             Microsoft Corporation
-                              </span>
+                          </span>
                         </Th>
                         <Td>25.50</Td>
                         <Td>12:27PM</Td>
@@ -237,7 +237,7 @@ const ResponsiveTables = (props) => {
                           CSCO{" "}
                           <span className="co-name">
                             Cisco Systems, Inc.
-                              </span>
+                          </span>
                         </Th>
                         <Td>18.65</Td>
                         <Td>12:45PM</Td>
@@ -306,7 +306,7 @@ const ResponsiveTables = (props) => {
                           ORCL{" "}
                           <span className="co-name">
                             Oracle Corporation
-                              </span>
+                          </span>
                         </Th>
                         <Td>31.15</Td>
                         <Td>12:44PM</Td>
@@ -322,7 +322,7 @@ const ResponsiveTables = (props) => {
                           MSFT{" "}
                           <span className="co-name">
                             Microsoft Corporation
-                              </span>
+                          </span>
                         </Th>
                         <Td>25.50</Td>
                         <Td>12:27PM</Td>
@@ -338,7 +338,7 @@ const ResponsiveTables = (props) => {
                           CSCO{" "}
                           <span className="co-name">
                             Cisco Systems, Inc.
-                              </span>
+                          </span>
                         </Th>
                         <Td>18.65</Td>
                         <Td>12:45PM</Td>
@@ -407,7 +407,7 @@ const ResponsiveTables = (props) => {
                           ORCL{" "}
                           <span className="co-name">
                             Oracle Corporation
-                              </span>
+                          </span>
                         </Th>
                         <Td>31.15</Td>
                         <Td>12:44PM</Td>
@@ -423,7 +423,7 @@ const ResponsiveTables = (props) => {
                           MSFT{" "}
                           <span className="co-name">
                             Microsoft Corporation
-                              </span>
+                          </span>
                         </Th>
                         <Td>25.50</Td>
                         <Td>12:27PM</Td>
@@ -439,7 +439,7 @@ const ResponsiveTables = (props) => {
                           CSCO{" "}
                           <span className="co-name">
                             Cisco Systems, Inc.
-                              </span>
+                          </span>
                         </Th>
                         <Td>18.65</Td>
                         <Td>12:45PM</Td>
@@ -508,7 +508,7 @@ const ResponsiveTables = (props) => {
                           ORCL{" "}
                           <span className="co-name">
                             Oracle Corporation
-                              </span>
+                          </span>
                         </Th>
                         <Td>31.15</Td>
                         <Td>12:44PM</Td>
@@ -524,7 +524,7 @@ const ResponsiveTables = (props) => {
                           MSFT{" "}
                           <span className="co-name">
                             Microsoft Corporation
-                              </span>
+                          </span>
                         </Th>
                         <Td>25.50</Td>
                         <Td>12:27PM</Td>
@@ -540,7 +540,7 @@ const ResponsiveTables = (props) => {
                           CSCO{" "}
                           <span className="co-name">
                             Cisco Systems, Inc.
-                              </span>
+                          </span>
                         </Th>
                         <Td>18.65</Td>
                         <Td>12:45PM</Td>

@@ -19,10 +19,10 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const FormValidations = (props) => {
-  document.title = "Form Validation | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Form Validation | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "Forms", link: "#" },
     { title: "Form Validation", link: "#" },
   ]
@@ -105,7 +105,7 @@ const FormValidations = (props) => {
                 Provide valuable, actionable feedback to your users with
                 HTML5 form validation–available in all our supported
                 browsers.
-                  </p>
+              </p>
               <form className="needs-validation">
                 <Row>
                   <Col md="6">
@@ -186,14 +186,14 @@ const FormValidations = (props) => {
                     required />
                   <label className="form-check-label" htmlFor="invalidCheck">
                     Agree to terms and conditions
-                                        </label>
+                  </label>
                   <div className="invalid-feedback">
                     You must agree before submitting.
-                                        </div>
+                  </div>
                 </div>
                 <Button color="primary" type="submit">
                   Submit form
-                    </Button>
+                </Button>
               </form>
             </CardBody>
           </Card>
@@ -204,13 +204,13 @@ const FormValidations = (props) => {
             <CardBody>
               <h4 className="card-title">
                 Bootstrap Validation (Tooltips)
-                  </h4>
+              </h4>
               <p className="card-title-desc">
                 If your form layout allows it, you can swap the
-                    <code>.{"{valid | invalid-}"}feedback</code> classes for
-                    <code>.{"{valid | invalid-}"}-tooltip</code> classes to display validation feedback in a
-                    styled tooltip.
-                  </p>
+                <code>.{"{valid | invalid-}"}feedback</code> classes for
+                <code>.{"{valid | invalid-}"}-tooltip</code> classes to display validation feedback in a
+                styled tooltip.
+              </p>
               <form
                 className="needs-validation"
                 method="post"
@@ -224,7 +224,7 @@ const FormValidations = (props) => {
                     <div className="mb-3 position-relative">
                       <Label htmlFor="validationTooltip01">
                         First name
-                          </Label>
+                      </Label>
                       <Input
                         type="text"
                         className="form-control"
@@ -277,7 +277,7 @@ const FormValidations = (props) => {
                     <div className="mb-3 position-relative">
                       <Label htmlFor="validationTooltipUsername">
                         Username
-                          </Label>
+                      </Label>
                       <div className="input-group">
                         <div className="input-group-prepend">
                           <span
@@ -285,7 +285,7 @@ const FormValidations = (props) => {
                             id="validationTooltipUsernamePrepend"
                           >
                             @
-                              </span>
+                          </span>
                         </div>
                         <Input
                           type="text"
@@ -371,7 +371,7 @@ const FormValidations = (props) => {
                 </Row>
                 <Button color="primary" type="submit">
                   Submit form
-                    </Button>
+                </Button>
               </form>
             </CardBody>
           </Card>
@@ -386,7 +386,7 @@ const FormValidations = (props) => {
                 Parsley is a availity reactstrap validation. It helps you
                 provide your users with feedback on their form submission
                 before sending it to your server.
-                  </p>
+              </p>
 
               <form>
                 <Input
@@ -496,10 +496,10 @@ const FormValidations = (props) => {
                   <div>
                     <Button type="submit" color="primary" className="ms-1">
                       Submit
-                        </Button>{" "}
+                    </Button>{" "}
                     <Button type="reset" color="secondary">
                       Cancel
-                        </Button>
+                    </Button>
                   </div>
                 </FormGroup>
               </form>
@@ -515,7 +515,7 @@ const FormValidations = (props) => {
                 Parsley is a availity reactstrap validation. It helps you
                 provide your users with feedback on their form submission
                 before sending it to your server.
-                  </p>
+              </p>
 
               <form>
                 <Input
@@ -614,10 +614,10 @@ const FormValidations = (props) => {
                   <div>
                     <Button type="submit" color="primary" className="ms-1">
                       Submit
-                        </Button>{" "}
+                    </Button>{" "}
                     <Button type="reset" color="secondary">
                       Cancel
-                        </Button>
+                    </Button>
                   </div>
                 </FormGroup>
               </form>

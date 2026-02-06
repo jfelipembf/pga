@@ -23,10 +23,10 @@ import {
 import Spinners from 'components/Common/Spinner';
 
 const Chat = (props) => {
-    document.title = "Chat | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+    document.title = "Chat | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
     const breadcrumbItems = [
-        { title: "Lexa", link: "#" },
+        { title: "PGA", link: "#" },
         { title: "Chat", link: "#" },
         { title: "Chat", link: "#" },
     ]

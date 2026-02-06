@@ -45,7 +45,7 @@ const theme = {
     colors: ["#34c38f", "#556ee6", "#f46a6a"]
   }
 }
-TuiChart.registerTheme("lexaTheme", theme)
+TuiChart.registerTheme("PGATheme", theme)
 
 const ColumnChartToast = props => {
   const data = {

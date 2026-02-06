@@ -18,7 +18,7 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
 
     // Estados de Teste
     const [testPhone, setTestPhone] = useState('');
-    const [testMessage, setTestMessage] = useState('Olá! Este é um teste da Lexa.');
+    const [testMessage, setTestMessage] = useState('Olá! Este é um teste da PGA.');
     const [testingWhatsapp, setTestingWhatsapp] = useState(false);
 
     const [testPrompt, setTestPrompt] = useState('Qual a capital da França?');
@@ -118,7 +118,7 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
     return (
         <div className="animate__animated animate__fadeIn">
             <Alert color="info" className="mb-4" fade={false}>
-                Aqui você conecta o sistema Lexa às ferramentas externas de IA e Mensageria.
+                Aqui você conecta o sistema PGA às ferramentas externas de IA e Mensageria.
                 Essas chaves são salvas com segurança.
             </Alert>
 

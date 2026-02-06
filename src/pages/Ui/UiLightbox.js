@@ -38,10 +38,10 @@ const images = [img1, img2, img3, img4, img5, img6]
 const images1 = [img3, img7];
 
 const UiLightbox = props => {
-  document.title = "Lightbox | Lexa - Responsive Bootstrap 5 Admin Dashboard"
+  document.title = "Lightbox | PGA - Responsive Bootstrap 5 Admin Dashboard"
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "UI Elements", link: "#" },
     { title: "Lightbox", link: "#" },
   ]
@@ -122,7 +122,7 @@ const UiLightbox = props => {
                           setisFits(true)
                         }}
                         className="img-fluid"
-                        alt="Lexa"
+                        alt="PGA"
                         src={img2}
                         width="145"
                       />

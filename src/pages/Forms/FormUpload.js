@@ -18,10 +18,10 @@ import { Link } from "react-router-dom"
 
 const FormUpload = (props) => {
 
-  document.title = "Form File Upload | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Form File Upload | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "Forms", link: "#" },
     { title: "File Upload", link: "#" },
   ]
@@ -66,7 +66,7 @@ const FormUpload = (props) => {
               <p className="card-title-desc">
                 DropzoneJS is an open source library that provides
                 drag’n’drop file uploads with image previews.
-                  </p>
+              </p>
               <Form>
                 <Dropzone
                   onDrop={acceptedFiles => {
@@ -131,7 +131,7 @@ const FormUpload = (props) => {
                   className="btn btn-primary waves-effect waves-light"
                 >
                   Send Files
-                    </button>
+                </button>
               </div>
             </CardBody>
           </Card>

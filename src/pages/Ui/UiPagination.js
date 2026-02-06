@@ -1,4 +1,4 @@
-import React,{useEffect} from 'react';
+import React, { useEffect } from 'react';
 import {
     Col,
     Row,
@@ -15,10 +15,10 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const UiPagination = (props) => {
-    document.title = "Pagination | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+    document.title = "Pagination | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
     const breadcrumbItems = [
-        { title: "Lexa", link: "#" },
+        { title: "PGA", link: "#" },
         { title: "UI Elements", link: "#" },
         { title: "Pagination", link: "#" },
     ]
@@ -103,7 +103,7 @@ const UiPagination = (props) => {
                                     <PaginationItem active>
                                         <span className="page-link">
                                             2
-                                                    <span className="sr-only">(current)</span>
+                                            <span className="sr-only">(current)</span>
                                         </span>
                                     </PaginationItem>
                                     <PaginationItem><PaginationLink href="#">3</PaginationLink></PaginationItem>
@@ -124,8 +124,8 @@ const UiPagination = (props) => {
 
                             <h4 className="card-title">Sizing</h4>
                             <p className="card-title-desc">Fancy larger or smaller pagination? Add
-                                        <code className="highlighter-rouge">.pagination-lg</code> or <code className="highlighter-rouge">.pagination-sm</code> for additional sizes.
-                                    </p>
+                                <code className="highlighter-rouge">.pagination-lg</code> or <code className="highlighter-rouge">.pagination-sm</code> for additional sizes.
+                            </p>
 
                             <nav aria-label="...">
                                 <Pagination size="lg">

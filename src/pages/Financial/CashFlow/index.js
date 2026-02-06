@@ -26,7 +26,7 @@ const chartOptions = {
 }
 
 const CashFlowPage = () => {
-    document.title = "Fluxo de Caixa | Lexa Admin"
+    document.title = "Fluxo de Caixa | PGA Admin"
 
     const {
         transactions,

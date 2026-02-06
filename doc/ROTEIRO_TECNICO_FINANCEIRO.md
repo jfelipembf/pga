@@ -34,7 +34,7 @@ Para garantir que o sistema seja **blindado contra erros**, não construiremos t
     *   Implementar método `runTransaction` ou `batchWrite` genérico.
 2.  **Repositórios Específicos:**
     *   `SalesRepository`: Focado em salvar Venda + Recebíveis + Caixa no mesmo lote.
-    *   `FinancialRepository`: Para consultas complexas de DRE e Fluxo de Caixa.
+    *   `FinancialRepository`: Para consultas compPGAs de DRE e Fluxo de Caixa.
 
 ### FASE 3: Os Orquestradores (Service Layer) - *Quem manda em tudo*
 **Objetivo:** Ligar a tela ao banco, garantindo que as regras da Fase 1 sejam cumpridas.

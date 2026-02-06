@@ -6,7 +6,7 @@ const OffSymbol = () => <div style={{ height: "100%" }} />
 
 /**
  * Componente de Switch padronizado para o projeto.
- * Encapsula a biblioteca react-switch com os estilos do Lexa Admin.
+ * Encapsula a biblioteca react-switch com os estilos do PGA Admin.
  */
 export const FormSwitch = ({
     checked,

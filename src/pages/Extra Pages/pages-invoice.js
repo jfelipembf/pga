@@ -16,10 +16,10 @@ import { setBreadcrumbItems } from "../../store/actions";
 import imgdark from "../../assets/images/pgaLogo.png";
 
 const PagesInvoice = (props) => {
-    document.title = "Invoice | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+    document.title = "Invoice | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
     const breadcrumbItems = [
-        { title: "Lexa", link: "#" },
+        { title: "PGA", link: "#" },
         { title: "Pages", link: "#" },
         { title: "Invoice", link: "#" },
     ]
@@ -53,34 +53,34 @@ const PagesInvoice = (props) => {
                                         <Col xs="6">
                                             <address>
                                                 <strong>Billed To:</strong><br />
-                                                            John Smith<br />
-                                                            1234 Main<br />
-                                                            Apt. 4B<br />
-                                                            Springfield, ST 54321
-                                                        </address>
+                                                John Smith<br />
+                                                1234 Main<br />
+                                                Apt. 4B<br />
+                                                Springfield, ST 54321
+                                            </address>
                                         </Col>
                                         <Col xs="6" className="text-end">
                                             <address>
                                                 <strong>Shipped To:</strong><br />
-                                                            Kenny Rigdon<br />
-                                                            1234 Main<br />
-                                                            Apt. 4B<br />
-                                                            Springfield, ST 54321
-                                                        </address>
+                                                Kenny Rigdon<br />
+                                                1234 Main<br />
+                                                Apt. 4B<br />
+                                                Springfield, ST 54321
+                                            </address>
                                         </Col>
                                     </Row>
                                     <Row>
                                         <Col xs="6" className="mt-4">
                                             <address>
                                                 <strong>Payment Method:</strong><br />
-                                                            Visa ending **** 4242<br />
-                                                            jsmith@email.com
-                                                        </address>
+                                                Visa ending **** 4242<br />
+                                                jsmith@email.com
+                                            </address>
                                         </Col>
                                         <Col xs="6" className="mt-4 text-end">
                                             <address>
                                                 <strong>Order Date:</strong><br />
-                                                            October 7, 2016<br /><br />
+                                                October 7, 2016<br /><br />
                                             </address>
                                         </Col>
                                     </Row>

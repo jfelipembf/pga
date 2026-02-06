@@ -8,11 +8,11 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const IconDripicons = (props) => {
-  document.title = "Dripicons | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Dripicons | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "Icons", link: "#" },
     { title: "Dripicons", link: "#" },
   ]
@@ -32,702 +32,702 @@ const IconDripicons = (props) => {
               <p className="card-title-desc">
                 Use{" "}
                 <code>&lt;i className="dripicons-alarm"&gt;&lt;/i&gt;</code>
-                    .
-                  </p>
+                .
+              </p>
 
               <Row className="icon-demo-content">
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-alarm" /> dripicons-alarm
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-align-center" />{" "}
-                      dripicons-align-center
-                    </Col>
+                  dripicons-align-center
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-align-justify" />{" "}
-                      dripicons-align-justify
-                    </Col>
+                  dripicons-align-justify
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-align-left" />{" "}
-                      dripicons-align-left
-                    </Col>
+                  dripicons-align-left
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-align-right" />{" "}
-                      dripicons-align-right
-                    </Col>
+                  dripicons-align-right
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-anchor" /> dripicons-anchor
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-archive" /> dripicons-archive
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-arrow-down" />{" "}
-                      dripicons-arrow-down
-                    </Col>
+                  dripicons-arrow-down
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-arrow-left" />{" "}
-                      dripicons-arrow-left
-                    </Col>
+                  dripicons-arrow-left
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-arrow-right" />{" "}
-                      dripicons-arrow-right
-                    </Col>
+                  dripicons-arrow-right
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-arrow-thin-down" />{" "}
-                      dripicons-arrow-thin-down
-                    </Col>
+                  dripicons-arrow-thin-down
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-arrow-thin-left" />{" "}
-                      dripicons-arrow-thin-left
-                    </Col>
+                  dripicons-arrow-thin-left
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-arrow-thin-right" />{" "}
-                      dripicons-arrow-thin-right
-                    </Col>
+                  dripicons-arrow-thin-right
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-arrow-thin-up" />{" "}
-                      dripicons-arrow-thin-up
-                    </Col>
+                  dripicons-arrow-thin-up
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-arrow-up" /> dripicons-arrow-up
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className=" dripicons-article" /> dripicons-article
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-backspace" />{" "}
-                      dripicons-backspace
-                    </Col>
+                  dripicons-backspace
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-basket" /> dripicons-basket
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-basketball" />{" "}
-                      dripicons-basketball
-                    </Col>
+                  dripicons-basketball
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-battery-empty" />{" "}
-                      dripicons-battery-empty
-                    </Col>
+                  dripicons-battery-empty
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-battery-full" />{" "}
-                      dripicons-battery-full
-                    </Col>
+                  dripicons-battery-full
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-battery-low" />{" "}
-                      dripicons-battery-low
-                    </Col>
+                  dripicons-battery-low
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-battery-medium" />{" "}
-                      dripicons-battery-medium
-                    </Col>
+                  dripicons-battery-medium
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-bell" /> dripicons-bell
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-blog" /> dripicons-blog
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-bluetooth" />{" "}
-                      dripicons-bluetooth
-                    </Col>
+                  dripicons-bluetooth
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-bold" /> dripicons-bold
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-bookmark" /> dripicons-bookmark
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-bookmarks" />{" "}
-                      dripicons-bookmarks
-                    </Col>
+                  dripicons-bookmarks
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-box" /> dripicons-box
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-briefcase" />{" "}
-                      dripicons-briefcase
-                    </Col>
+                  dripicons-briefcase
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-brightness-low" />{" "}
-                      dripicons-brightness-low
-                    </Col>
+                  dripicons-brightness-low
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-brightness-max" />{" "}
-                      dripicons-brightness-max
-                    </Col>
+                  dripicons-brightness-max
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-brightness-medium" />{" "}
-                      dripicons-brightness-medium
-                    </Col>
+                  dripicons-brightness-medium
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-broadcast" />{" "}
-                      dripicons-broadcast
-                    </Col>
+                  dripicons-broadcast
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-browser" /> dripicons-browser
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-browser-upload" />{" "}
-                      dripicons-browser-upload
-                    </Col>
+                  dripicons-browser-upload
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-brush" /> dripicons-brush
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-calendar" /> dripicons-calendar
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-camcorder" />{" "}
-                      dripicons-camcorder
-                    </Col>
+                  dripicons-camcorder
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-camera" /> dripicons-camera
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-card" /> dripicons-card
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-cart" /> dripicons-cart
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-checklist" />{" "}
-                      dripicons-checklist
-                    </Col>
+                  dripicons-checklist
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-checkmark" />{" "}
-                      dripicons-checkmark
-                    </Col>
+                  dripicons-checkmark
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-chevron-down" />{" "}
-                      dripicons-chevron-down
-                    </Col>
+                  dripicons-chevron-down
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-chevron-left" />{" "}
-                      dripicons-chevron-left
-                    </Col>
+                  dripicons-chevron-left
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-chevron-right" />{" "}
-                      dripicons-chevron-right
-                    </Col>
+                  dripicons-chevron-right
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-chevron-up" />{" "}
-                      dripicons-chevron-up
-                    </Col>
+                  dripicons-chevron-up
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-clipboard" />{" "}
-                      dripicons-clipboard
-                    </Col>
+                  dripicons-clipboard
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-clock" /> dripicons-clock
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-clockwise" />{" "}
-                      dripicons-clockwise
-                    </Col>
+                  dripicons-clockwise
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-cloud" /> dripicons-cloud
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-cloud-download" />{" "}
-                      dripicons-cloud-download
-                    </Col>
+                  dripicons-cloud-download
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-cloud-upload" />{" "}
-                      dripicons-cloud-upload
-                    </Col>
+                  dripicons-cloud-upload
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-code" /> dripicons-code
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-contract" /> dripicons-contract
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-contract-2" />{" "}
-                      dripicons-contract-2
-                    </Col>
+                  dripicons-contract-2
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-conversation" />{" "}
-                      dripicons-conversation
-                    </Col>
+                  dripicons-conversation
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-copy" /> dripicons-copy
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-crop" /> dripicons-crop
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-cross" /> dripicons-cross
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-crosshair" />{" "}
-                      dripicons-crosshair
-                    </Col>
+                  dripicons-crosshair
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-cutlery" /> dripicons-cutlery
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-device-desktop" />{" "}
-                      dripicons-device-desktop
-                    </Col>
+                  dripicons-device-desktop
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-device-mobile" />{" "}
-                      dripicons-device-mobile
-                    </Col>
+                  dripicons-device-mobile
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-device-tablet" />{" "}
-                      dripicons-device-tablet
-                    </Col>
+                  dripicons-device-tablet
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-direction" />{" "}
-                      dripicons-direction
-                    </Col>
+                  dripicons-direction
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-disc" /> dripicons-disc
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-document" /> dripicons-document
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-document-delete" />{" "}
-                      dripicons-document-delete
-                    </Col>
+                  dripicons-document-delete
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-document-edit" />{" "}
-                      dripicons-document-edit
-                    </Col>
+                  dripicons-document-edit
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-document-new" />{" "}
-                      dripicons-document-new
-                    </Col>
+                  dripicons-document-new
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-document-remove" />{" "}
-                      dripicons-document-remove
-                    </Col>
+                  dripicons-document-remove
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-dot" /> dripicons-dot
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-dots-2" /> dripicons-dots-2
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-dots-3" /> dripicons-dots-3
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-download" /> dripicons-download
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-duplicate" />{" "}
-                      dripicons-duplicate
-                    </Col>
+                  dripicons-duplicate
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-enter" /> dripicons-enter
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-exit" /> dripicons-exit
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-expand" /> dripicons-expand
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-expand-2" /> dripicons-expand-2
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-experiment" />{" "}
-                      dripicons-experiment
-                    </Col>
+                  dripicons-experiment
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-export" /> dripicons-export
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-feed" /> dripicons-feed
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-flag" /> dripicons-flag
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-flashlight" />{" "}
-                      dripicons-flashlight
-                    </Col>
+                  dripicons-flashlight
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-folder" /> dripicons-folder
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-folder-open" />{" "}
-                      dripicons-folder-open
-                    </Col>
+                  dripicons-folder-open
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-forward" /> dripicons-forward
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-gaming" /> dripicons-gaming
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-gear" /> dripicons-gear
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-graduation" />{" "}
-                      dripicons-graduation
-                    </Col>
+                  dripicons-graduation
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-graph-bar" />{" "}
-                      dripicons-graph-bar
-                    </Col>
+                  dripicons-graph-bar
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-graph-line" />{" "}
-                      dripicons-graph-line
-                    </Col>
+                  dripicons-graph-line
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-graph-pie" />{" "}
-                      dripicons-graph-pie
-                    </Col>
+                  dripicons-graph-pie
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-headset" /> dripicons-headset
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-heart" /> dripicons-heart
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-help" /> dripicons-help
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-home" /> dripicons-home
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-hourglass" />{" "}
-                      dripicons-hourglass
-                    </Col>
+                  dripicons-hourglass
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-inbox" /> dripicons-inbox
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-information" />{" "}
-                      dripicons-information
-                    </Col>
+                  dripicons-information
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-italic" /> dripicons-italic
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-jewel" /> dripicons-jewel
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-lifting" /> dripicons-lifting
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-lightbulb" />{" "}
-                      dripicons-lightbulb
-                    </Col>
+                  dripicons-lightbulb
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-link" /> dripicons-link
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-link-broken" />{" "}
-                      dripicons-link-broken
-                    </Col>
+                  dripicons-link-broken
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-list" /> dripicons-list
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-loading" /> dripicons-loading
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-location" /> dripicons-location
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-lock" /> dripicons-lock
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-lock-open" />{" "}
-                      dripicons-lock-open
-                    </Col>
+                  dripicons-lock-open
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-mail" /> dripicons-mail
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-map" /> dripicons-map
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-media-loop" />{" "}
-                      dripicons-media-loop
-                    </Col>
+                  dripicons-media-loop
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-media-next" />{" "}
-                      dripicons-media-next
-                    </Col>
+                  dripicons-media-next
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-media-pause" />{" "}
-                      dripicons-media-pause
-                    </Col>
+                  dripicons-media-pause
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-media-play" />{" "}
-                      dripicons-media-play
-                    </Col>
+                  dripicons-media-play
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-media-previous" />{" "}
-                      dripicons-media-previous
-                    </Col>
+                  dripicons-media-previous
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-media-record" />{" "}
-                      dripicons-media-record
-                    </Col>
+                  dripicons-media-record
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-media-shuffle" />{" "}
-                      dripicons-media-shuffle
-                    </Col>
+                  dripicons-media-shuffle
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-media-stop" />{" "}
-                      dripicons-media-stop
-                    </Col>
+                  dripicons-media-stop
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-medical" /> dripicons-medical
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-menu" /> dripicons-menu
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-message" /> dripicons-message
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-meter" /> dripicons-meter
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-microphone" />{" "}
-                      dripicons-microphone
-                    </Col>
+                  dripicons-microphone
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-minus" /> dripicons-minus
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-monitor" /> dripicons-monitor
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-move" /> dripicons-move
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-music" /> dripicons-music
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-network-1" />{" "}
-                      dripicons-network-1
-                    </Col>
+                  dripicons-network-1
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-network-2" />{" "}
-                      dripicons-network-2
-                    </Col>
+                  dripicons-network-2
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-network-3" />{" "}
-                      dripicons-network-3
-                    </Col>
+                  dripicons-network-3
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-network-4" />{" "}
-                      dripicons-network-4
-                    </Col>
+                  dripicons-network-4
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-network-5" />{" "}
-                      dripicons-network-5
-                    </Col>
+                  dripicons-network-5
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-pamphlet" /> dripicons-pamphlet
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-paperclip" />{" "}
-                      dripicons-paperclip
-                    </Col>
+                  dripicons-paperclip
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-pencil" /> dripicons-pencil
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-phone" /> dripicons-phone
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-photo" /> dripicons-photo
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-photo-group" />{" "}
-                      dripicons-photo-group
-                    </Col>
+                  dripicons-photo-group
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-pill" /> dripicons-pill
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-pin" /> dripicons-pin
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-plus" /> dripicons-plus
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-power" /> dripicons-power
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-preview" /> dripicons-preview
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-print" /> dripicons-print
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-pulse" /> dripicons-pulse
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-question" /> dripicons-question
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-reply" /> dripicons-reply
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-reply-all" />{" "}
-                      dripicons-reply-all
-                    </Col>
+                  dripicons-reply-all
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-return" /> dripicons-return
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-retweet" /> dripicons-retweet
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-rocket" /> dripicons-rocket
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-scale" /> dripicons-scale
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-search" /> dripicons-search
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-shopping-bag" />{" "}
-                      dripicons-shopping-bag
-                    </Col>
+                  dripicons-shopping-bag
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-skip" /> dripicons-skip
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-stack" /> dripicons-stack
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-star" /> dripicons-star
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-stopwatch" />{" "}
-                      dripicons-stopwatch
-                    </Col>
+                  dripicons-stopwatch
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-store" /> dripicons-store
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-suitcase" /> dripicons-suitcase
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-swap" /> dripicons-swap
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-tag" /> dripicons-tag
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-tag-delete" />{" "}
-                      dripicons-tag-delete
-                    </Col>
+                  dripicons-tag-delete
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-tags" /> dripicons-tags
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-thumbs-down" />{" "}
-                      dripicons-thumbs-down
-                    </Col>
+                  dripicons-thumbs-down
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-thumbs-up" />{" "}
-                      dripicons-thumbs-up
-                    </Col>
+                  dripicons-thumbs-up
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-ticket" /> dripicons-ticket
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-time-reverse" />{" "}
-                      dripicons-time-reverse
-                    </Col>
+                  dripicons-time-reverse
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-to-do" /> dripicons-to-do
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-toggles" /> dripicons-toggles
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-trash" /> dripicons-trash
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-trophy" /> dripicons-trophy
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-upload" /> dripicons-upload
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-user" /> dripicons-user
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-user-group" />{" "}
-                      dripicons-user-group
-                    </Col>
+                  dripicons-user-group
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-user-id" /> dripicons-user-id
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-vibrate" /> dripicons-vibrate
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-view-apps" />{" "}
-                      dripicons-view-apps
-                    </Col>
+                  dripicons-view-apps
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-view-list" />{" "}
-                      dripicons-view-list
-                    </Col>
+                  dripicons-view-list
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-view-list-large" />{" "}
-                      dripicons-view-list-large
-                    </Col>
+                  dripicons-view-list-large
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-view-thumb" />{" "}
-                      dripicons-view-thumb
-                    </Col>
+                  dripicons-view-thumb
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-volume-full" />{" "}
-                      dripicons-volume-full
-                    </Col>
+                  dripicons-volume-full
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-volume-low" />{" "}
-                      dripicons-volume-low
-                    </Col>
+                  dripicons-volume-low
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-volume-medium" />{" "}
-                      dripicons-volume-medium
-                    </Col>
+                  dripicons-volume-medium
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-volume-off" />{" "}
-                      dripicons-volume-off
-                    </Col>
+                  dripicons-volume-off
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-wallet" /> dripicons-wallet
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-warning" /> dripicons-warning
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-web" /> dripicons-web
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-weight" /> dripicons-weight
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-wifi" /> dripicons-wifi
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-wrong" /> dripicons-wrong
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-zoom-in" /> dripicons-zoom-in
-                    </Col>
+                </Col>
                 <Col xl="3" lg="4" sm="6">
                   <i className="dripicons-zoom-out" /> dripicons-zoom-out
-                    </Col>
+                </Col>
               </Row>
             </CardBody>
           </Card>

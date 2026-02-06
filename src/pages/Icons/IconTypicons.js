@@ -1,4 +1,4 @@
-import React,{useEffect} from 'react';
+import React, { useEffect } from 'react';
 import {
     Col,
     Row,
@@ -14,10 +14,10 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const IconTypicons = (props) => {
-    document.title = "Typicons Icons | Lexa - Responsive Bootstrap 5 Admin Dashboard";
-    
+    document.title = "Typicons Icons | PGA - Responsive Bootstrap 5 Admin Dashboard";
+
     const breadcrumbItems = [
-        { title: "Lexa", link: "#" },
+        { title: "PGA", link: "#" },
         { title: "Icons", link: "#" },
         { title: "Typicons Icons", link: "#" },
     ]
@@ -36,813 +36,813 @@ const IconTypicons = (props) => {
                             <h4 className="card-title">Examples</h4>
                             <p className="card-title-desc">
                                 Use <code>&lt;i className="pe-7s-album"&gt;&lt;/i&gt;</code>.
-                                    </p>
+                            </p>
 
                             <Row className="icon-demo-content">
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-chart-pie-outline"></i> typcn typcn-chart-pie-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-chart-pie"></i> typcn typcn-chart-pie
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-chevron-left-outline"></i> typcn typcn-chevron-left-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-chevron-left"></i> typcn typcn-chevron-left
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-chevron-right-outline"></i> typcn typcn-chevron-right-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-chevron-right"></i> typcn typcn-chevron-right
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-clipboard"></i> typcn typcn-clipboard
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-cloud-storage"></i> typcn typcn-cloud-storage
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-cloud-storage-outline"></i> typcn typcn-cloud-storage-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-code-outline"></i> typcn typcn-code-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-code"></i> typcn typcn-code
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-coffee"></i> typcn typcn-coffee
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-cog-outline"></i> typcn typcn-cog-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-cog"></i> typcn typcn-cog
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-compass"></i> typcn typcn-compass
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-contacts"></i> typcn typcn-contacts
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-credit-card"></i> typcn typcn-credit-card
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-css3"></i> typcn typcn-css3
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-database"></i> typcn typcn-database
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-delete-outline"></i> typcn typcn-delete-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-delete"></i> typcn typcn-delete
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-device-desktop"></i> typcn typcn-device-desktop
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-device-laptop"></i> typcn typcn-device-laptop
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-device-phone"></i> typcn typcn-device-phone
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-device-tablet"></i> typcn typcn-device-tablet
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-directions"></i> typcn typcn-directions
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-divide-outline"></i> typcn typcn-divide-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-divide"></i> typcn typcn-divide
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-document-add"></i> typcn typcn-document-add
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-document-delete"></i> typcn typcn-document-delete
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-document-text"></i> typcn typcn-document-text
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-document"></i> typcn typcn-document
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-download-outline"></i> typcn typcn-download-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-download"></i> typcn typcn-download
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-dropbox"></i> typcn typcn-dropbox
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-edit"></i> typcn typcn-edit
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-eject-outline"></i> typcn typcn-eject-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-eject"></i> typcn typcn-eject
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-equals-outline"></i> typcn typcn-equals-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-equals"></i> typcn typcn-equals
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-export-outline"></i> typcn typcn-export-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-export"></i> typcn typcn-export
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-eye-outline"></i> typcn typcn-eye-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-eye"></i> typcn typcn-eye
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-feather"></i> typcn typcn-feather
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-film"></i> typcn typcn-film
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-filter"></i> typcn typcn-filter
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-flag-outline"></i> typcn typcn-flag-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-flag"></i> typcn typcn-flag
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-flash-outline"></i> typcn typcn-flash-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-flash"></i> typcn typcn-flash
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-flow-children"></i> typcn typcn-flow-children
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-flow-merge"></i> typcn typcn-flow-merge
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-flow-parallel"></i> typcn typcn-flow-parallel
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-flow-switch"></i> typcn typcn-flow-switch
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-folder-add"></i> typcn typcn-folder-add
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-folder-delete"></i> typcn typcn-folder-delete
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-folder-open"></i> typcn typcn-folder-open
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-folder"></i> typcn typcn-folder
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-gift"></i> typcn typcn-gift
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-globe-outline"></i> typcn typcn-globe-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-globe"></i> typcn typcn-globe
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-group-outline"></i> typcn typcn-group-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-group"></i> typcn typcn-group
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-headphones"></i> typcn typcn-headphones
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-heart-full-outline"></i> typcn typcn-heart-full-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-heart-half-outline"></i> typcn typcn-heart-half-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-heart-outline"></i> typcn typcn-heart-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-heart"></i> typcn typcn-heart
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-home-outline"></i> typcn typcn-home-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-home"></i> typcn typcn-home
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-html5"></i> typcn typcn-html5
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-image-outline"></i> typcn typcn-image-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-image"></i> typcn typcn-image
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-infinity-outline"></i> typcn typcn-infinity-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-infinity"></i> typcn typcn-infinity
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-info-large-outline"></i> typcn typcn-info-large-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-info-large"></i> typcn typcn-info-large
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-info-outline"></i> typcn typcn-info-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-info"></i> typcn typcn-info
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-input-checked-outline"></i> typcn typcn-input-checked-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-input-checked"></i> typcn typcn-input-checked
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-key-outline"></i> typcn typcn-key-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-key"></i> typcn typcn-key
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-keyboard"></i> typcn typcn-keyboard
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-leaf"></i> typcn typcn-leaf
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-lightbulb"></i> typcn typcn-lightbulb
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-link-outline"></i> typcn typcn-link-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-link"></i> typcn typcn-link
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-location-arrow-outline"></i> typcn typcn-location-arrow-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-location-arrow"></i> typcn typcn-location-arrow
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-location-outline"></i> typcn typcn-location-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-location"></i> typcn typcn-location
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-lock-closed-outline"></i> typcn typcn-lock-closed-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-lock-closed"></i> typcn typcn-lock-closed
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-lock-open-outline"></i> typcn typcn-lock-open-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-lock-open"></i> typcn typcn-lock-open
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-mail"></i> typcn typcn-mail
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-map"></i> typcn typcn-map
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-media-eject-outline"></i> typcn typcn-media-eject-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-media-eject"></i> typcn typcn-media-eject
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-media-fast-forward-outline"></i> typcn typcn-media-fast-forward-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-media-fast-forward"></i> typcn typcn-media-fast-forward
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-media-pause-outline"></i> typcn typcn-media-pause-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-media-pause"></i> typcn typcn-media-pause
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-media-play-outline"></i> typcn typcn-media-play-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-media-play-reverse-outline"></i> typcn typcn-media-play-reverse-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-media-play-reverse"></i> typcn typcn-media-play-reverse
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-media-play"></i> typcn typcn-media-play
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-media-record-outline"></i> typcn typcn-media-record-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-media-record"></i> typcn typcn-media-record
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-media-rewind-outline"></i> typcn typcn-media-rewind-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-media-rewind"></i> typcn typcn-media-rewind
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-media-stop-outline"></i> typcn typcn-media-stop-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-media-stop"></i> typcn typcn-media-stop
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-message-typing"></i> typcn typcn-message-typing
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-message"></i> typcn typcn-message
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-messages"></i> typcn typcn-messages
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-microphone-outline"></i> typcn typcn-microphone-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-microphone"></i> typcn typcn-microphone
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-minus-outline"></i> typcn typcn-minus-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-minus"></i> typcn typcn-minus
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-mortar-board"></i> typcn typcn-mortar-board
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-news"></i> typcn typcn-news
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-notes-outline"></i> typcn typcn-notes-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-notes"></i> typcn typcn-notes
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-pen"></i> typcn typcn-pen
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-pencil"></i> typcn typcn-pencil
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-phone-outline"></i> typcn typcn-phone-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-phone"></i> typcn typcn-phone
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-pi-outline"></i> typcn typcn-pi-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-pi"></i> typcn typcn-pi
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-pin-outline"></i> typcn typcn-pin-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-pin"></i> typcn typcn-pin
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-pipette"></i> typcn typcn-pipette
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-plane-outline"></i> typcn typcn-plane-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-plane"></i> typcn typcn-plane
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-plug"></i> typcn typcn-plug
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-plus-outline"></i> typcn typcn-plus-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-plus"></i> typcn typcn-plus
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-point-of-interest-outline"></i> typcn typcn-point-of-interest-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-point-of-interest"></i> typcn typcn-point-of-interest
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-power-outline"></i> typcn typcn-power-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-power"></i> typcn typcn-power
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-printer"></i> typcn typcn-printer
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-puzzle-outline"></i> typcn typcn-puzzle-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-puzzle"></i> typcn typcn-puzzle
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-radar-outline"></i> typcn typcn-radar-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-radar"></i> typcn typcn-radar
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-refresh-outline"></i> typcn typcn-refresh-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-refresh"></i> typcn typcn-refresh
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-rss-outline"></i> typcn typcn-rss-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-rss"></i> typcn typcn-rss
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-scissors-outline"></i> typcn typcn-scissors-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-scissors"></i> typcn typcn-scissors
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-shopping-bag"></i> typcn typcn-shopping-bag
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-shopping-cart"></i> typcn typcn-shopping-cart
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-at-circular"></i> typcn typcn-social-at-circular
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-dribbble-circular"></i> typcn typcn-social-dribbble-circular
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-dribbble"></i> typcn typcn-social-dribbble
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-facebook-circular"></i> typcn typcn-social-facebook-circular
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-facebook"></i> typcn typcn-social-facebook
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-flickr-circular"></i> typcn typcn-social-flickr-circular
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-flickr"></i> typcn typcn-social-flickr
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-github-circular"></i> typcn typcn-social-github-circular
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-github"></i> typcn typcn-social-github
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-google-plus-circular"></i> typcn typcn-social-google-plus-circular
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-google-plus"></i> typcn typcn-social-google-plus
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-instagram-circular"></i> typcn typcn-social-instagram-circular
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-instagram"></i> typcn typcn-social-instagram
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-last-fm-circular"></i> typcn typcn-social-last-fm-circular
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-last-fm"></i> typcn typcn-social-last-fm
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-linkedin-circular"></i> typcn typcn-social-linkedin-circular
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-linkedin"></i> typcn typcn-social-linkedin
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-pinterest-circular"></i> typcn typcn-social-pinterest-circular
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-pinterest"></i> typcn typcn-social-pinterest
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-skype-outline"></i> typcn typcn-social-skype-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-skype"></i> typcn typcn-social-skype
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-tumbler-circular"></i> typcn typcn-social-tumbler-circular
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-tumbler"></i> typcn typcn-social-tumbler
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-twitter-circular"></i> typcn typcn-social-twitter-circular
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-twitter"></i> typcn typcn-social-twitter
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-vimeo-circular"></i> typcn typcn-social-vimeo-circular
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-vimeo"></i> typcn typcn-social-vimeo
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-youtube-circular"></i> typcn typcn-social-youtube-circular
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-social-youtube"></i> typcn typcn-social-youtube
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-sort-alphabetically-outline"></i> typcn typcn-sort-alphabetically-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-sort-alphabetically"></i> typcn typcn-sort-alphabetically
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-sort-numerically-outline"></i> typcn typcn-sort-numerically-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-sort-numerically"></i> typcn typcn-sort-numerically
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-spanner-outline"></i> typcn typcn-spanner-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-spanner"></i> typcn typcn-spanner
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-spiral"></i> typcn typcn-spiral
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-star-full-outline"></i> typcn typcn-star-full-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-star-half-outline"></i> typcn typcn-star-half-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-star-half"></i> typcn typcn-star-half
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-star-outline"></i> typcn typcn-star-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-star"></i> typcn typcn-star
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-starburst-outline"></i> typcn typcn-starburst-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-starburst"></i> typcn typcn-starburst
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-stopwatch"></i> typcn typcn-stopwatch
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-support"></i> typcn typcn-support
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-tabs-outline"></i> typcn typcn-tabs-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-tag"></i> typcn typcn-tag
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-tags"></i> typcn typcn-tags
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-th-large-outline"></i> typcn typcn-th-large-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-th-large"></i> typcn typcn-th-large
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-th-list-outline"></i> typcn typcn-th-list-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-th-list"></i> typcn typcn-th-list
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-th-menu-outline"></i> typcn typcn-th-menu-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-th-menu"></i> typcn typcn-th-menu
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-th-small-outline"></i> typcn typcn-th-small-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-th-small"></i> typcn typcn-th-small
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-thermometer"></i> typcn typcn-thermometer
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-thumbs-down"></i> typcn typcn-thumbs-down
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-thumbs-ok"></i> typcn typcn-thumbs-ok
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-thumbs-up"></i> typcn typcn-thumbs-up
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-tick-outline"></i> typcn typcn-tick-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-tick"></i> typcn typcn-tick
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-ticket"></i> typcn typcn-ticket
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-time"></i> typcn typcn-time
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-times-outline"></i> typcn typcn-times-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-times"></i> typcn typcn-times
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-trash"></i> typcn typcn-trash
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-tree"></i> typcn typcn-tree
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-upload-outline"></i> typcn typcn-upload-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-upload"></i> typcn typcn-upload
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-user-add-outline"></i> typcn typcn-user-add-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-user-add"></i> typcn typcn-user-add
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-user-delete-outline"></i> typcn typcn-user-delete-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-user-delete"></i> typcn typcn-user-delete
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-user-outline"></i> typcn typcn-user-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-user"></i> typcn typcn-user
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-vendor-android"></i> typcn typcn-vendor-android
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-vendor-apple"></i> typcn typcn-vendor-apple
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-vendor-microsoft"></i> typcn typcn-vendor-microsoft
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-video-outline"></i> typcn typcn-video-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-video"></i> typcn typcn-video
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-volume-down"></i> typcn typcn-volume-down
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-volume-mute"></i> typcn typcn-volume-mute
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-volume-up"></i> typcn typcn-volume-up
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-volume"></i> typcn typcn-volume
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-warning-outline"></i> typcn typcn-warning-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-warning"></i> typcn typcn-warning
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-watch"></i> typcn typcn-watch
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-waves-outline"></i> typcn typcn-waves-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-waves"></i> typcn typcn-waves
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-weather-cloudy"></i> typcn typcn-weather-cloudy
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-weather-downpour"></i> typcn typcn-weather-downpour
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-weather-night"></i> typcn typcn-weather-night
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-weather-partly-sunny"></i> typcn typcn-weather-partly-sunny
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-weather-shower"></i> typcn typcn-weather-shower
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-weather-snow"></i> typcn typcn-weather-snow
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-weather-stormy"></i> typcn typcn-weather-stormy
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-weather-sunny"></i> typcn typcn-weather-sunny
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-weather-windy-cloudy"></i> typcn typcn-weather-windy-cloudy
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-weather-windy"></i> typcn typcn-weather-windy
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-wi-fi-outline"></i> typcn typcn-wi-fi-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-wi-fi"></i> typcn typcn-wi-fi
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-wine"></i> typcn typcn-wine
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-world-outline"></i> typcn typcn-world-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-world"></i> typcn typcn-world
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-zoom-in-outline"></i> typcn typcn-zoom-in-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-zoom-in"></i> typcn typcn-zoom-in
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-zoom-out-outline"></i> typcn typcn-zoom-out-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-zoom-out"></i> typcn typcn-zoom-out
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-zoom-outline"></i> typcn typcn-zoom-outline
-                                        </Col>
+                                </Col>
                                 <Col xl="3" lg="4" sm="6">
                                     <i className="typcn typcn-zoom"></i> typcn typcn-zoom
-                                        </Col>
+                                </Col>
 
                             </Row>
 

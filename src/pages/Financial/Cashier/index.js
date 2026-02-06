@@ -13,7 +13,7 @@ import "flatpickr/dist/themes/material_blue.css"
 import { Portuguese } from 'flatpickr/dist/l10n/pt.js'
 
 const CashierPage = () => {
-    document.title = "Caixa | Lexa Admin"
+    document.title = "Caixa | PGA Admin"
 
     const {
         loading,

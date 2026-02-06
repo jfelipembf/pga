@@ -6,7 +6,7 @@ import { formatCurrency } from "../../utils/format"
 import PageLoader from "../../components/Common/PageLoader"
 
 const Dashboard = () => {
-  document.title = "Dashboard Geral | Lexa Admin"
+  document.title = "Dashboard Geral | PGA Admin"
 
   const { loading, data } = useGeneralDashboard('manager')
 

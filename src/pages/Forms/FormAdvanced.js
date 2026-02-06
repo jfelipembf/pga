@@ -19,7 +19,7 @@ import { setBreadcrumbItems } from "../../store/actions";
 const animatedComponents = makeAnimated()
 
 const Offsymbol = (props) => {
-  document.title = "Form Advanced | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Form Advanced | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
   return (
     <div
@@ -118,7 +118,7 @@ const optionGroup2 = [
 const FormAdvanced = (props) => {
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "Forms", link: "#" },
     { title: "Form Advanced", link: "#" },
   ]
@@ -278,7 +278,7 @@ const FormAdvanced = (props) => {
   return (
     <React.Fragment>
 
-     <Row>
+      <Row>
         <Col lg="6">
           <Card>
             <CardBody>
@@ -286,7 +286,7 @@ const FormAdvanced = (props) => {
               <p className="card-title-desc">
                 Fancy and customizable colorpicker plugin for Twitter
                 Bootstrap.
-                  </p>
+              </p>
 
               <Form action="#">
                 <div className="mb-3">
@@ -406,13 +406,13 @@ const FormAdvanced = (props) => {
               <p className="card-title-desc">
                 This plugin integrates by default with Twitter bootstrap
                 using badges to display the maximum lenght of the field
-                    where the user is inserting text.{" "}
+                where the user is inserting text.{" "}
               </p>
               <Label>Default usage</Label>
               <p className="text-muted m-b-15">
                 The badge will show up by default when the remaining chars
                 are 10 or less:
-                  </p>
+              </p>
               <Input
                 type="text"
                 maxLength="25"
@@ -432,8 +432,8 @@ const FormAdvanced = (props) => {
                 <Label>Threshold value</Label>
                 <p className="text-muted m-b-15">
                   Do you want the badge to show up when there are 20 chars
-                      or less? Use the <code>threshold</code> option:
-                    </p>
+                  or less? Use the <code>threshold</code> option:
+                </p>
                 <Input
                   type="text"
                   maxLength={max_len}
@@ -454,8 +454,8 @@ const FormAdvanced = (props) => {
                 <Label>All the options</Label>
                 <p className="text-muted m-b-15">
                   Please note: if the <code>alwaysShow</code> option is
-                      enabled, the <code>threshold</code> option is ignored.
-                    </p>
+                  enabled, the <code>threshold</code> option is ignored.
+                </p>
                 <Input
                   type="text"
                   maxLength="25"
@@ -471,8 +471,8 @@ const FormAdvanced = (props) => {
                     <span className="badge badge-success">
                       {optioncount}
                     </span>{" "}
-                        out of <span className="badge badge-success">25</span>{" "}
-                        chars available
+                    out of <span className="badge badge-success">25</span>{" "}
+                    chars available
                   </span>
                 ) : null}
               </div>
@@ -481,9 +481,9 @@ const FormAdvanced = (props) => {
                 <Label>Position</Label>
                 <p className="text-muted m-b-15">
                   All you need to do is specify the <code>placement</code>{" "}
-                      option, with one of those strings. If none is specified,
-                      the positioning will be defauted to 'bottom'.
-                    </p>
+                  option, with one of those strings. If none is specified,
+                  the positioning will be defauted to 'bottom'.
+                </p>
                 <Input
                   type="text"
                   maxLength="25"
@@ -508,7 +508,7 @@ const FormAdvanced = (props) => {
                 <p className="text-muted m-b-15">
                   Bootstrap maxlength supports textarea as well as inputs.
                   Even on old IE.
-                    </p>
+                </p>
                 <Input
                   type="textarea"
                   id="textarea"
@@ -546,8 +546,8 @@ const FormAdvanced = (props) => {
                   }}
                   checked={switch1}
                 />
-                        &nbsp;
-                        <Switch
+                &nbsp;
+                <Switch
                   uncheckedIcon={<Offsymbol />}
                   checkedIcon={<OnSymbol />}
                   onColor="#a2a2a2"
@@ -556,8 +556,8 @@ const FormAdvanced = (props) => {
                   }}
                   checked={switch2}
                 />
-                        &nbsp;
-                        <Switch
+                &nbsp;
+                <Switch
                   uncheckedIcon={<Offsymbol />}
                   checkedIcon={<OnSymbol />}
                   onColor="#02a499"
@@ -566,8 +566,8 @@ const FormAdvanced = (props) => {
                   }}
                   checked={switch3}
                 />
-                        &nbsp;
-                        <Switch
+                &nbsp;
+                <Switch
                   uncheckedIcon={<Offsymbol />}
                   checkedIcon={<OnSymbol />}
                   onColor="#626ed4"
@@ -576,8 +576,8 @@ const FormAdvanced = (props) => {
                   }}
                   checked={switch4}
                 />
-                        &nbsp;
-                        <Switch
+                &nbsp;
+                <Switch
                   uncheckedIcon={<Offsymbol />}
                   checkedIcon={<OnSymbol />}
                   onColor="#02a499"
@@ -586,8 +586,8 @@ const FormAdvanced = (props) => {
                   }}
                   checked={switch5}
                 />
-                        &nbsp;
-                        <Switch
+                &nbsp;
+                <Switch
                   uncheckedIcon={<Offsymbol />}
                   checkedIcon={<OnSymbol />}
                   onColor="#38a4f8"
@@ -596,8 +596,8 @@ const FormAdvanced = (props) => {
                   }}
                   checked={switch6}
                 />
-                        &nbsp;
-                        <Switch
+                &nbsp;
+                <Switch
                   uncheckedIcon={<Offsymbol />}
                   checkedIcon={<OnSymbol />}
                   onColor="#f8b425"
@@ -606,8 +606,8 @@ const FormAdvanced = (props) => {
                   }}
                   checked={switch7}
                 />
-                        &nbsp;
-                        <Switch
+                &nbsp;
+                <Switch
                   uncheckedIcon={<Offsymbol />}
                   checkedIcon={<OnSymbol />}
                   onColor="#ec4561"
@@ -616,8 +616,8 @@ const FormAdvanced = (props) => {
                   }}
                   checked={switch8}
                 />
-                        &nbsp;
-                        <Switch
+                &nbsp;
+                <Switch
                   uncheckedIcon={<Offsymbol />}
                   checkedIcon={<OnSymbol />}
                   onColor="#2a3142"
@@ -656,7 +656,7 @@ const FormAdvanced = (props) => {
               <h4 className="card-title">Datepicker</h4>
               <p className="card-title-desc">
                 Examples of twitter bootstrap datepicker.
-                  </p>
+              </p>
 
               <Form>
                 <FormGroup className="mb-4">
@@ -746,7 +746,7 @@ const FormAdvanced = (props) => {
               <p className="card-title-desc">
                 A mobile and touch friendly input spinner component for
                 Bootstrap
-                  </p>
+              </p>
               <Form>
                 <div className="mb-3">
                   <Label>Using data attributes</Label>
@@ -835,7 +835,7 @@ const FormAdvanced = (props) => {
                 <div className="mb-3">
                   <Label>
                     Value attribute is not set (applying settings.initval)
-                      </Label>
+                  </Label>
                   <InputGroup>
                     <Button type="button" color="primary"
                       onClick={() => {
@@ -866,7 +866,7 @@ const FormAdvanced = (props) => {
                 <FormGroup className="mb-0">
                   <Label>
                     Value is set explicitly to 33 (skipping
-                        settings.initval){" "}
+                    settings.initval){" "}
                   </Label>
                   <InputGroup>
                     <div
@@ -907,7 +907,7 @@ const FormAdvanced = (props) => {
               <p className="card-title-desc">
                 A mobile and touch friendly input spinner component for
                 Bootstrap
-                  </p>
+              </p>
 
               <form>
                 <Row>
@@ -926,7 +926,7 @@ const FormAdvanced = (props) => {
                     <div className="mb-3">
                       <label className="control-label">
                         Multiple Select
-                          </label>
+                      </label>
                       <Select
                         value={selectedMulti}
                         isMulti={true}

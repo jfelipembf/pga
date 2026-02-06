@@ -1,5 +1,5 @@
-import React, { useState ,useEffect} from "react"
-import {  Row, Col, Card, CardBody } from "reactstrap"
+import React, { useState, useEffect } from "react"
+import { Row, Col, Card, CardBody } from "reactstrap"
 
 import Knob from "../AllCharts/knob/knob"
 
@@ -10,7 +10,7 @@ import { setBreadcrumbItems } from "../../store/actions";
 
 const ChartsKnob = (props) => {
 
-  document.title = "Jquery Knob Charts | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Jquery Knob Charts | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
   const [value, setvalue] = useState(35)
   const [value_cur, setvalue_cur] = useState(29)
@@ -32,7 +32,7 @@ const ChartsKnob = (props) => {
   }
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "Charts", link: "#" },
     { title: "Jquery Knob Chart", link: "#" },
   ]
@@ -51,14 +51,14 @@ const ChartsKnob = (props) => {
               <h4 className="card-title">Examples</h4>
               <p className="card-title-desc">
                 Nice, downward compatible, touchable, jQuery dial
-                  </p>
+              </p>
 
               <Row>
                 <Col lg="4">
                   <div className="text-center" dir="ltr">
                     <h5 className="font-size-14 mb-3">
                       Disable display input
-                        </h5>
+                    </h5>
                     <Knob
                       value={value}
                       height={200}
@@ -91,7 +91,7 @@ const ChartsKnob = (props) => {
                   <div className="text-center" dir="ltr">
                     <h5 className="font-size-14 mb-3">
                       Display previous value
-                        </h5>
+                    </h5>
                     <Knob
                       value={value_prev}
                       height={200}
@@ -123,8 +123,8 @@ const ChartsKnob = (props) => {
                   <div className="text-center" dir="ltr">
                     <h5 className="font-size-14 mb-3">
                       {" "}
-                          5-digit values, step 1000
-                        </h5>
+                      5-digit values, step 1000
+                    </h5>
                     <Knob
                       value={steps}
                       fgColor="#1d1e3a"
@@ -141,7 +141,7 @@ const ChartsKnob = (props) => {
                   <div className="text-center" dir="ltr">
                     <h5 className="font-size-14 mb-3">
                       Angle offset and arc
-                        </h5>
+                    </h5>
                     <Knob
                       value={angleArc}
                       fgColor="#f06292"
@@ -179,8 +179,8 @@ const ChartsKnob = (props) => {
                   <div className="text-center" dir="ltr">
                     <h5 className="font-size-14 mb-3">
                       {" "}
-                          Angle offset and arc
-                        </h5>
+                      Angle offset and arc
+                    </h5>
                     <Knob
                       value={ang_offset_arc}
                       fgColor="#8d6e63"

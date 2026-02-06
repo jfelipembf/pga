@@ -30,10 +30,10 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const UiCards = props => {
-  document.title = "Cards | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Cards | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "UI Elements", link: "#" },
     { title: "Cards", link: "#" },
   ]
@@ -47,31 +47,31 @@ const UiCards = props => {
       <Row>
         <Col mg={6} lg={6} xl={3}>
           <Card>
-            <CardImg top className="img-fluid" src={img1} alt="Lexa" />
+            <CardImg top className="img-fluid" src={img1} alt="PGA" />
             <CardBody>
               <CardTitle className="h4">Card title</CardTitle>
               <CardText>
                 Some quick example text to build on the card title and make
                 up the bulk of the card's content.
-                  </CardText>
+              </CardText>
               <Link
                 to="#"
                 className="btn btn-primary waves-effect waves-light"
               >
                 Button
-                  </Link>
+              </Link>
             </CardBody>
           </Card>
         </Col>
         <Col mg={6} lg={6} xl={3}>
           <Card>
-            <CardImg top className="img-fluid" src={img2} alt="Lexa" />
+            <CardImg top className="img-fluid" src={img2} alt="PGA" />
             <CardBody>
               <CardTitle className="h4">Card title</CardTitle>
               <CardText>
                 Some quick example text to build on the card title and make
                 up the bulk of the card's content.
-                  </CardText>
+              </CardText>
             </CardBody>
             <ul className="list-group list-group-flush">
               <li className="list-group-item">Cras justo odio</li>
@@ -80,22 +80,22 @@ const UiCards = props => {
             <CardBody>
               <Link to="#" className="card-link">
                 Card link
-                  </Link>{" "}
+              </Link>{" "}
               <Link to="#" className="card-link">
                 Another link
-                  </Link>
+              </Link>
             </CardBody>
           </Card>
         </Col>
 
         <Col mg={6} lg={6} xl={3}>
           <Card>
-            <CardImg top className="img-fluid" src={img3} alt="Lexa" />
+            <CardImg top className="img-fluid" src={img3} alt="PGA" />
             <CardBody>
               <CardText>
                 Some quick example text to build on the card title and make
                 up the bulk of the card's content.
-                  </CardText>
+              </CardText>
             </CardBody>
           </Card>
         </Col>
@@ -105,20 +105,20 @@ const UiCards = props => {
               <CardTitle className="h4">Card title</CardTitle>
               <h6 className="card-subtitle font-size-14 text-muted">
                 Support card subtitle
-                  </h6>
+              </h6>
             </CardBody>
-            <CardImg className="img-fluid" src={img4} alt="Lexa" />
+            <CardImg className="img-fluid" src={img4} alt="PGA" />
             <CardBody>
               <CardText>
                 Some quick example text to build on the card title and make
                 up the bulk of the card's content.
-                  </CardText>
+              </CardText>
               <Link to="#" className="card-link">
                 Card link
-                  </Link>{" "}
+              </Link>{" "}
               <Link to="#" className="card-link">
                 Another link
-                  </Link>
+              </Link>
             </CardBody>
           </Card>
         </Col>
@@ -131,13 +131,13 @@ const UiCards = props => {
             <CardText>
               With supporting text below as a natural lead-in to additional
               content.
-                </CardText>
+            </CardText>
             <Link
               to="#"
               className="btn btn-primary waves-effect waves-light"
             >
               Go somewhere
-                </Link>
+            </Link>
           </Card>
         </Col>
         <Col md={6}>
@@ -146,13 +146,13 @@ const UiCards = props => {
             <CardText>
               With supporting text below as a natural lead-in to additional
               content.
-                </CardText>
+            </CardText>
             <Link
               to="#"
               className="btn btn-primary waves-effect waves-light"
             >
               Go somewhere
-                </Link>
+            </Link>
           </Card>
         </Col>
       </Row>
@@ -164,13 +164,13 @@ const UiCards = props => {
             <CardText>
               With supporting text below as a natural lead-in to additional
               content.
-                </CardText>
+            </CardText>
             <Link
               to="#"
               className="btn btn-primary waves-effect waves-light"
             >
               Go somewhere
-                </Link>
+            </Link>
           </Card>
         </Col>
 
@@ -180,13 +180,13 @@ const UiCards = props => {
             <CardText>
               With supporting text below as a natural lead-in to additional
               content.
-                </CardText>
+            </CardText>
             <Link
               to="#"
               className="btn btn-primary waves-effect waves-light"
             >
               Go somewhere
-                </Link>
+            </Link>
           </Card>
         </Col>
 
@@ -196,13 +196,13 @@ const UiCards = props => {
             <CardText>
               With supporting text below as a natural lead-in to additional
               content.
-                </CardText>
+            </CardText>
             <Link
               to="#"
               className="btn btn-primary waves-effect waves-light"
             >
               Go somewhere
-                </Link>
+            </Link>
           </Card>
         </Col>
       </Row>
@@ -214,14 +214,14 @@ const UiCards = props => {
             <CardBody>
               <CardTitle className="h4">
                 Special title treatment
-                  </CardTitle>
+              </CardTitle>
               <CardText>
                 With supporting text below as a natural lead-in to
                 additional content.
-                  </CardText>
+              </CardText>
               <Link to="#" className="btn btn-primary">
                 Go somewhere
-                  </Link>
+              </Link>
             </CardBody>
           </Card>
         </Col>
@@ -234,9 +234,9 @@ const UiCards = props => {
                 <CardText>
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit.
                   Integer posuere erat a ante.
-                    </CardText>
+                </CardText>
                 <footer className="blockquote-footer mt-0 mb-0">{" "}
-                      Someone famous in{" "}
+                  Someone famous in{" "}
                   <cite title="Source Title">Source Title</cite>
                 </footer>
               </blockquote>
@@ -250,17 +250,17 @@ const UiCards = props => {
             <CardBody>
               <CardTitle className="h4">
                 Special title treatment
-                  </CardTitle>
+              </CardTitle>
               <CardText>
                 With supporting text below as a natural lead-in to
                 additional content.
-                  </CardText>
+              </CardText>
               <Link
                 to="#"
                 className="btn btn-primary waves-effect waves-light"
               >
                 Go somewhere
-                  </Link>
+              </Link>
             </CardBody>
             <CardFooter className="text-muted">2 days ago</CardFooter>
           </Card>
@@ -270,18 +270,18 @@ const UiCards = props => {
       <Row>
         <Col lg={4}>
           <Card>
-            <CardImg top className="img-fluid" src={img5} alt="Lexa" />
+            <CardImg top className="img-fluid" src={img5} alt="PGA" />
             <CardBody>
               <CardTitle className="h4">Card title</CardTitle>
               <CardText>
                 This is a wider card with supporting text below as a natural
                 lead-in to additional content. This content is a little bit
                 longer.
-                  </CardText>
+              </CardText>
               <CardText>
                 <small className="text-muted">
                   Last updated 3 mins ago
-                    </small>
+                </small>
               </CardText>
             </CardBody>
           </Card>
@@ -295,31 +295,31 @@ const UiCards = props => {
                 This is a wider card with supporting text below as a natural
                 lead-in to additional content. This content is a little bit
                 longer.
-                  </CardText>
+              </CardText>
               <CardText>
                 <small className="text-muted">
                   Last updated 3 mins ago
-                    </small>
+                </small>
               </CardText>
             </CardBody>
-            <CardImg bottom className="img-fluid" src={img7} alt="Lexa" />
+            <CardImg bottom className="img-fluid" src={img7} alt="PGA" />
           </Card>
         </Col>
 
         <Col lg={4}>
           <Card>
-            <CardImg className="img-fluid" src={img6} alt="Lexa" />
+            <CardImg className="img-fluid" src={img6} alt="PGA" />
             <CardImgOverlay>
               <CardTitle className="h4 text-white">Card title</CardTitle>
               <CardText className="text-white">
                 This is a wider card with supporting text below as a natural
                 lead-in to additional content. This content is a little bit
                 longer.
-                  </CardText>
+              </CardText>
               <CardText>
                 <small className="text-white">
                   Last updated 3 mins ago
-                    </small>
+                </small>
               </CardText>
             </CardImgOverlay>
           </Card>
@@ -415,38 +415,38 @@ const UiCards = props => {
           <CardDeck className="card-deck-wrapper">
             <div className="card-group">
               <Card className="mb-4">
-                <CardImg top className="img-fluid" src={img4} alt="Lexa" />
+                <CardImg top className="img-fluid" src={img4} alt="PGA" />
                 <CardBody>
                   <CardTitle className="h4">Card title</CardTitle>
                   <CardText>
                     This is a longer card with supporting text below as a
                     natural lead-in to additional content. This content is a
                     little bit longer.
-                    </CardText>
+                  </CardText>
                   <CardText>
                     <small className="text-muted">
                       Last updated 3 mins ago
-                      </small>
+                    </small>
                   </CardText>
                 </CardBody>
               </Card>
               <Card className="mb-4">
-                <CardImg top className="img-fluid" src={img5} alt="Lexa" />
+                <CardImg top className="img-fluid" src={img5} alt="PGA" />
                 <CardBody>
                   <CardTitle className="h4">Card title</CardTitle>
                   <CardText>
                     This card has supporting text below as a natural lead-in
                     to additional content.
-                    </CardText>
+                  </CardText>
                   <CardText>
                     <small className="text-muted">
                       Last updated 3 mins ago
-                      </small>
+                    </small>
                   </CardText>
                 </CardBody>
               </Card>
               <Card className="mb-4">
-                <CardImg top className="img-fluid" src={img6} alt="Lexa" />
+                <CardImg top className="img-fluid" src={img6} alt="PGA" />
                 <CardBody>
                   <CardTitle className="h4">Card title</CardTitle>
                   <CardText>
@@ -454,11 +454,11 @@ const UiCards = props => {
                     natural lead-in to additional content. This card has even
                     longer content than the first to show that equal height
                     action.
-                    </CardText>
+                  </CardText>
                   <CardText>
                     <small className="text-muted">
                       Last updated 3 mins ago
-                      </small>
+                    </small>
                   </CardText>
                 </CardBody>
               </Card>

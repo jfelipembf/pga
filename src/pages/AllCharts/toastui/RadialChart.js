@@ -44,7 +44,7 @@ const theme = {
     colors: ["#556ee6", "#34c38f", "#f1b44c", "#f46a6a"]
   }
 }
-TuiChart.registerTheme("lexaTheme", theme)
+TuiChart.registerTheme("PGATheme", theme)
 
 const RadialChartToast = props => {
   const data = {

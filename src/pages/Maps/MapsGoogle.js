@@ -37,10 +37,10 @@ const forth = {
 }
 
 const MapsGoogle = props => {
-  document.title = "Maps Google | Lexa - Responsive Bootstrap 5 Admin Dashboard"
+  document.title = "Maps Google | PGA - Responsive Bootstrap 5 Admin Dashboard"
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "Maps", link: "#" },
     { title: "Google Maps", link: "#" },
   ]

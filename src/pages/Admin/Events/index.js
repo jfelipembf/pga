@@ -11,7 +11,7 @@ import { useTenant } from "../../../hooks/useTenant"
 import RankingModal from "./Ranking/RankingModal"
 
 const EventsPage = ({ setBreadcrumbItems }) => {
-    document.title = "Ciclos de Avaliação e Testes | Lexa Admin"
+    document.title = "Ciclos de Avaliação e Testes | PGA Admin"
     const { user } = useTenant()
 
     // Ranking State

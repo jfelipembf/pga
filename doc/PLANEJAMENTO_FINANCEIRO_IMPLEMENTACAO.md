@@ -177,7 +177,7 @@ Sem reconciliação, o dono da academia pode ter R$ 50.000 "teóricos" no sistem
 
 ## Próximos Passos (Plano de Ação)
 
-1.  Configurar **Schemas de Adquirentes e Contratos** (Garantir que suportam taxas complexas).
+1.  Configurar **Schemas de Adquirentes e Contratos** (Garantir que suportam taxas compPGAs).
 2.  Criar a lógica de **Cálculo de Parcelas** (Input: Valor + Adquirente -> Output: Valor Líquido por parcela).
 3.  Implementar a **Tela de Venda (POS)** com suporte a multi-pagamento.
 4.  Implementar o **Backend de Transação** (Batch Write).

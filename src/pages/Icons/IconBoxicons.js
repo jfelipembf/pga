@@ -15,7 +15,7 @@ var regularIcon = ""
 var logos = ""
 
 const IconBoxicons = props => {
-  document.title = "BoxIcons | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "BoxIcons | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
   useEffect(() => {
     icons.data.forEach(function (val) {

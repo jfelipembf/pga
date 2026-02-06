@@ -27,7 +27,7 @@ var theme = {
     borderColor: "#F4511E",
   },
 }
-TuiChart.registerTheme("lexaTheme", theme)
+TuiChart.registerTheme("PGATheme", theme)
 
 const MapChartToast = () => {
   const data = {

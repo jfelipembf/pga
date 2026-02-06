@@ -1,4 +1,4 @@
-import React, {  useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 
 import {
   Row,
@@ -15,10 +15,10 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const UiModal = (props) => {
-  document.title = "Modals | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Modals | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "UI Elements", link: "#" },
     { title: "Modals", link: "#" },
   ]
@@ -71,7 +71,7 @@ const UiModal = (props) => {
                 from user notification to completely custom content and
                 feature a handful of helpful subcomponents, sizes, and
                 more.
-                    </p>
+              </p>
 
               <div
                 className="modal bs-example-modal"
@@ -96,14 +96,14 @@ const UiModal = (props) => {
                     <div className="modal-footer">
                       <button type="button" className="btn btn-primary">
                         Save changes
-                            </button>
+                      </button>
                       <button
                         type="button"
                         className="btn btn-secondary"
                         data-dismiss="modal"
                       >
                         Close
-                            </button>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -123,7 +123,7 @@ const UiModal = (props) => {
                       data-target="#myModal"
                     >
                       Standard Modal
-                        </button>
+                    </button>
                     <Modal
                       isOpen={modal_standard}
                       toggle={() => {
@@ -133,7 +133,7 @@ const UiModal = (props) => {
                       <div className="modal-header">
                         <h5 className="modal-title mt-0" id="myModalLabel">
                           Modal Heading
-                            </h5>
+                        </h5>
                         <button
                           type="button"
                           onClick={() => {
@@ -153,52 +153,52 @@ const UiModal = (props) => {
                           Cras justo odio, dapibus ac facilisis in, egestas
                           eget quam. Morbi leo risus, porta ac consectetur
                           ac, vestibulum at eros.
-                            </p>
+                        </p>
                         <p>
                           Praesent commodo cursus magna, vel scelerisque
                           nisl consectetur et. Vivamus sagittis lacus vel
                           augue laoreet rutrum faucibus dolor auctor.
-                            </p>
+                        </p>
                         <p>
                           Aenean lacinia bibendum nulla sed consectetur.
                           Praesent commodo cursus magna, vel scelerisque
                           nisl consectetur et. Donec sed odio dui. Donec
                           ullamcorper nulla non metus auctor fringilla.
-                            </p>
+                        </p>
                         <p>
                           Cras mattis consectetur purus sit amet fermentum.
                           Cras justo odio, dapibus ac facilisis in, egestas
                           eget quam. Morbi leo risus, porta ac consectetur
                           ac, vestibulum at eros.
-                            </p>
+                        </p>
                         <p>
                           Praesent commodo cursus magna, vel scelerisque
                           nisl consectetur et. Vivamus sagittis lacus vel
                           augue laoreet rutrum faucibus dolor auctor.
-                            </p>
+                        </p>
                         <p>
                           Aenean lacinia bibendum nulla sed consectetur.
                           Praesent commodo cursus magna, vel scelerisque
                           nisl consectetur et. Donec sed odio dui. Donec
                           ullamcorper nulla non metus auctor fringilla.
-                            </p>
+                        </p>
                         <p>
                           Cras mattis consectetur purus sit amet fermentum.
                           Cras justo odio, dapibus ac facilisis in, egestas
                           eget quam. Morbi leo risus, porta ac consectetur
                           ac, vestibulum at eros.
-                            </p>
+                        </p>
                         <p>
                           Praesent commodo cursus magna, vel scelerisque
                           nisl consectetur et. Vivamus sagittis lacus vel
                           augue laoreet rutrum faucibus dolor auctor.
-                            </p>
+                        </p>
                         <p>
                           Aenean lacinia bibendum nulla sed consectetur.
                           Praesent commodo cursus magna, vel scelerisque
                           nisl consectetur et. Donec sed odio dui. Donec
                           ullamcorper nulla non metus auctor fringilla.
-                            </p>
+                        </p>
                       </div>
                       <div className="modal-footer">
                         <button
@@ -210,13 +210,13 @@ const UiModal = (props) => {
                           data-dismiss="modal"
                         >
                           Close
-                            </button>
+                        </button>
                         <button
                           type="button"
                           className="btn btn-primary waves-effect waves-light"
                         >
                           Save changes
-                            </button>
+                        </button>
                       </div>
                     </Modal>
                   </div>
@@ -234,7 +234,7 @@ const UiModal = (props) => {
                       data-target=".bs-example-modal-lg"
                     >
                       Large modal
-                        </button>
+                    </button>
                   </div>
 
                   <Modal
@@ -250,7 +250,7 @@ const UiModal = (props) => {
                         id="myLargeModalLabel"
                       >
                         Large Modal
-                            </h5>
+                      </h5>
                       <button
                         onClick={() => {
                           setmodal_large(false)
@@ -265,17 +265,17 @@ const UiModal = (props) => {
                     </div>
                     <div className="modal-body">
                       <p>Cras mattis consectetur purus sit amet fermentum.
-                      Cras justo odio, dapibus ac facilisis in,
-                      egestas eget quam. Morbi leo risus, porta ac
-                                                                consectetur ac, vestibulum at eros.</p>
+                        Cras justo odio, dapibus ac facilisis in,
+                        egestas eget quam. Morbi leo risus, porta ac
+                        consectetur ac, vestibulum at eros.</p>
                       <p>Praesent commodo cursus magna, vel scelerisque
-                      nisl consectetur et. Vivamus sagittis lacus vel
-                                                                augue laoreet rutrum faucibus dolor auctor.</p>
+                        nisl consectetur et. Vivamus sagittis lacus vel
+                        augue laoreet rutrum faucibus dolor auctor.</p>
                       <p className="mb-0">Aenean lacinia bibendum nulla sed consectetur.
-                      Praesent commodo cursus magna, vel scelerisque
-                      nisl consectetur et. Donec sed odio dui. Donec
-                      ullamcorper nulla non metus auctor
-                                                                fringilla.</p>
+                        Praesent commodo cursus magna, vel scelerisque
+                        nisl consectetur et. Donec sed odio dui. Donec
+                        ullamcorper nulla non metus auctor
+                        fringilla.</p>
                     </div>
                   </Modal>
                 </Col>
@@ -292,7 +292,7 @@ const UiModal = (props) => {
                       data-target=".bs-example-modal-sm"
                     >
                       Small modal
-                      </button>
+                    </button>
                     <Modal
                       size="sm"
                       isOpen={modal_small}
@@ -306,7 +306,7 @@ const UiModal = (props) => {
                           id="mySmallModalLabel"
                         >
                           Small Modal
-                            </h5>
+                        </h5>
                         <button
                           onClick={() => {
                             setmodal_small(false)
@@ -325,18 +325,18 @@ const UiModal = (props) => {
                           Cras justo odio, dapibus ac facilisis in, egestas
                           eget quam. Morbi leo risus, porta ac consectetur
                           ac, vestibulum at eros.
-                            </p>
+                        </p>
                         <p>
                           Praesent commodo cursus magna, vel scelerisque
                           nisl consectetur et. Vivamus sagittis lacus vel
                           augue laoreet rutrum faucibus dolor auctor.
-                            </p>
+                        </p>
                         <p className="mb-0">
                           Aenean lacinia bibendum nulla sed consectetur.
                           Praesent commodo cursus magna, vel scelerisque
                           nisl consectetur et. Donec sed odio dui. Donec
                           ullamcorper nulla non metus auctor fringilla.
-                            </p>
+                        </p>
                       </div>
                     </Modal>
                   </div>
@@ -354,7 +354,7 @@ const UiModal = (props) => {
                       data-target=".bs-example-modal-center"
                     >
                       Center modal
-                </button>
+                    </button>
                   </div>
 
                   <Modal
@@ -384,18 +384,18 @@ const UiModal = (props) => {
                         Cras justo odio, dapibus ac facilisis in, egestas
                         eget quam. Morbi leo risus, porta ac consectetur
                         ac, vestibulum at eros.
-                            </p>
+                      </p>
                       <p>
                         Praesent commodo cursus magna, vel scelerisque
                         nisl consectetur et. Vivamus sagittis lacus vel
                         augue laoreet rutrum faucibus dolor auctor.
-                            </p>
+                      </p>
                       <p className="mb-0">
                         Aenean lacinia bibendum nulla sed consectetur.
                         Praesent commodo cursus magna, vel scelerisque
                         nisl consectetur et. Donec sed odio dui. Donec
                         ullamcorper nulla non metus auctor fringilla.
-                            </p>
+                      </p>
                     </div>
                   </Modal>
                 </Col>

@@ -20,10 +20,10 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const UiCarousel = (props) => {
-  document.title = "Carousel | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Carousel | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "UI Elements", link: "#" },
     { title: "Carousel", link: "#" },
   ]
@@ -42,8 +42,8 @@ const UiCarousel = (props) => {
               <p className="card-title-desc">
                 Here’s a carousel with slides only. Note the presence of the{" "}
                 <code>.d-block</code> and <code>.img-fluid</code> on
-                    carousel images to prevent browser default image alignment.
-                  </p>
+                carousel images to prevent browser default image alignment.
+              </p>
               <Slide />
             </CardBody>
           </Card>
@@ -54,7 +54,7 @@ const UiCarousel = (props) => {
               <CardTitle className="h4">With controls</CardTitle>
               <p className="card-title-desc">
                 Adding in the previous and next controls:
-                  </p>
+              </p>
               <Slidewithcontrol />
             </CardBody>
           </Card>
@@ -68,7 +68,7 @@ const UiCarousel = (props) => {
               <p className="card-title-desc">
                 You can also add the indicators to the carousel, alongside
                 the controls, too.
-                  </p>
+              </p>
               <Slidewithindicator />
             </CardBody>
           </Card>
@@ -81,7 +81,7 @@ const UiCarousel = (props) => {
                 Add captions to your slides easily with the{" "}
                 <code>.carousel-caption</code> element within any{" "}
                 <code>.carousel-item</code>.
-                  </p>
+              </p>
               <Slidewithcaption />
             </CardBody>
           </Card>
@@ -94,8 +94,8 @@ const UiCarousel = (props) => {
               <CardTitle className="h4">Crossfade</CardTitle>
               <p className="card-title-desc">
                 Add <code>.carousel-fade</code> to your carousel to animate
-                    slides with a fade transition instead of a slide.
-                  </p>
+                slides with a fade transition instead of a slide.
+              </p>
               <Slidewithfade />
             </CardBody>
           </Card>

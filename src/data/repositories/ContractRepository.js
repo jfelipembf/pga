@@ -2,7 +2,7 @@ import { BaseRepository } from "./BaseRepository";
 
 /**
  * Repositório focado apenas na persistência de Contratos (Planos).
- * Não deve conter validações complexas de negócio, apenas CRUD e queries.
+ * Não deve conter validações compPGAs de negócio, apenas CRUD e queries.
  */
 export class ContractRepository extends BaseRepository {
     constructor() {

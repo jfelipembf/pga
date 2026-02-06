@@ -19,17 +19,23 @@ const CashierOpenModal = ({ isOpen, toggle, onConfirm }) => {
     }, [isOpen, resetForm])
 
     return (
-        <Modal isOpen={isOpen} toggle={toggle} centered>
-            <ModalHeader toggle={toggle}>Abrir Caixa</ModalHeader>
+        <Modal isOpen={isOpen} toggle={toggle} centered size="sm">
+            <ModalHeader toggle={toggle} tag="h4">Abrir Caixa</ModalHeader>
             <ModalBody className="p-4">
                 <form onSubmit={formik.handleSubmit}>
-                    <div className="mb-4">
-                        <Label className="fw-bold">Saldo Inicial (Fundo de Troco)</Label>
+                    <p className="text-muted mb-4 text-center">
+                        Informe o valor inicial em gaveta para iniciar as operações.
+                    </p>
+
+                    <Label className="fw-bold mb-1">Fundo de Troco (R$)</Label>
+                    <div className="input-group mb-4">
+                        <span className="input-group-text bg-light fw-bold border-end-0">R$</span>
                         <Input
+                            autoFocus
                             name="openingBalance"
                             type="number"
                             step="0.01"
-                            className="form-control-lg text-primary fw-bold"
+                            className="form-control-lg border-start-0 ps-0 fw-bold text-primary"
                             placeholder="0,00"
                             onChange={formik.handleChange}
                             onBlur={formik.handleBlur}
@@ -37,20 +43,26 @@ const CashierOpenModal = ({ isOpen, toggle, onConfirm }) => {
                             invalid={!!(formik.touched.openingBalance && formik.errors.openingBalance)}
                         />
                         {formik.touched.openingBalance && formik.errors.openingBalance && (
-                            <FormFeedback>{formik.errors.openingBalance}</FormFeedback>
+                            <FormFeedback className="d-block mt-1">{formik.errors.openingBalance}</FormFeedback>
                         )}
                     </div>
-                    <ButtonLoader
-                        type="submit"
-                        color="primary"
-                        block
-                        size="lg"
-                        className="fw-bold"
-                        loading={formik.isSubmitting}
-                        loadingText="Abrindo..."
-                    >
-                        CONFIRMAR ABERTURA
-                    </ButtonLoader>
+
+                    <div className="d-grid gap-2">
+                        <ButtonLoader
+                            type="submit"
+                            color="primary"
+                            size="lg"
+                            className="w-100 fw-bold shadow-sm"
+                            loading={formik.isSubmitting}
+                            loadingText="Abrindo..."
+                        >
+                            <i className="mdi mdi-check-circle-outline me-1"></i>
+                            CONFIRMAR ABERTURA
+                        </ButtonLoader>
+                        <button type="button" className="btn btn-light" onClick={toggle}>
+                            Cancelar
+                        </button>
+                    </div>
                 </form>
             </ModalBody>
         </Modal>

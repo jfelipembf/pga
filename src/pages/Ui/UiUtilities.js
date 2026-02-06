@@ -7,10 +7,10 @@ import user5 from "../../assets/images/users/user-5.jpg";
 import img2 from "../../assets/images/small/img-2.jpg";
 
 const UiUtilities = (props) => {
-    document.title = "Utilities | Lexa - Responsive Bootstrap 5 Admin Dashboard";
-    
+    document.title = "Utilities | PGA - Responsive Bootstrap 5 Admin Dashboard";
+
     const breadcrumbItems = [
-        { title: "Lexa", link: "#" },
+        { title: "PGA", link: "#" },
         { title: "UI Elements", link: "#" },
         { title: "Utilities", link: "#" },
     ]
@@ -323,9 +323,9 @@ const UiUtilities = (props) => {
                             <h6 className="mb-3">Horizontal Stacks Examples</h6>
                             <div className="hstack gap-3">
                                 <input className="form-control me-auto" type="text" placeholder="Add your item here..." aria-label="Add your item here..." />
-                                    <button type="button" className="btn btn-secondary">Submit</button>
-                                    <div className="vr"></div>
-                                    <button type="button" className="btn btn-outline-danger">Reset</button>
+                                <button type="button" className="btn btn-secondary">Submit</button>
+                                <div className="vr"></div>
+                                <button type="button" className="btn btn-outline-danger">Reset</button>
                             </div>
                         </CardBody>
                     </Card>

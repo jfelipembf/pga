@@ -19,10 +19,10 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const UiDropdown = (props) => {
-  document.title = "Dropdowns | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Dropdowns | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "UI Elements", link: "#" },
     { title: "Dropdowns", link: "#" },
   ]
@@ -731,8 +731,8 @@ const UiDropdown = (props) => {
 
               <div className="d-flex gap-2 flex-wrap">
                 <ButtonDropdown className="btn-group"
-                isOpen={drp_close1}
-                toggle={() => setDrp_close1(!drp_close1)}>
+                  isOpen={drp_close1}
+                  toggle={() => setDrp_close1(!drp_close1)}>
                   <DropdownToggle className="btn btn-secondary" type="button">
                     Default dropdown <i className="mdi mdi-chevron-down"></i>
                   </DropdownToggle>
@@ -744,8 +744,8 @@ const UiDropdown = (props) => {
                 </ButtonDropdown>
 
                 <ButtonDropdown className="btn-group"
-                isOpen={drp_close2}
-                toggle={() => setDrp_close2(!drp_close2)}
+                  isOpen={drp_close2}
+                  toggle={() => setDrp_close2(!drp_close2)}
                 >
                   <DropdownToggle className="btn btn-secondary">
                     Clickable outside <i className="mdi mdi-chevron-down"></i>
@@ -758,8 +758,8 @@ const UiDropdown = (props) => {
                 </ButtonDropdown>
 
                 <ButtonDropdown className="btn-group"
-                isOpen={drp_close3}
-                toggle={() => setDrp_close3(!drp_close3)}
+                  isOpen={drp_close3}
+                  toggle={() => setDrp_close3(!drp_close3)}
                 >
                   <DropdownToggle className="btn btn-secondary">
                     Clickable inside <i className="mdi mdi-chevron-down"></i>
@@ -772,8 +772,8 @@ const UiDropdown = (props) => {
                 </ButtonDropdown>
 
                 <ButtonDropdown className="btn-group"
-                isOpen={drp_close4}
-                toggle={() => setDrp_close4(!drp_close4)}
+                  isOpen={drp_close4}
+                  toggle={() => setDrp_close4(!drp_close4)}
                 >
                   <DropdownToggle className="btn btn-secondary">
                     Manual close <i className="mdi mdi-chevron-down"></i>

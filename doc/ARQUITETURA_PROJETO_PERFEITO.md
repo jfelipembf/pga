@@ -530,7 +530,7 @@ export class ClientRepository {
 
 ### **3. Service Layer (Orquestração)**
 
-**Responsabilidade:** Coordenar operações complexas.
+**Responsabilidade:** Coordenar operações compPGAs.
 
 ```javascript
 // services/Clients/clients.service.js

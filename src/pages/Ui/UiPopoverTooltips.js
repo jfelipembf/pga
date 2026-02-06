@@ -18,10 +18,10 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const UiPopoverTooltips = (props) => {
-    document.title = "Popover & Tooltips | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+    document.title = "Popover & Tooltips | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
     const breadcrumbItems = [
-        { title: "Lexa", link: "#" },
+        { title: "PGA", link: "#" },
         { title: "UI Elements", link: "#" },
         { title: "Popover & Tooltips", link: "#" },
     ]
@@ -43,7 +43,7 @@ const UiPopoverTooltips = (props) => {
 
                                 <Button type="button" id="popover1" color="light" className="waves-effect" data-container="body">
                                     Popover on top
-                                    </Button>{" "}
+                                </Button>{" "}
                                 <UncontrolledPopover target="popover1" placement="top">
                                     <PopoverBody>
                                         Vivamus sagittis lacus vel augue laoreet rutrum faucibus
@@ -52,7 +52,7 @@ const UiPopoverTooltips = (props) => {
 
                                 <Button type="button" id="popover2" color="light" className="waves-effect" data-container="body">
                                     Popover on right
-                                    </Button>{" "}
+                                </Button>{" "}
                                 <UncontrolledPopover target="popover2" placement="right">
                                     <PopoverBody>
                                         Vivamus sagittis lacus vel augue laoreet rutrum faucibus
@@ -61,7 +61,7 @@ const UiPopoverTooltips = (props) => {
 
                                 <Button type="button" id="popover3" color="light" className="waves-effect" data-container="body">
                                     Popover on bottom
-                                    </Button>{" "}
+                                </Button>{" "}
                                 <UncontrolledPopover target="popover3" placement="bottom">
                                     <PopoverBody>
                                         Vivamus sagittis lacus vel augue laoreet rutrum faucibus
@@ -70,7 +70,7 @@ const UiPopoverTooltips = (props) => {
 
                                 <Button type="button" id="popover4" color="light" className="waves-effect" data-container="body">
                                     Popover on left
-                                    </Button>{" "}
+                                </Button>{" "}
                                 <UncontrolledPopover target="popover4" placement="left">
                                     <PopoverBody>
                                         Vivamus sagittis lacus vel augue laoreet rutrum faucibus
@@ -129,7 +129,7 @@ const UiPopoverTooltips = (props) => {
                                 </Button>
                                 <UncontrolledTooltip placement="left" target="tooltip4">
                                     Tooltip on left
-                                        </UncontrolledTooltip>
+                                </UncontrolledTooltip>
                             </div>
                         </CardBody>
                     </Card>

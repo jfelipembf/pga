@@ -1,4 +1,4 @@
-import React,{useEffect} from "react"
+import React, { useEffect } from "react"
 import { MDBDataTable } from "mdbreact"
 import { Row, Col, Card, CardBody, CardTitle } from "reactstrap"
 
@@ -10,11 +10,11 @@ import { setBreadcrumbItems } from "../../store/actions";
 import "./datatables.scss"
 
 const DatatableTables = (props) => {
-  document.title = "Data Table | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Data Table | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
-  
+
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "Tables", link: "#" },
     { title: "Data Tables", link: "#" },
   ]
@@ -488,7 +488,7 @@ const DatatableTables = (props) => {
         salary: "$103",
       },
       {
-        name: "Jonas Alexander",
+        name: "Jonas APGAnder",
         position: "Developer",
         office: "San Francisco",
         age: "30",
@@ -525,42 +525,42 @@ const DatatableTables = (props) => {
   return (
     <React.Fragment>
 
-          <Row>
-            <Col className="col-12">
-              <Card>
-                <CardBody>
-                  <CardTitle className="h4">Default Datatable </CardTitle>
-                  <p className="card-title-desc">
-                    mdbreact DataTables has most features enabled by default, so
-                    all you need to do to use it with your own tables is to call
-                    the construction function:{" "}
-                    <code>&lt;MDBDataTable /&gt;</code>.
-                  </p>
+      <Row>
+        <Col className="col-12">
+          <Card>
+            <CardBody>
+              <CardTitle className="h4">Default Datatable </CardTitle>
+              <p className="card-title-desc">
+                mdbreact DataTables has most features enabled by default, so
+                all you need to do to use it with your own tables is to call
+                the construction function:{" "}
+                <code>&lt;MDBDataTable /&gt;</code>.
+              </p>
 
-                  <MDBDataTable responsive bordered data={data} />
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
+              <MDBDataTable responsive bordered data={data} />
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
 
-          <Row>
-            <Col className="col-12">
-              <Card>
-                <CardBody>
-                  <CardTitle className="h4">Stripped example </CardTitle>
-                  <p className="card-title-desc">
-                    mdbreact DataTables has most features enabled by default, so
-                    all you need to do to use it with your own tables is to call
-                    the construction function:{" "}
-                    <code>&lt;MDBDataTable striped /&gt;</code>.
-                  </p>
+      <Row>
+        <Col className="col-12">
+          <Card>
+            <CardBody>
+              <CardTitle className="h4">Stripped example </CardTitle>
+              <p className="card-title-desc">
+                mdbreact DataTables has most features enabled by default, so
+                all you need to do to use it with your own tables is to call
+                the construction function:{" "}
+                <code>&lt;MDBDataTable striped /&gt;</code>.
+              </p>
 
-                  <MDBDataTable responsive striped bordered data={data} />
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
-        
+              <MDBDataTable responsive striped bordered data={data} />
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
+
     </React.Fragment>
   )
 }

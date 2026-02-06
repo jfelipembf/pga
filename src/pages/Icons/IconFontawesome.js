@@ -18,7 +18,7 @@ var brand = ""
 const IconFontawesome = props => {
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "Icons", link: "#" },
     { title: "Font Awesome", link: "#" },
   ]
@@ -29,7 +29,7 @@ const IconFontawesome = props => {
 
 
   useEffect(() => {
-  
+
     for (let entry of icons.data) {
       if (entry.attributes.membership.free.length) {
         for (let value of entry.attributes.membership.free) {
@@ -55,14 +55,14 @@ const IconFontawesome = props => {
         }
       }
     }
-  
+
     document.getElementById("solid").innerHTML = solid;
     document.getElementById("brand").innerHTML = brand;
     document.getElementById("regular").innerHTML = regular;
   }, []);
 
-  document.title = "Font Awesome | Lexa - Responsive Bootstrap 5 Admin Dashboard";
-  
+  document.title = "Font Awesome | PGA - Responsive Bootstrap 5 Admin Dashboard";
+
 
   return (
     <React.Fragment>
@@ -75,7 +75,7 @@ const IconFontawesome = props => {
               <p className="card-title-desc mb-2">
                 Use <code>&lt;i className="fas fa-ad"&gt;&lt;/i&gt;</code>{" "}
                 <span className="badge bg-success">v 5.13.0</span>.
-                  </p>
+              </p>
               <Row className="icon-demo-content" id="solid"></Row>
             </CardBody>
           </Card>
@@ -86,9 +86,9 @@ const IconFontawesome = props => {
                 Use{" "}
                 <code>
                   &lt;i className="far fa-address-book"&gt;&lt;/i&gt;
-                    </code>{" "}
+                </code>{" "}
                 <span className="badge badge-success">v 5.13.0</span>.
-                  </p>
+              </p>
               <Row className="icon-demo-content" id="regular"></Row>
             </CardBody>
           </Card>
@@ -99,7 +99,7 @@ const IconFontawesome = props => {
                 Use{" "}
                 <code>&lt;i className="fab fa-500px"&gt;&lt;/i&gt;</code>{" "}
                 <span className="badge badge-success">v 5.13.0</span>.
-                  </p>
+              </p>
               <Row className="icon-demo-content" id="brand"></Row>
             </CardBody>
           </Card>

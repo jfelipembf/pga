@@ -1,4 +1,4 @@
-import React,{useEffect} from "react"
+import React, { useEffect } from "react"
 import { Card, CardBody, CardTitle, Col, Progress, Row } from "reactstrap"
 import { connect } from "react-redux";
 
@@ -6,10 +6,10 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const UiProgressbar = (props) => {
-  document.title = "Progress Bars | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Progress Bars | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "UI Elements", link: "#" },
     { title: "Progress Bars", link: "#" },
   ]
@@ -29,7 +29,7 @@ const UiProgressbar = (props) => {
               <p className="card-title-desc">
                 Progress components are built with two HTML elements, some
                 CSS to set the width, and a few attributes.
-                  </p>
+              </p>
 
               <div>
                 <div className="mb-4">
@@ -56,7 +56,7 @@ const UiProgressbar = (props) => {
               <p className="card-title-desc">
                 Use background utility classes to change the appearance of
                 individual progress bars.
-                  </p>
+              </p>
 
               <div>
                 <div className="mb-4">
@@ -88,12 +88,12 @@ const UiProgressbar = (props) => {
               <p className="card-title-desc">
                 Add labels to your progress bars by placing text within the{" "}
                 <code className="highlighter-rouge">.progress-bar</code>.
-                  </p>
+              </p>
 
               <div className="">
                 <Progress color="bg-primary" value={25}>
                   25%
-                    </Progress>
+                </Progress>
               </div>
             </CardBody>
           </Card>
@@ -106,7 +106,7 @@ const UiProgressbar = (props) => {
               <p className="card-title-desc">
                 Include multiple progress bars in a progress component if
                 you need.
-                  </p>
+              </p>
 
               <div className="">
                 <Progress multi>
@@ -128,11 +128,11 @@ const UiProgressbar = (props) => {
               <p className="card-title-desc">
                 We only set a{" "}
                 <code className="highlighter-rouge">height</code> value on
-                    the <code className="highlighter-rouge">  .progress-bar</code>
-                    , so if you change that value the outer{" "}
+                the <code className="highlighter-rouge">  .progress-bar</code>
+                , so if you change that value the outer{" "}
                 <code className="highlighter-rouge">.progress</code> will
-                    automatically resize accordingly.
-                  </p>
+                automatically resize accordingly.
+              </p>
 
               <div className="">
                 <Progress
@@ -162,10 +162,10 @@ const UiProgressbar = (props) => {
                 The striped gradient can also be animated. Add{" "}
                 <code className="highlighter-rouge">
                   {" "}
-                      striped animated{" "}
+                  striped animated{" "}
                 </code>{" "}
-                    to to animate the stripes right to left via CSS3 animations.
-                  </p>
+                to to animate the stripes right to left via CSS3 animations.
+              </p>
 
               <div className="">
                 <Progress striped animated color="bg-primary" value="75" />
@@ -182,9 +182,9 @@ const UiProgressbar = (props) => {
               <CardTitle className="h4">Striped</CardTitle>
               <p className="card-title-desc">
                 Add <code className="highlighter-rouge"> striped </code> to
-                    any to apply a stripe via CSS gradient over the progress
-                    bar’s background color.
-                  </p>
+                any to apply a stripe via CSS gradient over the progress
+                bar’s background color.
+              </p>
 
               <div className="">
                 <div className="mb-3">

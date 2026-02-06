@@ -26,18 +26,18 @@ const EmailSideBar = () => {
   return (
     <React.Fragment>
       <Card className="email-leftbar">
-      <div className="d-grid">
-        <Button
-          type="button"
-          color="danger"
-          className="rounded btn-custom btn-block waves-effect waves-light"
-          onClick={() => {
-            setmodal(!modal)
-          }}
-          block
-        >
-          Compose
-        </Button>
+        <div className="d-grid">
+          <Button
+            type="button"
+            color="danger"
+            className="rounded btn-custom btn-block waves-effect waves-light"
+            onClick={() => {
+              setmodal(!modal)
+            }}
+            block
+          >
+            Compose
+          </Button>
         </div>
         <div className="mail-list mt-3">
           <Link to="email-inbox" className="active">
@@ -90,14 +90,14 @@ const EmailSideBar = () => {
 
         <div className="mt-3">
           <Link to="#" className="d-flex">
-            
-          <div className="flex-shrink-0 me-3">
-            <img
-              className="d-flex me-3 rounded-circle"
-              src={avatar2}
-              alt="lexa"
-              height="36"
-            />
+
+            <div className="flex-shrink-0 me-3">
+              <img
+                className="d-flex me-3 rounded-circle"
+                src={avatar2}
+                alt="PGA"
+                height="36"
+              />
             </div>
             <div className="flex-grow-1 chat-user-box">
               <p className="user-title m-0">Scott Median</p>
@@ -106,13 +106,13 @@ const EmailSideBar = () => {
           </Link>
 
           <Link to="#" className="d-flex">
-          <div className="flex-shrink-0 me-3">
-            <img
-              className="d-flex me-3 rounded-circle"
-              src={avatar3}
-              alt="lexa"
-              height="36"
-            />
+            <div className="flex-shrink-0 me-3">
+              <img
+                className="d-flex me-3 rounded-circle"
+                src={avatar3}
+                alt="PGA"
+                height="36"
+              />
             </div>
             <div className="flex-grow-1 chat-user-box">
               <p className="user-title m-0">Julian Rosa</p>
@@ -121,13 +121,13 @@ const EmailSideBar = () => {
           </Link>
 
           <Link to="#" className="d-flex">
-          <div className="flex-shrink-0 me-3">
-            <img
-              className="d-flex me-3 rounded-circle"
-              src={avatar4}
-              alt="lexa"
-              height="36"
-            />
+            <div className="flex-shrink-0 me-3">
+              <img
+                className="d-flex me-3 rounded-circle"
+                src={avatar4}
+                alt="PGA"
+                height="36"
+              />
             </div>
             <div className="flex-grow-1 chat-user-box" body="true">
               <p className="user-title m-0">David Medina</p>
@@ -136,18 +136,18 @@ const EmailSideBar = () => {
           </Link>
 
           <Link to="#" className="d-flex">
-          <div className="flex-shrink-0 me-3">
-            <img
-              className="d-flex me-3 rounded-circle"
-              src={avatar6}
-              alt="lexa"
-              height="36"
-            />
+            <div className="flex-shrink-0 me-3">
+              <img
+                className="d-flex me-3 rounded-circle"
+                src={avatar6}
+                alt="PGA"
+                height="36"
+              />
             </div>
             <div className="flex-grow-1 chat-user-box">
               <p className="user-title m-0">Jay Baker</p>
               <p className="text-muted">Wow that's great</p>
-              </div>
+            </div>
           </Link>
         </div>
       </Card>

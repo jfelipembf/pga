@@ -5,7 +5,7 @@ import { ContractFormVisual } from "./ContractFormVisual"
 import { ContractListItem } from "./ContractListItem"
 
 const ContractList = () => {
-    document.title = "Planos e Contratos | Lexa Admin"
+    document.title = "Planos e Contratos | PGA Admin"
 
     const {
         contracts,

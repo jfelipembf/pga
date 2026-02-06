@@ -9,19 +9,19 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const IconMaterialdesign = props => {
-  document.title = "Material Design | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Material Design | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
   const breadcrumbItems = [
-    { title : "Lexa", link : "#" },
-    { title : "Icons", link : "#" },
-    { title : "Material Design", link : "#" },
+    { title: "PGA", link: "#" },
+    { title: "Icons", link: "#" },
+    { title: "Material Design", link: "#" },
   ]
 
   useEffect(() => {
-    props.setBreadcrumbItems('Material Design' , breadcrumbItems)
+    props.setBreadcrumbItems('Material Design', breadcrumbItems)
   },)
 
-  
+
   useEffect(() => {
     function isNew(icon) {
       return icon.version === "5.0.45"
@@ -1269,7 +1269,7 @@ const IconMaterialdesign = props => {
           hex: "F002D",
           version: "1.5.54"
         }, {
-          name: "amazon-alexa",
+          name: "amazon-aPGA",
           hex: "F08C6",
           version: "2.3.50"
         }, {
@@ -23486,120 +23486,120 @@ const IconMaterialdesign = props => {
 
   return (
     <React.Fragment>
-       
-          <Row className="icons-demo-content">
-            <Col xs="12">
-              <Card>
-                <CardBody>
-                  <h4 className="card-title">New Icons</h4>
-                  <p className="card-title-desc mb-2">
-                    Use{" "}
-                    <code>
-                      &lt;i className="mdi mdi-speedometer-slow"&gt;&lt;/i&gt;
-                    </code>{" "}
-                    <span className="badge badge-success">v 5.0.45</span>.
-                  </p>
 
-                  <Row className="icon-demo-content" id="newIcons"></Row>
-                </CardBody>
-              </Card>
+      <Row className="icons-demo-content">
+        <Col xs="12">
+          <Card>
+            <CardBody>
+              <h4 className="card-title">New Icons</h4>
+              <p className="card-title-desc mb-2">
+                Use{" "}
+                <code>
+                  &lt;i className="mdi mdi-speedometer-slow"&gt;&lt;/i&gt;
+                </code>{" "}
+                <span className="badge badge-success">v 5.0.45</span>.
+              </p>
 
-              <Card>
-                <CardBody>
-                  <h4 className="card-title mb-4">All Icons</h4>
-                  <Row className="icon-demo-content" id="icons"></Row>
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
+              <Row className="icon-demo-content" id="newIcons"></Row>
+            </CardBody>
+          </Card>
 
-          <Row>
-            <Col xs="12">
-              <Card>
-                <CardBody>
-                  <h4 className="card-title">Size</h4>
+          <Card>
+            <CardBody>
+              <h4 className="card-title mb-4">All Icons</h4>
+              <Row className="icon-demo-content" id="icons"></Row>
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
 
-                  <Row className="icon-demo-content">
-                    <Col xl="3" lg="4" sm="6">
-                      <i className="mdi mdi-18px mdi-account"></i> mdi-18px
-                    </Col>
+      <Row>
+        <Col xs="12">
+          <Card>
+            <CardBody>
+              <h4 className="card-title">Size</h4>
 
-                    <Col xl="3" lg="4" sm="6">
-                      <i className="mdi mdi-24px mdi-account"></i> mdi-24px
-                    </Col>
+              <Row className="icon-demo-content">
+                <Col xl="3" lg="4" sm="6">
+                  <i className="mdi mdi-18px mdi-account"></i> mdi-18px
+                </Col>
 
-                    <Col xl="3" lg="4" sm="6">
-                      <i className="mdi mdi-36px mdi-account"></i> mdi-36px
-                    </Col>
+                <Col xl="3" lg="4" sm="6">
+                  <i className="mdi mdi-24px mdi-account"></i> mdi-24px
+                </Col>
 
-                    <Col xl="3" lg="4" sm="6">
-                      <i className="mdi mdi-48px mdi-account"></i> mdi-48px
-                    </Col>
-                  </Row>
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
+                <Col xl="3" lg="4" sm="6">
+                  <i className="mdi mdi-36px mdi-account"></i> mdi-36px
+                </Col>
 
-          <Row>
-            <Col xs="12">
-              <Card>
-                <CardBody>
-                  <h4 className="card-title">Rotate</h4>
+                <Col xl="3" lg="4" sm="6">
+                  <i className="mdi mdi-48px mdi-account"></i> mdi-48px
+                </Col>
+              </Row>
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
 
-                  <Row className="icon-demo-content">
-                    <Col xl="3" lg="4" sm="6">
-                      <i className="mdi mdi-rotate-45 mdi-account"></i>{" "}
-                      mdi-rotate-45
-                    </Col>
-                    <Col xl="3" lg="4" sm="6">
-                      <i className="mdi mdi-rotate-90 mdi-account"></i>{" "}
-                      mdi-rotate-90
-                    </Col>
-                    <Col xl="3" lg="4" sm="6">
-                      <i className="mdi mdi-rotate-135 mdi-account"></i>{" "}
-                      mdi-rotate-135
-                    </Col>
-                    <Col xl="3" lg="4" sm="6">
-                      <i className="mdi mdi-rotate-180 mdi-account"></i>{" "}
-                      mdi-rotate-180
-                    </Col>
-                    <Col xl="3" lg="4" sm="6">
-                      <i className="mdi mdi-rotate-225 mdi-account"></i>{" "}
-                      mdi-rotate-225
-                    </Col>
-                    <Col xl="3" lg="4" sm="6">
-                      <i className="mdi mdi-rotate-270 mdi-account"></i>{" "}
-                      mdi-rotate-270
-                    </Col>
-                    <Col xl="3" lg="4" sm="6">
-                      <i className="mdi mdi-rotate-315 mdi-account"></i>{" "}
-                      mdi-rotate-315
-                    </Col>
-                  </Row>
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
+      <Row>
+        <Col xs="12">
+          <Card>
+            <CardBody>
+              <h4 className="card-title">Rotate</h4>
 
-          <Row>
-            <Col xs="12">
-              <Card>
-                <CardBody>
-                  <h4 className="card-title">Spin</h4>
+              <Row className="icon-demo-content">
+                <Col xl="3" lg="4" sm="6">
+                  <i className="mdi mdi-rotate-45 mdi-account"></i>{" "}
+                  mdi-rotate-45
+                </Col>
+                <Col xl="3" lg="4" sm="6">
+                  <i className="mdi mdi-rotate-90 mdi-account"></i>{" "}
+                  mdi-rotate-90
+                </Col>
+                <Col xl="3" lg="4" sm="6">
+                  <i className="mdi mdi-rotate-135 mdi-account"></i>{" "}
+                  mdi-rotate-135
+                </Col>
+                <Col xl="3" lg="4" sm="6">
+                  <i className="mdi mdi-rotate-180 mdi-account"></i>{" "}
+                  mdi-rotate-180
+                </Col>
+                <Col xl="3" lg="4" sm="6">
+                  <i className="mdi mdi-rotate-225 mdi-account"></i>{" "}
+                  mdi-rotate-225
+                </Col>
+                <Col xl="3" lg="4" sm="6">
+                  <i className="mdi mdi-rotate-270 mdi-account"></i>{" "}
+                  mdi-rotate-270
+                </Col>
+                <Col xl="3" lg="4" sm="6">
+                  <i className="mdi mdi-rotate-315 mdi-account"></i>{" "}
+                  mdi-rotate-315
+                </Col>
+              </Row>
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
 
-                  <Row className="icon-demo-content">
-                    <Col xl="3" lg="4" sm="6">
-                      <i className="mdi mdi-spin mdi-loading"></i> mdi-spin
-                    </Col>
-                    <Col xl="3" lg="4" sm="6">
-                      <i className="mdi mdi-spin mdi-star"></i> mdi-spin
-                    </Col>
-                  </Row>
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
+      <Row>
+        <Col xs="12">
+          <Card>
+            <CardBody>
+              <h4 className="card-title">Spin</h4>
+
+              <Row className="icon-demo-content">
+                <Col xl="3" lg="4" sm="6">
+                  <i className="mdi mdi-spin mdi-loading"></i> mdi-spin
+                </Col>
+                <Col xl="3" lg="4" sm="6">
+                  <i className="mdi mdi-spin mdi-star"></i> mdi-spin
+                </Col>
+              </Row>
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
     </React.Fragment>
   )
 }

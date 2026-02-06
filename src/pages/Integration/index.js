@@ -6,7 +6,7 @@ import { IntegrationSettings } from "../Automation/components/IntegrationSetting
 import { useAutomation } from "../Automation/hooks/useAutomation";
 
 const IntegrationPage = (props) => {
-    document.title = "Integrações | Lexa Admin";
+    document.title = "Integrações | PGA Admin";
 
     // Reutilizando o hook existente para carregar/salvar configs
     const { integrationConfig, saving, saveIntegrations } = useAutomation();

@@ -9,11 +9,11 @@ import logoLightPng from "../../assets/images/pgaLogo.png"
 import logoDark from "../../assets/images/pgaLogo.png"
 
 const Login = () => {
-  document.title = "Login | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Login | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
   return (
     <React.Fragment>
-      
+
       <div className="account-pages my-5 pt-sm-5">
         <Container>
           <Row className="justify-content-center">
@@ -28,7 +28,7 @@ const Login = () => {
                   </h3>
                   <div className="p-3">
                     <h4 className="text-muted font-size-18 mb-1 text-center">Welcome Back !</h4>
-                    <p className="text-muted text-center">Sign in to continue to Lexa.</p>
+                    <p className="text-muted text-center">Sign in to continue to PGA.</p>
                     <Form
                       className="form-horizontal mt-4"
                     >
@@ -98,7 +98,7 @@ const Login = () => {
                   </Link>{" "}
                 </p>
                 <p>
-                  © {new Date().getFullYear()} Lexa
+                  © {new Date().getFullYear()} PGA
                   <span className="d-none d-sm-inline-block"> - Crafted with <i className="mdi mdi-heart text-danger"></i> by Themesbrand.</span>
                 </p>
               </div>

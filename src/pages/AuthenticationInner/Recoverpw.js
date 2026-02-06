@@ -9,10 +9,10 @@ import logoDark from "../../assets/images/pgaLogo.png"
 
 const Recoverpw = (props) => {
 
-  document.title = "Recover Password | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Recover Password | PGA - Responsive Bootstrap 5 Admin Dashboard";
   return (
     <React.Fragment>
-      
+
       <div className="account-pages my-5 pt-sm-5">
         <Container>
           <Row className="justify-content-center">
@@ -76,7 +76,7 @@ const Recoverpw = (props) => {
                   </Link>{" "}
                 </p>
                 <p>
-                  © {new Date().getFullYear()} Lexa <span className="d-none d-sm-inline-block"> - Crafted with <i className="mdi mdi-heart text-danger"></i> by Themesbrand.</span>
+                  © {new Date().getFullYear()} PGA <span className="d-none d-sm-inline-block"> - Crafted with <i className="mdi mdi-heart text-danger"></i> by Themesbrand.</span>
                 </p>
               </div>
             </Col>

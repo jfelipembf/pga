@@ -16,10 +16,10 @@ import PolarChart from "../AllCharts/chartjs/polarchart"
 
 const ChartsJs = props => {
   document.title =
-    "Chartjs Charts | Lexa - Responsive Bootstrap 5 Admin Dashboard"
+    "Chartjs Charts | PGA - Responsive Bootstrap 5 Admin Dashboard"
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "Charts", link: "#" },
     { title: "Chartjs Chart", link: "#" },
   ]

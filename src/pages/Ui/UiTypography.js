@@ -1,4 +1,4 @@
-import React ,{useEffect} from "react"
+import React, { useEffect } from "react"
 import {
   Card,
   Row,
@@ -13,10 +13,10 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const UiTypography = (props) => {
-  document.title = "Typography | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Typography | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "UI Elements", link: "#" },
     { title: "Typography", link: "#" },
   ]
@@ -31,7 +31,7 @@ const UiTypography = (props) => {
         <Col xl={6}>
           <Card>
             <CardBody>
-            <div className="d-flex">
+              <div className="d-flex">
                 <div className="ms-3 me-4">
                   <h1 className="display-4 mb-0">A</h1>
                 </div>
@@ -48,10 +48,10 @@ const UiTypography = (props) => {
               <p className="card-title-desc">
                 All HTML headings,{" "}
                 <code className="highlighter-rouge">&lt;h1&gt;</code>{" "}
-                    through{" "}
+                through{" "}
                 <code className="highlighter-rouge">&lt;h6&gt;</code>, are
-                    available.
-                  </p>
+                available.
+              </p>
 
               <h1 className="mb-3">h1. Bootstrap heading <small className="text-muted">2.03125rem (32.5px)</small></h1>
 
@@ -72,12 +72,12 @@ const UiTypography = (props) => {
               <CardTitle className="h4">Inline text elements</CardTitle>
               <p className="card-title-desc">
                 Styling for common inline HTML5 elements.
-                  </p>
+              </p>
 
               <p className="lead">
                 Vivamus sagittis lacus vel augue laoreet rutrum faucibus
                 dolor auctor.
-                  </p>
+              </p>
               <p>You can use the mark tag to <mark>highlight</mark> text.</p>
               <p><del>This line of text is meant to be treated as deleted text.</del></p>
               <p><s>This line of text is meant to be treated as no longer accurate.</s></p>
@@ -95,19 +95,19 @@ const UiTypography = (props) => {
               <p className="card-title-desc">
                 Remove the default{" "}
                 <code className="highlighter-rouge">list-style</code> and
-                    left margin on list items (immediate children only).{" "}
+                left margin on list items (immediate children only).{" "}
                 <strong>
                   This only applies to immediate children list items
-                    </strong>
-                    , meaning you will need to add the className for any nested
-                    lists as well.
-                  </p>
+                </strong>
+                , meaning you will need to add the className for any nested
+                lists as well.
+              </p>
 
               <ul className="list-unstyled mb-0">
                 <li>Integer molestie lorem at massa</li>
                 <li>
                   Nulla volutpat aliquam velit
-                      <ul>
+                  <ul>
                     <li>Phasellus iaculis neque</li>
                     <li>Purus sodales ultricies</li>
                     <li>Vestibulum laoreet porttitor sem</li>
@@ -125,7 +125,7 @@ const UiTypography = (props) => {
               <CardTitle className="h4">Display headings</CardTitle>
               <p className="card-title-desc">
                 Traditional heading elements are designed to work best in
-                    the meat of your page content.{" "}
+                the meat of your page content.{" "}
               </p>
 
               <h1 className="display-1">Display 1</h1>
@@ -142,14 +142,14 @@ const UiTypography = (props) => {
               <CardTitle className="h4">Blockquotes</CardTitle>
               <p className="card-title-desc">
                 For quoting blocks of content from another source within
-                    your document. Wrap{" "}
+                your document. Wrap{" "}
                 <code className="highlighter-rouge">
                   &lt;blockquote className="blockquote"&gt;
-                    </code>{" "}
-                    around any{" "}
+                </code>{" "}
+                around any{" "}
                 <abbr title="HyperText Markup Language">HTML</abbr> as the
-                    quote.
-                  </p>
+                quote.
+              </p>
 
               <blockquote className="blockquote font-size-16 mb-0">
                 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.</p>
@@ -169,11 +169,11 @@ const UiTypography = (props) => {
               <p className="card-title-desc">
                 Remove a list’s bullets and apply some light{" "}
                 <code className="highlighter-rouge">margin</code> with a
-                    combination of two className,{" "}
+                combination of two className,{" "}
                 <code className="highlighter-rouge">.list-inline</code> and
-                    <code className="highlighter-rouge">.list-inline-item</code>
-                    .
-                  </p>
+                <code className="highlighter-rouge">.list-inline-item</code>
+                .
+              </p>
 
               <ul className="list-inline mb-0">
                 <li className="list-inline-item">Lorem ipsum</li>
@@ -193,38 +193,38 @@ const UiTypography = (props) => {
               <p className="card-title-desc">
                 Align terms and descriptions horizontally by using our grid
                 system’s predefined className (or semantic mixins). For
-                    longer terms, you can optionally add a{" "}
+                longer terms, you can optionally add a{" "}
                 <code className="highlighter-rouge">.text-truncate</code>{" "}
-                    className to truncate the text with an ellipsis.
-                  </p>
+                className to truncate the text with an ellipsis.
+              </p>
 
               <dl className="row mb-0">
                 <dt className="col-sm-3">Description lists</dt>
                 <dd className="col-sm-9">
                   A description list is perfect for defining terms.
-                    </dd>
+                </dd>
 
                 <dt className="col-sm-3">Euismod</dt>
                 <dd className="col-sm-9">
                   Vestibulum id ligula porta felis euismod semper eget
                   lacinia odio sem nec elit.
-                    </dd>
+                </dd>
                 <dd className="col-sm-9 offset-sm-3">
                   Donec id elit non mi porta gravida at eget metus.
-                    </dd>
+                </dd>
 
                 <dt className="col-sm-3">Malesuada porta</dt>
                 <dd className="col-sm-9">
                   Etiam porta sem malesuada magna mollis euismod.
-                    </dd>
+                </dd>
 
                 <dt className="col-sm-3 text-truncate">
                   Truncated term is truncated
-                    </dt>
+                </dt>
                 <dd className="col-sm-9">
                   Fusce dapibus, tellus ac cursus commodo, tortor mauris
                   condimentum nibh, ut fermentum massa justo sit amet risus.
-                    </dd>
+                </dd>
 
                 <dt className="col-sm-3">Nesting</dt>
                 <dd className="col-sm-9">
@@ -233,7 +233,7 @@ const UiTypography = (props) => {
                     <dd className="col-sm-8">
                       Aenean posuere, tortor sed cursus feugiat, nunc augue
                       blandit nunc.
-                        </dd>
+                    </dd>
                   </dl>
                 </dd>
               </dl>

@@ -20,10 +20,10 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const UiButtons = (props) => {
-    document.title = "Buttons | Lexa - Responsive Bootstrap 5 Admin Dashboard";
-    
+    document.title = "Buttons | PGA - Responsive Bootstrap 5 Admin Dashboard";
+
     const breadcrumbItems = [
-        { title: "Lexa", link: "#" },
+        { title: "PGA", link: "#" },
         { title: "UI Elements", link: "#" },
         { title: "Buttons", link: "#" },
     ]

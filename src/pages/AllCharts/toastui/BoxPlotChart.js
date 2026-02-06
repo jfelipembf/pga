@@ -44,7 +44,7 @@ const theme = {
     colors: ["#556ee6", "#34c38f"]
   }
 }
-TuiChart.registerTheme("lexaTheme", theme)
+TuiChart.registerTheme("PGATheme", theme)
 
 const BoxPlotChartToast = props => {
   const data = {

@@ -9,7 +9,7 @@ import PageLoader from "../../../components/Common/PageLoader"
  * Focada na análise de rentabilidade e performance do negócio.
  */
 const DREPage = () => {
-    document.title = "DRE Gerencial | Lexa Admin"
+    document.title = "DRE Gerencial | PGA Admin"
 
     const {
         transactions,

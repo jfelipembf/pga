@@ -25,10 +25,10 @@ import "chartist/dist/scss/chartist.scss";
 
 
 const ChartsChartist = (props) => {
-    document.title = "Chartist Charts | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+    document.title = "Chartist Charts | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
     const breadcrumbItems = [
-        { title: "Lexa", link: "#" },
+        { title: "PGA", link: "#" },
         { title: "Charts", link: "#" },
         { title: "Chartist Chart", link: "#" },
     ]

@@ -6,7 +6,7 @@ import ManagementLayout from "../../../components/Common/ManagementLayout"
 import ConfirmDialog from "../../../components/Common/ConfirmDialog"
 
 const CatalogPage = ({ setBreadcrumbItems }) => {
-    document.title = "Catálogo de Produtos e Serviços | Lexa Admin"
+    document.title = "Catálogo de Produtos e Serviços | PGA Admin"
 
     const {
         filteredCatalog: items,
@@ -73,9 +73,8 @@ const CatalogPage = ({ setBreadcrumbItems }) => {
             {items.map(item => (
                 <div
                     key={item.id}
-                    className={`p-3 border-bottom cursor-pointer ${
-                        selectedId === item.id ? 'bg-light' : ''
-                    }`}
+                    className={`p-3 border-bottom cursor-pointer ${selectedId === item.id ? 'bg-light' : ''
+                        }`}
                     onClick={() => handleItemClick(item)}
                     style={{ cursor: 'pointer' }}
                 >

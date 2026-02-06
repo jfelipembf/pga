@@ -16,11 +16,11 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const FormElements = (props) => {
-  document.title = "Form Elements | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Form Elements | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
-  
+
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "Forms", link: "#" },
     { title: "Form Elements", link: "#" },
   ]
@@ -41,9 +41,9 @@ const FormElements = (props) => {
               <CardTitle className="h4">Textual inputs</CardTitle>
               <p className="card-title-desc">
                 Here are examples of <code>.form-control</code> applied to
-                    each textual HTML5 <code>&lt;input&gt;</code>{" "}
+                each textual HTML5 <code>&lt;input&gt;</code>{" "}
                 <code>type</code>.
-                  </p>
+              </p>
 
               <Row className="mb-3">
                 <label
@@ -51,7 +51,7 @@ const FormElements = (props) => {
                   className="col-md-2 col-form-label"
                 >
                   Text
-                    </label>
+                </label>
                 <div className="col-md-10">
                   <input
                     className="form-control"
@@ -66,7 +66,7 @@ const FormElements = (props) => {
                   className="col-md-2 col-form-label"
                 >
                   Search
-                    </label>
+                </label>
                 <div className="col-md-10">
                   <input
                     className="form-control"
@@ -81,7 +81,7 @@ const FormElements = (props) => {
                   className="col-md-2 col-form-label"
                 >
                   Email
-                    </label>
+                </label>
                 <div className="col-md-10">
                   <input
                     className="form-control"
@@ -96,7 +96,7 @@ const FormElements = (props) => {
                   className="col-md-2 col-form-label"
                 >
                   URL
-                    </label>
+                </label>
                 <div className="col-md-10">
                   <input
                     className="form-control"
@@ -111,7 +111,7 @@ const FormElements = (props) => {
                   className="col-md-2 col-form-label"
                 >
                   Telephone
-                    </label>
+                </label>
                 <div className="col-md-10">
                   <input
                     className="form-control"
@@ -126,7 +126,7 @@ const FormElements = (props) => {
                   className="col-md-2 col-form-label"
                 >
                   Password
-                    </label>
+                </label>
                 <div className="col-md-10">
                   <input
                     className="form-control"
@@ -141,7 +141,7 @@ const FormElements = (props) => {
                   className="col-md-2 col-form-label"
                 >
                   Number
-                    </label>
+                </label>
                 <div className="col-md-10">
                   <input
                     className="form-control"
@@ -157,7 +157,7 @@ const FormElements = (props) => {
                   className="col-md-2 col-form-label"
                 >
                   Date and time
-                    </label>
+                </label>
                 <div className="col-md-10">
                   <input
                     className="form-control"
@@ -173,7 +173,7 @@ const FormElements = (props) => {
                   className="col-md-2 col-form-label"
                 >
                   Date
-                    </label>
+                </label>
                 <div className="col-md-10">
                   <input
                     className="form-control"
@@ -189,7 +189,7 @@ const FormElements = (props) => {
                   className="col-md-2 col-form-label"
                 >
                   Month
-                    </label>
+                </label>
                 <div className="col-md-10">
                   <input
                     className="form-control"
@@ -205,7 +205,7 @@ const FormElements = (props) => {
                   className="col-md-2 col-form-label"
                 >
                   Week
-                    </label>
+                </label>
                 <div className="col-md-10">
                   <input
                     className="form-control"
@@ -221,7 +221,7 @@ const FormElements = (props) => {
                   className="col-md-2 col-form-label"
                 >
                   Time
-                    </label>
+                </label>
                 <div className="col-md-10">
                   <input
                     className="form-control"
@@ -237,7 +237,7 @@ const FormElements = (props) => {
                   className="col-md-2 col-form-label"
                 >
                   Color
-                    </label>
+                </label>
                 <div className="col-md-10">
                   <input
                     className="form-control form-control-color w-100"
@@ -266,7 +266,7 @@ const FormElements = (props) => {
               <Row>
                 <label className="col-md-2 col-form-label">
                   Datalists
-                    </label>
+                </label>
                 <div className="col-md-10">
                   <input className="form-control" list="datalistOptions" id="exampleDataList" placeholder="Type to search..." />
                   <datalist id="datalistOptions">
@@ -295,20 +295,20 @@ const FormElements = (props) => {
                     <Form>
                       <div className="mb-3">
                         <label className="form-label" htmlFor="formrow-firstname-input">First name</label>
-                        <input type="text" className="form-control" id="formrow-firstname-input" placeholder="Enter your first name"/>
+                        <input type="text" className="form-control" id="formrow-firstname-input" placeholder="Enter your first name" />
                       </div>
 
                       <Row>
                         <Col md={6}>
                           <div className="mb-3">
                             <label className="form-label" htmlFor="formrow-email-input">Email</label>
-                            <input type="email" className="form-control" id="formrow-email-input" placeholder="Enter your first name"/>
+                            <input type="email" className="form-control" id="formrow-email-input" placeholder="Enter your first name" />
                           </div>
                         </Col>
                         <Col md={6}>
                           <div className="mb-3">
                             <label className="form-label" htmlFor="formrow-password-input">Password</label>
-                            <input type="password" className="form-control" id="formrow-password-input" placeholder="Enter your first name"/>
+                            <input type="password" className="form-control" id="formrow-password-input" placeholder="Enter your first name" />
                           </div>
                         </Col>
                       </Row>
@@ -334,26 +334,26 @@ const FormElements = (props) => {
                       <div className="row mb-4">
                         <label htmlFor="horizontal-firstname-input" className="col-sm-3 col-form-label">First name</label>
                         <div className="col-sm-9">
-                          <input type="text" className="form-control" id="horizontal-firstname-input" placeholder="Enter your first name"/>
+                          <input type="text" className="form-control" id="horizontal-firstname-input" placeholder="Enter your first name" />
                         </div>
                       </div>
                       <div className="row mb-4">
                         <label htmlFor="horizontal-email-input" className="col-sm-3 col-form-label">Email</label>
                         <div className="col-sm-9">
-                          <input type="email" className="form-control" id="horizontal-email-input" placeholder="Enter your first name"/>
+                          <input type="email" className="form-control" id="horizontal-email-input" placeholder="Enter your first name" />
                         </div>
                       </div>
                       <div className="row mb-4">
                         <label htmlFor="horizontal-password-input" className="col-sm-3 col-form-label">Password</label>
                         <div className="col-sm-9">
-                          <input type="password" className="form-control" id="horizontal-password-input" placeholder="Enter your first name"/>
+                          <input type="password" className="form-control" id="horizontal-password-input" placeholder="Enter your first name" />
                         </div>
                       </div>
 
                       <div className="row justify-content-end">
                         <div className="col-sm-9">
                           <div className="form-check mb-4">
-                            <input type="checkbox" className="form-check-input" id="horizontal-customCheck" placeholder="Enter your first name"/>
+                            <input type="checkbox" className="form-check-input" id="horizontal-customCheck" placeholder="Enter your first name" />
                             <label className="form-check-label" htmlFor="horizontal-customCheck">Remember me</label>
                           </div>
 
@@ -387,7 +387,7 @@ const FormElements = (props) => {
                       <input className="form-check-input" type="checkbox" id="autoSizingCheck2" />
                       <label className="form-check-label" htmlFor="autoSizingCheck2">
                         Remember me
-                                                    </label>
+                      </label>
                     </div>
                   </div>
                   <div className="col-auto">
@@ -408,7 +408,7 @@ const FormElements = (props) => {
                 Set heights using className like{" "}
                 <code>.form-control-lg</code> and{" "}
                 <code>.form-control-sm</code>.
-                  </p>
+              </p>
               <div>
                 <Row>
                   <Col lg={6}>
@@ -462,7 +462,7 @@ const FormElements = (props) => {
                     <h5 className="font-size-14 mb-4">
                       <i
                         className="mdi mdi-arrow-right text-primary me-1"></i> Form Checkboxes
-                        </h5>
+                    </h5>
                     <div className="form-check mb-3">
                       <input
                         className="form-check-input"
@@ -475,7 +475,7 @@ const FormElements = (props) => {
                         htmlFor="defaultCheck1"
                       >
                         Form Checkbox
-                          </label>
+                      </label>
                     </div>
                     <div className="form-check form-check-end">
                       <input
@@ -490,7 +490,7 @@ const FormElements = (props) => {
                         htmlFor="defaultCheck2"
                       >
                         Form Checkbox checked
-                          </label>
+                      </label>
                     </div>
                   </div>
                 </Col>
@@ -509,7 +509,7 @@ const FormElements = (props) => {
                         className="form-check-label"
                       >
                         Form Checkbox Right
-                          </label>
+                      </label>
                     </div>
 
                     <div className="form-check form-check-right">
@@ -525,7 +525,7 @@ const FormElements = (props) => {
 
                       >
                         Form Checkbox Right checked
-                          </label>
+                      </label>
                     </div>
                   </div>
                 </Col>
@@ -543,7 +543,7 @@ const FormElements = (props) => {
                 <Col md={5}>
                   <div>
                     <h5 className="font-size-14 mb-4">
-                    <i className="mdi mdi-arrow-right text-primary me-1"></i>Form Radios</h5>
+                      <i className="mdi mdi-arrow-right text-primary me-1"></i>Form Radios</h5>
                     <div className="form-check mb-3">
                       <input
                         className="form-check-input"
@@ -558,7 +558,7 @@ const FormElements = (props) => {
                         htmlFor="exampleRadios1"
                       >
                         Form Radio
-                          </label>
+                      </label>
                     </div>
                     <div className="form-check">
                       <input
@@ -573,7 +573,7 @@ const FormElements = (props) => {
                         htmlFor="exampleRadios2"
                       >
                         Form Radio checked
-                          </label>
+                      </label>
                     </div>
                   </div>
                 </Col>
@@ -593,7 +593,7 @@ const FormElements = (props) => {
                           htmlFor="customRadio1"
                         >
                           Form Radio Right
-                          </label>
+                        </label>
                       </div>
                     </div>
                     <div>
@@ -610,7 +610,7 @@ const FormElements = (props) => {
                           htmlFor="customRadio2"
                         >
                           Form Radio Right checked
-                          </label>
+                        </label>
                       </div>
                     </div>
                   </div>
@@ -628,7 +628,7 @@ const FormElements = (props) => {
               <CardTitle className="h4">Switches</CardTitle>
               <p className="card-title-desc">
                 A switch has the markup of a custom checkbox but uses the <code>.form-switch</code> class to render a toggle switch. Switches also support the <code>disabled</code> attribute.
-                  </p>
+              </p>
               <Row>
                 <Col sm={6}>
                   <div>
@@ -648,7 +648,7 @@ const FormElements = (props) => {
                         htmlFor="customSwitch2"
                       >
                         Toggle this switch element
-                          </label>
+                      </label>
                     </div>
                   </div>
                   <div className="form-check form-switch">
@@ -685,7 +685,7 @@ const FormElements = (props) => {
                         htmlFor="customSwitchsizesm"
                       >
                         Small Size Switch
-                          </label>
+                      </label>
                     </div>
 
                     <div
@@ -702,7 +702,7 @@ const FormElements = (props) => {
                         htmlFor="customSwitchsizemd"
                       >
                         Medium Size Switch
-                          </label>
+                      </label>
                     </div>
 
                     <div
@@ -719,7 +719,7 @@ const FormElements = (props) => {
                         htmlFor="customSwitchsizelg"
                       >
                         Large Size Switch
-                          </label>
+                      </label>
                     </div>
                   </div>
                 </Col>

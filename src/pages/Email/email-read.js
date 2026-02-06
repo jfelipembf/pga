@@ -1,4 +1,4 @@
-import React , {useEffect} from "react"
+import React, { useEffect } from "react"
 import { Link } from "react-router-dom"
 import { Row, Col, Card, CardBody } from "reactstrap"
 
@@ -18,11 +18,11 @@ import EmailSideBar from "./email-sidebar"
 import EmailToolbar from "./email-toolbar"
 
 const EmailRead = (props) => {
-  document.title = "Email Read | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Email Read | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "Email", link: "#" },
     { title: "Email Read", link: "#" },
   ]
@@ -45,25 +45,25 @@ const EmailRead = (props) => {
               <EmailToolbar />
 
               <CardBody>
-              <div className="d-flex mb-4">
-              <div className="flex-shrink-0  me-3">
-                  <img
-                    className="d-flex me-3 rounded-circle avatar-sm"
-                    src={avatar1}
-                    alt="lexa"
-                  />
+                <div className="d-flex mb-4">
+                  <div className="flex-shrink-0  me-3">
+                    <img
+                      className="d-flex me-3 rounded-circle avatar-sm"
+                      src={avatar1}
+                      alt="PGA"
+                    />
                   </div>
                   <div className="flex-grow-1 align-self-center">
                     <h4 className="font-size-14 m-0">
                       Humberto D. Champion
-                        </h4>
+                    </h4>
                     <small className="text-muted">support@domain.com</small>
                   </div>
                 </div>
 
                 <h4 className="font-size-16">
                   This Week's Top Stories
-                    </h4>
+                </h4>
 
                 <p>Dear Lorem Ipsum,</p>
                 <p>
@@ -72,7 +72,7 @@ const EmailRead = (props) => {
                   id, luctus in tortor. Nunc vestibulum est quis orci varius
                   viverra. Curabitur dictum volutpat massa vulputate
                   molestie. In at felis ac velit maximus convallis.
-                    </p>
+                </p>
                 <p>
                   Sed elementum turpis eu lorem interdum, sed porttitor eros
                   commodo. Nam eu venenatis tortor, id lacinia diam. Sed
@@ -80,7 +80,7 @@ const EmailRead = (props) => {
                   ultrices. Vivamus fringilla, mi lacinia dapibus
                   condimentum, ipsum urna lacinia lacus, vel tincidunt mi
                   nibh sit amet lorem.
-                    </p>
+                </p>
                 <p>Sincerly,</p>
                 <hr />
 
@@ -90,12 +90,12 @@ const EmailRead = (props) => {
                       <img
                         className="card-img-top img-fluid"
                         src={img3}
-                        alt="lexa"
+                        alt="PGA"
                       />
                       <div className="my-2 text-center">
                         <Link to="#" className="text-muted font-weight-normal">
                           Download
-                            </Link>
+                        </Link>
                       </div>
                     </Card>
                   </Col>
@@ -104,12 +104,12 @@ const EmailRead = (props) => {
                       <img
                         className="card-img-top img-fluid"
                         src={img4}
-                        alt="lexa"
+                        alt="PGA"
                       />
                       <div className="my-2 text-center">
                         <Link to="#" className="text-muted font-weight-normal">
                           Download
-                            </Link>
+                        </Link>
                       </div>
                     </Card>
                   </Col>
@@ -120,7 +120,7 @@ const EmailRead = (props) => {
                   className="btn btn-secondary waves-effect mt-5"
                 >
                   <i className="mdi mdi-reply"></i> Reply
-                    </Link>
+                </Link>
 
               </CardBody>
             </Card>

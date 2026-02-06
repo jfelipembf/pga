@@ -14,10 +14,10 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const UiGrid = (props) => {
-  document.title = "Grid | Lexa - Responsive Bootstrap 5 Admin Dashboard";
-  
+  document.title = "Grid | PGA - Responsive Bootstrap 5 Admin Dashboard";
+
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "UI Elements", link: "#" },
     { title: "Grid", link: "#" },
   ]
@@ -38,7 +38,7 @@ const UiGrid = (props) => {
               <p className="card-title-desc">
                 See how aspects of the Bootstrap grid system work across
                 multiple devices with a handy table.
-                  </p>
+              </p>
 
               <div className="table-responsive">
                 <table className="table table-bordered table-striped table-nowrap mb-0">

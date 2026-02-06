@@ -1,4 +1,4 @@
-import React ,{useEffect} from 'react';
+import React, { useEffect } from 'react';
 import {
     Col,
     Row,
@@ -19,10 +19,10 @@ import DonutChart from "../AllCharts/apex/dountchart";
 import StackedBarChart from "../AllCharts/apex/stackedbarchart";
 
 const ChartsAppex = (props) => {
-    document.title = "Apex Charts | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+    document.title = "Apex Charts | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
     const breadcrumbItems = [
-        { title: "Lexa", link: "#" },
+        { title: "PGA", link: "#" },
         { title: "Charts", link: "#" },
         { title: "Apex Charts", link: "#" },
     ]

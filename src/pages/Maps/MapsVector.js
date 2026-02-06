@@ -16,10 +16,10 @@ import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 
 const MapsVector = (props) => {
-  document.title = "Vector Maps | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+  document.title = "Vector Maps | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
   const breadcrumbItems = [
-    { title: "Lexa", link: "#" },
+    { title: "PGA", link: "#" },
     { title: "Maps", link: "#" },
     { title: "Vector Maps", link: "#" },
   ]
@@ -37,7 +37,7 @@ const MapsVector = (props) => {
               <CardTitle>World Map</CardTitle>
               <CardSubtitle className="mb-3">
                 Example of vector map.
-                  </CardSubtitle>
+              </CardSubtitle>
 
               <div id="world-map-markers" className="vector-map-height">
                 <Vector
@@ -55,7 +55,7 @@ const MapsVector = (props) => {
               <CardTitle>USA Map</CardTitle>
               <CardSubtitle className="mb-3">
                 Example of vector map.
-                  </CardSubtitle>
+              </CardSubtitle>
 
               <div id="usa" className="vector-map-height">
                 <Vector
@@ -76,7 +76,7 @@ const MapsVector = (props) => {
               <CardTitle>Canada Map</CardTitle>
               <CardSubtitle className="mb-3">
                 Example of vector map.
-                  </CardSubtitle>
+              </CardSubtitle>
 
               <div id="uk" className="vector-map-height">
                 <Vector
@@ -95,7 +95,7 @@ const MapsVector = (props) => {
               <CardTitle>Asia Vector Map</CardTitle>
               <CardSubtitle className="mb-3">
                 Example of vector map.
-                  </CardSubtitle>
+              </CardSubtitle>
 
               <div id="chicago" className="vector-map-height">
                 <Vector

@@ -11,7 +11,7 @@ import ConfirmDialog from "../../../components/Common/ConfirmDialog"
 import { DEFAULT_ROLES, BASE_ROLE_IDS } from "./Constants/permissions"
 
 const RolesPage = ({ setBreadcrumbItems }) => {
-    document.title = "Gestão de Funções | Lexa Admin"
+    document.title = "Gestão de Funções | PGA Admin"
 
     const {
         filteredRoles: roles,
@@ -93,8 +93,8 @@ const RolesPage = ({ setBreadcrumbItems }) => {
                 </h5>
                 <div className="d-flex gap-2">
                     {formData.id && (
-                        <button 
-                            className="btn btn-danger btn-sm" 
+                        <button
+                            className="btn btn-danger btn-sm"
                             onClick={() => {
                                 setRoleToDelete(formData)
                                 setDeleteModalOpen(true)

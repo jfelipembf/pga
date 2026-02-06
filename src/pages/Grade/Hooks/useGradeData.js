@@ -11,7 +11,7 @@ import { toast } from "react-toastify"
 
 export const useGradeData = (referenceDate) => {
     const { idTenant, idBranch, isReady } = useTenant()
-    const cache = useWeekCache()
+    const { get: getFromCache, set: saveToCache, cleanup, cacheStats } = useWeekCache()
 
     const [sessions, setSessions] = useState([])
     const [activities, setActivities] = useState([])
@@ -27,7 +27,7 @@ export const useGradeData = (referenceDate) => {
 
             // Verificar cache primeiro (se não for refresh forçado)
             if (!forceRefresh) {
-                const cached = cache.get(referenceDate)
+                const cached = getFromCache(referenceDate)
                 if (cached) {
 
 
@@ -96,7 +96,7 @@ export const useGradeData = (referenceDate) => {
             }
 
             // Salvar no cache
-            cache.set(referenceDate, loadedData)
+            saveToCache(referenceDate, loadedData)
 
             setSessions(normalizedSessions)
             setActivities(activitiesData || [])
@@ -110,7 +110,7 @@ export const useGradeData = (referenceDate) => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch, isReady, referenceDate, cache])
+    }, [idTenant, idBranch, isReady, referenceDate, getFromCache, saveToCache])
 
     useEffect(() => {
         loadData()
@@ -119,11 +119,11 @@ export const useGradeData = (referenceDate) => {
     // Cleanup do cache a cada 5 minutos
     useEffect(() => {
         const interval = setInterval(() => {
-            cache.cleanup()
+            cleanup()
         }, 5 * 60 * 1000)
 
         return () => clearInterval(interval)
-    }, [cache])
+    }, [cleanup])
 
     return {
         sessions,
@@ -133,6 +133,6 @@ export const useGradeData = (referenceDate) => {
         staff,
         loading,
         refresh: () => loadData(true), // Force refresh
-        cacheStats: cache.cacheStats
+        cacheStats: cacheStats
     }
 }

@@ -11,17 +11,17 @@ import { Editor } from "react-draft-wysiwyg"
 
 const EmailCompose = (props) => {
 
-    document.title = "Email Compose | Lexa - Responsive Bootstrap 5 Admin Dashboard";
+    document.title = "Email Compose | PGA - Responsive Bootstrap 5 Admin Dashboard";
 
     const breadcrumbItems = [
-        { title: "Lexa", link: "#" },
+        { title: "PGA", link: "#" },
         { title: "Email", link: "#" },
         { title: "Email Compose", link: "#" },
     ]
 
     useEffect(() => {
         props.setBreadcrumbItems('Email Compose', breadcrumbItems)
-    }) 
+    })
 
     return (
         <React.Fragment>
