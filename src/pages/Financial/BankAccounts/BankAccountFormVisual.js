@@ -203,7 +203,6 @@ export const BankAccountFormVisual = ({ initialData, onSave, onCancel, onDelete 
                                 label={formik.values.isActive ? "Conta Ativa" : "Conta Inativa"}
                                 checked={!!formik.values.isActive}
                                 onChange={(val) => formik.setFieldValue('isActive', val)}
-                                onColor="#34c38f"
                             />
                         </div>
 
@@ -214,7 +213,6 @@ export const BankAccountFormVisual = ({ initialData, onSave, onCancel, onDelete 
                                 description="Usada como padrão para recebimentos e despesas"
                                 checked={!!formik.values.isPrimary}
                                 onChange={(val) => formik.setFieldValue('isPrimary', val)}
-                                onColor="#34c38f"
                             />
                         </div>
                     </Col>

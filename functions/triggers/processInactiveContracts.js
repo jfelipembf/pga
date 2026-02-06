@@ -18,8 +18,6 @@ module.exports = createScheduledTrigger("40 0 * * *", "processInactiveContracts"
     // Precisamos comparar com o Timestamp do Firestore (canceledAt). 
     // O Timestamp do Firestore é comparável com Date objects em queries.
 
-    console.log(`[processInactiveContracts] Buscando contratos cancelados antes de ${limitDate.toISOString()} para inativar.`);
-
     try {
         // Busca em group collection é mais eficiente para varrer todos os branches
         const oldCanceledSnapshot = await db.collectionGroup("clientsContracts")
@@ -28,7 +26,6 @@ module.exports = createScheduledTrigger("40 0 * * *", "processInactiveContracts"
             .get();
 
         if (oldCanceledSnapshot.empty) {
-            console.log("[processInactiveContracts] Nenhum contrato encontrado para inativar.");
             return;
         }
 
@@ -66,8 +63,6 @@ module.exports = createScheduledTrigger("40 0 * * *", "processInactiveContracts"
         if (opsCount > 0) {
             await batch.commit();
         }
-
-        console.log(`[processInactiveContracts] Sucesso. ${processedCount} contratos alterados para 'inactive'.`);
 
     } catch (error) {
         console.error("[processInactiveContracts] Erro ao processar contratos inativos:", error);

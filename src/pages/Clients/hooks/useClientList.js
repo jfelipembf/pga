@@ -37,7 +37,6 @@ export const useClientList = () => {
     // Handlers
     const handleModalSubmit = async (values) => {
         // Lógica de submit será implementada quando tivermos o NewClientModal
-        console.log("Submit values:", values)
         setModalOpen(false)
         await refreshClients()
     }

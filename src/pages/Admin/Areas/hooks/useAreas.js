@@ -23,7 +23,7 @@ export const useAreas = () => {
 
     const [searchTerm, setSearchTerm] = useState('')
     const [fetchLimit, setFetchLimit] = useState(50)
-    
+
     // Cache: armazena timestamp da última carga
     const [lastLoadTime, setLastLoadTime] = useState(null)
     const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
@@ -32,7 +32,6 @@ export const useAreas = () => {
         // Cache: verifica se precisa recarregar
         const now = Date.now()
         if (!forceReload && lastLoadTime && (now - lastLoadTime) < CACHE_DURATION) {
-            console.log('✅ Usando cache (áreas)')
             return
         }
 
@@ -87,9 +86,9 @@ export const useAreas = () => {
         try {
             setDeleting(true)
             await AreaService.deleteArea(
-                idTenant, 
-                idBranch, 
-                user.uid, 
+                idTenant,
+                idBranch,
+                user.uid,
                 area,
                 user.displayName || user.email
             )

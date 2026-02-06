@@ -12,20 +12,13 @@ import { formatDate } from "../../../utils/sharedUtils"
 const formatHeaderDate = formatDate // Use centralized function
 
 const ClassBar = ({
-  items,
   selectedId,
-  onSelect,
-  onEdit,
-  onDelete,
   emptyLabel,
   date,
   onPrevDay,
   onNextDay,
   schedules,
   onScheduleSelect,
-  onDragStart,
-  onDragOver,
-  onDragEnd,
   className,
 }) => {
 

@@ -45,5 +45,4 @@ module.exports = createScheduledTrigger("10 0 * * *", "ensureSessionsHorizon", a
         }
     }
 
-    console.log(`[ensureSessionsHorizon] Finalizado. Sessões criadas: ${createdTotal}`);
 });

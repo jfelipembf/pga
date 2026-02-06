@@ -14,10 +14,8 @@ exports.createScheduledTrigger = (cron, taskName, handler) => {
         .pubsub.schedule(cron)
         .timeZone("America/Sao_Paulo")
         .onRun(async (context) => {
-            console.log(`[${taskName}] Iniciando execução agendada...`);
             try {
                 await handler(context);
-                console.log(`[${taskName}] Execução finalizada com sucesso.`);
             } catch (error) {
                 console.error(`[${taskName}] Erro durante a execução:`, error);
                 throw error; // Re-throw para garantir que o erro apareça no console/logs

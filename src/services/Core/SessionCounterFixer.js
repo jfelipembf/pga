@@ -16,14 +16,10 @@ export const SessionCounterFixer = {
      * Recalcula todos os contadores de presença baseado nos snapshots das sessões
      */
     fixAllSessionCounters: async (idTenant, idBranch) => {
-        console.log('[SessionCounterFixer] Iniciando correção de contadores...')
-
         try {
             // 1. Buscar todas as sessões com presença registrada
             const sessions = await sessionRepository.findAll(idTenant, idBranch)
             const sessionsWithAttendance = sessions.filter(s => s.attendanceRecorded && s.attendanceSnapshot?.length > 0)
-
-            console.log(`[SessionCounterFixer] ${sessionsWithAttendance.length} sessões com chamada encontradas`)
 
             // 2. Mapear contadores por enrollmentId
             const counters = new Map() // enrollmentId -> { attended: 0, missed: 0 }
@@ -45,8 +41,6 @@ export const SessionCounterFixer = {
                 }
             }
 
-            console.log(`[SessionCounterFixer] ${counters.size} matrículas para atualizar`)
-
             // 3. Atualizar matrículas
             let updated = 0
             for (const [enrollmentId, { attended, missed }] of counters.entries()) {
@@ -56,13 +50,11 @@ export const SessionCounterFixer = {
                         missedSessions: missed
                     })
                     updated++
-                    console.log(`[SessionCounterFixer] ${enrollmentId}: attended=${attended}, missed=${missed}`)
                 } catch (err) {
                     console.warn(`[SessionCounterFixer] Erro ao atualizar ${enrollmentId}:`, err.message)
                 }
             }
 
-            console.log(`[SessionCounterFixer] ✅ Correção concluída! ${updated} matrículas atualizadas.`)
             return { success: true, updated }
 
         } catch (error) {

@@ -18,11 +18,9 @@ module.exports = createScheduledTrigger("40 2 * * *", "processRecurringTasks", a
     // Original: today.toLocaleString("sv-SE", { timeZone: "America/Sao_Paulo" }).split("T")[0]
     // The previous code explicitly wanted Brazil time. 
     // Let's keep the logic but use toISODate on the shifted date.
-    
+
     const spDateStr = today.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
     const todayIso = toISODate(new Date(spDateStr));
-
-    console.log(`[RecurringTasks] Iniciando processamento para: ${todayIso}`);
 
     try {
         const templatesSnap = await db.collectionGroup("recurringTaskTemplates")
@@ -31,7 +29,6 @@ module.exports = createScheduledTrigger("40 2 * * *", "processRecurringTasks", a
             .get();
 
         if (templatesSnap.empty) {
-            console.log("[RecurringTasks] Nenhuma tarefa recorrente agendada para hoje.");
             return;
         }
 
@@ -45,7 +42,6 @@ module.exports = createScheduledTrigger("40 2 * * *", "processRecurringTasks", a
             // Tenants path handling
             const pathSegments = doc.ref.path.split("/");
             if (pathSegments.length < 4) {
-                console.warn(`Template com path inválido: ${doc.ref.path}`);
                 continue;
             }
             const tenantId = pathSegments[1];
@@ -151,8 +147,6 @@ module.exports = createScheduledTrigger("40 2 * * *", "processRecurringTasks", a
         if (opsCount > 0) {
             await batch.commit();
         }
-
-        console.log(`[RecurringTasks] Processamento concluído. ${templatesSnap.size} templates verificados.`);
 
     } catch (err) {
         console.error("[RecurringTasks] Erro fatal:", err);

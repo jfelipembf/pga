@@ -3,6 +3,7 @@ import { financialRoutes } from './financial.routes'
 import { clientsRoutes } from './clients.routes'
 import { dashboardRoutes } from './dashboard.routes'
 import { salesRoutes } from './sales.routes'
+import { automationRoutes } from './automation.routes'
 
 /**
  * Configuração Central de Rotas
@@ -18,6 +19,7 @@ export const protectedRoutes = [
   salesRoutes,
   financialRoutes,
   adminRoutes,
+  automationRoutes,
 ]
 
 /**
@@ -51,10 +53,10 @@ export const publicRoutes = [
  */
 export const flattenRoutes = (routes, parentPath = '') => {
   let flattened = []
-  
+
   routes.forEach(route => {
     const fullPath = parentPath + route.path
-    
+
     // Adiciona a rota atual
     if (route.component) {
       flattened.push({
@@ -63,7 +65,7 @@ export const flattenRoutes = (routes, parentPath = '') => {
         fullPath
       })
     }
-    
+
     // Adiciona filhos recursivamente
     if (route.children && route.children.length > 0) {
       flattened = flattened.concat(
@@ -71,7 +73,7 @@ export const flattenRoutes = (routes, parentPath = '') => {
       )
     }
   })
-  
+
   return flattened
 }
 

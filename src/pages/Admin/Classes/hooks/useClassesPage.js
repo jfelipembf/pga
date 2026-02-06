@@ -47,8 +47,6 @@ export const useClassesPage = ({ setBreadcrumbItems, referenceDate }) => {
             if (!forceRefresh) {
                 const cached = cache.get(referenceDate)
                 if (cached) {
-                    console.log('📦 Dados carregados do cache (Admin)')
-
                     // Delay mínimo para feedback visual (300ms)
                     await new Promise(resolve => setTimeout(resolve, 300))
 
@@ -65,8 +63,6 @@ export const useClassesPage = ({ setBreadcrumbItems, referenceDate }) => {
                     return
                 }
             }
-
-            console.log('🔄 Carregando dados da API (Admin)...')
 
             const startDate = moment(referenceDate).startOf('week').format('YYYY-MM-DD')
             const endDate = moment(referenceDate).endOf('week').format('YYYY-MM-DD')
@@ -98,7 +94,6 @@ export const useClassesPage = ({ setBreadcrumbItems, referenceDate }) => {
             setAreas(areasData || [])
             setInstructors(staffData || [])
 
-            console.log(`✅ ${classesData?.length || 0} turmas, ${sessionsData?.length || 0} sessões carregadas`)
         } catch (error) {
             console.error("Error loading classes data:", error)
             toast.error("Erro ao carregar dados da grade")

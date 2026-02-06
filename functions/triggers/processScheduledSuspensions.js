@@ -126,5 +126,4 @@ module.exports = createScheduledTrigger("55 0 * * *", "processScheduledSuspensio
     });
 
     await Promise.all(processPromises);
-    console.log(`[processScheduledSuspensions] Finalizado. Processados: ${processedCount}`);
 });

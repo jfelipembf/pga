@@ -35,7 +35,6 @@ export const PayableFormVisual = ({ initialData, onCancel, onSave, hideTitle = f
         validationSchema: PayableSchema,
         enableReinitialize: true,
         onSubmit: (values) => {
-            console.log("PayableFormVisual: onSubmit disparado", values);
             // Encontrar nomes para desnormalização (boa prática para relatórios)
             const selectedAcc = chartOfAccountsList.find(a => a.id === values.chartOfAccountId)
             const selectedCC = DEFAULT_COST_CENTERS.find(c => c.id === values.costCenterId)
@@ -47,7 +46,6 @@ export const PayableFormVisual = ({ initialData, onCancel, onSave, hideTitle = f
                 notes: values.notes || null
             };
 
-            console.log("PayableFormVisual: chamando onSave...");
             onSave({
                 ...cleanedValues,
                 chartOfAccountName: selectedAcc ? selectedAcc.name : '',

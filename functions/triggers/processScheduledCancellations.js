@@ -143,5 +143,4 @@ module.exports = createScheduledTrigger("25 1 * * *", "processScheduledCancellat
     });
 
     await Promise.all(processPromises);
-    console.log(`[processScheduledCancellations] Finalizado. Processados: ${processedCount}`);
 });

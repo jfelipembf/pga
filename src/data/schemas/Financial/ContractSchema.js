@@ -81,8 +81,8 @@ export const ContractSchema = Yup.object().shape({
         }),
 
     // METADATA
-    createdAt: Yup.date().default(() => new Date()),
-    updatedAt: Yup.date().default(() => new Date()),
+    createdAt: Yup.mixed().nullable(), // Aceita Date ou Firestore Timestamp {seconds, nanoseconds}
+    updatedAt: Yup.mixed().nullable(),
     deleted: Yup.boolean().default(false)
 })
 

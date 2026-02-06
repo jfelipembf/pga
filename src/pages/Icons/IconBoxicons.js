@@ -16,7 +16,7 @@ var logos = ""
 
 const IconBoxicons = props => {
   document.title = "BoxIcons | Lexa - Responsive Bootstrap 5 Admin Dashboard";
-  
+
   useEffect(() => {
     icons.data.forEach(function (val) {
       switch (val.type_of_icon) {
@@ -45,7 +45,6 @@ const IconBoxicons = props => {
             "</div>"
           break
         default:
-          console.log("yes")
       }
     })
 

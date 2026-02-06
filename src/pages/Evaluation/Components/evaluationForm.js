@@ -82,7 +82,7 @@ const EvaluationForm = ({
     withLoading
   })
 
-  const { saveAll: saveEvaluations } = useSaveEvaluations({
+  const { saveAll: saveEvaluations, sendEvaluationToClient } = useSaveEvaluations({
     idActivity,
     classId,
     clients: allClients,
@@ -298,6 +298,16 @@ const EvaluationForm = ({
                       </Badge>
                     </div>
                   )}
+
+                  <Button
+                    color="link"
+                    className="text-success p-0 ms-2"
+                    type="button"
+                    title="Enviar Resultado via WhatsApp"
+                    onClick={() => sendEvaluationToClient(client)}
+                  >
+                    <i className="mdi mdi-whatsapp fs-5" />
+                  </Button>
 
                   <Button
                     color="link"

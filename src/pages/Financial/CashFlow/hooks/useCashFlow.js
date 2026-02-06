@@ -59,8 +59,6 @@ export const useCashFlow = () => {
                 end = moment().endOf('month');
             }
 
-            // console.log(`Buscando fluxo de caixa: ${period} (${start.format('DD/MM')} - ${end.format('DD/MM')}) | Limit: ${fetchLimit}`);
-
             const filters = {
                 startDate: start.toDate(),
                 endDate: end.toDate()

@@ -26,7 +26,7 @@ export const useActivities = () => {
     const [filterStatus, setFilterStatus] = useState('all')
     const [searchTerm, setSearchTerm] = useState('')
     const [fetchLimit, setFetchLimit] = useState(50)
-    
+
     // Cache: armazena timestamp da última carga
     const [lastLoadTime, setLastLoadTime] = useState(null)
     const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
@@ -79,7 +79,7 @@ export const useActivities = () => {
         try {
             setSaving(true)
             const activityId = data.id || selectedActivity?.id
-            
+
             if (activityId) {
                 // Update existing activity (basic fields only)
                 await ActivityService.updateActivity(idTenant, idBranch, user.uid, activityId, {
@@ -131,10 +131,10 @@ export const useActivities = () => {
             if (objective.deleted) {
                 operations.push(
                     ActivityService.deleteObjective(
-                        idTenant, 
-                        idBranch, 
-                        user.uid, 
-                        activityId, 
+                        idTenant,
+                        idBranch,
+                        user.uid,
+                        activityId,
                         objective.id
                     )
                 )
@@ -150,11 +150,11 @@ export const useActivities = () => {
 
             operations.push(
                 ActivityService.updateObjective(
-                    idTenant, 
-                    idBranch, 
-                    user.uid, 
-                    activityId, 
-                    objective.id, 
+                    idTenant,
+                    idBranch,
+                    user.uid,
+                    activityId,
+                    objective.id,
                     objectiveData
                 )
             )
@@ -163,7 +163,7 @@ export const useActivities = () => {
             // Save topics for this objective
             if (objective.topics) {
                 const topicsArray = Array.isArray(objective.topics) ? objective.topics : Object.values(objective.topics)
-                
+
                 for (const topic of topicsArray) {
                     if (!topic.id) continue
 
@@ -207,8 +207,7 @@ export const useActivities = () => {
         // Execute all operations in parallel
         if (operations.length > 0) {
             await Promise.all(operations)
-            console.log(`✅ Salvos: ${objectivesModified} objetivos e ${topicsModified} tópicos`)
-            
+
             // Single consolidated audit log
             await AuditService.log({
                 idTenant,
@@ -225,13 +224,13 @@ export const useActivities = () => {
 
     const handleDelete = async (activityOrId) => {
         const id = typeof activityOrId === 'object' ? activityOrId.id : activityOrId
-        
+
         try {
             setDeleting(true)
             await ActivityService.deleteActivity(
-                idTenant, 
-                idBranch, 
-                user.uid, 
+                idTenant,
+                idBranch,
+                user.uid,
                 id,
                 user.displayName || user.email
             )

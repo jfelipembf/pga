@@ -331,7 +331,6 @@ const ClientContracts = ({ client }) => {
                 toggle={() => toggleModal('transfer')}
                 contract={modalState.targetContract}
                 onConfirm={(data) => {
-                    console.log("Transferência:", data)
                     toggleModal('transfer')
                 }}
             />

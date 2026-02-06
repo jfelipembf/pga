@@ -191,11 +191,9 @@ const ClientFinancial = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {console.log("[ClientFinancial] Renderizando vendas:", sales)}
                                     {sales.length > 0 ? (
                                         sales.map((sale) => (
                                             <tr key={sale.id}>
-                                                {console.log(`[ClientFinancial] Venda ${sale.id} status:`, sale.status)}
                                                 <td>{formatDate(sale.saleDate)}</td>
                                                 <td>
                                                     <span className="badge bg-light text-dark font-monospace border">

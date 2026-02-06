@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react"
-import { Card, CardBody, CardHeader, Button, Badge, Alert } from "reactstrap"
+import { Card, CardBody, Button } from "reactstrap"
 import { useNavigate, useLocation } from "react-router-dom"
 import { connect } from "react-redux"
 import { toast } from "react-toastify"
@@ -11,7 +11,10 @@ import { setBreadcrumbItems } from "../../../store/actions"
 import { useGradeData } from "../Hooks/useGradeData"
 import PageLoader from "../../../components/Common/PageLoader"
 import { EnrollmentService } from "../../../services/Clients/EnrollmentService"
+import { ClientService } from "../../../services/Clients/ClientService"
+import { automationService } from "../../../services/Automation/AutomationService"
 import { useTenant } from "../../../hooks/useTenant"
+import moment from "moment"
 
 import "./EnrollmentGrade.scss"
 
@@ -131,11 +134,50 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
 
             if (mode === 'trial') {
                 // Agendar experimental
+                // Agendar experimental
                 await EnrollmentService.scheduleTrialClass(idTenant, idBranch, user, {
                     idClient,
                     sessionId: selectedSession,
                     clientName: clientName || 'Cliente'
                 })
+
+                // --- AUTOMAÇÃO: Enviar msg para Aluno e Professor ---
+                try {
+                    // 1. Buscar dados completos do cliente (precisamos do telefone)
+                    const clientData = await ClientService.getClientById(idTenant, idBranch, idClient)
+
+                    // 2. Buscar dados da sessão (precisamos do horário e do professor)
+                    const sessionData = schedules.find(s => s.id === selectedSession) || {}
+                    const instructor = staff.find(s => String(s.id) === String(sessionData.idStaff)) || {}
+
+                    if (sessionData && clientData) {
+                        const dateFormatted = moment(sessionData.sessionDate).format('DD/MM/YYYY')
+                        const timeFormatted = sessionData.startTime
+
+                        // Disparar para o ALUNO
+                        automationService.emit(idTenant, 'EXPERIMENTAL_SCHEDULED', {
+                            student: clientData.name, // Nome no template
+                            name: clientData.name,    // Alias
+                            date: dateFormatted,
+                            time: timeFormatted,
+                            phone: clientData.phone || clientData.mobile || clientData.cellPhone || clientData.responsavelPhone
+                        })
+
+                        // Disparar para o PROFESSOR (se houver e tiver telefone)
+                        if (instructor && (instructor.mobile || instructor.phone || instructor.cellPhone)) {
+                            automationService.emit(idTenant, 'EXPERIMENTAL_SCHEDULED_TEACHER', {
+                                student: clientData.name,
+                                date: dateFormatted,
+                                time: timeFormatted,
+                                phone: instructor.mobile || instructor.phone || instructor.cellPhone
+                            })
+                        }
+                    }
+                } catch (autoError) {
+                    console.error("Erro ao disparar automações de agendamento:", autoError)
+                }
+                // ----------------------------------------------------
+
                 toast.success('Aula experimental agendada com sucesso!')
             } else {
                 // Matrícula regular

@@ -111,8 +111,6 @@ export const useTestFormLogic = ({
                         payload.resultTime = draft.result // Ex: "10:30"
                     }
 
-                    console.log("Saving Test Result Payload:", payload)
-
                     return TestResultService.registerResult(idTenant, idBranch, user, payload)
                 })
 

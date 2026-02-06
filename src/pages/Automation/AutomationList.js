@@ -32,32 +32,38 @@ const AutomationPage = ({ setBreadcrumbItems }) => {
         }
     }, [setBreadcrumbItems]) // Removed categories/selectedCategory dependencies to avoid loop
 
-    const handleSaveTemplates = async (templates) => {
-        const newData = { ...integrationConfig, messageTemplates: templates };
+    const handleSaveTemplates = async ({ templates, activeStatus }) => {
+        const newData = {
+            ...integrationConfig,
+            messageTemplates: templates,
+            activeTriggers: activeStatus
+        };
         await saveIntegrations(newData);
     }
 
     // Sidebar Content (Lista de Categorias apenas)
     const SidebarContent = (
         <div className="d-flex flex-column h-100">
-            <h6 className="text-muted text-uppercase font-size-11 mb-3 mt-2">Navegação</h6>
-            <div className="d-grid gap-1 mb-4">
-                {categories.map(cat => (
-                    <button
-                        key={cat}
-                        className={`btn btn-sm text-start ${selectedCategory === cat ? 'active bg-soft-info text-info fw-bold' : 'btn-ghost-secondary text-muted'}`}
-                        onClick={() => setSelectedCategory(cat)}
-                        style={{ border: 'none', paddingLeft: '0.5rem' }}
-                    >
-                        <i className="mdi mdi-folder-text-outline me-2"></i> {cat}
-                    </button>
-                ))}
-            </div>
+            {categories.map(cat => (
+                <div
+                    key={cat}
+                    className={`d-flex align-items-center p-3 border-bottom cursor-pointer ${selectedCategory === cat ? 'bg-light' : ''}`}
+                    onClick={() => setSelectedCategory(cat)}
+                    style={{ cursor: 'pointer', transition: 'background 0.2s' }}
+                >
+                    <div className="flex-grow-1 overflow-hidden">
+                        <h5 className="font-size-14 text-truncate mb-0">{cat}</h5>
+                    </div>
+                    <div className="flex-shrink-0 ms-2">
+                        <i className={`mdi mdi-chevron-right font-size-18 ${selectedCategory === cat ? 'text-primary' : 'text-muted opacity-50'}`}></i>
+                    </div>
+                </div>
+            ))}
 
-            <div className="mt-auto border-top pt-3">
+            <div className="mt-auto border-top p-3">
                 <div className="alert alert-info font-size-12 mb-0 p-2">
                     <i className="mdi mdi-information-outline me-1"></i>
-                    Para configurar o envio (WhatsApp/IA), acesse <Link to="/settings/integrations" className="fw-bold text-info text-decoration-underline">Integrações</Link>.
+                    Para configurar o envio, acesse <Link to="/settings/integrations" className="fw-bold text-info text-decoration-underline">Integrações</Link>.
                 </div>
             </div>
         </div>
@@ -67,6 +73,7 @@ const AutomationPage = ({ setBreadcrumbItems }) => {
     const MainContent = (
         <TemplateEditor
             customTemplates={integrationConfig?.messageTemplates}
+            activeStatus={integrationConfig?.activeTriggers}
             onSave={handleSaveTemplates}
             loading={saving}
             filterCategory={selectedCategory}

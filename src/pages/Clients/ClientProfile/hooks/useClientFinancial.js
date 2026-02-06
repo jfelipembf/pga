@@ -37,16 +37,7 @@ export const useClientFinancial = () => {
                 ClientContractService.listByClient(idTenant, idBranch, id)
             ])
 
-            console.log('🔍 [useClientFinancial] Contracts from service:', contractsData)
-            console.log('🔍 [useClientFinancial] Number of contracts:', contractsData?.length)
-            contractsData?.forEach((contract, index) => {
-                console.log(`🔍 [useClientFinancial] Contract ${index}:`, {
-                    id: contract.id,
-                    status: contract.status,
-                    planName: contract.planName,
-                    fullContract: contract
-                })
-            })
+
 
             setSummary(summaryData)
             setReceivables(receivablesData)

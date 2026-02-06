@@ -26,10 +26,6 @@ const Grade = ({ setBreadcrumbItems }) => {
     window.SessionCounterFixer = SessionCounterFixer
     window.runCountFix = () => SessionCounterFixer.fixAllSessionCounters(idTenant, idBranch)
 
-    console.log(
-      "%c[MANUTENÇÃO] Para corrigir os contadores de matrícula, execute: window.runCountFix()",
-      "color: orange; font-weight: bold; font-size: 14px;"
-    )
   }, [idTenant, idBranch])
 
   const [view, setView] = useState("week")

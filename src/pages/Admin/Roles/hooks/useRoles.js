@@ -8,7 +8,7 @@ const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
 
 export const useRoles = () => {
     const { idTenant, idBranch } = useTenant()
-    
+
     const user = useMemo(() => {
         const authUser = localStorage.getItem("authUser")
         return authUser ? JSON.parse(authUser) : null
@@ -31,15 +31,14 @@ export const useRoles = () => {
         setLoading(true)
         try {
             const data = await RoleService.listWithFilters(idTenant, idBranch, {}, 100)
-            
+
             // Migra cargos adicionando permissões faltantes
             const migratedRoles = migrateRoles(data)
-            
+
             // Verifica se houve migração
             const stats = getMigrationStats(data)
             if (stats.rolesNeedingMigration > 0) {
-                console.log(`🔄 Migrando ${stats.rolesNeedingMigration} cargo(s) com ${stats.totalMissingPermissions} permissão(ões) faltante(s)`)
-                
+
                 // Salva cargos migrados automaticamente
                 for (const role of migratedRoles) {
                     const original = data.find(r => r.id === role.id)
@@ -49,16 +48,15 @@ export const useRoles = () => {
                                 ...role,
                                 userName: user?.displayName || user?.email || 'Sistema'
                             })
-                            console.log(`✅ Cargo "${role.name}" atualizado com novas permissões`)
                         } catch (error) {
                             console.error(`❌ Erro ao atualizar cargo "${role.name}":`, error)
                         }
                     }
                 }
-                
+
                 toast.success(`${stats.rolesNeedingMigration} cargo(s) atualizado(s) com novas permissões`)
             }
-            
+
             setRoles(migratedRoles)
             setLastLoadTime(now)
         } catch (error) {
@@ -78,7 +76,7 @@ export const useRoles = () => {
     const handleSave = async (data) => {
         try {
             setSaving(true)
-            
+
             if (data.id) {
                 await RoleService.updateRole(idTenant, idBranch, user.uid, data.id, {
                     ...data,
@@ -92,7 +90,7 @@ export const useRoles = () => {
                 })
                 toast.success("Função criada com sucesso")
             }
-            
+
             await loadRoles(true)
             return true
         } catch (error) {
@@ -107,14 +105,14 @@ export const useRoles = () => {
     const handleDelete = async (roleOrId) => {
         const id = typeof roleOrId === 'object' ? roleOrId.id : roleOrId
         const roleName = typeof roleOrId === 'object' ? (roleOrId.name || roleOrId.label) : id
-        
+
         try {
             setDeleting(true)
             await RoleService.deleteRole(
-                idTenant, 
-                idBranch, 
-                user.uid, 
-                id, 
+                idTenant,
+                idBranch,
+                user.uid,
+                id,
                 user?.displayName || user?.email || 'Sistema'
             )
             toast.success("Função excluída com sucesso")

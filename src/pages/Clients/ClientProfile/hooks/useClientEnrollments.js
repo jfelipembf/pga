@@ -20,7 +20,6 @@ export const useClientEnrollments = (clientId = null) => {
      */
     const fetchEnrollments = async () => {
         if (!idClient || !idTenant || !idBranch) {
-            console.log('[useClientEnrollments] Aguardando contexto:', { idClient, idTenant, idBranch })
             setLoading(false)
             return
         }
@@ -29,18 +28,7 @@ export const useClientEnrollments = (clientId = null) => {
             setLoading(true)
             setError(null)
 
-            console.log('[useClientEnrollments] Buscando matrículas para cliente:', idClient)
             const data = await EnrollmentService.listClientEnrollments(idTenant, idBranch, idClient)
-
-            console.log('[useClientEnrollments] Matrículas encontradas:', {
-                count: data?.length,
-                enrollments: data?.map(e => ({
-                    id: e.id,
-                    status: e.status,
-                    attendedSessions: e.attendedSessions,
-                    missedSessions: e.missedSessions
-                }))
-            })
 
             setEnrollments(data)
         } catch (err) {

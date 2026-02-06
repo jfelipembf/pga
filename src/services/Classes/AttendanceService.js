@@ -1,6 +1,9 @@
 import { sessionRepository } from '../../data/repositories/SessionRepository'
 import { enrollmentRepository } from '../../data/repositories/EnrollmentRepository'
 import { AuditService } from '../Core/AuditService'
+// Import Client and Automation Services
+import { ClientService } from '../Clients/ClientService'
+import { automationService } from '../Automation/AutomationService'
 
 /**
  * Serviço de Controle de Presença (Attendance)
@@ -56,7 +59,7 @@ export const AttendanceService = {
         })
 
         const isFirstAttendance = previousSnapshot.length === 0
-        console.log(`[AttendanceService] ${isFirstAttendance ? 'NOVA' : 'EDIÇÃO de'} chamada para sessão ${idSession}`)
+
 
         // 2. Calcular estatísticas
         const presentList = attendanceData.clients.filter(c => c.status !== 'absent')
@@ -86,7 +89,7 @@ export const AttendanceService = {
 
             // Se o status NÃO mudou, não faz nada
             if (oldStatus === newStatus) {
-                console.log(`[AttendanceService] Matrícula ${client.enrollmentId}: sem alteração (${newStatus})`)
+
                 return null
             }
 
@@ -132,11 +135,38 @@ export const AttendanceService = {
                 await enrollmentRepository.update(idTenant, idBranch, client.enrollmentId, updates)
                 enrollmentsUpdated++
 
-                console.log(`[AttendanceService] Matrícula ${client.enrollmentId}: ${oldStatus || 'NOVO'} → ${newStatus}`, updates)
+
             }
 
             return { enrollmentId: client.enrollmentId, oldStatus, newStatus, ...updates }
         })
+
+        const experimentalAbsences = attendanceData.clients.filter(
+            c => c.status === 'absent' && (c.tag === "Extra" || c.enrollmentType === 'experimental' || c.type === 'experimental' || (c.tag && c.tag.includes('EX')))
+        )
+
+        if (experimentalAbsences.length > 0) {
+
+            experimentalAbsences.forEach(async (client) => {
+                try {
+                    // Fetch full client data to ensure we have the phone number
+                    const fullClient = await ClientService.getClientById(idTenant, idBranch, client.idClient || client.id)
+                    const phone = fullClient?.mobile || fullClient?.phone || fullClient?.cellPhone || fullClient?.responsavelPhone
+
+                    if (phone) {
+                        automationService.emit(idTenant, 'EXPERIMENTAL_ABSENCE', {
+                            student: fullClient.name,
+                            name: fullClient.name,
+                            phone: phone,
+                            date: new Date().toLocaleDateString('pt-BR')
+                        })
+
+                    }
+                } catch (autoErr) {
+                    console.error("[Automation] Erro ao disparar EXPERIMENTAL_ABSENCE:", autoErr)
+                }
+            })
+        }
 
         await Promise.all(updatePromises)
 

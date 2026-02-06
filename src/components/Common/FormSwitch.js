@@ -8,7 +8,18 @@ const OffSymbol = () => <div style={{ height: "100%" }} />
  * Componente de Switch padronizado para o projeto.
  * Encapsula a biblioteca react-switch com os estilos do Lexa Admin.
  */
-export const FormSwitch = ({ checked, onChange, onColor = "#34c38f", offColor = "#74788d", label, description, id }) => {
+export const FormSwitch = ({
+    checked,
+    onChange,
+    onColor = "#466a8f",
+    offColor = "#74788d",
+    label,
+    description,
+    id,
+    height = 20,
+    width = 40,
+    handleDiameter = 14
+}) => {
     return (
         <div className="d-flex align-items-center">
             <Switch
@@ -19,9 +30,9 @@ export const FormSwitch = ({ checked, onChange, onColor = "#34c38f", offColor = 
                 offColor={offColor}
                 onChange={onChange}
                 checked={checked}
-                height={24}
-                width={48}
-                handleDiameter={20}
+                height={height}
+                width={width}
+                handleDiameter={handleDiameter}
             />
             {(label || description) && (
                 <div className="ms-3">

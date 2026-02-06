@@ -34,17 +34,33 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
                     const clientsList = await ClientService.listClients(idTenant, idBranch)
                     setAllClients(clientsList)
 
-                    // 2. Carregar alunos ATUALMENTE matriculados na turma
-                    let currentEnrolled = []
-                    if (schedule.idClass) {
-                        currentEnrolled = await AttendanceService.getStudentsForAttendance(
-                            idTenant, idBranch, schedule.idClass
+                    // 2. Carregar alunos ATUALMENTE matriculados na turma E na sessão (Experimentais)
+                    // Buscar matrículas da TURMA (Recorrentes) e da SESSÃO (Experimentais/Reposições)
+                    const [classEnrollments, sessionEnrollments] = await Promise.all([
+                        schedule.idClass ? AttendanceService.getStudentsForAttendance(idTenant, idBranch, schedule.idClass) : [],
+                        import('../../../data/repositories/EnrollmentRepository').then(m =>
+                            m.enrollmentRepository.listSessionEnrolledClients(idTenant, idBranch, schedule.id)
                         )
-                    }
+                    ])
 
-                    // Criar mapa de matrículas ativas: enrollmentId -> student
+                    // Mapear experimentais para o formato de attendance
+                    const mappedSessionEnrollments = (sessionEnrollments || []).map(e => ({
+                        id: e.idClient,
+                        idClient: e.idClient,
+                        enrollmentId: e.enrollmentId || e.id,
+                        name: e.clientName,
+                        photo: e.clientPhoto || null,
+                        status: 'present',
+                        justification: '',
+                        tag: e.enrollmentType === 'trial' ? 'EX' : (e.tag || 'Sessão'),
+                        enrollmentType: e.enrollmentType || 'single-session',
+                        attendedSessions: 0,
+                        missedSessions: 0
+                    }))
+
+                    // Criar mapa de matrículas ativas da TURMA: enrollmentId -> student
                     const activeEnrollmentsMap = new Map()
-                    currentEnrolled.forEach(student => {
+                    classEnrollments.forEach(student => {
                         if (student.enrollmentId) {
                             activeEnrollmentsMap.set(student.enrollmentId, student)
                         }
@@ -56,20 +72,21 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
                     )
 
                     if (existingAttendance) {
-                        // EDIÇÃO: Filtrar snapshot para remover matrículas canceladas/excluídas
+                        // EDIÇÃO: Filtrar snapshot para remover matrículas canceladas de TURMA recorrente
                         const validatedClients = existingAttendance.clients.filter(client => {
-                            // Alunos extras (sem enrollmentId) são mantidos
-                            if (!client.enrollmentId) return true
+                            // Alunos extras (sem enrollmentId) ou Experimentais (da sessão) são mantidos
+                            // Se for da sessão (experimental), não validar contra map de turma
+                            if (!client.enrollmentId || client.tag === 'EX' || client.enrollmentType === 'trial') return true
 
-                            // Verificar se a matrícula ainda está ativa
-                            const isActive = activeEnrollmentsMap.has(client.enrollmentId)
-                            if (!isActive) {
-                                console.log(`[useAttendance] Removendo cliente com matrícula cancelada: ${client.name}`)
-                            }
-                            return isActive
+                            // Verificar se a matrícula de TURMA ainda está ativa
+                            return activeEnrollmentsMap.has(client.enrollmentId)
                         })
 
-                        // Enriquecer com dados atuais
+                        // Verificar se há NOVOS alunos experimentais que não estavam no snapshot
+                        const existingClientIds = new Set(validatedClients.map(c => c.idClient || String(c.id)))
+                        const newSessionEnrollments = mappedSessionEnrollments.filter(se => !existingClientIds.has(se.idClient))
+
+                        // Enriquecer com dados atuais e Adicionar novos experimentais
                         const enrichedClients = validatedClients.map(client => {
                             const clientInfo = clientsList.find(c => c.id === client.idClient) || {}
                             return {
@@ -81,14 +98,39 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
                             }
                         })
 
-                        setClients(enrichedClients)
-                        console.log('[useAttendance] Chamada existente carregada:', {
-                            original: existingAttendance.clients.length,
-                            afterValidation: enrichedClients.length
+                        // Enriquecer novos alunos de sessão também
+                        const enrichedNewSessionEnrollments = newSessionEnrollments.map(student => {
+                            const clientInfo = clientsList.find(c => c.id === student.idClient) || {}
+                            return {
+                                ...student,
+                                name: clientInfo.name || student.name,
+                                photo: clientInfo.photoUrl || student.photo, // Prioritize client list photo
+                                clientStatus: clientInfo.lifecycleStatus || 'active',
+                                friendlyId: clientInfo.friendlyId
+                            }
                         })
+
+                        // Adicionar novos alunos de sessão (ex: agendou experimental depois de salvar chamada)
+                        const finalClients = [...enrichedClients, ...enrichedNewSessionEnrollments]
+
+                        setClients(finalClients)
+
                     } else {
-                        // NOVA CHAMADA: Usar alunos matriculados
-                        const enrichedClients = currentEnrolled.map(student => {
+                        // NOVA CHAMADA
+                        // Merge unificando por idClient
+                        const enrolledMap = new Map()
+
+                        // 1. Matrículas da turma
+                        classEnrollments.forEach(c => enrolledMap.set(String(c.idClient), c))
+
+                        // 2. Matrículas da sessão (sobrescreve/adiciona)
+                        mappedSessionEnrollments.forEach(c => {
+                            enrolledMap.set(String(c.idClient), c)
+                        })
+
+                        const mergedList = Array.from(enrolledMap.values())
+
+                        const enrichedClients = mergedList.map(student => {
                             const clientInfo = clientsList.find(c => c.id === student.idClient) || {}
                             return {
                                 ...student,
@@ -100,7 +142,7 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
                         })
 
                         setClients(enrichedClients)
-                        console.log('[useAttendance] Alunos matriculados carregados:', enrichedClients.length)
+
                     }
                 })
             } catch (error) {
@@ -214,7 +256,7 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
                     { clients }
                 )
 
-                console.log('[useAttendance] Chamada salva:', result)
+
                 toast.success(`Presenças salvas! ${result.presentCount} presentes, ${result.absentCount} ausentes`)
 
                 onAttendanceSaved?.({

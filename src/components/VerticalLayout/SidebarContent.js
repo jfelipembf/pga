@@ -181,6 +181,8 @@ const SidebarContent = props => {
               </Link>
             </li>
 
+
+
             {/* ========== FINANCEIRO ========== */}
             <li>
               <Link to="/#" className="has-arrow waves-effect">
@@ -224,6 +226,9 @@ const SidebarContent = props => {
                 </li>
                 <li>
                   <Link to={linkTo("/admin/events")}>{props.t("Eventos")}</Link>
+                </li>
+                <li>
+                  <Link to={linkTo("/automation")}>{props.t("Inteligência")}</Link>
                 </li>
                 <li>
                   <Link to={linkTo("/admin/audit-logs")}>{props.t("Auditoria")}</Link>

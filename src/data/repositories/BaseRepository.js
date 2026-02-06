@@ -103,7 +103,6 @@ export class BaseRepository {
 
     async create(idTenant, idBranch, data) {
         const ref = doc(this.getCollectionRef(idTenant, idBranch))
-        console.log(`[BaseRepository] CREATE em: ${ref.path}`);
         const timestamp = serverTimestamp()
         const newData = {
             ...data,
@@ -120,7 +119,6 @@ export class BaseRepository {
 
     async set(idTenant, idBranch, id, data) {
         const ref = doc(this.getCollectionRef(idTenant, idBranch), id)
-        console.log(`[BaseRepository] SET em: ${ref.path}`);
         const timestamp = serverTimestamp()
         const newData = {
             ...data,

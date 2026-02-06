@@ -63,8 +63,17 @@ class MessagingService {
             const config = this._getConfig(tenantId, customConfig);
 
             // Formatar telefone (Brasil default)
+            // Formatar telefone (Brasil default)
             const cleanPhone = phone.replace(/\D/g, '');
-            const formattedPhone = cleanPhone.length > 0 && !cleanPhone.startsWith('55') ? `55${cleanPhone}` : cleanPhone;
+            let formattedPhone = cleanPhone;
+
+            // Se for número brasileiro (ou parecer), garantir 55
+            // Verifica se não começa com 55 e tem 10 ou 11 dígitos (DDD + Número)
+            if (cleanPhone.length >= 10 && cleanPhone.length <= 11) {
+                formattedPhone = `55${cleanPhone}`;
+            }
+            // Se já tiver 12 ou 13 dígitos e começar com 55, mantém. 
+            // Se for menor que 10, provavelmente invalido ou incompleto, mantém original (fallback)
 
             const url = `${config.baseUrl}/message/sendText/${config.instanceName}`;
 
@@ -77,8 +86,6 @@ class MessagingService {
                 },
                 text: message
             };
-
-            console.log('[MessagingService] Sending payload:', JSON.stringify(payload));
 
             const response = await axios.post(url, payload, {
                 headers: {

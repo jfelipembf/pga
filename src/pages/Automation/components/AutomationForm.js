@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardBody, Label, Input, Button, Row, Col, FormFeedback } from 'reactstrap';
 
-export const AutomationForm = ({ value, onChange, onCancel, onSave, saving }) => {
+export const AutomationForm = ({ value, onChange, onCancel, onSave, onDelete, saving }) => {
+    // ... (sem alterações no corpo)
+
     const [formData, setFormData] = useState({
         name: '',
         trigger: '',
@@ -149,7 +151,13 @@ export const AutomationForm = ({ value, onChange, onCancel, onSave, saving }) =>
                 </CardBody>
             </Card>
 
-            <div className="d-flex justify-content-end gap-2">
+            <div className="d-flex justify-content-end gap-2 pt-3 border-top mt-4">
+                {onDelete && (
+                    <Button color="danger" outline onClick={onDelete} disabled={saving} className="me-auto">
+                        <i className="mdi mdi-trash-can-outline me-1"></i> Excluir
+                    </Button>
+                )}
+
                 <Button color="secondary" onClick={onCancel} disabled={saving}>Cancelar</Button>
                 <Button color="primary" onClick={() => onSave(formData)} disabled={saving}>
                     {saving ? <i className="bx bx-loader bx-spin font-size-16 align-middle me-2"></i> : null}
