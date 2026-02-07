@@ -1,6 +1,7 @@
 import { sessionRepository } from '../../data/repositories/SessionRepository'
 import { enrollmentRepository } from '../../data/repositories/EnrollmentRepository'
 import { AuditService } from '../Core/AuditService'
+import { normalizeDate } from '../../utils/date'
 // Import Client and Automation Services
 import { ClientService } from '../Clients/ClientService'
 import { automationService } from '../Automation/AutomationService'

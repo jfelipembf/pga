@@ -6,6 +6,7 @@ import { activityRepository } from '../../data/repositories/ActivityRepository'
 import { staffRepository } from '../../data/repositories/StaffRepository'
 import { EnrollmentSchema, ENROLLMENT_TYPE } from '../../data/schemas/Clients/EnrollmentSchema'
 import { AuditService } from '../Core/AuditService'
+import { normalizeDate } from '../../utils/date'
 import { query, where, getDocs, orderBy } from 'firebase/firestore'
 
 /**
@@ -55,7 +56,7 @@ export const EnrollmentService = {
             const futureSessions = sessionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
 
             if (futureSessions.length === 0) {
-                console.warn(`[EnrollmentService] Nenhuma sessão futura encontrada para a turma ${idClass}`)
+                console.warn(`[EnrollmentService] Nenhuma sessão futura encontrada para a turma ${idClass} `)
                 return null
             }
 
@@ -123,7 +124,7 @@ export const EnrollmentService = {
                 action: 'ENROLLMENT_CREATED',
                 entityType: 'enrollment',
                 entityId: newEnrollment.id,
-                description: `${clientName} matriculado(a) na turma ${classData?.name || idClass}`
+                description: `${clientName} matriculado(a) na turma ${classData?.name || idClass} `
             })
 
 
@@ -210,7 +211,7 @@ export const EnrollmentService = {
             action: 'TRIAL_SCHEDULED',
             entityType: 'enrollment',
             entityId: newEnrollment.id,
-            description: `Aula experimental agendada para ${clientName} na sessão ${sessionId}`
+            description: `Aula experimental agendada para ${clientName} na sessão ${sessionId} `
         })
 
 
