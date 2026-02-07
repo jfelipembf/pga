@@ -64,6 +64,21 @@ export const maskCNPJ = (value) => {
 }
 
 /**
+ * Máscara para Moeda (R$ 0,00)
+ * Transforma centavos em valor decimal formatado durante a digitação.
+ */
+export const maskCurrency = (value) => {
+    if (value === undefined || value === null) return ""
+
+    let v = String(value).replace(/\D/g, "")
+    v = (Number(v) / 100).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+    })
+    return v
+}
+
+/**
  * Remove toda a formatação (apenas números)
  */
 export const unmask = (value) => {

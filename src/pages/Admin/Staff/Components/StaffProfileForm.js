@@ -1,7 +1,8 @@
 import React from 'react'
 import { Row, Col, Form, FormGroup, Label, Input, Button, FormFeedback, Spinner } from 'reactstrap'
+import InputMask from "react-input-mask"
 
-import { maskCPF, maskPhone, maskCEP } from '../../../../utils/maskUtils'
+// import { maskCPF, maskPhone, maskCEP } from '../../../../utils/maskUtils'
 
 import ChangePasswordModal from './ChangePasswordModal'
 
@@ -57,10 +58,12 @@ const StaffProfileForm = ({ formik, roles = [], handlePasswordChange, isChanging
                             <FormGroup>
                                 <Label>Telefone</Label>
                                 <Input
+                                    tag={InputMask}
+                                    mask="(99) 99999-9999"
                                     name="phone"
                                     placeholder="(00) 00000-0000"
                                     value={formik.values.phone}
-                                    onChange={(e) => formik.setFieldValue("phone", maskPhone(e.target.value))}
+                                    onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
                                 />
                             </FormGroup>
@@ -69,10 +72,12 @@ const StaffProfileForm = ({ formik, roles = [], handlePasswordChange, isChanging
                             <FormGroup>
                                 <Label>CPF</Label>
                                 <Input
+                                    tag={InputMask}
+                                    mask="999.999.999-99"
                                     name="cpf"
                                     placeholder="000.000.000-00"
                                     value={formik.values.cpf}
-                                    onChange={(e) => formik.setFieldValue("cpf", maskCPF(e.target.value))}
+                                    onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
                                 />
                             </FormGroup>
@@ -202,10 +207,12 @@ const StaffProfileForm = ({ formik, roles = [], handlePasswordChange, isChanging
                                     {isLoadingCep && <Spinner size="sm" color="primary" />}
                                 </Label>
                                 <Input
+                                    tag={InputMask}
+                                    mask="99999-999"
                                     name="zipCode"
                                     placeholder="00000-000"
                                     value={formik.values.zipCode}
-                                    onChange={(e) => formik.setFieldValue("zipCode", maskCEP(e.target.value))}
+                                    onChange={formik.handleChange}
                                     onBlur={handleCepBlur}
                                 />
                             </FormGroup>

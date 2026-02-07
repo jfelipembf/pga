@@ -3,11 +3,11 @@ import { useTenant } from "../../../hooks/useTenant"
 import { ClientService } from "../../../services/Clients/ClientService"
 
 export const useActiveClientsPool = ({ enabled }) => {
-    const { idTenant, idBranch } = useTenant()
+    const { idTenant, idBranch, isReady } = useTenant()
     const [clients, setClients] = useState([])
 
     useEffect(() => {
-        if (!enabled) return
+        if (!enabled || !isReady) return
 
         const fetchClients = async () => {
             try {
@@ -21,7 +21,7 @@ export const useActiveClientsPool = ({ enabled }) => {
         }
 
         fetchClients()
-    }, [enabled, idTenant, idBranch])
+    }, [enabled, isReady, idTenant, idBranch])
 
     return { clients }
 }

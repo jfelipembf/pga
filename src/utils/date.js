@@ -96,3 +96,32 @@ export const normalizeDate = (date) => {
     const m = moment(date);
     return m.isValid() ? m.toDate() : null;
 };
+
+/**
+ * Formata uma data usando Intl.DateTimeFormat para exibição com opções flexíveis.
+ * @param {any} date - Data a ser formatada
+ * @param {object} options - Opções do Intl.DateTimeFormat
+ * @returns {string} Data formatada
+ */
+export const formatDateDisplay = (date, options = {}) => {
+    if (!date) return '-';
+
+    // Normalizar a data primeiro
+    const normalizedDate = normalizeDate(date);
+    if (!normalizedDate) return '-';
+
+    // Opções padrão
+    const defaultOptions = {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        ...options
+    };
+
+    try {
+        return new Intl.DateTimeFormat('pt-BR', defaultOptions).format(normalizedDate);
+    } catch (error) {
+        console.error('Error formatting date:', error);
+        return formatDate(date);
+    }
+};

@@ -14,12 +14,22 @@ import { withTranslation } from "react-i18next"
 
 // Hooks
 import { useTenant } from "../../hooks/useTenant";
+import { useCurrentUser } from "../../hooks/useCurrentUser";
+import { hasPermission, hasAnyPermission, isOwner } from "../../utils/permissions";
 
 const SidebarContent = props => {
   const ref = useRef();
 
   // Use Centralized Tenant Hook
   const { tenantSlug, branchSlug } = useTenant();
+
+  // Permissions Control
+  const user = useCurrentUser();
+  const permissions = user?.permissions || {};
+  const userIsOwner = isOwner();
+
+  const can = (permission) => userIsOwner || hasPermission(permissions, permission);
+  const canAny = (perms) => userIsOwner || hasAnyPermission(permissions, perms);
 
   const linkTo = (path) => {
     if (path.startsWith("/#") || path === "#") return path;
@@ -153,122 +163,182 @@ const SidebarContent = props => {
             <li className="menu-title">{props.t("Menu")}</li>
 
             {/* ========== OPERACIONAL ========== */}
-            <li>
-              <Link to={linkTo("/dashboard")} className="waves-effect">
-                <i className="mdi mdi-view-dashboard-outline"></i>
-                <span>{props.t("Dashboard")}</span>
-              </Link>
-            </li>
+            {canAny(['dashboards_management_view', 'dashboards_commercial_view']) && (
+              <li>
+                <Link to={linkTo("/dashboard")} className="waves-effect">
+                  <i className="mdi mdi-view-dashboard-outline"></i>
+                  <span>{props.t("Dashboard")}</span>
+                </Link>
+              </li>
+            )}
 
-            <li>
-              <Link to={linkTo("/grade")} className="waves-effect">
-                <i className="mdi mdi-calendar-clock"></i>
-                <span>{props.t("Grade")}</span>
-              </Link>
-            </li>
+            {can('grade_manage') && (
+              <li>
+                <Link to={linkTo("/grade")} className="waves-effect">
+                  <i className="mdi mdi-calendar-clock"></i>
+                  <span>{props.t("Grade")}</span>
+                </Link>
+              </li>
+            )}
 
-            <li>
-              <Link to={linkTo("/clients")} className="waves-effect">
-                <i className="mdi mdi-account-group-outline"></i>
-                <span>{props.t("Clientes")}</span>
-              </Link>
-            </li>
+            {canAny(['members_manage', 'crm_view']) && (
+              <li>
+                <Link to={linkTo("/clients")} className="waves-effect">
+                  <i className="mdi mdi-account-group-outline"></i>
+                  <span>{props.t("Clientes")}</span>
+                </Link>
+              </li>
+            )}
 
-            <li>
-              <Link to={linkTo("/evaluation")} className="waves-effect">
-                <i className="mdi mdi-file-check-outline"></i>
-                <span>{props.t("Avaliações")}</span>
-              </Link>
-            </li>
+            {can('management_evaluation_run') && (
+              <li>
+                <Link to={linkTo("/evaluation")} className="waves-effect">
+                  <i className="mdi mdi-file-check-outline"></i>
+                  <span>{props.t("Avaliações")}</span>
+                </Link>
+              </li>
+            )}
 
+            {can('management_training_manage') && (
+              <li>
+                <Link to={linkTo("/training")} className="waves-effect">
+                  <i className="mdi mdi-notebook-edit-outline"></i>
+                  <span>{props.t("Treinos")}</span>
+                </Link>
+              </li>
+            )}
 
 
             {/* ========== FINANCEIRO ========== */}
-            <li>
-              <Link to="/#" className="has-arrow waves-effect">
-                <i className="mdi mdi-cash-multiple"></i>
-                <span>{props.t("Financeiro")}</span>
-              </Link>
-              <ul className="sub-menu">
-                <li>
-                  <Link to={linkTo("/financial/dashboard")}>{props.t("Resumo")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/financial/cashier")}>{props.t("Caixa")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/financial/receivables")}>{props.t("Recebíveis")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/financial/payables")}>{props.t("Pagáveis")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/financial/cash-flow")}>{props.t("Fluxo de Caixa")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/financial/dre")}>{props.t("DRE")}</Link>
-                </li>
-              </ul>
-            </li>
+            {canAny(['financial_cashier', 'financial_cashflow', 'dashboards_financial_view', 'sales_purchase']) && (
+              <li>
+                <Link to="/#" className="has-arrow waves-effect">
+                  <i className="mdi mdi-cash-multiple"></i>
+                  <span>{props.t("Financeiro")}</span>
+                </Link>
+                <ul className="sub-menu">
+                  {can('dashboards_financial_view') && (
+                    <li>
+                      <Link to={linkTo("/financial/dashboard")}>{props.t("Resumo")}</Link>
+                    </li>
+                  )}
+                  {can('financial_cashier') && (
+                    <li>
+                      <Link to={linkTo("/financial/cashier")}>{props.t("Caixa")}</Link>
+                    </li>
+                  )}
+                  {canAny(['financial_cashflow', 'dashboards_financial_view']) && (
+                    <li>
+                      <Link to={linkTo("/financial/receivables")}>{props.t("Recebíveis")}</Link>
+                    </li>
+                  )}
+                  {can('financial_cashflow') && (
+                    <li>
+                      <Link to={linkTo("/financial/payables")}>{props.t("Pagáveis")}</Link>
+                    </li>
+                  )}
+                  {can('financial_cashflow') && (
+                    <li>
+                      <Link to={linkTo("/financial/cash-flow")}>{props.t("Fluxo de Caixa")}</Link>
+                    </li>
+                  )}
+                  {can('financial_cashflow') && (
+                    <li>
+                      <Link to={linkTo("/financial/dre")}>{props.t("DRE")}</Link>
+                    </li>
+                  )}
+                </ul>
+              </li>
+            )}
 
             {/* ========== GERENCIAL ========== */}
-            <li>
-              <Link to="/#" className="has-arrow waves-effect">
-                <i className="mdi mdi-chart-areaspline"></i>
-                <span>{props.t("Gerencial")}</span>
-              </Link>
-              <ul className="sub-menu">
-                <li>
-                  <Link to={linkTo("/admin/staff")}>{props.t("Colaboradores")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/admin/classes")}>{props.t("Turmas")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/admin/events")}>{props.t("Eventos")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/automation")}>{props.t("Inteligência")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/admin/audit-logs")}>{props.t("Auditoria")}</Link>
-                </li>
-              </ul>
-            </li>
+            {canAny(['staff_manage', 'admin_classes', 'management_event_plan', 'management_automations', 'management_audit_log']) && (
+              <li>
+                <Link to="/#" className="has-arrow waves-effect">
+                  <i className="mdi mdi-chart-areaspline"></i>
+                  <span>{props.t("Gerencial")}</span>
+                </Link>
+                <ul className="sub-menu">
+                  {can('staff_manage') && (
+                    <li>
+                      <Link to={linkTo("/admin/staff")}>{props.t("Colaboradores")}</Link>
+                    </li>
+                  )}
+                  {can('admin_classes') && (
+                    <li>
+                      <Link to={linkTo("/admin/classes")}>{props.t("Turmas")}</Link>
+                    </li>
+                  )}
+                  {can('management_event_plan') && (
+                    <li>
+                      <Link to={linkTo("/admin/events")}>{props.t("Eventos")}</Link>
+                    </li>
+                  )}
+                  {can('management_automations') && (
+                    <li>
+                      <Link to={linkTo("/automation")}>{props.t("Inteligência")}</Link>
+                    </li>
+                  )}
+                  {can('management_audit_log') && (
+                    <li>
+                      <Link to={linkTo("/admin/audit-logs")}>{props.t("Auditoria")}</Link>
+                    </li>
+                  )}
+                </ul>
+              </li>
+            )}
 
             {/* ========== ADMINISTRATIVO ========== */}
-            <li>
-              <Link to="/#" className="has-arrow waves-effect">
-                <i className="mdi mdi-cog-outline"></i>
-                <span>{props.t("Cadastros")}</span>
-              </Link>
-              <ul className="sub-menu">
-                <li>
-                  <Link to={linkTo("/admin/activities")}>{props.t("Atividades")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/admin/areas")}>{props.t("Áreas")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/admin/roles")}>{props.t("Cargos")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/admin/evaluation-levels")}>{props.t("Níveis")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/admin/catalog")}>{props.t("Catálogo")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/financial/contracts")}>{props.t("Contratos")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/financial/bank-accounts")}>{props.t("Contas Bancárias")}</Link>
-                </li>
-                <li>
-                  <Link to={linkTo("/financial/acquirers")}>{props.t("Adquirentes")}</Link>
-                </li>
-              </ul>
-            </li>
+            {canAny(['admin_activities', 'admin_areas', 'admin_roles', 'management_evaluation_levels', 'admin_catalog', 'admin_contracts', 'admin_settings', 'financial_acquirers']) && (
+              <li>
+                <Link to="/#" className="has-arrow waves-effect">
+                  <i className="mdi mdi-cog-outline"></i>
+                  <span>{props.t("Cadastros")}</span>
+                </Link>
+                <ul className="sub-menu">
+                  {can('admin_activities') && (
+                    <li>
+                      <Link to={linkTo("/admin/activities")}>{props.t("Atividades")}</Link>
+                    </li>
+                  )}
+                  {can('admin_areas') && (
+                    <li>
+                      <Link to={linkTo("/admin/areas")}>{props.t("Áreas")}</Link>
+                    </li>
+                  )}
+                  {can('admin_roles') && (
+                    <li>
+                      <Link to={linkTo("/admin/roles")}>{props.t("Cargos")}</Link>
+                    </li>
+                  )}
+                  {can('management_evaluation_levels') && (
+                    <li>
+                      <Link to={linkTo("/admin/evaluation-levels")}>{props.t("Níveis")}</Link>
+                    </li>
+                  )}
+                  {can('admin_catalog') && (
+                    <li>
+                      <Link to={linkTo("/admin/catalog")}>{props.t("Catálogo")}</Link>
+                    </li>
+                  )}
+                  {can('admin_contracts') && (
+                    <li>
+                      <Link to={linkTo("/financial/contracts")}>{props.t("Contratos")}</Link>
+                    </li>
+                  )}
+                  {can('admin_settings') && (
+                    <li>
+                      <Link to={linkTo("/financial/bank-accounts")}>{props.t("Contas Bancárias")}</Link>
+                    </li>
+                  )}
+                  {can('financial_acquirers') && (
+                    <li>
+                      <Link to={linkTo("/financial/acquirers")}>{props.t("Adquirentes")}</Link>
+                    </li>
+                  )}
+                </ul>
+              </li>
+            )}
 
             {/* ========== AJUDA ========== */}
             <li>

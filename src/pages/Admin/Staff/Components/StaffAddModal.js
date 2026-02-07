@@ -12,8 +12,9 @@ import {
     FormFeedback,
     FormGroup
 } from "reactstrap"
+import InputMask from "react-input-mask"
 import { useStaffForm } from "../hooks/useStaffForm"
-import { maskCPF, maskPhone } from "../../../../utils/maskUtils"
+// import { maskCPF, maskPhone } from "../../../../utils/maskUtils" // Removed manual masks in favor of react-input-mask
 import PhotoPreview from "../../../../components/Common/PhotoPreview"
 import OverlayLoader from "../../../../components/Common/OverlayLoader"
 import ButtonLoader from "../../../../components/Common/ButtonLoader"
@@ -187,10 +188,13 @@ const StaffAddModal = ({ isOpen, toggle, onStaffAdded, roles = [], loadingRoles 
                         <FormGroup>
                             <Label>Telefone</Label>
                             <Input
+                                tag={InputMask}
+                                mask="(99) 99999-9999"
                                 name="phone"
                                 placeholder="(00) 00000-0000"
                                 value={formik.values.phone}
-                                onChange={(e) => formik.setFieldValue("phone", maskPhone(e.target.value))}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
                             />
                         </FormGroup>
                     </Col>
@@ -198,10 +202,13 @@ const StaffAddModal = ({ isOpen, toggle, onStaffAdded, roles = [], loadingRoles 
                         <FormGroup>
                             <Label>CPF</Label>
                             <Input
+                                tag={InputMask}
+                                mask="999.999.999-99"
                                 name="cpf"
                                 placeholder="000.000.000-00"
                                 value={formik.values.cpf}
-                                onChange={(e) => formik.setFieldValue("cpf", maskCPF(e.target.value))}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
                             />
                         </FormGroup>
                     </Col>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, ModalHeader, ModalBody, Button, Row, Col, Label, Input, FormFeedback } from 'reactstrap';
 import ButtonLoader from '../../../components/Common/ButtonLoader';
+import CurrencyInput from '../../../components/Common/CurrencyInput';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { formatCurrency } from '../../../utils/format';
@@ -94,12 +95,11 @@ const PayablePaymentModal = ({ isOpen, toggle, payable, onPay }) => {
                         </Col>
                         <Col md={6} className="mb-3">
                             <Label>Valor Pago *</Label>
-                            <Input
+                            <CurrencyInput
                                 name="amountPaid"
-                                type="number"
-                                step="0.01"
                                 value={formik.values.amountPaid}
                                 onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
                                 invalid={!!(formik.touched.amountPaid && formik.errors.amountPaid)}
                             />
                             {formik.errors.amountPaid && <FormFeedback>{formik.errors.amountPaid}</FormFeedback>}

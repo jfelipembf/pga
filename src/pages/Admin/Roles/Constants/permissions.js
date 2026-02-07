@@ -108,6 +108,12 @@ export const PERMISSIONS = [
     category: "OPERACIONAL",
   },
   {
+    id: "management_training_manage",
+    label: "Treinos",
+    description: "Criar, gerenciar e enviar planilhas de treinos.",
+    category: "OPERACIONAL",
+  },
+  {
     id: "admin_roles",
     label: "Perfis de acesso",
     description: "Gerenciar cargos e permissões.",

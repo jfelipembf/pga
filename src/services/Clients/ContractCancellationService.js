@@ -48,8 +48,6 @@ export const ContractCancellationService = {
      */
     cancel: async (idTenant, idBranch, userId, idContract, financialData) => {
         const {
-            reason,
-            notes,
             cancellationFee,
             effectiveDate,
             cancelFutureReceivables

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Modal, ModalHeader, ModalBody, Button, Row, Col, Label, Input, FormFeedback, Alert } from 'reactstrap';
 import { FormSwitch } from '../../../components/Common/FormSwitch';
 import ButtonLoader from '../../../components/Common/ButtonLoader';
+import CurrencyInput from '../../../components/Common/CurrencyInput';
 import { useFormik } from 'formik';
 import { receivableSettlementSchema } from '../../../validations/financialSchemas';
 import { formatCurrency } from '../../../utils/format';
@@ -263,32 +264,29 @@ const ReceivableSettlementModal = ({ isOpen, toggle, receivable, onSettle }) => 
 
                         <Col md={4}>
                             <Label className="form-label fw-bold">Juros / Multa (+)</Label>
-                            <Input
-                                type="number"
-                                step="0.01"
+                            <CurrencyInput
                                 name="additions"
                                 onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
                                 value={formik.values.additions}
                             />
                         </Col>
                         <Col md={4}>
                             <Label className="form-label fw-bold">Descontos (-)</Label>
-                            <Input
-                                type="number"
-                                step="0.01"
+                            <CurrencyInput
                                 name="discounts"
                                 onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
                                 value={formik.values.discounts}
                             />
                         </Col>
                         <Col md={4}>
                             <Label className="form-label fw-bold text-success">Valor Final Recebido *</Label>
-                            <Input
-                                type="number"
-                                step="0.01"
+                            <CurrencyInput
                                 name="amountReceived"
                                 className="fw-bold form-control-lg"
                                 onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
                                 value={formik.values.amountReceived}
                             />
                         </Col>

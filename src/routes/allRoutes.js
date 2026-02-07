@@ -8,6 +8,8 @@ import UserProfile from "../pages/Authentication/user-profile"
 import Grade from "../pages/Grade/index"
 import EnrollmentGrade from "../pages/Grade/EnrollmentGrade/index"
 import Evaluation from "../pages/Evaluation/index"
+import TrainingPlanning from "../pages/TrainingPlanning/index";
+import TrainingTVView from "../pages/TrainingPlanning/TVMode/TrainingTVView";
 import AutomationList from "../pages/Automation/AutomationList"
 import IntegrationPage from "../pages/Integration/index"
 
@@ -104,6 +106,7 @@ import PagesDirectory from "../pages/Extra Pages/pages-directory";
 import PagesBlank from "../pages/Extra Pages/pages-blank";
 import Pages404 from "../pages/Extra Pages/pages-404";
 import Pages500 from "../pages/Extra Pages/pages-500";
+import Pages403 from "../pages/Extra Pages/pages-403";
 import UiUtilities from "pages/Ui/UiUtilities"
 import UiColors from "pages/Ui/UiColors"
 import UiOffcanvas from "pages/Ui/UiOffcanvas"
@@ -125,50 +128,52 @@ import OperationalDashboard from "../pages/Dashboard/Operational/index"
 // ...
 
 const userRoutes = [
-  { path: "/dashboard", component: <Dashboard /> },
-  { path: "/dashboard-operational", component: <OperationalDashboard /> },
-  { path: "/financial/dashboard", component: <FinancialDashboard /> },
-  { path: "/financial/cashier", component: <CashierPage /> },
-  { path: "/financial/cash-flow", component: <CashFlowPage /> },
-  { path: "/financial/dre", component: <DREPage /> },
-  { path: "/financial/contracts", component: <ContractsList /> },
-  { path: "/financial/acquirers", component: <AcquirersList /> },
-  { path: "/financial/bank-accounts", component: <BankAccountsList /> },
-  { path: "/financial/payables", component: <PayablesList /> },
-  { path: "/financial/receivables", component: <ReceivablesPage /> },
-  { path: "/sales/new", component: <SalesPoint /> },
+  { path: "/dashboard", component: <Dashboard />, permission: ["dashboards_management_view", "dashboards_commercial_view"] },
+  { path: "/dashboard-operational", component: <OperationalDashboard />, permission: "dashboards_management_view" },
+  { path: "/financial/dashboard", component: <FinancialDashboard />, permission: "dashboards_financial_view" },
+  { path: "/financial/cashier", component: <CashierPage />, permission: "financial_cashier" },
+  { path: "/financial/cash-flow", component: <CashFlowPage />, permission: "financial_cashflow" },
+  { path: "/financial/dre", component: <DREPage />, permission: "dashboards_financial_view" },
+  { path: "/financial/contracts", component: <ContractsList />, permission: "admin_contracts" },
+  { path: "/financial/acquirers", component: <AcquirersList />, permission: "financial_acquirers" },
+  { path: "/financial/bank-accounts", component: <BankAccountsList />, permission: "financial_acquirers" },
+  { path: "/financial/payables", component: <PayablesList />, permission: "dashboards_financial_view" },
+  { path: "/financial/receivables", component: <ReceivablesPage />, permission: "dashboards_financial_view" },
+  { path: "/sales/new", component: <SalesPoint />, permission: "sales_purchase" },
 
   // Clients
-  { path: "/clients", component: <ClientsList /> },
-  { path: "/clients/:id", component: <ClientProfile /> },
+  { path: "/clients", component: <ClientsList />, permission: "members_manage" },
+  { path: "/clients/:id", component: <ClientProfile />, permission: "members_manage" },
 
   // Grade
-  { path: "/grade", component: <Grade /> },
-  { path: "/grade/enroll", component: <EnrollmentGrade /> },
+  { path: "/grade", component: <Grade />, permission: "grade_manage" },
+  { path: "/grade/enroll", component: <EnrollmentGrade />, permission: "grade_manage" },
 
   // Evaluation
-  { path: "/evaluation", component: <Evaluation /> },
+  { path: "/evaluation", component: <Evaluation />, permission: "management_evaluation_run" },
 
+  // Training Planning
+  { path: "/training", component: <TrainingPlanning />, permission: "management_training_manage" },
+  { path: "/training-tv", component: <TrainingTVView /> },
 
   // Automation
-  { path: "/automation", component: <AutomationList /> },
-  { path: "/settings/integrations", component: <IntegrationPage /> },
-
+  { path: "/automation", component: <AutomationList />, permission: "management_automations" },
+  { path: "/settings/integrations", component: <IntegrationPage />, permission: "management_integrations" },
 
   { path: "/chat", component: <Chat /> },
   { path: "/kanbanboard", component: <Kanban /> },
 
   // Admin Routes
-  { path: "/admin/activities", component: <ActivitiesPage /> },
-  { path: "/admin/areas", component: <AreasPage /> },
-  { path: "/admin/roles", component: <RolesPage /> },
-  { path: "/admin/evaluation-levels", component: <EvaluationLevelsPage /> },
-  { path: "/admin/staff", component: <StaffList /> },
-  { path: "/admin/staff/:id", component: <StaffProfile /> },
-  { path: "/admin/classes", component: <ClassesPage /> },
-  { path: "/admin/catalog", component: <CatalogPage /> },
-  { path: "/admin/events", component: <EventsPage /> },
-  { path: "/admin/audit-logs", component: <AuditLogsPage /> },
+  { path: "/admin/activities", component: <ActivitiesPage />, permission: "admin_activities" },
+  { path: "/admin/areas", component: <AreasPage />, permission: "admin_areas" },
+  { path: "/admin/roles", component: <RolesPage />, permission: "admin_roles" },
+  { path: "/admin/evaluation-levels", component: <EvaluationLevelsPage />, permission: "management_evaluation_levels" },
+  { path: "/admin/staff", component: <StaffList />, permission: "staff_manage" },
+  { path: "/admin/staff/:id", component: <StaffProfile />, permission: "staff_manage" },
+  { path: "/admin/classes", component: <ClassesPage />, permission: "admin_classes" },
+  { path: "/admin/catalog", component: <CatalogPage />, permission: "admin_catalog" },
+  { path: "/admin/events", component: <EventsPage />, permission: "management_event_plan" },
+  { path: "/admin/audit-logs", component: <AuditLogsPage />, permission: "management_audit_log" },
 
   // // //profile
   { path: "/profile", component: <UserProfile /> },
@@ -253,6 +258,7 @@ const authRoutes = [
 
   { path: "/pages-404", component: <Pages404 /> },
   { path: "/pages-500", component: <Pages500 /> },
+  { path: "/pages-403", component: <Pages403 /> },
 
   // Authentication Inner
   { path: "/pages-login", component: <Login1 /> },

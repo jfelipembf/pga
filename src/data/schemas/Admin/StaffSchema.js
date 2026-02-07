@@ -8,7 +8,12 @@ export const StaffSchema = yup.object().shape({
     email: yup.string().email('E-mail inválido').required('E-mail é obrigatório'),
     document: yup.string().nullable(),
     cpf: yup.string().nullable(),
-    password: yup.string().min(6, 'A senha deve ter pelo menos 6 caracteres').required('Senha é obrigatória'),
+    password: yup.string()
+        .min(8, 'A senha deve ter pelo menos 8 caracteres')
+        .matches(/[a-zA-Z]/, 'A senha deve conter pelo menos uma letra')
+        .matches(/[0-9]/, 'A senha deve conter pelo menos um número')
+        .matches(/[^a-zA-Z0-9]/, 'A senha deve conter pelo menos um caractere especial')
+        .required('Senha é obrigatória'),
     confirmPassword: yup.string()
         .oneOf([yup.ref('password'), null], 'Senhas devem coincidir')
         .required('Confirmação de senha é obrigatória'),

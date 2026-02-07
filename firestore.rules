@@ -1,8 +1,66 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // --- Funções Auxiliares ---
+    
+    // Verifica se o usuário está autenticado
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Verifica se o usuário existe como colaborador na filial específica
+    function isStaffOf(tenantId, branchId) {
+      return exists(/databases/$(database)/documents/tenants/$(tenantId)/branches/$(branchId)/staff/$(request.auth.uid));
+    }
+
+    // Obtém dados do colaborador para checagem de regras/papéis
+    function getStaffData(tenantId, branchId) {
+      return get(/databases/$(database)/documents/tenants/$(tenantId)/branches/$(branchId)/staff/$(request.auth.uid)).data;
+    }
+
+    // Verifica se o usuário é proprietário/dono da unidade
+    function isOwner(tenantId, branchId) {
+      let data = getStaffData(tenantId, branchId);
+      return data.role == 'owner' || data.role == 'proprietario';
+    }
+
+    // --- Regras de Coleções ---
+
+    // Coleção de Tenants (Unidades Principais)
+    match /tenants/{tenantId} {
+      // Permite leitura básica para usuários logados (necessário para resolução de slugs e nomes)
+      allow get, list: if isSignedIn();
+
+      // Sub-coleção de Filiais
+      match /branches/{branchId} {
+        allow get, list: if isSignedIn();
+
+        // Regra Genérica para dados da filial (clientes, vendas, financeiro, etc)
+        // Somente colaboradores da PRÓPRIA filial podem acessar os dados
+        match /{collectionName}/{docId} {
+          allow read, write: if isSignedIn() && isStaffOf(tenantId, branchId);
+        }
+
+        // Regras específicas para Staff (Colaboradores)
+        match /staff/{staffId} {
+          allow read: if isSignedIn() && isStaffOf(tenantId, branchId);
+          allow write: if isSignedIn() && isStaffOf(tenantId, branchId) && (
+            isOwner(tenantId, branchId) || request.auth.uid == staffId
+          );
+        }
+
+        // Regras para Cargos e Permissões
+        match /roles/{roleId} {
+          allow read: if isSignedIn() && isStaffOf(tenantId, branchId);
+          allow write: if isSignedIn() && isStaffOf(tenantId, branchId) && isOwner(tenantId, branchId);
+        }
+      }
+    }
+
+    // Bloqueio padrão para qualquer outra rota não mapeada
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

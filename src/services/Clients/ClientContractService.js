@@ -53,8 +53,6 @@ export const ClientContractService = {
             createdBy: userId,
             createdAt: normalizeDate(new Date()),
             updatedAt: normalizeDate(new Date()),
-            salesClassification,
-            previousContractId
         }
 
         const existingContracts = await clientContractRepository.findByClient(
@@ -86,6 +84,9 @@ export const ClientContractService = {
                 salesClassification = 'winback'
             }
         }
+
+        contract.salesClassification = salesClassification
+        contract.previousContractId = previousContractId
 
         const isFirstContract = salesClassification === 'new'
 

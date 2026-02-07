@@ -7,7 +7,7 @@ import { useClassClients } from "./useClassClients"
 import { EventService } from "../../../services/Events/EventService"
 
 export const useEvaluationFormLogic = ({ classId }) => {
-    const { idTenant, idBranch } = useTenant()
+    const { idTenant, idBranch, isReady } = useTenant()
     const { isLoading, anyLoading, withLoading } = useLoading()
     const [extraClients, setExtraClients] = useState([])
     const [searchText, setSearchText] = useState("")
@@ -63,6 +63,8 @@ export const useEvaluationFormLogic = ({ classId }) => {
     }, [searchText, addCandidates.length])
 
     useEffect(() => {
+        if (!isReady) return
+
         let cancelled = false
         const load = async () => {
             try {
@@ -79,7 +81,7 @@ export const useEvaluationFormLogic = ({ classId }) => {
         return () => {
             cancelled = true
         }
-    }, [withLoading])
+    }, [isReady, idTenant, idBranch, withLoading])
 
     const defaultLevelId = useMemo(() => {
         const first = Array.isArray(levels) && levels.length > 0 ? levels[0] : null

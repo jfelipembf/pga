@@ -107,7 +107,7 @@ const Header = props => {
           </div>
 
           <div className="d-flex align-items-center">
-            <div className="d-none d-lg-block me-2" style={{ minWidth: '350px' }}>
+            <div className="d-none d-lg-block me-3" style={{ minWidth: '350px' }}>
               <ClientAddSearch
                 value={searchQuery}
                 onChange={handleSearch}
@@ -117,14 +117,29 @@ const Header = props => {
                 showNoResults={true}
               />
             </div>
-            {/* Add Client Button */}
-            <button
-              onClick={() => setClientModalOpen(true)}
-              className="btn header-item waves-effect"
-              title="Novo Aluno"
-            >
-              <i className="mdi mdi-account-plus-outline font-size-24"></i>
-            </button>
+
+            {/* Action Icons */}
+            <div className="d-flex align-items-center gap-1">
+              {/* Training TV Mode Button */}
+              <Link
+                to={activeTenant && activeBranch ? `/${activeTenant.idTenant}/${activeBranch.idBranch}/training-tv` : "/training-tv"}
+                className="btn header-item waves-effect d-flex align-items-center justify-content-center"
+                title="Modo TV - Treinos"
+                style={{ width: '40px', height: '40px' }}
+              >
+                <i className="mdi mdi-monitor font-size-24"></i>
+              </Link>
+
+              {/* Add Client Button */}
+              <button
+                onClick={() => setClientModalOpen(true)}
+                className="btn header-item waves-effect d-flex align-items-center justify-content-center"
+                title="Novo Aluno"
+                style={{ width: '40px', height: '40px' }}
+              >
+                <i className="mdi mdi-account-plus-outline font-size-24"></i>
+              </button>
+            </div>
 
             <ProfileMenu />
           </div>

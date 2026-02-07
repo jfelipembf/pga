@@ -19,9 +19,6 @@ export const StaffMetricsService = {
     getStaffMonthlyMetrics: async (idTenant, idBranch, idStaff, date = new Date()) => {
         const currentMonth = moment(date)
 
-        console.group(`[StaffMetrics] Iniciando análise para o professor: ${idStaff}`)
-        console.log(`Período de referência: ${currentMonth.format('MMMM YYYY')}`)
-
         // Criar array de datas para os últimos 6 meses
         const months = []
         for (let i = 5; i >= 0; i--) {
@@ -52,9 +49,6 @@ export const StaffMetricsService = {
                 trialConversionChange: current.metrics.trialConversionRate - previous.metrics.trialConversionRate
             }
         }
-
-        console.log("Resultado Final das Métricas:", result)
-        console.groupEnd()
 
         return result
     },
@@ -109,8 +103,6 @@ export const StaffMetricsService = {
         let allEnrollments = []
         if (classIds.length > 0) {
             const enrollmentsRef = collection(db, `tenants/${idTenant}/branches/${idBranch}/enrollments`)
-            // Como as matrículas não têm idStaff, buscamos as matrículas ativas da unidade e filtramos em memória
-            // Isso é necessário porque o Firestore não permite comparar arrays grandes no 'in'
             const qEnroll = query(
                 enrollmentsRef,
                 where('deletedAt', '==', null)
@@ -121,10 +113,8 @@ export const StaffMetricsService = {
                 .filter(e => classIds.includes(e.idClass))
         }
 
-        // A. Base Ativa no Período
         const activeAtEnd = allEnrollments.filter(e => {
             if (e.status === 'active') return true
-            // Se cancelado após o fim do período, ainda era ativo no período
             const cancelDate = e.cancelledAt?.toDate ? moment(e.cancelledAt.toDate()) : (e.cancelledAt ? moment(e.cancelledAt) : null)
             if (cancelDate && cancelDate.isAfter(end)) return true
             return false
@@ -133,21 +123,18 @@ export const StaffMetricsService = {
         const regularAtEnd = activeAtEnd.filter(e => e.enrollmentType === 'regular')
         const trialAtEnd = activeAtEnd.filter(e => e.enrollmentType === 'trial')
 
-        // B. Novos Alunos no Mês
         const newEnrollments = allEnrollments.filter(e => {
             if (e.enrollmentType !== 'regular') return false
             const enrolledDate = e.enrolledAt?.toDate ? moment(e.enrolledAt.toDate()) : moment(e.enrolledAt)
             return enrolledDate.isBetween(start, end, null, '[]')
         })
 
-        // C. Cancelamentos no Mês
         const cancellations = allEnrollments.filter(e => {
             if (e.status !== 'cancelled') return false
             const cancelDate = e.cancelledAt?.toDate ? moment(e.cancelledAt.toDate()) : moment(e.cancelledAt)
             return cancelDate.isBetween(start, end, null, '[]')
         })
 
-        // D. Cálculo de Taxas
         const occupancyRate = totalCapacity > 0 ? (totalEnrolledCount / totalCapacity) * 100 : 0
         const attendanceRate = totalEnrolledCount > 0 ? (totalAttended / totalEnrolledCount) * 100 : 0
 

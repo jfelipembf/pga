@@ -31,6 +31,18 @@ import { firebaseConfig } from "./helpers/firebase_config"
 initFirebaseBackend(firebaseConfig)
 
 const App = props => {
+  React.useEffect(() => {
+    const handleSyncLogout = (e) => {
+      // Se 'authUser' for removido de outra aba, recarrega para redirecionar ao login
+      if (e.key === "authUser" && !e.newValue) {
+        window.location.reload();
+      }
+    };
+
+    window.addEventListener("storage", handleSyncLogout);
+    return () => window.removeEventListener("storage", handleSyncLogout);
+  }, []);
+
   function getLayout() {
     let layoutCls = VerticalLayout
     switch (props.layout.layoutType) {
@@ -71,7 +83,11 @@ const App = props => {
                 <Route
                   key={idx}
                   path={route.path.startsWith('/') ? route.path.substring(1) : route.path}
-                  element={route.component}
+                  element={
+                    <Authmiddleware permission={route.permission}>
+                      {route.component}
+                    </Authmiddleware>
+                  }
                 />
               ))}
             </Route>
