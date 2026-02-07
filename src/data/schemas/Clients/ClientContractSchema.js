@@ -29,7 +29,13 @@ export const ClientContractSchema = Yup.object().shape({
     // === FINANCEIRO ===
     value: Yup.number().min(0, 'Valor deve ser positivo').required('Valor é obrigatório'),
     installments: Yup.number().min(1).default(1),
-    paidInstallments: Yup.number().min(0).default(0)
+    paidInstallments: Yup.number().min(0).default(0),
+
+    // === CLASSIFICAÇÃO COMERCIAL ===
+    salesClassification: Yup.string()
+        .oneOf(['new', 'renewal', 'winback'])
+        .default('new'),
+    previousContractId: Yup.string().nullable()
 })
 
 /**
@@ -52,6 +58,15 @@ export const PLAN_TYPES = {
     SEMIANNUAL: 'semiannual',
     ANNUAL: 'annual',
     SINGLE: 'single' // Pagamento único (ex: Day Pass)
+}
+
+/**
+ * Constantes para Classificação de Vendas (Churn/Retenção)
+ */
+export const SALES_CLASSIFICATION = {
+    NEW: 'new',        // Primeira vez ou sem histórico
+    RENEWAL: 'renewal',// Renovação contínua (gap <= 30 dias)
+    WINBACK: 'winback' // Retorno após inatividade (gap > 30 dias)
 }
 
 /**

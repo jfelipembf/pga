@@ -36,3 +36,9 @@ const { updateUserPassword } = require("./updateUserPassword");
 
 exports.updateUserPassword = updateUserPassword;
 exports.autoCloseCashier = require("./triggers/autoCloseCashier");
+exports.processDashboardSnapshot = require("./triggers/processDashboardSnapshot");
+exports.ensureSessionsHorizon = require("./triggers/ensureSessionsHorizon");
+exports.processScheduledSuspensions = require("./triggers/processScheduledSuspensions");
+exports.processSuspensionEnds = require("./triggers/processSuspensionEnds");
+exports.processScheduledCancellations = require("./triggers/processScheduledCancellations");
+exports.processContractDefaultCancellation = require("./triggers/processContractDefaultCancellation");

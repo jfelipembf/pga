@@ -23,3 +23,19 @@ exports.createScheduledTrigger = (cron, taskName, handler) => {
             return null;
         });
 };
+
+/**
+ * Retorna a data no formato YYYY-MM-DD
+ */
+exports.toISODate = (date) => {
+    return date.toISOString().split('T')[0];
+};
+
+/**
+ * Adiciona dias a uma data
+ */
+exports.addDays = (date, days) => {
+    const result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+};

@@ -52,13 +52,42 @@ export const ClientContractService = {
             endDate: normalizeDate(contractData.endDate),
             createdBy: userId,
             createdAt: normalizeDate(new Date()),
-            updatedAt: normalizeDate(new Date())
+            updatedAt: normalizeDate(new Date()),
+            salesClassification,
+            previousContractId
         }
 
         const existingContracts = await clientContractRepository.findByClient(
             idTenant, idBranch, contractData.idClient
         )
-        const isFirstContract = existingContracts.length === 0
+        // Ordena por data de término decrescente para pegar o último
+        existingContracts.sort((a, b) => {
+            const dateA = a.endDate?.toDate ? a.endDate.toDate() : new Date(a.endDate)
+            const dateB = b.endDate?.toDate ? b.endDate.toDate() : new Date(b.endDate)
+            return dateB - dateA
+        })
+
+        const lastContract = existingContracts[0]
+        let salesClassification = 'new'
+        let previousContractId = null
+
+        if (lastContract) {
+            previousContractId = lastContract.friendlyId || lastContract.id
+            const lastEndDate = lastContract.endDate?.toDate ? lastContract.endDate.toDate() : new Date(lastContract.endDate)
+            const newStartDate = normalizeDate(contractData.startDate) || new Date()
+
+            // Diferença em dias: Data Início Novo - Data Fim Último
+            const gapDays = moment(newStartDate).startOf('day').diff(moment(lastEndDate).startOf('day'), 'days')
+
+            // Regra de Negócio: Gap <= 30 dias é Renovação, > 30 é Retorno (Win-back)
+            if (gapDays <= 30) {
+                salesClassification = 'renewal'
+            } else {
+                salesClassification = 'winback'
+            }
+        }
+
+        const isFirstContract = salesClassification === 'new'
 
         let contractId = null
         const db = ClientContractService.db
@@ -68,23 +97,31 @@ export const ClientContractService = {
             transaction.set(contractRef, contract)
             contractId = contractRef.id
 
-            if (isFirstContract) {
-                const clientRef = doc(db, `tenants/${idTenant}/branches/${idBranch}/clients/${contractData.idClient}`)
-                transaction.update(clientRef, {
-                    lifecycleStatus: 'active',
-                    'lifecycle.convertedAt': normalizeDate(new Date()),
-                    'lifecycle.convertedBy': userId,
-                    'lifecycle.firstContractId': contractId,
-                    'lifecycle.startDate': normalizeDate(contractData.startDate) || normalizeDate(new Date()),
-                    updatedAt: normalizeDate(new Date())
-                })
-
-                DashboardSummaryService.applyInTransaction(transaction, idTenant, idBranch, {
-                    activeStudents: 1,
-                    newStudents: 1,
-                    converted: 1
-                })
+            // Atualiza status do Cliente
+            const clientRef = doc(db, `tenants/${idTenant}/branches/${idBranch}/clients/${contractData.idClient}`)
+            const clientUpdates = {
+                lifecycleStatus: 'active',
+                updatedAt: normalizeDate(new Date())
             }
+
+            // Metadados apenas para primeira conversão
+            if (isFirstContract) {
+                clientUpdates['lifecycle.convertedAt'] = normalizeDate(new Date())
+                clientUpdates['lifecycle.convertedBy'] = userId
+                clientUpdates['lifecycle.firstContractId'] = contractId
+                clientUpdates['lifecycle.startDate'] = normalizeDate(contractData.startDate) || normalizeDate(new Date())
+            }
+
+            transaction.update(clientRef, clientUpdates)
+
+            // Atualiza Dashboard: Incrementa conforme classificação
+            DashboardSummaryService.applyInTransaction(transaction, idTenant, idBranch, {
+                activeStudents: 1, // Novo contrato vigente sempre incrementa ativo
+                newStudents: salesClassification === 'new' ? 1 : 0,
+                converted: salesClassification === 'new' ? 1 : 0,
+                renewals: salesClassification === 'renewal' ? 1 : 0,
+                winbacks: salesClassification === 'winback' ? 1 : 0
+            })
         })
 
         await AuditService.log({
@@ -93,8 +130,14 @@ export const ClientContractService = {
             action: 'CREATE',
             entityType: 'clientContract',
             entityId: contractId,
-            details: { idClient: contractData.idClient, planName: contractData.planName, isFirstContract },
-            description: `Contrato ${contractData.planName} criado para o cliente.`
+            details: {
+                idClient: contractData.idClient,
+                planName: contractData.planName,
+                isFirstContract,
+                salesClassification,
+                previousContractId
+            },
+            description: `Contrato ${contractData.planName} criado [${salesClassification.toUpperCase()}].`
         })
 
         return contractId
@@ -139,9 +182,13 @@ export const ClientContractService = {
             throw new Error(`Limite de ${available} dias de suspensão (Usado: ${totalUsed}/${rules.maxFreezeDays})`)
         }
 
+        const todayIso = moment().format('YYYY-MM-DD')
+        const isFuture = moment(finalStartDate).isAfter(todayIso, 'day')
+
         const db = ClientContractService.db
         await runTransaction(db, async (transaction) => {
             const contractRef = doc(db, `tenants/${idTenant}/branches/${idBranch}/clientContracts/${idContract}`)
+
             const suspensionEntry = {
                 id: Math.random().toString(36).substr(2, 9),
                 startDate: finalStartDate,
@@ -150,27 +197,39 @@ export const ClientContractService = {
                 reason: reason,
                 suspendedAt: normalizeDate(new Date()),
                 suspendedBy: userId,
-                status: 'ongoing'
+                status: isFuture ? 'scheduled' : 'active'
             }
 
-            transaction.update(contractRef, {
-                status: 'suspended',
-                'suspension.isSuspended': true,
-                'suspension.current': suspensionEntry,
-                'suspension.history': arrayUnion(suspensionEntry),
-                updatedAt: normalizeDate(new Date())
-            })
+            if (isFuture) {
+                // AGENDA: Cria apenas a sub-coleção e marca o contrato com uma flag de agendamento se necessário
+                // Mas a Cloud Function varre o collectionGroup 'suspensions' atrás de status 'scheduled'
+                const subRef = doc(db, `${contractRef.path}/suspensions/${suspensionEntry.id}`)
+                transaction.set(subRef, suspensionEntry)
 
-            const clientRef = doc(db, `tenants/${idTenant}/branches/${idBranch}/clients/${contract.idClient}`)
-            transaction.update(clientRef, {
-                lifecycleStatus: 'suspended',
-                updatedAt: normalizeDate(new Date())
-            })
+                transaction.update(contractRef, {
+                    updatedAt: normalizeDate(new Date())
+                })
+            } else {
+                // IMEDIATO: Mantém a estrutura atual mas atualiza o campo de histórico principal
+                transaction.update(contractRef, {
+                    status: 'suspended',
+                    'suspension.isSuspended': true,
+                    'suspension.current': suspensionEntry,
+                    'suspension.history': arrayUnion(suspensionEntry),
+                    updatedAt: normalizeDate(new Date())
+                })
 
-            DashboardSummaryService.applyInTransaction(transaction, idTenant, idBranch, {
-                activeStudents: -1,
-                suspendedStudents: 1
-            })
+                const clientRef = doc(db, `tenants/${idTenant}/branches/${idBranch}/clients/${contract.idClient}`)
+                transaction.update(clientRef, {
+                    lifecycleStatus: 'suspended',
+                    updatedAt: normalizeDate(new Date())
+                })
+
+                DashboardSummaryService.applyInTransaction(transaction, idTenant, idBranch, {
+                    activeStudents: -1,
+                    suspendedStudents: 1
+                })
+            }
         })
 
         await AuditService.log({
@@ -270,6 +329,18 @@ export const ClientContractService = {
      * Delegado ao ContractCancellationService.
      */
     cancel: async (idTenant, idBranch, userId, idContract, financialData) => {
+        const todayIso = moment().format('YYYY-MM-DD')
+        const effectiveDate = financialData?.effectiveDate || todayIso
+        const isFuture = moment(effectiveDate).isAfter(todayIso, 'day')
+
+        if (isFuture) {
+            return ContractCancellationService.scheduleCancellation(idTenant, idBranch, userId, idContract, {
+                cancelDate: effectiveDate,
+                reason: financialData.reason,
+                notes: financialData.notes
+            })
+        }
+
         return ContractCancellationService.cancel(idTenant, idBranch, userId, idContract, financialData)
     },
 

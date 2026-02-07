@@ -36,6 +36,8 @@ const ContractSuspendModal = ({ isOpen, toggle, contract, onConfirm }) => {
         }
     })
 
+    const todayIso = moment().format('YYYY-MM-DD')
+    const isFuture = moment(formik.values.startDate).isAfter(todayIso, 'day')
     const currentDays = moment(formik.values.endDate).diff(moment(formik.values.startDate), 'days') || 0;
     const totalUsed = contract?.suspension?.totalDaysUsed || 0
     const availableTotal = maxDays - totalUsed
@@ -71,6 +73,14 @@ const ContractSuspendModal = ({ isOpen, toggle, contract, onConfirm }) => {
                                 Saldo Disponível: {availableTotal} dias
                             </Badge>
                         </div>
+                        {isFuture && (
+                            <div className="mt-3">
+                                <Badge color="soft-info" className="px-3 py-2 font-size-12">
+                                    <i className="mdi mdi-clock-outline me-1"></i>
+                                    Ação Agendada para {moment(formik.values.startDate).format('DD/MM/YYYY')}
+                                </Badge>
+                            </div>
+                        )}
                     </div>
 
                     <Row className="g-3" style={{ opacity: canSuspend ? 1 : 0.5, pointerEvents: canSuspend ? 'all' : 'none' }}>
@@ -143,9 +153,9 @@ const ContractSuspendModal = ({ isOpen, toggle, contract, onConfirm }) => {
                         className="btn-rounded px-4"
                         disabled={formik.isSubmitting || !canSuspend}
                         loading={formik.isSubmitting}
-                        loadingText="Suspendendo..."
+                        loadingText={isFuture ? "Agendando..." : "Suspendendo..."}
                     >
-                        Confirmar Suspensão
+                        {isFuture ? "Agendar Suspensão" : "Confirmar Suspensão Agora"}
                     </ButtonLoader>
                 </ModalFooter>
             </Form>

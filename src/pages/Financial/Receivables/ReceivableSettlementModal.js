@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Modal, ModalHeader, ModalBody, Button, Row, Col, Label, Input, FormFeedback, Alert } from 'reactstrap';
+import { FormSwitch } from '../../../components/Common/FormSwitch';
 import ButtonLoader from '../../../components/Common/ButtonLoader';
 import { useFormik } from 'formik';
 import { receivableSettlementSchema } from '../../../validations/financialSchemas';
@@ -299,18 +300,13 @@ const ReceivableSettlementModal = ({ isOpen, toggle, receivable, onSettle }) => 
                                         <i className="mdi mdi-alert-circle-outline me-2"></i>
                                         O valor recebido é <strong>R$ {formatCurrency(Math.abs(difference))} menor</strong> que o original.
                                     </div>
-                                    <div className="form-check form-switch ms-3">
-                                        <Input
-                                            type="checkbox"
-                                            className="form-check-input"
-                                            id="keepRemainingOpen"
-                                            checked={formik.values.keepRemainingOpen}
-                                            onChange={(e) => formik.setFieldValue('keepRemainingOpen', e.target.checked)}
-                                        />
-                                        <Label className="form-check-label font-size-12 fw-bold text-dark" htmlFor="keepRemainingOpen">
-                                            Manter resíduo em aberto?
-                                        </Label>
-                                    </div>
+                                    <FormSwitch
+                                        id="keepRemainingOpen"
+                                        checked={formik.values.keepRemainingOpen}
+                                        onChange={(checked) => formik.setFieldValue('keepRemainingOpen', checked)}
+                                        label="Manter resíduo?"
+                                        onColor="#f8b425"
+                                    />
                                 </Alert>
                             </Col>
                         )}

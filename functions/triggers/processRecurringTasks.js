@@ -1,7 +1,6 @@
 const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
-const { createScheduledTrigger } = require("./utils");
-const { toISODate, addDays } = require("../shared");
+const { createScheduledTrigger, toISODate, addDays } = require("./utils");
 
 /**
  * Trigger diário para processar tarefas recorrentes.

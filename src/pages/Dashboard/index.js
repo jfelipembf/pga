@@ -5,6 +5,8 @@ import { useGeneralDashboard } from "./hooks/useGeneralDashboard"
 import { formatCurrency } from "../../utils/format"
 import PageLoader from "../../components/Common/PageLoader"
 
+import YearlyComparisonChart from "./montly-earnings2"
+
 const Dashboard = () => {
   document.title = "Dashboard Geral | PGA Admin"
 
@@ -14,70 +16,76 @@ const Dashboard = () => {
     return <PageLoader />
   }
 
-  // Organizando os 6 cards desejados: 3 em cima, 3 embaixo
+  // Organizando os cards desejados: 3 por linha
   const reports = [
-    // Topo: Foco em Vendas e Ativos Principais
-    {
-      title: "Vendas (Hoje)",
-      iconClass: "point-of-sale",
-      total: loading ? "..." : formatCurrency(data?.sales?.today || 0),
-      average: "Diário",
-      badgecolor: "primary"
-    },
     {
       title: "Vendas (Mês)",
       iconClass: "calendar-month",
       total: loading ? "..." : formatCurrency(data?.sales?.month || 0),
-      average: "Acumulado",
-      badgecolor: "success"
+      growth: data?.sales?.growth, // Comparativo calculado no backend
+      desc: " vs mês passado"
     },
     {
       title: "Alunos Ativos",
       iconClass: "account-group",
       total: loading ? "..." : (data?.students?.active || 0),
-      average: "Base Atual",
-      badgecolor: "info"
+      growth: data?.studentsGrowth?.active,
+      desc: " vs mês passado"
     },
-    // Baixo: Foco em Movimentação da Base
     {
       title: "Novas Matrículas",
       iconClass: "account-plus",
       total: loading ? "..." : (data?.students?.new || 0),
-      average: "Este Mês",
-      badgecolor: "success"
+      growth: data?.studentsGrowth?.new,
+      desc: " vs mês passado"
+    },
+    {
+      title: "Renovações",
+      iconClass: "autorenew",
+      total: loading ? "..." : (data?.students?.renewals || 0),
+      growth: data?.studentsGrowth?.renewals,
+      desc: " vs mês passado"
     },
     {
       title: "Cancelamentos",
       iconClass: "account-remove",
       total: loading ? "..." : (data?.students?.canceled || 0),
-      average: "Churn Mês",
-      badgecolor: "danger"
+      growth: data?.studentsGrowth?.canceled,
+      // Para cancelamentos, crescimento positivo é ruim (danger), negativo é bom (success) - Ajustar lógica no Miniwidget futuramente se desejar cores invertidas
+      desc: " vs mês passado"
     },
     {
       title: "Suspensos",
       iconClass: "pause-circle-outline",
       total: loading ? "..." : (data?.students?.suspended || 0),
-      average: "Trancados",
-      badgecolor: "warning"
+      growth: data?.studentsGrowth?.suspended,
+      desc: " vs mês passado"
     }
   ];
 
   return (
     <React.Fragment>
       {/* 
-          Exibindo os 6 cards com colSize=4. 
+          Exibindo os cards com colSize=4. 
           O sistema de grid do Bootstrap automaticamente quebrará a linha a cada 3 cards (4+4+4 = 12).
       */}
       <Miniwidget reports={reports} colSize={4} />
 
-      {/* Espaço para Gráficos Futuros */}
       <Row className="mt-4">
-        <Col lg={12}>
-          <Card>
-            <CardBody style={{ minHeight: '300px' }} className="d-flex align-items-center justify-content-center">
-              <p className="text-muted">Gráficos de evolução da base em desenvolvimento...</p>
-            </CardBody>
-          </Card>
+        <Col lg={6}>
+          <YearlyComparisonChart
+            title="Alunos Ativos - Últimos 3 Anos"
+            series={data?.charts?.seriesStudents || []}
+            colors={['#34c38f', '#556ee6', '#f1b44c']}
+          />
+        </Col>
+        <Col lg={6}>
+          <YearlyComparisonChart
+            title="Vendas - Últimos 3 Anos"
+            series={data?.charts?.seriesSales || []}
+            colors={['#556ee6', '#f1b44c', '#34c38f']}
+            tooltipFormatter={formatCurrency}
+          />
         </Col>
       </Row>
     </React.Fragment>

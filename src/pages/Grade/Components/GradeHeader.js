@@ -4,6 +4,7 @@ import { Col, FormGroup, Input, Label, Row, Button } from "reactstrap"
 import TurnSelector from "./TurnSelector"
 import ViewSelector from "./ViewSelector"
 import WeekNavigator from "./WeekNavigator"
+import { FormSwitch } from "../../../components/Common/FormSwitch"
 
 const GradeHeader = ({
   turn,
@@ -32,17 +33,15 @@ const GradeHeader = ({
             Hoje
           </Button>
           <ViewSelector value={view} onChange={onViewChange} />
-          <FormGroup switch className="d-flex align-items-center mb-0">
-            <Input
-              type="switch"
-              role="switch"
-              checked={showOccupancy}
-              onChange={e => onShowOccupancyChange(e.target.checked)}
-            />
-            <Label check className="ms-2 text-muted small mb-0">
-              Exibir lotação
-            </Label>
-          </FormGroup>
+          <FormSwitch
+            id="showOccupancySwitch"
+            checked={showOccupancy}
+            onChange={onShowOccupancyChange}
+            label="Exibir lotação"
+            width={34}
+            height={18}
+            handleDiameter={12}
+          />
         </div>
       </Col>
     </Row>

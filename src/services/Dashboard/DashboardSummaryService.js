@@ -35,6 +35,15 @@ export const DashboardSummaryService = {
     },
 
     /**
+     * Busca o summary de um mês específico.
+     */
+    async getMonthSummary(idTenant, idBranch, month) {
+        const summaryRef = this.getMonthSummaryRef(idTenant, idBranch, month)
+        const snapshot = await getDoc(summaryRef)
+        return snapshot.exists() ? snapshot.data() : null
+    },
+
+    /**
      * Busca o summary atual.
      */
     async getCurrent(idTenant, idBranch) {
@@ -72,6 +81,8 @@ export const DashboardSummaryService = {
             // Novos (Mês Atual)
             newLeads: 0,
             newStudents: 0,
+            renewals: 0,
+            winbacks: 0,
 
             // Taxas (calculadas)
             conversionRate: 0,
@@ -171,6 +182,8 @@ export const DashboardSummaryService = {
             suspendedStudents: suspendedContracts.length,
             newLeads,
             newStudents,
+            renewals: 0, // TODO: Implementar lógica de recálculo histórico
+            winbacks: 0, // TODO: Implementar lógica de recálculo histórico
             conversionRate,
             trialShowUpRate,
             trialConversionRate,

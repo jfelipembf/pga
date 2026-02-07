@@ -1,9 +1,10 @@
 import React from 'react'
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Form, FormGroup, Label, Input, Row, Col, Alert } from 'reactstrap'
+import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Form, FormGroup, Label, Input, Row, Col, Alert, Badge } from 'reactstrap'
 import ButtonLoader from '../../../../../components/Common/ButtonLoader'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import moment from 'moment'
+import { FormSwitch } from '../../../../../components/Common/FormSwitch'
 
 const ContractCancelModal = ({ isOpen, toggle, contract, onConfirm }) => {
     const rules = contract?.rules || {}
@@ -32,6 +33,9 @@ const ContractCancelModal = ({ isOpen, toggle, contract, onConfirm }) => {
         }
     })
 
+    const todayIso = moment().format('YYYY-MM-DD')
+    const isFuture = moment(formik.values.effectiveDate).isAfter(todayIso, 'day')
+
     return (
         <Modal isOpen={isOpen} toggle={toggle} centered size="lg">
             <ModalHeader toggle={toggle} className="border-bottom text-dark">
@@ -57,7 +61,16 @@ const ContractCancelModal = ({ isOpen, toggle, contract, onConfirm }) => {
                     ) : (
                         <Alert color="danger" className="mb-4">
                             <h5 className="alert-heading font-size-14"><i className="mdi mdi-alert-outline me-2"></i>Atenção: Ação Irreversível</h5>
-                            <p className="mb-0 small">O cancelamento encerrará o acesso do aluno e cessará novas cobranças automáticas. Verifique as pendências financeiras abaixo.</p>
+                            <p className="mb-0 small">
+                                {isFuture
+                                    ? `O contrato será automaticamente encerrado em ${moment(formik.values.effectiveDate).format('DD/MM/YYYY')}.`
+                                    : "O cancelamento imediato encerrará o acesso do aluno e cessará novas cobranças automáticas."
+                                }
+                                Verifique as pendências financeiras abaixo.
+                            </p>
+                            {isFuture && (
+                                <Badge color="soft-light" className="mt-2 text-danger">Agendamento de Cancelamento Ativado</Badge>
+                            )}
                         </Alert>
                     )}
 
@@ -139,20 +152,19 @@ const ContractCancelModal = ({ isOpen, toggle, contract, onConfirm }) => {
 
                             <hr className="my-4" />
 
-                            <div className="form-check form-switch mb-4">
-                                <Input
-                                    type="switch"
-                                    name="cancelFutureReceivables"
+                            <div className="mb-4">
+                                <FormSwitch
                                     id="cancelFutureReceivables"
-                                    className="form-check-input-lg"
                                     checked={formik.values.cancelFutureReceivables}
-                                    onChange={() => formik.setFieldValue('cancelFutureReceivables', !formik.values.cancelFutureReceivables)}
+                                    onChange={(checked) => formik.setFieldValue('cancelFutureReceivables', checked)}
+                                    label="Cancelar lançamentos futuros?"
+                                    description="Recomendado para encerrar cobranças recorrentes no cartão/boleto."
+                                    onColor="#ec4561"
                                 />
-                                <Label className="form-check-label fw-bold text-dark cursor-pointer ms-2" for="cancelFutureReceivables">
-                                    Cancelar lançamentos futuros?
-                                    <i className="mdi mdi-help-circle-outline ms-1 text-muted" title="Se ativado, todos os títulos 'Abertos' com vencimento após a data de cancelamento serão invalidados."></i>
-                                </Label>
-                                <p className="text-muted small mt-1 ms-2">Recomendado para encerrar cobranças recorrentes no cartão/boleto.</p>
+                                <div className="ms-5 small text-muted">
+                                    <i className="mdi mdi-help-circle-outline me-1"></i>
+                                    Se ativado, todos os títulos 'Abertos' com vencimento após a data de cancelamento serão invalidados.
+                                </div>
                             </div>
 
                             <div className="p-3 border rounded bg-soft-info small text-dark border-info mt-5">
@@ -169,9 +181,9 @@ const ContractCancelModal = ({ isOpen, toggle, contract, onConfirm }) => {
                         type="submit"
                         className="btn-rounded px-4 shadow-sm"
                         loading={formik.isSubmitting}
-                        loadingText="Cancelando..."
+                        loadingText={isFuture ? "Agendando..." : "Cancelando..."}
                     >
-                        Efetivar Cancelamento
+                        {isFuture ? "Agendar Cancelamento" : "Efetivar Cancelamento Agora"}
                     </ButtonLoader>
                 </ModalFooter>
             </Form>

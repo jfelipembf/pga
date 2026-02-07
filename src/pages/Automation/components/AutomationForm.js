@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardBody, Label, Input, Button, Row, Col, FormFeedback } from 'reactstrap';
+import { FormSwitch } from '../../../components/Common/FormSwitch';
 
 export const AutomationForm = ({ value, onChange, onCancel, onSave, onDelete, saving }) => {
     // ... (sem alterações no corpo)
@@ -58,15 +59,13 @@ export const AutomationForm = ({ value, onChange, onCancel, onSave, onDelete, sa
                 </Col>
                 <Col md={4} className="mb-3">
                     <Label className="d-block">Status</Label>
-                    <div className="form-check form-switch mt-2">
-                        <Input
-                            type="checkbox"
-                            className="form-check-input"
-                            checked={formData.isActive}
-                            onChange={e => handleChange('isActive', e.target.checked)}
-                        />
-                        <Label check>{formData.isActive ? 'Ativo' : 'Pausado'}</Label>
-                    </div>
+                    <FormSwitch
+                        id="isActiveAutomation"
+                        checked={formData.isActive}
+                        onChange={val => handleChange('isActive', val)}
+                        label={formData.isActive ? 'Ativo' : 'Pausado'}
+                        onColor="#02a499"
+                    />
                 </Col>
 
                 <Col md={12} className="mb-4">
@@ -108,15 +107,12 @@ export const AutomationForm = ({ value, onChange, onCancel, onSave, onDelete, sa
                 <CardBody className={formData.aiConfig.enabled ? 'bg-soft-info' : 'bg-light'}>
                     <div className="d-flex justify-content-between align-items-center mb-3">
                         <h6 className="card-title text-primary mb-0"><i className="mdi mdi-robot me-1"></i> Inteligência Artificial</h6>
-                        <div className="form-check form-switch">
-                            <Input
-                                type="checkbox"
-                                className="form-check-input"
-                                checked={formData.aiConfig.enabled}
-                                onChange={e => handleNestedChange('aiConfig', 'enabled', e.target.checked)}
-                            />
-                            <Label check>Habilitar IA</Label>
-                        </div>
+                        <FormSwitch
+                            id="aiEnabledSwitch"
+                            checked={formData.aiConfig.enabled}
+                            onChange={val => handleNestedChange('aiConfig', 'enabled', val)}
+                            label="Habilitar IA"
+                        />
                     </div>
 
                     {formData.aiConfig.enabled && (

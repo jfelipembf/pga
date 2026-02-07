@@ -124,6 +124,47 @@ export const ContractCancellationService = {
         return true
     },
 
+    /**
+     * Agenda o cancelamento de um contrato para uma data futura.
+     * 
+     * @param {string} idTenant - ID do tenant
+     * @param {string} idBranch - ID da filial
+     * @param {string} userId - ID do usuário
+     * @param {string} idContract - ID do contrato
+     * @param {object} scheduleData - Dados do agendamento
+     * @param {string} scheduleData.cancelDate - Data para o cancelamento (YYYY-MM-DD)
+     * @param {string} scheduleData.reason - Motivo
+     * @param {string} scheduleData.notes - Observações
+     */
+    scheduleCancellation: async (idTenant, idBranch, userId, idContract, scheduleData) => {
+        const { cancelDate, reason, notes } = scheduleData
+        const db = ContractCancellationService.db
+
+        const contractRef = doc(db, `tenants/${idTenant}/branches/${idBranch}/clientContracts/${idContract}`)
+
+        await runTransaction(db, async (transaction) => {
+            transaction.update(contractRef, {
+                status: 'scheduled_cancellation',
+                cancelDate: cancelDate,
+                'cancellation.scheduledAt': normalizeDate(new Date()),
+                'cancellation.scheduledBy': userId,
+                'cancellation.reason': reason,
+                'cancellation.notes': notes,
+                updatedAt: normalizeDate(new Date())
+            })
+        })
+
+        await AuditService.log({
+            idTenant, idBranch, userId,
+            action: 'SCHEDULE_CANCELLATION',
+            entityType: 'clientContract',
+            entityId: idContract,
+            details: scheduleData
+        })
+
+        return true
+    },
+
     // =========================================
     // MÉTODOS PRIVADOS (HELPERS)
     // =========================================
