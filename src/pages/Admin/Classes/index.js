@@ -37,6 +37,15 @@ const ClassesPage = ({ setBreadcrumbItems }) => {
     referenceDate: grade.referenceDate
   })
 
+  // Breadcrumbs (Moved from hook to prevent loop)
+  React.useEffect(() => {
+    const breadcrumbItems = [
+      { title: "Administrativo", link: "/admin" },
+      { title: "Turmas", link: "/admin/classes" }
+    ]
+    setBreadcrumbItems("Gestão de Turmas", breadcrumbItems)
+  }, []) // Empty dependency array checks ensures this runs only once on mount
+
   if (isInitialLoading) {
     return <PageLoader />
   }

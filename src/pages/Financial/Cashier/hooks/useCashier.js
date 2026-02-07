@@ -5,6 +5,7 @@ import { cashierRepository } from '../../../../data/repositories/CashierReposito
 import { transactionRepository } from '../../../../data/repositories/TransactionRepository'
 import { staffRepository } from '../../../../data/repositories/StaffRepository'
 import { toast } from 'react-toastify'
+import { useCurrentUser } from '../../../../hooks/useCurrentUser'
 
 /**
  * Hook customizado para gerenciar a lógica da página de Caixa.
@@ -12,11 +13,8 @@ import { toast } from 'react-toastify'
 export const useCashier = () => {
     const { idTenant, idBranch } = useTenant()
 
-    // Obtenção do Usuário (Padrão LocalStorage)
-    const user = useMemo(() => {
-        const authUser = localStorage.getItem("authUser")
-        return authUser ? JSON.parse(authUser) : null
-    }, [])
+    // Obtenção do Usuário (Centralizado)
+    const user = useCurrentUser()
 
     const [loading, setLoading] = useState(true)
     const [currentSession, setCurrentSession] = useState(null)

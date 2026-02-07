@@ -9,7 +9,7 @@ import moment from 'moment'
  * Hook para gerenciar a lógica do Fluxo de Caixa
  */
 export const useCashFlow = () => {
-    const { idTenant, idBranch } = useTenant()
+    const { idTenant, idBranch, isReady } = useTenant()
     const [transactions, setTransactions] = useState([]) // Raw transactions from server
     const [loading, setLoading] = useState(true)
     const [period, setPeriod] = useState('month')
@@ -37,6 +37,8 @@ export const useCashFlow = () => {
     }, [period, customDateRange, filterBankAccount]); // Reset também ao mudar conta (opcional, mas bom pra UX)
 
     const loadData = useCallback(async () => {
+        if (!isReady) return
+
         try {
             setLoading(true)
 
@@ -81,7 +83,7 @@ export const useCashFlow = () => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch, period, customDateRange, fetchLimit])
+    }, [idTenant, idBranch, period, customDateRange, fetchLimit, isReady])
 
     useEffect(() => {
         loadData()
@@ -160,7 +162,7 @@ export const useCashFlow = () => {
     return {
         transactions: filteredTransactions, // Retorna os filtrados para a UI
         allTransactionsLength: transactions.length, // Opcional, pra saber total carregado
-        loading,
+        loading: loading || !isReady, // Força loading enquanto o tenant não estiver pronto
         period,
         setPeriod,
         customDateRange,

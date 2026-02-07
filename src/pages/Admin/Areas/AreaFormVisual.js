@@ -12,8 +12,8 @@ import {
     Spinner,
 } from "reactstrap"
 import PhotoPreview from "../../../components/Common/PhotoPreview"
+import { usePhotoUpload } from "../../../hooks/usePhotoUpload"
 import { useTenant } from "../../../hooks/useTenant"
-import { StorageService } from "../../../services/Core/StorageService"
 import { FormSwitch } from "../../../components/Common/FormSwitch"
 
 const defaultState = {
@@ -24,43 +24,43 @@ const defaultState = {
     capacity: "",
     status: "active",
     isActive: true,
-    photo: "",
-    preview: "",
+    photo: ""
+    // preview removed from state
 }
 
 export const AreaFormVisual = ({ initialData, onSave, onCancel, onDelete }) => {
     const { idTenant, idBranch } = useTenant()
     const [formData, setFormData] = useState(defaultState)
-    const [photoFile, setPhotoFile] = useState(null)
-    const [uploading, setUploading] = useState(false)
     const [submitting, setSubmitting] = useState(false)
+
+    // Hook centralizado de foto
+    const {
+        selectedFile,
+        preview,
+        uploading: uploadingPhoto,
+        handlePhotoChange,
+        uploadPhoto,
+        updatePreview,
+        resetPhoto
+    } = usePhotoUpload()
 
     useEffect(() => {
         if (initialData) {
             setFormData({
                 ...defaultState,
-                ...initialData,
-                preview: initialData.photo || ""
+                ...initialData
             })
+            if (initialData.photo) {
+                updatePreview(initialData.photo)
+            }
         } else {
             setFormData(defaultState)
+            resetPhoto()
         }
-        setPhotoFile(null)
-    }, [initialData])
+    }, [initialData, updatePreview, resetPhoto])
 
     const updateField = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }))
-    }
-
-    const handlePhotoChange = e => {
-        const file = e.target.files?.[0]
-        if (!file) return
-        const reader = new FileReader()
-        reader.onloadend = () => {
-            updateField("preview", reader.result)
-        }
-        reader.readAsDataURL(file)
-        setPhotoFile(file)
     }
 
     const handleSubmit = async e => {
@@ -69,16 +69,15 @@ export const AreaFormVisual = ({ initialData, onSave, onCancel, onDelete }) => {
 
         try {
             let photoUrl = formData.photo
-            if (photoFile) {
-                setUploading(true)
-                photoUrl = await StorageService.uploadProfileImage(photoFile, {
+
+            if (selectedFile) {
+                photoUrl = await uploadPhoto({
                     idTenant,
                     idBranch,
                     entityType: 'areas',
                     entityId: initialData?.id || 'new',
                     currentPhotoUrl: initialData?.photo
                 })
-                setUploading(false)
             }
 
             await onSave({
@@ -109,8 +108,8 @@ export const AreaFormVisual = ({ initialData, onSave, onCancel, onDelete }) => {
                         </Button>
                     )}
                     <Button color="secondary" outline onClick={onCancel} disabled={submitting}>Cancelar</Button>
-                    <Button color="primary" onClick={handleSubmit} disabled={submitting || uploading}>
-                        {submitting || uploading ? <Spinner size="sm" /> : "Salvar Área"}
+                    <Button color="primary" onClick={handleSubmit} disabled={submitting || uploadingPhoto}>
+                        {submitting || uploadingPhoto ? <Spinner size="sm" /> : "Salvar Área"}
                     </Button>
                 </div>
             </div>
@@ -122,7 +121,7 @@ export const AreaFormVisual = ({ initialData, onSave, onCancel, onDelete }) => {
                         <Col md={3} className="text-center mb-3">
                             <PhotoPreview
                                 inputId="areaPhoto"
-                                preview={formData.preview}
+                                preview={preview}
                                 placeholder="Foto"
                                 onChange={handlePhotoChange}
                                 size={140}

@@ -167,7 +167,7 @@ export const useStaffProfile = () => {
                     })
                 }
 
-                const currentUserData = JSON.parse(localStorage.getItem("authUser")) || {}
+                const currentUserData = auth.currentUser || {}
                 const { password, confirmPassword, ...updateData } = values
 
                 const finalData = {

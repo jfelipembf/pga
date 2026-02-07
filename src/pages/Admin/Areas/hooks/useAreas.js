@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTenant } from '../../../../hooks/useTenant'
 import { AreaService } from '../../../../services/Admin/AreaService'
 import { toast } from 'react-toastify'
+import { useCurrentUser } from '../../../../hooks/useCurrentUser'
 
 /**
  * Hook para gerenciar a lógica de Áreas (Areas)
@@ -9,10 +10,7 @@ import { toast } from 'react-toastify'
 export const useAreas = () => {
     const { idTenant, idBranch } = useTenant()
 
-    const user = useMemo(() => {
-        const authUser = localStorage.getItem("authUser")
-        return authUser ? JSON.parse(authUser) : null
-    }, [])
+    const user = useCurrentUser()
 
     const [areas, setAreas] = useState([])
     const [loading, setLoading] = useState(true)

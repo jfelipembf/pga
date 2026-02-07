@@ -3,21 +3,17 @@ import { useTenant } from '../../../../hooks/useTenant'; // Importe o hook padro
 import { ReceivableService } from '../../../../services/Financial/ReceivableService';
 import { toast } from 'react-toastify';
 import moment from 'moment';
-import { formatCurrency } from '../../../../utils/format';
-import { normalizeDate } from '../../../../utils/date';
 import { getAuth } from 'firebase/auth';
+import { useCurrentUser } from '../../../../hooks/useCurrentUser';
 
 /**
  * Hook centralizado para gerenciar a lista de recebíveis, filtros e ações.
  */
 export const useReceivablesList = () => {
     // PADRÃO: Usar hook centralizado para evitar inconsistência de IDs
-    const { idTenant, idBranch } = useTenant();
+    const { idTenant, idBranch, isReady } = useTenant();
 
-    const user = useMemo(() => {
-        const authUser = localStorage.getItem("authUser")
-        return authUser ? JSON.parse(authUser) : {}
-    }, [])
+    const user = useCurrentUser();
 
     // 1. Estados Principais
     const [receivables, setReceivables] = useState([]);
@@ -36,6 +32,7 @@ export const useReceivablesList = () => {
 
     // 2. Carregar Dados do Servidor (Otimizado)
     const loadReceivables = useCallback(async () => {
+        if (!isReady) return;
         if (!idTenant || !idBranch) return;
         try {
             setIsLoading(true);
@@ -67,7 +64,7 @@ export const useReceivablesList = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [idTenant, idBranch, fetchLimit, dateRange]);
+    }, [idTenant, idBranch, fetchLimit, dateRange, isReady]);
 
     const handleLoadMore = useCallback(() => {
         setFetchLimit(prev => prev + 50);
@@ -91,7 +88,6 @@ export const useReceivablesList = () => {
         );
     }, []);
 
-    // 4. Dados Filtrados
     // 4. Dados Filtrados
     const filteredData = useMemo(() => {
         const res = receivables.filter(r => {
@@ -157,9 +153,6 @@ export const useReceivablesList = () => {
 
     /**
      * Lógica de Antecipação de Recebíveis (Bulk)
-     * 1. Atualiza Status do Recebível
-     * 2. Cria Transação no Fluxo de Caixa (Income)
-     * 3. Atualiza Saldo da Conta Bancária (Débito)
      */
     const handleAnticipate = async (data) => {
         try {

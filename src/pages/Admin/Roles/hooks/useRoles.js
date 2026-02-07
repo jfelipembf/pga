@@ -3,16 +3,13 @@ import { useTenant } from '../../../../hooks/useTenant'
 import { RoleService } from '../../../../services/Admin/RoleService'
 import { toast } from 'react-toastify'
 import { migrateRoles, getMigrationStats } from '../../../../utils/roleMigration'
+import { useCurrentUser } from '../../../../hooks/useCurrentUser'
 
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
 
 export const useRoles = () => {
     const { idTenant, idBranch } = useTenant()
-
-    const user = useMemo(() => {
-        const authUser = localStorage.getItem("authUser")
-        return authUser ? JSON.parse(authUser) : null
-    }, [])
+    const user = useCurrentUser()
 
     const [roles, setRoles] = useState([])
     const [loading, setLoading] = useState(false)

@@ -1,31 +1,24 @@
-import { useState, useMemo } from "react"
 import { useFormik } from "formik"
 import { toast } from "react-toastify"
 import { useTenant } from "../../../../hooks/useTenant"
 import { StaffSchema } from "../../../../data/schemas/Admin/StaffSchema"
 import { StaffService } from "../../../../services/Admin/StaffService"
-import { StorageService } from "../../../../services/Core/StorageService"
+import { usePhotoUpload } from "../../../../hooks/usePhotoUpload"
+import { useCurrentUser } from "../../../../hooks/useCurrentUser"
 
 export const useStaffForm = ({ onStaffAdded, toggle, roles }) => {
     const { idTenant, idBranch } = useTenant()
-    const [selectedPhoto, setSelectedPhoto] = useState(null)
-    const [photoPreview, setPhotoPreview] = useState(null)
-    const user = useMemo(() => {
-        const authUser = localStorage.getItem("authUser")
-        return authUser ? JSON.parse(authUser) : null
-    }, [])
 
-    const handlePhotoChange = (e) => {
-        const file = e.target.files[0]
-        if (file) {
-            setSelectedPhoto(file)
-            const reader = new FileReader()
-            reader.onloadend = () => {
-                setPhotoPreview(reader.result)
-            }
-            reader.readAsDataURL(file)
-        }
-    }
+    // Hook centralizado de uploads
+    const {
+        selectedFile,
+        preview: photoPreview,
+        handlePhotoChange,
+        uploadPhoto,
+        resetPhoto
+    } = usePhotoUpload()
+
+    const user = useCurrentUser()
 
     const formik = useFormik({
         initialValues: {
@@ -54,8 +47,8 @@ export const useStaffForm = ({ onStaffAdded, toggle, roles }) => {
                 let photoUrl = ""
 
                 // 1. Upload da Foto se houver
-                if (selectedPhoto) {
-                    photoUrl = await StorageService.uploadProfileImage(selectedPhoto, {
+                if (selectedFile) {
+                    photoUrl = await uploadPhoto({
                         idTenant,
                         idBranch,
                         entityType: "staff",
@@ -78,7 +71,7 @@ export const useStaffForm = ({ onStaffAdded, toggle, roles }) => {
                 toast.success("Colaborador cadastrado com sucesso!")
                 onStaffAdded?.()
                 resetForm()
-                setSelectedPhoto(null)
+                resetPhoto()
                 toggle()
 
             } catch (error) {

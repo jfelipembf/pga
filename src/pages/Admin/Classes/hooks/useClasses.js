@@ -2,17 +2,15 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTenant } from '../../../../hooks/useTenant'
 import { ClassService } from '../../../../services/Admin/ClassService'
 import { toast } from 'react-toastify'
+import { useCurrentUser } from '../../../../hooks/useCurrentUser'
 
 /**
  * Hook para gerenciar a lógica de Turmas (Classes)
  */
 export const useClasses = () => {
-    const { idTenant, idBranch } = useTenant()
+    const { idTenant, idBranch, isReady } = useTenant()
 
-    const user = useMemo(() => {
-        const authUser = localStorage.getItem("authUser")
-        return authUser ? JSON.parse(authUser) : null
-    }, [])
+    const user = useCurrentUser()
 
     const [classes, setClasses] = useState([])
     const [loading, setLoading] = useState(true)
@@ -23,6 +21,7 @@ export const useClasses = () => {
     const [searchTerm, setSearchTerm] = useState('')
 
     const loadClasses = useCallback(async () => {
+        if (!isReady) return
         try {
             setLoading(true)
 
@@ -38,7 +37,7 @@ export const useClasses = () => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch, filterStatus])
+    }, [idTenant, idBranch, filterStatus, isReady])
 
     useEffect(() => {
         loadClasses()

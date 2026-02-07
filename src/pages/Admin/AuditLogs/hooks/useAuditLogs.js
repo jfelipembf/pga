@@ -2,9 +2,11 @@ import { useState, useEffect, useCallback } from 'react'
 import { AuditService } from '../../../../services/Core/AuditService'
 import { useTenant } from '../../../../hooks/useTenant'
 import { staffRepository } from '../../../../data/repositories/StaffRepository'
+import { useCurrentUser } from '../../../../hooks/useCurrentUser'
 
 export const useAuditLogs = () => {
     const { idTenant, idBranch } = useTenant()
+    const user = useCurrentUser()
     const [logs, setLogs] = useState([])
     const [loading, setLoading] = useState(true)
     const [staff, setStaff] = useState({})
@@ -58,9 +60,7 @@ export const useAuditLogs = () => {
             setStaff(staffMap)
 
             // Fallback: Se o usuário atual não estiver na lista de staff
-            const authUser = localStorage.getItem("authUser");
-            if (authUser) {
-                const user = JSON.parse(authUser);
+            if (user) {
                 if (user.uid && !staffMap[user.uid]) {
                     setStaff(prev => ({
                         ...prev,
@@ -77,7 +77,7 @@ export const useAuditLogs = () => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch, filters])
+    }, [idTenant, idBranch, filters, user])
 
     useEffect(() => {
         fetchLogs()

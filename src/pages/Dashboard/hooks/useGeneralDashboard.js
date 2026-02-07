@@ -1,16 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useTenant } from '../../../hooks/useTenant'
 import { GeneralDashboardService } from '../../../services/Dashboard/GeneralDashboardService'
+import { useCurrentUser } from '../../../hooks/useCurrentUser'
 
 
 // Tipo: 'operational' | 'manager'
 export const useGeneralDashboard = (type = 'manager') => {
     const { idTenant, idBranch } = useTenant()
 
-    // Obter userId do localStorage ou contexto Auth (Simplificado aqui)
-    // Em produção seria useProfile() ou similar.
-    const authUser = JSON.parse(localStorage.getItem("authUser"));
-    const userId = authUser?.uid;
+    // Obter userId do Hook Centralizado
+    const user = useCurrentUser();
+    const userId = user?.uid;
 
     const [loading, setLoading] = useState(true)
     const [data, setData] = useState(null)

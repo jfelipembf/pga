@@ -5,6 +5,7 @@ import { ReceivableService } from "../../../../services/Financial/ReceivableServ
 import { SalesService } from "../../../../services/Sales/SalesService"
 import { ClientContractService } from "../../../../services/Clients/ClientContractService"
 import { toast } from "react-toastify"
+import { useCurrentUser } from "../../../../hooks/useCurrentUser"
 
 /**
  * Hook para gerenciar os dados financeiros de um cliente específico.
@@ -12,7 +13,7 @@ import { toast } from "react-toastify"
 export const useClientFinancial = () => {
     const { id } = useParams() // Client ID from URL
     const { idTenant, idBranch } = useTenant()
-
+    const user = useCurrentUser()
 
     const [summary, setSummary] = useState(null)
     const [receivables, setReceivables] = useState([])
@@ -37,8 +38,6 @@ export const useClientFinancial = () => {
                 ClientContractService.listByClient(idTenant, idBranch, id)
             ])
 
-
-
             setSummary(summaryData)
             setReceivables(receivablesData)
             setSales(salesData)
@@ -54,9 +53,8 @@ export const useClientFinancial = () => {
     const handleSettle = async (settlementData) => {
         try {
             const { id: idReceivable, totalAmount, idBankAccount, settlementDate, notes } = settlementData;
-            const authUser = JSON.parse(localStorage.getItem("authUser"))
 
-            await ReceivableService.settleReceivable(idTenant, idBranch, authUser.uid, idReceivable, {
+            await ReceivableService.settleReceivable(idTenant, idBranch, user?.uid, idReceivable, {
                 amount: totalAmount,
                 idBankAccount: idBankAccount,
                 method: settlementData.paymentMethod,

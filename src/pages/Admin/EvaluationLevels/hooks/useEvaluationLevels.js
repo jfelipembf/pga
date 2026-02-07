@@ -2,16 +2,14 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTenant } from '../../../../hooks/useTenant'
 import { EvaluationLevelService } from '../../../../services/Admin/EvaluationLevelService'
 import { toast } from 'react-toastify'
+import { useCurrentUser } from '../../../../hooks/useCurrentUser'
 
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
 
 export const useEvaluationLevels = () => {
     const { idTenant, idBranch } = useTenant()
-    
-    const user = useMemo(() => {
-        const authUser = localStorage.getItem("authUser")
-        return authUser ? JSON.parse(authUser) : null
-    }, [])
+
+    const user = useCurrentUser()
 
     const [levels, setLevels] = useState([])
     const [loading, setLoading] = useState(false)
@@ -74,7 +72,7 @@ export const useEvaluationLevels = () => {
                 )
                 toast.success("Nível de avaliação criado com sucesso")
             }
-            
+
             await loadLevels(true)
             return true
         } catch (error) {
@@ -88,14 +86,14 @@ export const useEvaluationLevels = () => {
 
     const handleDelete = async (levelOrId) => {
         const id = typeof levelOrId === 'object' ? levelOrId.id : levelOrId
-        
+
         try {
             setDeleting(true)
             await EvaluationLevelService.deleteLevel(
-                idTenant, 
-                idBranch, 
-                user.uid, 
-                id, 
+                idTenant,
+                idBranch,
+                user.uid,
+                id,
                 user?.displayName || user?.email || 'Sistema'
             )
             toast.success("Nível de avaliação excluído com sucesso")

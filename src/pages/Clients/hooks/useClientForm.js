@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { useFormik } from "formik"
 import { toast } from "react-toastify"
 import { getAuth } from "firebase/auth"
@@ -7,28 +6,22 @@ import { useTenant } from "../../../hooks/useTenant"
 
 import { ClientService } from "../../../services/Clients"
 import { ClientSchema } from "../../../data/schemas/Clients/ClientSchema"
-import { StorageService } from "../../../services/Core/StorageService"
 import { useAddressLookup } from "../../../hooks/useAddressLookup"
+import { usePhotoUpload } from "../../../hooks/usePhotoUpload"
 
 export const useClientForm = ({ onClientAdded, toggle }) => {
     // Obter IDs reais via Hook Centralizado
     const { idTenant, idBranch } = useTenant()
 
-    const [selectedPhoto, setSelectedPhoto] = useState(null)
-    const [photoPreview, setPhotoPreview] = useState(null)
-    const auth = getAuth()
+    const {
+        selectedFile,
+        preview: photoPreview,
+        handlePhotoChange,
+        uploadPhoto,
+        resetPhoto
+    } = usePhotoUpload()
 
-    const handlePhotoChange = (e) => {
-        const file = e.target.files[0]
-        if (file) {
-            setSelectedPhoto(file)
-            const reader = new FileReader()
-            reader.onloadend = () => {
-                setPhotoPreview(reader.result)
-            }
-            reader.readAsDataURL(file)
-        }
-    }
+    const auth = getAuth()
 
     const formik = useFormik({
         initialValues: {
@@ -71,8 +64,8 @@ export const useClientForm = ({ onClientAdded, toggle }) => {
                 let photoUrl = ""
 
                 // 1. Upload da Foto
-                if (selectedPhoto) {
-                    photoUrl = await StorageService.uploadProfileImage(selectedPhoto, {
+                if (selectedFile) {
+                    photoUrl = await uploadPhoto({
                         idTenant,
                         idBranch,
                         entityType: "clients",
@@ -82,7 +75,7 @@ export const useClientForm = ({ onClientAdded, toggle }) => {
                 }
 
                 // 2. Salvar
-                const user = JSON.parse(localStorage.getItem("authUser")) || {};
+                const user = auth.currentUser || {};
                 await ClientService.createClient(idTenant, idBranch, auth.currentUser.uid, {
                     ...values,
                     photoUrl: photoUrl || null,
@@ -92,7 +85,7 @@ export const useClientForm = ({ onClientAdded, toggle }) => {
                 toast.success("Cliente cadastrado com sucesso!")
                 onClientAdded?.()
                 resetForm()
-                setSelectedPhoto(null)
+                resetPhoto()
                 toggle()
 
             } catch (error) {

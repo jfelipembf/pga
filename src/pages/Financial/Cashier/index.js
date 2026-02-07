@@ -11,6 +11,7 @@ import CashierPrintTemplate from './components/CashierPrintTemplate'
 import Flatpickr from "react-flatpickr"
 import "flatpickr/dist/themes/material_blue.css"
 import { Portuguese } from 'flatpickr/dist/l10n/pt.js'
+import PageLoader from '../../../components/Common/PageLoader'
 
 const CashierPage = () => {
     document.title = "Caixa | PGA Admin"
@@ -39,12 +40,7 @@ const CashierPage = () => {
     } = useCashier()
 
 
-    if (loading) return (
-        <div className="p-5 text-center">
-            <div className="spinner-border text-primary" role="status"></div>
-            <p className="mt-2">Carregando informações do caixa...</p>
-        </div>
-    )
+    if (loading) return <PageLoader />
 
     return (
         <React.Fragment>

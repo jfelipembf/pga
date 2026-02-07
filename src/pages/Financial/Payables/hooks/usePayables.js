@@ -2,18 +2,16 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTenant } from '../../../../hooks/useTenant'
 import { PayableService } from '../../../../services/Financial/PayableService'
 import { toast } from 'react-toastify'
+import { useCurrentUser } from '../../../../hooks/useCurrentUser'
 
 /**
  * Hook para gerenciar a lógica de Contas a Pagar (Payables)
  */
 export const usePayables = () => {
-    const { idTenant, idBranch } = useTenant()
+    const { idTenant, idBranch, isReady } = useTenant()
 
-    // Obtenção do Usuário (Padrão LocalStorage)
-    const user = useMemo(() => {
-        const authUser = localStorage.getItem("authUser")
-        return authUser ? JSON.parse(authUser) : null
-    }, [])
+    // Obtenção do Usuário (Centralizado)
+    const user = useCurrentUser()
 
     const [payables, setPayables] = useState([])
     const [loading, setLoading] = useState(true)
@@ -36,6 +34,8 @@ export const usePayables = () => {
     }, [filterStatus, filterCategory, filterStartDate, filterEndDate]);
 
     const loadPayables = useCallback(async () => {
+        if (!isReady) return // Prevent fetch before tenant context is ready
+
         try {
             setLoading(true)
 
@@ -55,7 +55,7 @@ export const usePayables = () => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch, filterStatus, filterCategory, filterStartDate, filterEndDate, fetchLimit])
+    }, [idTenant, idBranch, filterStatus, filterCategory, filterStartDate, filterEndDate, fetchLimit, isReady])
 
     useEffect(() => {
         loadPayables()
@@ -151,7 +151,7 @@ export const usePayables = () => {
     return {
         idTenant,
         idBranch,
-        loading,
+        loading: loading || !isReady, // Força loading enquanto o tenant não estiver pronto
         modal,
         selectedPayable,
         filterStatus,

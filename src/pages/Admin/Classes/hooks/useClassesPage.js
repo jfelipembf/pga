@@ -24,14 +24,7 @@ export const useClassesPage = ({ setBreadcrumbItems, referenceDate }) => {
     const [isInitialLoading, setIsInitialLoading] = useState(true)
     const [isNavigationLoading, setIsNavigationLoading] = useState(false)
 
-    // Breadcrumbs
-    useEffect(() => {
-        const breadcrumbItems = [
-            { title: "Administrativo", link: "/admin" },
-            { title: "Turmas", link: "/admin/classes" }
-        ]
-        setBreadcrumbItems("Gestão de Turmas", breadcrumbItems)
-    }, [setBreadcrumbItems])
+
 
     // Load data
     const loadData = useCallback(async (forceRefresh = false) => {

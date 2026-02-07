@@ -3,6 +3,7 @@ import { useTenant } from '../../../../hooks/useTenant'
 import { ActivityService } from '../../../../services/Admin/ActivityService'
 import { AuditService } from '../../../../services/Core/AuditService'
 import { toast } from 'react-toastify'
+import { useCurrentUser } from '../../../../hooks/useCurrentUser'
 
 /**
  * Hook para gerenciar a lógica de Atividades (Activities)
@@ -11,10 +12,7 @@ import { toast } from 'react-toastify'
 export const useActivities = () => {
     const { idTenant, idBranch } = useTenant()
 
-    const user = useMemo(() => {
-        const authUser = localStorage.getItem("authUser")
-        return authUser ? JSON.parse(authUser) : null
-    }, [])
+    const user = useCurrentUser()
 
     const [activities, setActivities] = useState([])
     const [loading, setLoading] = useState(true)

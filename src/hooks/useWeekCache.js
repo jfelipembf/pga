@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useMemo } from 'react'
 
 /**
  * Hook para cache de dados de sessões por semana
@@ -38,13 +38,8 @@ export const useWeekCache = () => {
         const key = getWeekKey(referenceDate)
         const cached = cacheRef.current.get(key)
 
-        if (cached) {
-            setCacheStats(prev => ({ ...prev, hits: prev.hits + 1 }))
-            return cached
-        }
-
-        setCacheStats(prev => ({ ...prev, misses: prev.misses + 1 }))
-        return null
+        // Removido setCacheStats para evitar loop de renderização (side-effect em leitura)
+        return cached || null
     }, [getWeekKey])
 
     /**
@@ -77,7 +72,7 @@ export const useWeekCache = () => {
      */
     const clear = useCallback(() => {
         cacheRef.current.clear()
-        setCacheStats({ hits: 0, misses: 0 })
+        // Removido setCacheStats para evitar re-render desnecessário
     }, [])
 
     /**
@@ -88,13 +83,14 @@ export const useWeekCache = () => {
         cacheRef.current.delete(key)
     }, [getWeekKey])
 
-    return {
+    // Memoize o retorno para garantir estabilidade referencial
+    return useMemo(() => ({
         get,
         set,
         cleanup,
         clear,
         invalidate,
-        cacheStats,
+        // Removido cacheStats do retorno para simplificar e evitar re-renders
         size: cacheRef.current.size
-    }
+    }), [get, set, cleanup, clear, invalidate])
 }

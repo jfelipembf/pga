@@ -7,7 +7,7 @@ import { toast } from 'react-toastify'
  * Hook para gerenciar a DRE (Demonstração do Resultado do Exercício)
  */
 export const useDRE = () => {
-    const { idTenant, idBranch } = useTenant()
+    const { idTenant, idBranch, isReady } = useTenant()
     const [data, setData] = useState({
         normalizedTransactions: [],
         summary: { totalRevenue: 0, totalExpense: 0, netProfit: 0, profitMargin: 0 },
@@ -16,6 +16,7 @@ export const useDRE = () => {
     const [period, setPeriod] = useState('month')
 
     const loadData = useCallback(async () => {
+        if (!isReady) return; // Prevent fetch before tenant context is ready
         if (!idTenant || !idBranch) return;
 
         try {
@@ -37,7 +38,7 @@ export const useDRE = () => {
             toast.error("Erro ao carregar dados da DRE")
             setData(prev => ({ ...prev, loading: false }))
         }
-    }, [idTenant, idBranch, period])
+    }, [idTenant, idBranch, period, isReady])
 
     useEffect(() => {
         loadData()
@@ -46,7 +47,7 @@ export const useDRE = () => {
     return {
         transactions: data.normalizedTransactions,
         summary: data.summary,
-        loading: data.loading,
+        loading: data.loading || !isReady, // Força loading enquanto o tenant não estiver pronto
         period,
         setPeriod,
         refresh: loadData
