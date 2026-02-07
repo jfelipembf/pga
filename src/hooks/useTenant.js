@@ -1,45 +1,98 @@
 import { useParams } from 'react-router-dom';
 import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 
 /**
  * Hook centralizado para resolução do Contexto do Tenant (Unidade/Filial).
  * 
- * PROBLEMA RESOLVIDO:
- * Garante consistência entre a URL e o Usuário Autenticado.
- * Previne que componentes acessem dados em paths incorretos (ex: slug 'a2' vs ID real 'rfu...').
- * 
- * USO:
- * Em vez de const { idTenant } = useParams(), use:
- * const { idTenant, idBranch } = useTenant();
+ * Agora Integrado ao REDUX para reatividade instantânea.
  */
 export const useTenant = () => {
-    // 1. Tenta pegar da URL (pode ser slug ou ID real)
+    // 1. Dados da URL (Fallback e Inicialização)
     const params = useParams();
 
-    // 2. Tenta pegar do Usuário Autenticado (ID Real, Fonte da Verdade de segurança)
+    // 2. Dados do Redux (Fonte da Verdade Global)
+    const { activeTenant, activeBranch } = useSelector(state => state.Tenant);
+
+    // 3. Dados do LocalStorage (Fallback de Segurança/Refresh)
+    // Útil se o Redux ainda não hidratou, mas evitamos depender só disso.
     const userJson = localStorage.getItem('authUser');
-    const user = userJson ? JSON.parse(userJson) : null;
+    const localUser = userJson ? JSON.parse(userJson) : null;
 
     return useMemo(() => {
-        // IDs para Data Fetching (Prioriza ID Real do Auth)
-        const tenantId = user?.idTenant || params.idTenant;
-        const branchId = user?.idBranch || params.idBranch;
+        // 1. Normalização
+        const normalize = (val) => val ? String(val) : null;
 
-        // Slugs para Navegação (Prioriza Slug do Auth, fallback para params)
-        // Se na URL tiver 'a2', params.idTenant é 'a2'.
-        // O user.tenantSlug deve ser 'a2' também.
-        const tSlug = user?.tenantSlug || params.idTenant || tenantId;
-        const bSlug = user?.branchSlug || params.idBranch || branchId;
+        const paramTenant = normalize(params.idTenant);
+        const paramBranch = normalize(params.idBranch);
+
+        // Funcao para verificar se a fonte de dados (Redux ou Local) bate com a URL
+        const isMatch = (sourceSlug, urlParam) => {
+            if (!urlParam) return true; // Se não tem param na URL, confiamos no estado global
+            if (!sourceSlug) return false; // Tem URL mas não tem dado na fonte
+            return normalize(sourceSlug) === urlParam;
+        };
+
+        // 2. Resolução do Tenant
+        let tenantId = null;
+        let tSlug = paramTenant; // URL é a fonte da verdade para o slug atual
+        let activeTenantObj = null;
+
+        // Tenta Redux (Prioridade Máxima)
+        if (activeTenant && isMatch(activeTenant.slug, paramTenant)) {
+            tenantId = normalize(activeTenant.idTenant);
+            tSlug = activeTenant.slug;
+            activeTenantObj = activeTenant;
+        }
+        // Fallback LocalStorage (Apenas se bater com a URL)
+        else if (localUser && isMatch(localUser.tenantSlug, paramTenant)) {
+            tenantId = normalize(localUser.idTenant);
+            tSlug = localUser.tenantSlug;
+            // Não temos o objeto completo do tenant no localUser, apenas IDs/Slugs
+        }
+
+        // 3. Resolução da Filial (Branch)
+        let branchId = null;
+        let bSlug = paramBranch;
+        let activeBranchObj = null;
+
+        // Tenta Redux
+        if (activeBranch && isMatch(activeBranch.slug, paramBranch)) {
+            branchId = normalize(activeBranch.idBranch);
+            bSlug = activeBranch.slug;
+            activeBranchObj = activeBranch;
+        }
+        // Fallback LocalStorage
+        else if (localUser && isMatch(localUser.branchSlug, paramBranch)) {
+            branchId = normalize(localUser.idBranch);
+            bSlug = localUser.branchSlug;
+        }
+
+        // 4. Verificação Final de Prontidão
+        // Só está pronto se encontramos IDs válidos que batem com a navegação atual
+        const isReady = !!(tenantId && branchId);
 
         return {
-            idTenant: tenantId,
-            idBranch: branchId,
-            // Adicionando Slugs para links amigáveis
+            idTenant: isReady ? tenantId : null, // Não retorna ID se não estiver pronto/consistente
+            idBranch: isReady ? branchId : null,
+
+            // Slugs sempre retornam o da URL (intenção do usuário) ou o resolvido
             tenantSlug: tSlug,
             branchSlug: bSlug,
-            // Flags úteis
-            isReady: !!(tenantId && branchId),
-            user: user
+
+            tenant: activeTenantObj,
+            branch: activeBranchObj,
+
+            isReady
         };
-    }, [params.idTenant, params.idBranch, user?.idTenant, user?.idBranch]);
+    }, [
+        activeTenant,
+        activeBranch,
+        params.idTenant,
+        params.idBranch,
+        localUser?.idTenant,
+        localUser?.tenantSlug,
+        localUser?.idBranch,
+        localUser?.branchSlug
+    ]);
 };

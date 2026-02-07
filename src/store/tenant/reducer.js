@@ -71,10 +71,12 @@ const TenantReducer = (state = INIT_STATE, action) => {
                 ...state,
                 activeTenant: {
                     idTenant: action.payload.idTenant,
+                    slug: action.payload.tenantSlug,
                     name: action.payload.tenantName || 'Tenant Ativo'
                 },
                 activeBranch: {
                     idBranch: action.payload.idBranch,
+                    slug: action.payload.branchSlug,
                     name: action.payload.branchName || 'Unidade Ativa'
                 }
             }
