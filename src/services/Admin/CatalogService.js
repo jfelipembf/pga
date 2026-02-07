@@ -1,5 +1,6 @@
 import { catalogRepository } from '../../data/repositories/CatalogRepository'
 import { AuditService } from '../Core/AuditService'
+import { normalizeDate } from "../../utils/date";
 import { CatalogSchema } from '../../data/schemas/Admin/CatalogSchema'
 
 /**
@@ -19,7 +20,7 @@ export const CatalogService = {
             stock: catalogData.stock || 0,
             minStock: catalogData.minStock || 0,
             createdBy: userId,
-            createdAt: new Date(),
+            createdAt: normalizeDate(new Date()),
             deletedAt: null
         })
 
@@ -91,7 +92,7 @@ export const CatalogService = {
 
         const result = await catalogRepository.update(idTenant, idBranch, id, {
             ...data,
-            updatedAt: new Date()
+            updatedAt: normalizeDate(new Date())
         })
 
         await AuditService.logUpdate({
@@ -130,7 +131,7 @@ export const CatalogService = {
 
         const result = await catalogRepository.update(idTenant, idBranch, id, {
             stock: newStock,
-            updatedAt: new Date()
+            updatedAt: normalizeDate(new Date())
         })
 
         await AuditService.log({

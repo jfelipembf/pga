@@ -158,7 +158,7 @@ export const LedgerService = {
      */
     createPenaltyEntry: async (idTenant, idBranch, penalty) => {
         return await ledgerRepository.create(idTenant, idBranch, {
-            date: new Date(),
+            date: normalizeDate(new Date()),
             description: `Reconhecimento de multa rescisória: ${penalty.clientName} - Contrato #${penalty.contractId}`,
             sourceType: 'contract_penalty',
             sourceId: penalty.contractId,
@@ -187,7 +187,7 @@ export const LedgerService = {
      */
     createCancellationDeductionEntry: async (idTenant, idBranch, deduction) => {
         return await ledgerRepository.create(idTenant, idBranch, {
-            date: new Date(),
+            date: normalizeDate(new Date()),
             description: `Estorno de receita por cancelamento: ${deduction.clientName} - Ref: ${deduction.saleNumber}`,
             sourceType: 'contract_cancel_deduction',
             sourceId: deduction.contractId,
@@ -394,7 +394,7 @@ export const LedgerService = {
         const absAmount = Math.abs(amount);
 
         return await ledgerRepository.create(idTenant, idBranch, {
-            date: new Date(),
+            date: normalizeDate(new Date()),
             description: isAdjustment ? `Ajuste de Saldo - ${accountName}` : `Saldo Inicial - ${accountName}`,
             sourceType: isAdjustment ? 'balance_adjustment' : 'opening_balance',
             sourceId: idAccount,
@@ -441,7 +441,7 @@ export const LedgerService = {
         }
 
         return await ledgerRepository.create(idTenant, idBranch, {
-            date: new Date(),
+            date: normalizeDate(new Date()),
             description: `Recebimento à Vista (${paymentMethod}): Venda #${saleNumber}`,
             sourceType: 'sale_payment_instant',
             sourceId: saleId,

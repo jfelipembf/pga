@@ -71,7 +71,7 @@ export const AttendanceService = {
             attendanceSnapshot: attendanceData.clients,
             presentCount: presentList.length,
             absentCount: absentList.length,
-            attendanceRecordedAt: new Date(),
+            attendanceRecordedAt: normalizeDate(new Date()),
             attendanceRecordedBy: userId
         })
 

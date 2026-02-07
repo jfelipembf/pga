@@ -71,7 +71,7 @@ export const SessionService = {
 
         const result = await sessionRepository.update(idTenant, idBranch, idSession, {
             status: 'cancelled',
-            cancelledAt: new Date(),
+            cancelledAt: normalizeDate(new Date()),
             cancelledBy: userId,
             cancellationReason: reason
         })

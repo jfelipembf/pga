@@ -274,7 +274,7 @@ export const ClassService = {
             const batch = writeBatch(db)
             sessionsSnapshot.docs.forEach(docSnap => {
                 batch.update(docSnap.ref, {
-                    deletedAt: new Date(),
+                    deletedAt: normalizeDate(new Date()),
                     deletedBy: userId,
                     updatedBy: userId,
                     updatedAt: new Date()

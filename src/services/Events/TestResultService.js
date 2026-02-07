@@ -2,6 +2,7 @@ import { testResultRepository } from '../../data/repositories/TestResultReposito
 import { TestResultSchema } from '../../data/schemas/Events/TestResultSchema'
 import { AuditService } from '../Core/AuditService'
 import { clientRepository } from '../../data/repositories/ClientRepository'
+import { normalizeDate } from '../../utils/date'
 import moment from 'moment'
 
 /**
@@ -39,7 +40,7 @@ export const TestResultService = {
                 ...validData,
                 ...studentMeta,
                 updatedBy: user.uid,
-                updatedAt: new Date()
+                updatedAt: normalizeDate(new Date())
             }
             await testResultRepository.update(idTenant, idBranch, existing.id, updatePayload)
 
@@ -62,8 +63,8 @@ export const TestResultService = {
             ...validData,
             ...studentMeta,
             createdBy: user.uid,
-            createdAt: new Date(),
-            updatedAt: new Date()
+            createdAt: normalizeDate(new Date()),
+            updatedAt: normalizeDate(new Date())
         }
 
         const result = await testResultRepository.create(idTenant, idBranch, payload)
@@ -112,7 +113,7 @@ export const TestResultService = {
         }
 
         const ranking = results.map(r => {
-            const birthDate = r.studentBirthDate ? (r.studentBirthDate.toDate ? r.studentBirthDate.toDate() : new Date(r.studentBirthDate)) : null
+            const birthDate = normalizeDate(r.studentBirthDate)
             const age = birthDate ? moment().diff(birthDate, 'years') : 0
 
             // Categoria (Pode ser estendido no futuro)

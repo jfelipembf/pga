@@ -160,7 +160,7 @@ export const SalesPaymentProcessor = {
                 authCode: payment.auth,
 
                 description: `Parcela ${i}/${numInstallments} - ${payment.provider} ${payment.brand} (Venda #${sale.saleNumber})`,
-                createdAt: new Date()
+                createdAt: normalizeDate(new Date())
             }
 
             receivables.push(receivable)
@@ -221,7 +221,7 @@ export const SalesPaymentProcessor = {
             status: 'open',
 
             description: `Saldo devedor da Venda #${sale.saleNumber}`,
-            createdAt: new Date()
+            createdAt: normalizeDate(new Date())
         })
     }
 }

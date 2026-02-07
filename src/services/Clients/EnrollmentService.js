@@ -82,7 +82,7 @@ export const EnrollmentService = {
                 areaName: firstSession.areaName || null,
                 enrollmentType: ENROLLMENT_TYPE.REGULAR,
                 status: 'active',
-                enrolledAt: new Date(),
+                enrolledAt: normalizeDate(new Date()),
                 startDate: firstSession.sessionDate,
                 endDate: null,
                 totalSessions: futureSessions.length,
@@ -179,7 +179,7 @@ export const EnrollmentService = {
             areaName: session.areaName || null,
             enrollmentType: ENROLLMENT_TYPE.TRIAL,
             status: 'active',
-            enrolledAt: new Date(),
+            enrolledAt: normalizeDate(new Date()),
             startDate: session.sessionDate,
             endDate: session.sessionDate,
             totalSessions: 1,
@@ -257,7 +257,7 @@ export const EnrollmentService = {
         writeTasks.push(enrollmentRepository.update(idTenant, idBranch, enrollmentId, {
             status: 'cancelled',
             cancelReason: reason || '',
-            cancelledAt: new Date(),
+            cancelledAt: normalizeDate(new Date()),
             cancelledBy: userId
         }))
 
