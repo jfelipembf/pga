@@ -65,12 +65,17 @@ export const filterRoutesByPermissions = (routes, userPermissions) => {
  * Filtra itens de menu baseado nas permissões do usuário
  */
 export const filterMenuByPermissions = (menuItems, userPermissions) => {
+    // Se for owner/admin total, retorna tudo sem filtrar (acesso irrestrito)
+    if (userPermissions && userPermissions.all === true) {
+        return menuItems;
+    }
+
     return menuItems
         .map(item => {
             // Se tem subitens, filtra recursivamente
             if (item.subItems && item.subItems.length > 0) {
                 const filteredSubItems = filterMenuByPermissions(item.subItems, userPermissions)
-                
+
                 // Se não sobrou nenhum subitem, não mostra o item pai
                 if (filteredSubItems.length === 0) {
                     return null
@@ -110,7 +115,7 @@ export const getStaffPermissions = () => {
         if (!authUser) return {}
 
         const user = JSON.parse(authUser)
-        
+
         // Se for proprietário/owner, tem todas as permissões
         if (user.role === 'owner' || user.role === 'proprietario') {
             return { all: true }

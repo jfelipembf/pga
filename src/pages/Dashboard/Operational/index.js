@@ -1,70 +1,80 @@
-import React from "react"
+import React, { useState, useMemo } from "react"
 import { Row, Col, Card, CardBody } from "reactstrap"
 import Miniwidget from "../Miniwidget"
 import YearlyComparisonChart from "../montly-earnings2"
 
+const reportsData = [
+    {
+        title: "Minhas Vendas (Hoje)",
+        iconClass: "cash-multiple",
+        total: "R$ 1.250,00",
+        growth: 15.2,
+        desc: " vs ontem"
+    },
+    {
+        title: "Minhas Vendas (Mês)",
+        iconClass: "calendar-month",
+        total: "R$ 24.500,00",
+        growth: 8.5,
+        desc: " vs mês passado"
+    },
+    {
+        title: "Meus Alunos Ativos",
+        iconClass: "account-group",
+        total: "42",
+        growth: 5.0,
+        desc: " vs mês passado"
+    },
+    {
+        title: "Novos Alunos (Mês)",
+        iconClass: "account-plus",
+        total: "8",
+        growth: 12.5,
+        desc: " vs mês passado"
+    },
+    {
+        title: "Aulas Experimentais",
+        iconClass: "calendar-check",
+        total: "5",
+        desc: " agendadas esta semana"
+    },
+    {
+        title: "Tarefas Pendentes",
+        iconClass: "format-list-checks",
+        total: "12",
+        desc: " para hoje"
+    }
+]
+
+const todayTasksData = [
+    { id: 1, time: "09:00", title: "Ligar para João - Follow-up venda", priority: "high" },
+    { id: 2, time: "10:30", title: "Acompanhar Maria - Primeira aula", priority: "medium" },
+    { id: 3, time: "14:00", title: "Receber Pedro - Aula experimental", priority: "high" },
+    { id: 4, time: "16:00", title: "Confirmar presença - Turma das 17h", priority: "low" },
+    { id: 5, time: "17:30", title: "Fechar caixa do dia", priority: "high" }
+]
+
+const recentSalesData = [
+    { id: 1, client: "Ana Silva", value: "R$ 450,00", time: "Há 2 horas", type: "Matrícula" },
+    { id: 2, client: "Carlos Santos", value: "R$ 300,00", time: "Há 4 horas", type: "Renovação" },
+    { id: 3, client: "Beatriz Costa", value: "R$ 500,00", time: "Ontem", type: "Matrícula" }
+]
+
 const OperationalDashboard = () => {
     document.title = "Dashboard Operacional | PGA Admin"
 
-    // Dados mockados - serão conectados depois
-    const reports = [
-        {
-            title: "Minhas Vendas (Hoje)",
-            iconClass: "cash-multiple",
-            total: "R$ 1.250,00",
-            growth: 15.2,
-            desc: " vs ontem"
-        },
-        {
-            title: "Minhas Vendas (Mês)",
-            iconClass: "calendar-month",
-            total: "R$ 24.500,00",
-            growth: 8.5,
-            desc: " vs mês passado"
-        },
-        {
-            title: "Meus Alunos Ativos",
-            iconClass: "account-group",
-            total: "42",
-            growth: 5.0,
-            desc: " vs mês passado"
-        },
-        {
-            title: "Novos Alunos (Mês)",
-            iconClass: "account-plus",
-            total: "8",
-            growth: 12.5,
-            desc: " vs mês passado"
-        },
-        {
-            title: "Aulas Experimentais",
-            iconClass: "calendar-check",
-            total: "5",
-            desc: " agendadas esta semana"
-        },
-        {
-            title: "Tarefas Pendentes",
-            iconClass: "format-list-checks",
-            total: "12",
-            desc: " para hoje"
-        }
-    ]
+    const [tasks, setTasks] = useState(todayTasksData)
 
-    // Mock de tarefas do dia
-    const todayTasks = [
-        { id: 1, time: "09:00", title: "Ligar para João - Follow-up venda", priority: "high" },
-        { id: 2, time: "10:30", title: "Acompanhar Maria - Primeira aula", priority: "medium" },
-        { id: 3, time: "14:00", title: "Receber Pedro - Aula experimental", priority: "high" },
-        { id: 4, time: "16:00", title: "Confirmar presença - Turma das 17h", priority: "low" },
-        { id: 5, time: "17:30", title: "Fechar caixa do dia", priority: "high" }
-    ]
+    const toggleTask = (taskId) => {
+        setTasks(prev => prev.map(t =>
+            t.id === taskId ? { ...t, completed: !t.completed } : t
+        ))
+    }
 
-    // Mock de vendas recentes
-    const recentSales = [
-        { id: 1, client: "Ana Silva", value: "R$ 450,00", time: "Há 2 horas", type: "Matrícula" },
-        { id: 2, client: "Carlos Santos", value: "R$ 300,00", time: "Há 4 horas", type: "Renovação" },
-        { id: 3, client: "Beatriz Costa", value: "R$ 500,00", time: "Ontem", type: "Matrícula" }
-    ]
+    const { reports, recentSales } = useMemo(() => ({
+        reports: reportsData,
+        recentSales: recentSalesData
+    }), [])
 
     const getPriorityColor = (priority) => {
         switch (priority) {
@@ -98,14 +108,21 @@ const OperationalDashboard = () => {
                             </div>
 
                             <div className="task-list">
-                                {todayTasks.map(task => (
+                                {tasks.map(task => (
                                     <div key={task.id} className="d-flex align-items-start mb-3 pb-3 border-bottom">
                                         <div className="form-check me-3">
-                                            <input className="form-check-input" type="checkbox" id={`task-${task.id}`} />
+                                            <input
+                                                className="form-check-input"
+                                                type="checkbox"
+                                                id={`task-${task.id}`}
+                                                checked={!!task.completed}
+                                                onChange={() => toggleTask(task.id)}
+                                            />
+                                            <label className="form-check-label d-none" htmlFor={`task-${task.id}`}></label>
                                         </div>
-                                        <div className="flex-grow-1">
+                                        <div className="flex-grow-1" style={{ cursor: 'pointer' }} onClick={() => toggleTask(task.id)}>
                                             <div className="d-flex justify-content-between align-items-start">
-                                                <div>
+                                                <div className={task.completed ? "text-decoration-line-through opacity-50" : ""}>
                                                     <h6 className="mb-1">{task.title}</h6>
                                                     <small className="text-muted">
                                                         <i className="mdi mdi-clock-outline me-1"></i>

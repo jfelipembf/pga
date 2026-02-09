@@ -6,8 +6,9 @@ import { apiError, loginSuccess, logoutUserSuccess } from "./actions";
 
 //Include Firebase Helper
 import { getFirebaseBackend } from "../../../helpers/firebase_helper";
-import { staffRepository } from "../../../data/repositories/StaffRepository";
 import { tenantRepository } from "../../../data/repositories/TenantRepository";
+import { staffRepository } from "../../../data/repositories/StaffRepository";
+import { roleRepository } from "../../../data/repositories/RoleRepository";
 
 const fireBaseBackend = getFirebaseBackend();
 
@@ -55,6 +56,36 @@ function* loginUser({ payload: { user, history } }) {
       return;
     }
 
+    // --- FETCH ROLE AND PERMISSIONS ---
+    let userPermissions = {};
+    const roleId = staffProfile.roleId || staffProfile.role;
+
+    if (roleId) {
+      try {
+        const roleDoc = yield call(
+          [roleRepository, roleRepository.findById],
+          resolvedidTenant,
+          resolvedBranchId,
+          roleId
+        );
+
+        if (roleDoc && roleDoc.permissions) {
+          userPermissions = roleDoc.permissions;
+        } else {
+          console.warn(`[LoginSaga] Role '${roleId}' not found in DB. Allocating default permissions if applicable.`);
+          // Opcional: Fallback para DEFAULT_ROLES fixos se não estiver no banco
+        }
+      } catch (err) {
+        console.error("Error fetching user role:", err);
+      }
+    }
+
+    // Merge direct permissions if they exist on the user (overrides role)
+    if (staffProfile.permissions) {
+      userPermissions = { ...userPermissions, ...staffProfile.permissions };
+    }
+    // ----------------------------------
+
     // Fetch Slugs for URL consistency (Crucial for Friendly URLs)
     let finalTenantSlug = idTenant; // Assume input was slug
     let finalBranchSlug = idBranch; // Assume input was slug
@@ -74,6 +105,7 @@ function* loginUser({ payload: { user, history } }) {
     const finalUser = {
       ...authResponse,
       ...staffProfile,
+      permissions: userPermissions, // <--- INJECT PERMISSIONS HERE
       // Store resolved IDs to keep consistency but URL might keep using slugs
       idTenant: resolvedidTenant,
       idBranch: resolvedBranchId,
@@ -87,12 +119,13 @@ function* loginUser({ payload: { user, history } }) {
       role: staffProfile.role || 'user'
     };
 
+    console.log("[LoginSaga] Final User stored with permissions:", finalUser.permissions);
+
     localStorage.setItem("authUser", JSON.stringify(finalUser));
     yield put(loginSuccess(finalUser));
 
-    // 6. Redirect to Multitenant Dashboard
-    // Use Friendly Slugs for URL
-    history(`/${finalTenantSlug}/${finalBranchSlug}/dashboard`);
+    // 6. Redirect to Operational Dashboard (Accessible to everyone)
+    history(`/${finalTenantSlug}/${finalBranchSlug}/dashboard-operational`);
 
   } catch (error) {
     yield put(apiError(error));
@@ -171,7 +204,7 @@ function* socialLogin({ payload: { data, history } }) {
 
       localStorage.setItem("authUser", JSON.stringify(finalUser));
       yield put(loginSuccess(finalUser));
-      history(`/${finalUser.tenantSlug}/${finalUser.branchSlug}/dashboard`);
+      history(`/${finalUser.tenantSlug}/${finalUser.branchSlug}/dashboard-operational`);
     }
   } catch (error) {
     yield put(apiError(error));

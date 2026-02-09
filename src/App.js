@@ -100,9 +100,10 @@ const App = props => {
           <Route path="/dashboard" element={<Navigate to="/pages-404" replace />} />
 
           {/* You should define a Catch-all or a landing page route here if possible */}
+          {/* You should define a Catch-all or a landing page route here if possible */}
         </Routes>
       </GlobalErrorBoundary>
-    </React.Fragment>
+    </React.Fragment >
   )
 }
 

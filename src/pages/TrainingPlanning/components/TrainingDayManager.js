@@ -174,13 +174,14 @@ const TrainingDayManager = ({ date }) => {
 
             <ConfirmDialog
                 isOpen={deleteModalOpen}
+                toggle={() => setDeleteModalOpen(!deleteModalOpen)}
                 title="Excluir Treino"
-                message="Tem certeza que deseja excluir este treino? Esta ação não pode ser desfeita."
-                confirmText="Excluir"
+                description="Tem certeza que deseja excluir este treino? Esta ação não pode ser desfeita."
+                confirmText="Sim, Excluir"
                 cancelText="Cancelar"
                 confirmColor="danger"
                 onConfirm={handleConfirmDelete}
-                onCancel={() => setDeleteModalOpen(false)}
+                loading={loading}
             />
         </React.Fragment>
     );

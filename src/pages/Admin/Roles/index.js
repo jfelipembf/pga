@@ -31,7 +31,7 @@ const RolesPage = ({ setBreadcrumbItems }) => {
         handleRoleClick,
         handleCancel,
         clearSelection
-    } = useRoleForm()
+    } = useRoleForm(roles)
 
     const [deleteModalOpen, setDeleteModalOpen] = useState(false)
     const [roleToDelete, setRoleToDelete] = useState(null)

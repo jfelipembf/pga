@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react"
 import { Col, Row, Nav, NavItem, NavLink, Input, Button } from "reactstrap"
+import { useLocation } from "react-router-dom"
 import classnames from "classnames"
 import moment from "moment"
 
@@ -49,16 +50,28 @@ const occursOnDate = (schedule, isoDate, dayIndex) => {
 }
 
 const EvaluationPage = ({ setBreadcrumbItems }) => {
+  const location = useLocation()
   const [currentDate, setCurrentDate] = useState(() => new Date())
   const [selectedSchedule, setSelectedSchedule] = useState(null)
-  const [activeTab, setActiveTab] = useState("technical")
+
+  // Set initial tab based on URL
+  const [activeTab, setActiveTab] = useState(
+    location.pathname.includes("tests") ? "performance" : "technical"
+  )
+
   const [selectedStaffId, setSelectedStaffId] = useState("")
   const { sessions, activities, areas, staff, isLoading } = useEvaluationData(currentDate)
 
+  // Sync tab with URL changes
   useEffect(() => {
-    const breadcrumbItems = [{ title: "Avaliação", link: "/evaluation" }]
-    setBreadcrumbItems("Avaliação", breadcrumbItems)
-  }, [setBreadcrumbItems])
+    setActiveTab(location.pathname.includes("tests") ? "performance" : "technical")
+  }, [location.pathname])
+
+  useEffect(() => {
+    const title = location.pathname.includes("tests") ? "Testes de Performance" : "Avaliação Técnica"
+    const breadcrumbItems = [{ title, link: location.pathname }]
+    setBreadcrumbItems(title, breadcrumbItems)
+  }, [setBreadcrumbItems, location.pathname])
 
   const schedules = useMemo(() => {
     return mapSessionsToEvaluationSchedules(sessions, activities, areas, staff)

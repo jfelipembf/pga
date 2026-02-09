@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useFormik } from "formik"
 import { useTenant } from "../../../../hooks/useTenant"
+import { useCurrentUser } from "../../../../hooks/useCurrentUser"
 import { ClientService } from "../../../../services/Clients"
 import { ClientSchema } from "../../../../data/schemas/Clients/ClientSchema"
 import { toast } from "react-toastify"
@@ -11,17 +12,19 @@ import { PROFILE_TABS } from "../constants/profileConstants"
  * Hook para gerenciar a lógica da página de Perfil do Cliente.
  */
 export const useClientProfile = () => {
+    // 1. Contexto e Parâmetros
     const { id } = useParams()
-    const { idTenant, idBranch, user } = useTenant()
-
+    const { idTenant, idBranch } = useTenant()
+    const user = useCurrentUser()
     const navigate = useNavigate()
 
+    // 2. Estado Local
     const [client, setClient] = useState(null)
     const [loading, setLoading] = useState(true)
     const [activeTab, setActiveTab] = useState(PROFILE_TABS.SUMMARY)
     const [isDeleting, setIsDeleting] = useState(false)
 
-    // Formik para edição do perfil
+    // 3. Formik para edição do perfil
     const formik = useFormik({
         initialValues: {
             firstName: "",
@@ -45,12 +48,20 @@ export const useClientProfile = () => {
         },
         validationSchema: ClientSchema,
         onSubmit: async (values) => {
+            if (!idTenant || !idBranch) {
+                toast.warning("Aguarde o carregamento do contexto.")
+                return;
+            }
+
             try {
                 const userName = user?.displayName || user?.email || 'Usuário Sistema';
-                await ClientService.updateClient(idTenant, idBranch, user.uid, id, {
+                const userId = user?.uid || 'system';
+
+                await ClientService.updateClient(idTenant, idBranch, userId, id, {
                     ...values,
                     userName
                 });
+
                 toast.success("Perfil atualizado com sucesso!");
                 loadClient(); // Recarrega dados
             } catch (error) {
@@ -60,18 +71,29 @@ export const useClientProfile = () => {
         }
     });
 
-    // Carregar dados do cliente
+    // 4. Carregar dados do cliente
     const loadClient = useCallback(async () => {
-        if (!idTenant || !idBranch || !id) return
+        // Validação de Contexto
+        if (!idTenant || !idBranch || !id) {
+            console.warn(`[useClientProfile] Parâmetros pendentes. Tenant: ${idTenant}, Branch: ${idBranch}, ID: ${id}`);
+            return;
+        }
 
         try {
             setLoading(true)
+            console.log(`[useClientProfile] Buscando cliente ${id}...`);
+
             const data = await ClientService.getClientById(idTenant, idBranch, id)
+
             if (!data) {
+                console.error(`[useClientProfile] Cliente ${id} não encontrado.`);
                 toast.error("Cliente não encontrado.")
-                navigate(-1)
-                return
+                // Opcional: Redirecionar, mas cuidado com loops
+                // navigate(-1) 
+                setLoading(false);
+                return;
             }
+
             setClient(data)
 
             // Atualiza valores do formulário
@@ -102,16 +124,19 @@ export const useClientProfile = () => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch, id, navigate, formik])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [idTenant, idBranch, id])
 
-    // Deletar cliente
+    // 5. Deletar cliente
     const deleteClient = async () => {
         if (!idTenant || !idBranch) return
 
         try {
             setIsDeleting(true)
             const userName = user?.displayName || (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.email) || 'Usuário Atual';
-            await ClientService.deleteClient(idTenant, idBranch, user?.uid, id, userName)
+            const userId = user?.uid || 'system';
+
+            await ClientService.deleteClient(idTenant, idBranch, userId, id, userName)
             toast.success("Cliente excluído com sucesso.")
             navigate(-1)
         } catch (error) {
@@ -122,11 +147,27 @@ export const useClientProfile = () => {
         }
     }
 
+    // 6. Efeito para carregar dados
     useEffect(() => {
+        let mounted = true;
+
         if (idTenant && idBranch && id) {
             loadClient()
+        } else {
+            // Safety Timeout: Se em 5s não resolver o contexto, destrava a tela e mostra erro no console
+            const timer = setTimeout(() => {
+                if (mounted && loading) {
+                    console.error("[useClientProfile] Timeout: Contexto não resolvido após 5s.");
+                    setLoading(false);
+                }
+            }, 5000);
+            return () => clearTimeout(timer);
         }
-    }, [idTenant, idBranch, id, loadClient])
+
+        return () => {
+            mounted = false;
+        }
+    }, [idTenant, idBranch, id, loadClient, loading])
 
     return {
         client,

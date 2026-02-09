@@ -79,6 +79,24 @@ export const useRoles = () => {
                     ...data,
                     userName: user.displayName || user.email
                 })
+
+                // Sincronização em tempo real se o cargo editado for o do usuário logado
+                const authUser = localStorage.getItem("authUser")
+                if (authUser) {
+                    const parsedUser = JSON.parse(authUser)
+                    // Verifica se o ID do cargo ou o nome/slug coincidem
+                    if (parsedUser.roleId === data.id || parsedUser.role === data.id) {
+                        const updatedUser = {
+                            ...parsedUser,
+                            permissions: data.permissions
+                        }
+                        localStorage.setItem("authUser", JSON.stringify(updatedUser))
+                        console.log("[useRoles] Sessão local atualizada com as novas permissões do cargo.")
+                        // Força um pequeno delay e refresh no estado se necessário, 
+                        // ou a navegação/sidebar reagirá ao localStorage se usar hooks reativos.
+                    }
+                }
+
                 toast.success("Função atualizada com sucesso")
             } else {
                 await RoleService.createRole(idTenant, idBranch, user.uid, {
@@ -89,6 +107,12 @@ export const useRoles = () => {
             }
 
             await loadRoles(true)
+
+            // Força um reload suave da página para que o Sidebar re-atue sobre o novo localStorage
+            if (data.id && (JSON.parse(localStorage.getItem("authUser"))?.roleId === data.id)) {
+                setTimeout(() => window.location.reload(), 500)
+            }
+
             return true
         } catch (error) {
             console.error("Erro ao salvar função:", error)

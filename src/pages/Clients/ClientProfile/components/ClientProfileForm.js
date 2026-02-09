@@ -95,15 +95,20 @@ const ClientProfileForm = ({ formik }) => {
                         <Col md={3}>
                             <FormGroup>
                                 <Label>CPF</Label>
-                                <Input
-                                    tag={InputMask}
+                                <InputMask
                                     mask="999.999.999-99"
                                     name="cpf"
                                     value={formik.values.cpf}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                    invalid={formik.touched.cpf && !!formik.errors.cpf}
-                                />
+                                >
+                                    {(inputProps) => (
+                                        <Input
+                                            {...inputProps}
+                                            invalid={formik.touched.cpf && !!formik.errors.cpf}
+                                        />
+                                    )}
+                                </InputMask>
                             </FormGroup>
                         </Col>
                         <Col md={3}>
@@ -123,15 +128,20 @@ const ClientProfileForm = ({ formik }) => {
                         <Col md={3}>
                             <FormGroup>
                                 <Label>Telefone <span className="text-danger">*</span></Label>
-                                <Input
-                                    tag={InputMask}
+                                <InputMask
                                     mask="(99) 99999-9999"
                                     name="phone"
                                     value={formik.values.phone}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                    invalid={formik.touched.phone && !!formik.errors.phone}
-                                />
+                                >
+                                    {(inputProps) => (
+                                        <Input
+                                            {...inputProps}
+                                            invalid={formik.touched.phone && !!formik.errors.phone}
+                                        />
+                                    )}
+                                </InputMask>
                             </FormGroup>
                         </Col>
                     </Row>
@@ -155,14 +165,15 @@ const ClientProfileForm = ({ formik }) => {
                                     CEP
                                     {isLoadingCep && <Spinner size="sm" color="primary" />}
                                 </Label>
-                                <Input
-                                    tag={InputMask}
+                                <InputMask
                                     mask="99999-999"
                                     name="zipCode"
                                     value={formik.values.zipCode}
                                     onChange={formik.handleChange}
                                     onBlur={handleCepBlur}
-                                />
+                                >
+                                    {(inputProps) => <Input {...inputProps} />}
+                                </InputMask>
                             </FormGroup>
                         </Col>
                         <Col md={5}>
@@ -253,13 +264,14 @@ const ClientProfileForm = ({ formik }) => {
                             <Col md={12}>
                                 <FormGroup>
                                     <Label>Telefone de Emergência</Label>
-                                    <Input
-                                        tag={InputMask}
+                                    <InputMask
                                         mask="(99) 99999-9999"
                                         name="emergencyPhone"
                                         value={formik.values.emergencyPhone}
                                         onChange={formik.handleChange}
-                                    />
+                                    >
+                                        {(inputProps) => <Input {...inputProps} />}
+                                    </InputMask>
                                 </FormGroup>
                             </Col>
                         </Row>
