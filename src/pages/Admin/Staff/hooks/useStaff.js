@@ -2,14 +2,14 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTenant } from '../../../../hooks/useTenant'
 import { StaffService } from '../../../../services/Admin/StaffService'
 import { toast } from 'react-toastify'
-import { useCurrentUser } from '../../../../hooks/useCurrentUser'
+import { useAuth } from '../../../../hooks/useAuth'
 
 /**
  * Hook para gerenciar a lógica de Colaboradores (Staff)
  */
 export const useStaff = () => {
     const { idTenant, idBranch } = useTenant()
-    const user = useCurrentUser()
+    const { user } = useAuth()
 
     const [staff, setStaff] = useState([])
     const [loading, setLoading] = useState(true)

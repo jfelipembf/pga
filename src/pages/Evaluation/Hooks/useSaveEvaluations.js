@@ -3,6 +3,8 @@ import { EvaluationService } from '../../../services/Evaluations/EvaluationServi
 import { automationService } from '../../../services/Automation/AutomationService'
 import { useTenant } from '../../../hooks/useTenant'
 import { toast } from 'react-toastify'
+import { useAuth } from '../../../hooks/useAuth'
+import moment from 'moment'
 
 export const useSaveEvaluations = ({
     idActivity,
@@ -17,38 +19,8 @@ export const useSaveEvaluations = ({
     withLoading,
     activeEventId,
 }) => {
-    const { idTenant, idBranch, user } = useTenant()
-
-    const processAutomations = useCallback(async (tenantId, results) => {
-        try {
-            const promises = results.map(({ client, criteria }) => {
-                // Formatar resultados para mensagem com estilo (Agrupado por Objetivo)
-                const groupedByObjective = criteria.reduce((acc, curr) => {
-                    const objectiveTitle = topicMetaById[curr.id]?.objectiveTitle || "Geral"
-                    if (!acc[objectiveTitle]) acc[objectiveTitle] = []
-                    acc[objectiveTitle].push(curr)
-                    return acc
-                }, {})
-
-                const resultsText = Object.entries(groupedByObjective).map(([objective, items]) => {
-                    const itemsText = items.map(c => `🔹 ${c.name}\n   ⭐ ${c.levelName}`).join('\n\n')
-                    return `🏊 ${objective}\n\n${itemsText}`
-                }).join('\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n')
-
-                return automationService.emit(tenantId, 'EVALUATION_RESULT', {
-                    student: client.name,
-                    studentName: client.name, // Fallback alias
-                    name: client.name, // Fallback alias
-                    phone: client.phone || client.cellPhone || client.responsavelPhone,
-                    results: resultsText,
-                    date: new Date().toLocaleDateString('pt-BR')
-                })
-            })
-            await Promise.allSettled(promises)
-        } catch (e) {
-            console.error("Erro ao processar automações de avaliação", e)
-        }
-    }, [topicMetaById])
+    const { idTenant, idBranch } = useTenant()
+    const { user } = useAuth()
 
     const saveAll = useCallback(async () => {
         if (!withLoading || !idActivity || !activeEventId) return
@@ -58,6 +30,11 @@ export const useSaveEvaluations = ({
 
         if (evaluationClients.length === 0) {
             toast.warning("Nenhum aluno selecionado para avaliação")
+            return
+        }
+
+        if (!user || !user.uid) {
+            toast.error("Usuário não identificado. Tente recarregar a página.")
             return
         }
 
@@ -73,8 +50,7 @@ export const useSaveEvaluations = ({
                     const clientId = String(client.id)
 
                     // Montamos os critérios baseados nos rascunhos de cada tópico
-                    // SE não houver avaliação manual, usa o nível base (Requisito: salvar todos como nível 0 se vazio)
-                    const criteria = allTopicIds.map(topicId => {
+                    const criteria = (allTopicIds || []).map(topicId => {
                         const meta = topicMetaById[topicId] || {}
                         let levelId = draftLevelsByTopicId[topicId]?.[clientId]
                         let levelDoc = null
@@ -93,7 +69,7 @@ export const useSaveEvaluations = ({
                             id: topicId,
                             name: meta.title || "Tópico",
                             idLevel: levelId,
-                            levelName: levelDoc?.title || "Avaliado", // Aqui salvamos o nome do nível!
+                            levelName: levelDoc?.title || "Avaliado",
                             achieved: levelDoc?.isPassing !== false,
                             updatedAt: new Date()
                         }
@@ -108,7 +84,7 @@ export const useSaveEvaluations = ({
                         idEvent: activeEventId,
                         idClass: classId || null,
                         idInstructor: user.uid,
-                        idLevel: defaultLevelId, // Nível geral
+                        idLevel: defaultLevelId,
                         date: new Date().toISOString().split('T')[0],
                         criteria: criteria,
                         status: 'pending'
@@ -117,16 +93,8 @@ export const useSaveEvaluations = ({
                     return { client, criteria }
                 })
 
-                // Aguardar todos os salvamentos
-                const results = await Promise.all(savePromises)
-
-                // Disparar Automações (Fire and Forget para não travar UI, mas logar erro)
-                const validResults = results.filter(Boolean)
-                if (validResults.length > 0) {
-                    processAutomations(idTenant, validResults)
-                }
-
-                toast.success(`Avaliações de ${validResults.length} alunos salvas com sucesso!`)
+                await Promise.all(savePromises)
+                toast.success(`Avaliações salvas com sucesso!`)
 
             } catch (error) {
                 console.error("Erro ao salvar avaliações:", error)
@@ -136,72 +104,159 @@ export const useSaveEvaluations = ({
     }, [
         idTenant, idBranch, user, idActivity, classId, clients, excludedIds,
         draftLevelsByTopicId, allTopicIds, topicMetaById, defaultLevelId,
-        levels, withLoading, activeEventId, processAutomations
+        levels, withLoading, activeEventId
     ])
 
     const sendEvaluationToClient = useCallback(async (client) => {
         const clientId = String(client.id)
-
-        // Reconstrói critérios (Lógica compartilhada com saveAll)
-        const criteria = allTopicIds.map(topicId => {
-            const meta = topicMetaById[topicId] || {}
-            let levelId = draftLevelsByTopicId[topicId]?.[clientId]
-            let levelDoc = null
-
-            // Encontrar o nível base para fallback
-            const baseLevel = levels && levels.length > 0
-                ? levels.reduce((prev, curr) => ((curr.order || 0) < (prev.order || 0) ? curr : prev), levels[0])
-                : null
-
-            if (levelId) {
-                levelDoc = levels.find(l => String(l.id) === String(levelId))
-            } else if (baseLevel) {
-                levelDoc = baseLevel
-            }
-
-            if (!levelDoc) return null
-
-            return {
-                id: topicId,
-                name: meta.title || "Tópico",
-                levelName: levelDoc.title || "Avaliado",
-                achieved: levelDoc.isPassing !== false
-            }
-        }).filter(Boolean)
-
-        if (criteria.length === 0) {
-            toast.warning("Não há critérios avaliados para este aluno.")
-            return
-        }
-
-        // Agrupar critérios por Objetivo para melhor visualização
-        const groupedByObjective = criteria.reduce((acc, curr) => {
-            const objectiveTitle = topicMetaById[curr.id]?.objectiveTitle || "Geral"
-            if (!acc[objectiveTitle]) acc[objectiveTitle] = []
-            acc[objectiveTitle].push(curr)
-            return acc
-        }, {})
-
-        const resultsText = Object.entries(groupedByObjective).map(([objective, items]) => {
-            const itemsText = items.map(c => `🔹 ${c.name}\n   ⭐ ${c.levelName}`).join('\n\n')
-            return `🏊 ${objective}\n\n${itemsText}`
-        }).join('\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n')
+        if (!idActivity) return
 
         try {
+            // 1. Buscar histórico real do aluno
+            const allStudentEvals = await EvaluationService.getStudentEvaluations(idTenant, idBranch, clientId)
+
+            // Filtrar apenas avaliações desta atividade e ordenar (mais novas primeiro)
+            const activityEvals = (allStudentEvals || [])
+                .filter(ev => String(ev.idActivity) === String(idActivity))
+                .sort((a, b) => moment(b.date).diff(moment(a.date)))
+
+            // 2. Montar critérios da avaliação ATUAL (Draft ou que acabamos de salvar)
+            const currentCriteria = (allTopicIds || []).map(topicId => {
+                const meta = topicMetaById[topicId] || {}
+                let levelId = draftLevelsByTopicId[topicId]?.[clientId]
+                let levelDoc = null
+
+                // Fallback para nível base se não foi avaliado
+                const baseLevel = levels && levels.length > 0
+                    ? levels.reduce((prev, curr) => ((curr.order || 0) < (prev.order || 0) ? curr : prev), levels[0])
+                    : null
+
+                if (levelId) {
+                    levelDoc = levels.find(l => String(l.id) === String(levelId))
+                } else if (baseLevel) {
+                    levelDoc = baseLevel
+                    levelId = baseLevel.id
+                }
+
+                if (!levelDoc) return null
+
+                return {
+                    id: topicId,
+                    name: meta.title || meta.description || "Tópico",
+                    idLevel: levelId,
+                    levelName: levelDoc.title || "Avaliado",
+                    achieved: levelDoc.isPassing !== false,
+                    value: Number(levelDoc.value || 0),
+                    order: Number(levelDoc.order ?? levelDoc.value ?? 0)
+                }
+            }).filter(Boolean)
+
+            if (currentCriteria.length === 0) {
+                toast.warning("Não há critérios avaliados para este aluno.")
+                return
+            }
+
+            // 3. Lógica de Percentual
+            const maxLevelValue = levels.reduce((max, l) => Math.max(max, Number(l.value || 0)), 0)
+
+            const calculatePct = (criteriaArr) => {
+                if (!criteriaArr || criteriaArr.length === 0 || !allTopicIds?.length || maxLevelValue === 0) return 0
+                let sum = 0
+                allTopicIds.forEach(tId => {
+                    const c = criteriaArr.find(item => String(item.id || item.idTopic) === String(tId))
+                    if (c) {
+                        const lvlId = c.idLevel
+                        const lvlObj = levels.find(l => String(l.id) === String(lvlId))
+                        if (lvlObj) sum += Number(lvlObj.value || 0)
+                    }
+                })
+                return Math.round((sum / (allTopicIds.length * maxLevelValue)) * 100)
+            }
+
+            const currentPercent = calculatePct(currentCriteria)
+
+            // 4. Identificar avaliações ANTERIORES (exclui a doc atual se já estiver salva no histórico)
+            const historyWithoutCurrent = activityEvals.filter(ev => String(ev.idEvent) !== String(activeEventId))
+            const lastEval = historyWithoutCurrent[0] // A mais recente antes desta
+            const prevEvals = historyWithoutCurrent.slice(0, 3) // Até 3 últimas para o histórico
+
+            // 5. Construir cabeçalho de progresso (Timeline Visual)
+            let progressHeader = `🏆 *RELATÓRIO DE EVOLUÇÃO*\n`
+            progressHeader += `━━━━━━━━━━━━━━━━━━━━━━\n`
+
+            if (prevEvals.length > 0) {
+                // Montar histórico (mais antigas primeiro na leitura de cima pra baixo)
+                const historyLines = [...prevEvals].reverse().map((ev, idx) => {
+                    const pct = calculatePct(ev.criteria)
+                    const statusIcon = idx === 0 ? '📉' : '📊'
+                    return `${statusIcon} ${moment(ev.date).format('DD/MM/YY')}: ${pct}%`
+                })
+                progressHeader += `${historyLines.join('\n')}\n`
+            }
+
+            progressHeader += `� *HOJE:* ${currentPercent}% de avanço\n`
+            progressHeader += `━━━━━━━━━━━━━━━━━━━━━━\n\n`
+
+            // 6. Agrupar critérios por Objetivo e detectar MELHORA (👍)
+            const groupedByObjective = currentCriteria.reduce((acc, curr) => {
+                const objectiveTitle = topicMetaById[curr.id]?.objectiveTitle || "Geral"
+                if (!acc[objectiveTitle]) acc[objectiveTitle] = []
+
+                let improved = false
+                let prevLevelName = ""
+
+                if (lastEval && lastEval.criteria) {
+                    const prevCrit = lastEval.criteria.find(c => String(c.id) === String(curr.id))
+                    if (prevCrit) {
+                        const prevLevel = levels.find(l => String(l.id) === String(prevCrit.idLevel))
+                        if (prevLevel) {
+                            const prevOrder = Number(prevLevel.order ?? prevLevel.value ?? 0)
+                            if (curr.order > prevOrder) {
+                                improved = true
+                                prevLevelName = prevLevel.title
+                            }
+                        }
+                    }
+                }
+
+                acc[objectiveTitle].push({ ...curr, improved, prevLevelName })
+                return acc
+            }, {})
+
+            const resultsDetailed = Object.entries(groupedByObjective).map(([objective, items]) => {
+                const itemsText = items.map(c => {
+                    let topicLine = `🔹 *${c.name}*`
+
+                    if (c.improved && c.prevLevelName) {
+                        // Estilo de Evolução: Nível Anterior ➔ Nível Atual
+                        topicLine += `\n   ${c.prevLevelName} ➔ *${c.levelName}* 👍`
+                    } else {
+                        // Estilo padrão: Nível Atual
+                        topicLine += `\n   ⭐ *${c.levelName}*`
+                    }
+                    return topicLine
+                }).join('\n\n')
+
+                return `� *${objective.toUpperCase()}*\n${itemsText}`
+            }).join('\n\n──────────────────\n\n')
+
+            const finalResultsText = `${progressHeader}${resultsDetailed}`
+
+            // 7. Enviar via Automação
             await automationService.emit(idTenant, 'EVALUATION_RESULT', {
-                student: client.name,
                 studentName: client.name,
                 name: client.name,
                 phone: client.phone || client.cellPhone || client.responsavelPhone,
-                results: resultsText,
-                date: new Date().toLocaleDateString('pt-BR')
+                results: finalResultsText,
+                date: moment().format('DD/MM/YYYY')
             })
+
             toast.success(`Mensagem enviada para ${client.name}!`)
         } catch (e) {
-            console.error(e)
-            toast.error("Erro ao enviar mensagem.")
+            console.error("Erro no sendEvaluationToClient:", e)
+            toast.error("Erro ao processar e enviar mensagem.")
         }
-    }, [idTenant, allTopicIds, topicMetaById, draftLevelsByTopicId, levels])
+    }, [idTenant, idBranch, idActivity, allTopicIds, topicMetaById, draftLevelsByTopicId, levels, activeEventId])
 
     return { saveAll, sendEvaluationToClient }
 }

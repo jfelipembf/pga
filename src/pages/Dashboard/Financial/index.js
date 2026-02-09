@@ -50,15 +50,6 @@ const FinancialDashboard = () => {
         }
     ]
 
-    // Mock de receitas vs despesas
-    const monthlyFinancials = [
-        { month: "Jan", revenue: 125000, expenses: 62000, profit: 63000 },
-        { month: "Fev", revenue: 132000, expenses: 65000, profit: 67000 },
-        { month: "Mar", revenue: 128000, expenses: 64000, profit: 64000 },
-        { month: "Abr", revenue: 138000, expenses: 66000, profit: 72000 },
-        { month: "Mai", revenue: 145800, expenses: 68400, profit: 77400 }
-    ]
-
     // Mock de distribuição de despesas
     const expenseCategories = [
         { category: "Folha de Pagamento", value: 38500, percentage: 56.3 },

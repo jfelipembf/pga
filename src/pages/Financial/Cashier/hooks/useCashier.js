@@ -5,7 +5,7 @@ import { cashierRepository } from '../../../../data/repositories/CashierReposito
 import { transactionRepository } from '../../../../data/repositories/TransactionRepository'
 import { staffRepository } from '../../../../data/repositories/StaffRepository'
 import { toast } from 'react-toastify'
-import { useCurrentUser } from '../../../../hooks/useCurrentUser'
+import { useAuth } from '../../../../hooks/useAuth'
 
 /**
  * Hook customizado para gerenciar a lógica da página de Caixa.
@@ -14,7 +14,7 @@ export const useCashier = () => {
     const { idTenant, idBranch } = useTenant()
 
     // Obtenção do Usuário (Centralizado)
-    const user = useCurrentUser()
+    const { user } = useAuth()
 
     const [loading, setLoading] = useState(true)
     const [currentSession, setCurrentSession] = useState(null)

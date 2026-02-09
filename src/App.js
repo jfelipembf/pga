@@ -1,13 +1,13 @@
 import PropTypes from 'prop-types'
-import React from "react"
+import React, { Suspense } from "react"
 
 import { Route, Routes, Navigate } from "react-router-dom"
 import { connect } from "react-redux"
 import { ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 
-// Import Routes all
-import { userRoutes, authRoutes } from "./routes/allRoutes"
+// Import Routes from centralized config
+import { getProtectedRoutes, getPublicRoutes } from "./config/routes"
 
 // Import all middleware
 import Authmiddleware from "./routes/middleware/Authmiddleware"
@@ -30,18 +30,29 @@ import { firebaseConfig } from "./helpers/firebase_config"
 // init firebase backend
 initFirebaseBackend(firebaseConfig)
 
+// Loading fallback component
+const PageLoader = () => (
+  <div className="page-content">
+    <div className="container-fluid d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
+      <div className="spinner-border text-primary" role="status">
+        <span className="visually-hidden">Carregando...</span>
+      </div>
+    </div>
+  </div>
+)
+
 const App = props => {
+  // Sincronização de logout entre abas
   React.useEffect(() => {
     const handleSyncLogout = (e) => {
-      // Se 'authUser' for removido de outra aba, recarrega para redirecionar ao login
       if (e.key === "authUser" && !e.newValue) {
-        window.location.reload();
+        window.location.reload()
       }
-    };
+    }
 
-    window.addEventListener("storage", handleSyncLogout);
-    return () => window.removeEventListener("storage", handleSyncLogout);
-  }, []);
+    window.addEventListener("storage", handleSyncLogout)
+    return () => window.removeEventListener("storage", handleSyncLogout)
+  }, [])
 
   function getLayout() {
     let layoutCls = VerticalLayout
@@ -57,53 +68,83 @@ const App = props => {
   }
 
   const Layout = getLayout()
+  const protectedRoutes = getProtectedRoutes()
+  const publicRoutes = getPublicRoutes()
 
   return (
     <React.Fragment>
       <GlobalErrorBoundary>
-        <ToastContainer position="top-center" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
-        <Routes>
-          {/* Dynamic Multitenant Root */}
-          <Route path="/:idTenant/:idBranch">
+        <ToastContainer
+          position="top-center"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
 
-            {/* Public Auth routes within tenant context */}
-            <Route element={<NonAuthLayout />}>
-              {authRoutes.map((route, idx) => (
-                <Route
-                  key={idx}
-                  path={route.path.startsWith('/') ? route.path.substring(1) : route.path}
-                  element={route.component}
-                />
-              ))}
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            {/* Dynamic Multitenant Root */}
+            <Route path="/:idTenant/:idBranch">
+
+              {/* Public Auth routes within tenant context */}
+              <Route element={<NonAuthLayout />}>
+                {publicRoutes.map((route, idx) => (
+                  <Route
+                    key={`public-${idx}`}
+                    path={route.path.startsWith('/') ? route.path.substring(1) : route.path}
+                    element={
+                      <Suspense fallback={<PageLoader />}>
+                        {React.isValidElement(route.component)
+                          ? route.component
+                          : <route.component />
+                        }
+                      </Suspense>
+                    }
+                  />
+                ))}
+              </Route>
+
+              {/* Protected routes within tenant context */}
+              <Route element={<Authmiddleware><Layout /></Authmiddleware>}>
+                {protectedRoutes.map((route, idx) => (
+                  <Route
+                    key={`protected-${idx}`}
+                    path={route.path.startsWith('/') ? route.path.substring(1) : route.path}
+                    element={
+                      <Authmiddleware
+                        permission={route.permission}
+                        permissions={route.permissions}
+                      >
+                        <Suspense fallback={<PageLoader />}>
+                          {React.isValidElement(route.component)
+                            ? route.component
+                            : <route.component />
+                          }
+                        </Suspense>
+                      </Authmiddleware>
+                    }
+                  />
+                ))}
+              </Route>
             </Route>
 
-            {/* Protected routes within tenant context */}
-            <Route element={<Authmiddleware><Layout /></Authmiddleware>}>
-              {userRoutes.map((route, idx) => (
-                <Route
-                  key={idx}
-                  path={route.path.startsWith('/') ? route.path.substring(1) : route.path}
-                  element={
-                    <Authmiddleware permission={route.permission}>
-                      {route.component}
-                    </Authmiddleware>
-                  }
-                />
-              ))}
-            </Route>
-          </Route>
+            {/* Global fallbacks - these need tenant context */}
+            <Route path="/login" element={<Navigate to="/pages-404" replace />} />
+            <Route path="/register" element={<Navigate to="/pages-404" replace />} />
+            <Route path="/" element={<Navigate to="/pages-404" replace />} />
+            <Route path="/dashboard" element={<Navigate to="/pages-404" replace />} />
 
-          {/* Global redirects/fallbacks */}
-          <Route path="/login" element={<Navigate to="/pages-404" replace />} />
-          <Route path="/register" element={<Navigate to="/pages-404" replace />} />
-          <Route path="/" element={<Navigate to="/pages-404" replace />} />
-          <Route path="/dashboard" element={<Navigate to="/pages-404" replace />} />
-
-          {/* You should define a Catch-all or a landing page route here if possible */}
-          {/* You should define a Catch-all or a landing page route here if possible */}
-        </Routes>
+            {/* Catch-all 404 */}
+            <Route path="*" element={<Navigate to="/pages-404" replace />} />
+          </Routes>
+        </Suspense>
       </GlobalErrorBoundary>
-    </React.Fragment >
+    </React.Fragment>
   )
 }
 

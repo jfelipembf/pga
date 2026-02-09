@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTenant } from '../../../../hooks/useTenant'
 import { CatalogService } from '../../../../services/Admin/CatalogService'
 import { toast } from 'react-toastify'
-import { useCurrentUser } from '../../../../hooks/useCurrentUser'
+import { useAuth } from '../../../../hooks/useAuth'
 
 /**
  * Hook para gerenciar a lógica de Catálogo (Catalog)
@@ -10,7 +10,7 @@ import { useCurrentUser } from '../../../../hooks/useCurrentUser'
 export const useCatalog = () => {
     const { idTenant, idBranch } = useTenant()
 
-    const user = useCurrentUser()
+    const { user } = useAuth()
 
     const [catalog, setCatalog] = useState([])
     const [loading, setLoading] = useState(true)

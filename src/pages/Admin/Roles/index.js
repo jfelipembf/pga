@@ -23,7 +23,6 @@ const RolesPage = ({ setBreadcrumbItems }) => {
 
     const {
         selectedId,
-        setSelectedId,
         isAddingNew,
         formData,
         setFormData,

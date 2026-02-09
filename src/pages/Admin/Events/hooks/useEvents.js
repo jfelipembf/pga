@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from "react"
 import { EventService } from "../../../../services/Events/EventService"
 import { useTenant } from "../../../../hooks/useTenant"
+import { useAuth } from "../../../../hooks/useAuth"
 import { toast } from "react-toastify"
 
 export const useEvents = () => {
     const { idTenant, idBranch } = useTenant()
+    const { user: currentUser } = useAuth()
     const [events, setEvents] = useState([])
     const [loading, setLoading] = useState(false)
     const [saving, setSaving] = useState(false)
@@ -34,14 +36,22 @@ export const useEvents = () => {
         fetchEvents()
     }, [fetchEvents])
 
-    const handleSave = async (user, eventData) => {
+    const handleSave = async (userIgnored, eventData) => {
+        // Use userIgnored as fallback if passed, but prefer currentUser from hook
+        const userToUse = currentUser || userIgnored;
+
+        if (!userToUse || !userToUse.uid) {
+            toast.error("Usuário não identificado. Recarregue a página.")
+            return false
+        }
+
         setSaving(true)
         try {
             if (eventData.id) {
                 const { id, ...dataToUpdate } = eventData
-                await EventService.updateEvent(idTenant, idBranch, user, id, dataToUpdate)
+                await EventService.updateEvent(idTenant, idBranch, userToUse, id, dataToUpdate)
             } else {
-                await EventService.createEvent(idTenant, idBranch, user, eventData)
+                await EventService.createEvent(idTenant, idBranch, userToUse, eventData)
             }
             toast.success("Ciclo salvo com sucesso!")
             await fetchEvents()
@@ -55,9 +65,16 @@ export const useEvents = () => {
         }
     }
 
-    const handleFinish = async (user, idEvent) => {
+    const handleFinish = async (userIgnored, idEvent) => {
+        const userToUse = currentUser || userIgnored;
+
+        if (!userToUse || !userToUse.uid) {
+            toast.error("Usuário não identificado.")
+            return false
+        }
+
         try {
-            await EventService.finishEvent(idTenant, idBranch, user, idEvent)
+            await EventService.finishEvent(idTenant, idBranch, userToUse, idEvent)
             toast.success("Ciclo finalizado!")
             await fetchEvents()
             return true

@@ -1,4 +1,4 @@
-import { PERMISSIONS } from '../pages/Admin/Roles/Constants/permissions'
+import { PERMISSIONS } from '../config/permissions'
 
 /**
  * Utilitário para migração automática de permissões em cargos
@@ -17,7 +17,7 @@ export const getAllPermissionIds = () => {
 export const hasMissingPermissions = (rolePermissions = {}) => {
     const allPermissions = getAllPermissionIds()
     const rolePermissionIds = Object.keys(rolePermissions)
-    
+
     return allPermissions.some(permId => !rolePermissionIds.includes(permId))
 }
 
@@ -28,13 +28,13 @@ export const hasMissingPermissions = (rolePermissions = {}) => {
 export const addMissingPermissions = (rolePermissions = {}) => {
     const allPermissions = getAllPermissionIds()
     const updatedPermissions = { ...rolePermissions }
-    
+
     allPermissions.forEach(permId => {
         if (!(permId in updatedPermissions)) {
             updatedPermissions[permId] = false
         }
     })
-    
+
     return updatedPermissions
 }
 
@@ -47,7 +47,7 @@ export const migrateRole = (role) => {
     }
 
     const needsMigration = hasMissingPermissions(role.permissions)
-    
+
     if (!needsMigration) {
         return role
     }
@@ -77,7 +77,7 @@ export const getMigrationStats = (roles = []) => {
         if (role.permissions) {
             const rolePermissionIds = Object.keys(role.permissions)
             const missing = allPermissions.filter(p => !rolePermissionIds.includes(p))
-            
+
             if (missing.length > 0) {
                 rolesNeedingMigration++
                 totalMissingPermissions += missing.length

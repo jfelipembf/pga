@@ -30,13 +30,16 @@ class FirebaseAuthBackend {
           if (currentAuthUser) {
             try {
               const parsedUser = JSON.parse(currentAuthUser);
-              if (parsedUser.uid === user.uid && parsedUser.firstName) {
+              // Se o UID for o mesmo e já tivermos o campo 'role', não sobrescrevemos
+              // pois o objeto no localStorage já está enriquecido com dados do Firestore (Saga)
+              if (parsedUser.uid === user.uid && (parsedUser.role || parsedUser.firstName)) {
                 return;
               }
             } catch (e) {
               // ignore
             }
           }
+          // Só salva o básico se não houver nada ou se for troca de conta
           localStorage.setItem("authUser", JSON.stringify(user));
         } else {
           localStorage.removeItem("authUser");

@@ -9,8 +9,15 @@ import { getFirebaseBackend } from "../../../helpers/firebase_helper";
 import { tenantRepository } from "../../../data/repositories/TenantRepository";
 import { staffRepository } from "../../../data/repositories/StaffRepository";
 import { roleRepository } from "../../../data/repositories/RoleRepository";
+import { DEFAULT_ROLES } from "../../../config/permissions";
 
 const fireBaseBackend = getFirebaseBackend();
+
+const resolveRoleKey = (staffProfile) => {
+  return (staffProfile?.roleId || staffProfile?.role || staffProfile?.roleName || "").toLowerCase();
+};
+
+const isOwnerRole = (roleKey) => roleKey === 'owner' || roleKey === 'proprietario';
 
 function* loginUser({ payload: { user, history } }) {
   try {
@@ -59,8 +66,11 @@ function* loginUser({ payload: { user, history } }) {
     // --- FETCH ROLE AND PERMISSIONS ---
     let userPermissions = {};
     const roleId = staffProfile.roleId || staffProfile.role;
+    const roleKey = resolveRoleKey(staffProfile);
 
-    if (roleId) {
+    if (isOwnerRole(roleKey)) {
+      userPermissions = { all: true };
+    } else if (roleId) {
       try {
         const roleDoc = yield call(
           [roleRepository, roleRepository.findById],
@@ -72,8 +82,12 @@ function* loginUser({ payload: { user, history } }) {
         if (roleDoc && roleDoc.permissions) {
           userPermissions = roleDoc.permissions;
         } else {
-          console.warn(`[LoginSaga] Role '${roleId}' not found in DB. Allocating default permissions if applicable.`);
-          // Opcional: Fallback para DEFAULT_ROLES fixos se não estiver no banco
+          const fallbackRole = DEFAULT_ROLES.find(r => r.id === roleKey);
+          if (fallbackRole?.permissions) {
+            userPermissions = fallbackRole.permissions;
+          } else {
+            console.warn(`[LoginSaga] Role '${roleId}' not found in DB and no fallback permissions found.`);
+          }
         }
       } catch (err) {
         console.error("Error fetching user role:", err);
@@ -116,7 +130,7 @@ function* loginUser({ payload: { user, history } }) {
       photoURL: staffProfile.photo || staffProfile.avatar || authResponse.photoURL || null,
       firstName: staffProfile.firstName || null,
       lastName: staffProfile.lastName || null,
-      role: staffProfile.role || 'user'
+      role: staffProfile.role || staffProfile.roleId || staffProfile.roleName || 'user'
     };
 
     console.log("[LoginSaga] Final User stored with permissions:", finalUser.permissions);
@@ -193,13 +207,16 @@ function* socialLogin({ payload: { data, history } }) {
       const tenantData = yield call([tenantRepository, tenantRepository.findTenantById], resolvedidTenant);
       const branchData = yield call([tenantRepository, tenantRepository.findBranchById], resolvedidTenant, resolvedBranchId);
 
+      const roleKey = resolveRoleKey(staffProfile);
       const finalUser = {
         ...authResponse,
         ...staffProfile,
+        permissions: isOwnerRole(roleKey) ? { all: true } : (staffProfile.permissions || {}),
         idTenant: resolvedidTenant,
         idBranch: resolvedBranchId,
         tenantSlug: tenantData?.slug || idTenant,
-        branchSlug: branchData?.slug || idBranch
+        branchSlug: branchData?.slug || idBranch,
+        role: staffProfile.role || staffProfile.roleId || staffProfile.roleName || 'user'
       };
 
       localStorage.setItem("authUser", JSON.stringify(finalUser));

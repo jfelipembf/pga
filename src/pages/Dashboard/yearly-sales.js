@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardBody, Row, Col } from "reactstrap";
+import { Card, CardBody } from "reactstrap";
 import ReactApexChart from 'react-apexcharts';
 
 const YearlySales = ({ title, data, series, categories, colors, tooltipFormatter }) => {

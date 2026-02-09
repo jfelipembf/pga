@@ -4,7 +4,7 @@ import { useTenant } from "../../../../hooks/useTenant"
 import { StaffSchema } from "../../../../data/schemas/Admin/StaffSchema"
 import { StaffService } from "../../../../services/Admin/StaffService"
 import { usePhotoUpload } from "../../../../hooks/usePhotoUpload"
-import { useCurrentUser } from "../../../../hooks/useCurrentUser"
+import { useAuth } from "../../../../hooks/useAuth"
 
 export const useStaffForm = ({ onStaffAdded, toggle, roles }) => {
     const { idTenant, idBranch } = useTenant()
@@ -18,7 +18,7 @@ export const useStaffForm = ({ onStaffAdded, toggle, roles }) => {
         resetPhoto
     } = usePhotoUpload()
 
-    const user = useCurrentUser()
+    const { user } = useAuth()
 
     const formik = useFormik({
         initialValues: {

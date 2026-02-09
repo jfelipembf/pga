@@ -52,8 +52,12 @@ const Login = props => {
   } = useSelector(LoginProperties);
 
   // Tradutor de erros para mensagens amigáveis
-  const translateError = (errorMessage) => {
-    if (!errorMessage) return null;
+  const translateError = (errorObj) => {
+    if (!errorObj) return null;
+
+    // Converte para string se for objeto
+    const errorMessage = typeof errorObj === 'string' ? errorObj : (errorObj.message || JSON.stringify(errorObj));
+
     if (errorMessage.includes("auth/user-not-found") || errorMessage.includes("auth/wrong-password") || errorMessage.includes("auth/invalid-credential")) {
       return "Usuário ou senha incorretos. Verifique suas credenciais.";
     }

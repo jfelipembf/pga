@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useFormik } from "formik"
 import { useTenant } from "../../../../hooks/useTenant"
-import { useCurrentUser } from "../../../../hooks/useCurrentUser"
+import { useAuth } from "../../../../hooks/useAuth"
 import { ClientService } from "../../../../services/Clients"
 import { ClientSchema } from "../../../../data/schemas/Clients/ClientSchema"
 import { toast } from "react-toastify"
@@ -15,7 +15,7 @@ export const useClientProfile = () => {
     // 1. Contexto e Parâmetros
     const { id } = useParams()
     const { idTenant, idBranch } = useTenant()
-    const user = useCurrentUser()
+    const { user } = useAuth()
     const navigate = useNavigate()
 
     // 2. Estado Local
@@ -150,6 +150,7 @@ export const useClientProfile = () => {
     // 6. Efeito para carregar dados
     useEffect(() => {
         let mounted = true;
+        console.log("[useClientProfile] Effect trigger:", { idTenant, idBranch, id, hasLoadClient: !!loadClient });
 
         if (idTenant && idBranch && id) {
             loadClient()
@@ -167,7 +168,8 @@ export const useClientProfile = () => {
         return () => {
             mounted = false;
         }
-    }, [idTenant, idBranch, id, loadClient, loading])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [idTenant, idBranch, id, loadClient])
 
     return {
         client,

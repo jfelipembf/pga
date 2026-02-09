@@ -2,14 +2,14 @@ import { useState, useEffect, useCallback } from 'react'
 import { useTenant } from '../../../../hooks/useTenant'
 import { EvaluationLevelService } from '../../../../services/Admin/EvaluationLevelService'
 import { toast } from 'react-toastify'
-import { useCurrentUser } from '../../../../hooks/useCurrentUser'
+import { useAuth } from '../../../../hooks/useAuth'
 
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
 
 export const useEvaluationLevels = () => {
     const { idTenant, idBranch } = useTenant()
 
-    const user = useCurrentUser()
+    const { user } = useAuth()
 
     const [levels, setLevels] = useState([])
     const [loading, setLoading] = useState(false)

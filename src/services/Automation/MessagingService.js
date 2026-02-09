@@ -59,8 +59,9 @@ class MessagingService {
      * Send a plain text message
      */
     async sendText(tenantId, phone, message, customConfig = null) {
+        let config = null;
         try {
-            const config = this._getConfig(tenantId, customConfig);
+            config = this._getConfig(tenantId, customConfig);
 
             // Formatar telefone (Brasil default)
             // Formatar telefone (Brasil default)
@@ -87,6 +88,8 @@ class MessagingService {
                 text: message
             };
 
+            console.log(`[MessagingService] Sending to: ${url}`); // Debug URL
+
             const response = await axios.post(url, payload, {
                 headers: {
                     'apikey': config.token,
@@ -99,7 +102,11 @@ class MessagingService {
         } catch (error) {
             console.error('[MessagingService] Error sending text:', error);
             const errorDetails = error.response?.data ? JSON.stringify(error.response.data) : error.message;
-            console.error('[MessagingService] Details:', errorDetails);
+            console.error('[MessagingService] Connection Details:', {
+                url: `${config?.baseUrl}/message/sendText/${config?.instanceName}`,
+                instance: config?.instanceName,
+                hasToken: !!config?.token
+            });
             return { success: false, error: errorDetails };
         }
     }

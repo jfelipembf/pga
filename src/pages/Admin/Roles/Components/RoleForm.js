@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { Col, Form, FormGroup, Input, Label, Row, Card, CardBody, Collapse, Button } from "reactstrap"
-import { PERMISSIONS_BY_CATEGORY, CATEGORIES, DEFAULT_ROLES } from "../Constants/permissions"
+import { PERMISSIONS_BY_CATEGORY, CATEGORIES, DEFAULT_ROLES } from "../../../../config/permissions"
 
 const baseValue = {
     name: "",

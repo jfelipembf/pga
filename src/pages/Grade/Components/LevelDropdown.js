@@ -40,15 +40,21 @@ const LevelDropdown = ({ clientId, currentLevel, onLevelChange, disabled = false
     setIsOpen(false)
   }
 
+  const maxLevelValue = useMemo(() => {
+    return levels.reduce((max, l) => Math.max(max, Number(l.value || 0)), 0)
+  }, [levels])
+
   const getLevelColor = (levelValue) => {
-    switch (levelValue) {
-      case 0: return "secondary"
-      case 1: return "warning"
-      case 2: return "info"
-      case 3: return "primary"
-      case 4: return "success"
-      default: return "secondary"
-    }
+    const v = Number(levelValue)
+    if (v === 0) return "secondary"
+    if (maxLevelValue === 0) return "info"
+
+    const percent = (v / maxLevelValue) * 100
+    if (percent >= 90) return "success"
+    if (percent >= 60) return "primary"
+    if (percent >= 30) return "info"
+    if (percent >= 10) return "warning"
+    return "secondary"
   }
 
   return (

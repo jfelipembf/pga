@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useTenant } from '../../../hooks/useTenant'
 import { GeneralDashboardService } from '../../../services/Dashboard/GeneralDashboardService'
-import { useCurrentUser } from '../../../hooks/useCurrentUser'
+import { useAuth } from '../../../hooks/useAuth'
 
 
 // Tipo: 'operational' | 'manager'
@@ -9,7 +9,7 @@ export const useGeneralDashboard = (type = 'manager') => {
     const { idTenant, idBranch } = useTenant()
 
     // Obter userId do Hook Centralizado
-    const user = useCurrentUser();
+    const { user } = useAuth();
     const userId = user?.uid;
 
     const [loading, setLoading] = useState(true)

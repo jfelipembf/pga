@@ -84,6 +84,7 @@ export const useTenant = () => {
 
             tenant: activeTenantObj,
             branch: activeBranchObj,
+            user: localUser,
 
             isReady
         };

@@ -171,28 +171,27 @@ export const EvaluationService = {
     },
 
     /**
-     * Busca os últimos níveis registrados para uma lista de alunos em uma atividade específica.
+     * Busca as últimas avaliações registradas para uma lista de alunos em uma atividade específica.
      * Útil para pré-preencher o formulário de avaliação com o progresso anterior.
      */
-    getLatestLevelsForClients: async (idTenant, idBranch, idActivity, clientIds) => {
+    getLatestEvaluationsForClients: async (idTenant, idBranch, idActivity, clientIds) => {
         if (!clientIds || clientIds.length === 0) return {}
 
-        // Busca todas as avaliações dessa atividade (idealmente filtraríamos mais, mas para performance em turmas pequenas funciona)
-        // Uma alternativa mais escalável seria buscar apenas as últimas N avaliações ou usar um índice composto aluno+atividade.
+        // Busca todas as avaliações dessa atividade
         const evaluations = await evaluationRepository.findWhere(idTenant, idBranch, [
             ['idActivity', '==', idActivity],
             ['deletedAt', '==', null]
         ], { field: 'date', direction: 'desc' })
 
-        const latestLevels = {}
+        const latestEvaluations = {}
         clientIds.forEach(clientId => {
             const studentEval = evaluations.find(e => e.idStudent === clientId)
             if (studentEval) {
-                latestLevels[clientId] = studentEval.idLevel
+                latestEvaluations[clientId] = studentEval
             }
         })
 
-        return latestLevels
+        return latestEvaluations
     },
 
     /**

@@ -17,15 +17,18 @@ import withRouter from "components/Common/withRouter"
 // Actions
 import { setActiveBranch } from "../../../store/tenant/actions"
 
+// Hooks
+import { useAuth } from "../../../hooks/useAuth"
+
 // users
 import user1 from "../../../assets/images/users/user-1.jpg"
 
 const ProfileMenu = props => {
   const [menu, setMenu] = useState(false)
+  const { user } = useAuth()
 
   const { activeBranch, branches, setActiveBranch } = props;
   const { idTenant, idBranch } = props.router.params;
-  const authUser = JSON.parse(localStorage.getItem("authUser")) || {};
 
   return (
     <React.Fragment>
@@ -42,13 +45,13 @@ const ProfileMenu = props => {
 
           <img
             className="rounded-circle header-profile-user"
-            src={authUser.photoURL || user1}
+            src={user?.photoURL || user1}
             alt="Header Avatar"
             style={{ objectFit: "cover" }}
           />
           <div className="d-none d-xl-inline-block ms-2 text-start" style={{ lineHeight: '1.2', verticalAlign: 'middle' }}>
-            <span className="d-block font-size-14">{authUser.displayName || "Usuário"}</span>
-            <span className="d-block text-muted font-size-12">{authUser.email}</span>
+            <span className="d-block font-size-14">{user?.displayName || "Usuário"}</span>
+            <span className="d-block text-muted font-size-12">{user?.email}</span>
           </div>
           <i className="mdi mdi-chevron-down d-none d-xl-inline-block"></i>
         </DropdownToggle>

@@ -2,11 +2,11 @@ import { useState, useEffect, useCallback } from 'react'
 import { AuditService } from '../../../../services/Core/AuditService'
 import { useTenant } from '../../../../hooks/useTenant'
 import { staffRepository } from '../../../../data/repositories/StaffRepository'
-import { useCurrentUser } from '../../../../hooks/useCurrentUser'
+import { useAuth } from '../../../../hooks/useAuth'
 
 export const useAuditLogs = () => {
     const { idTenant, idBranch } = useTenant()
-    const user = useCurrentUser()
+    const { user } = useAuth()
     const [logs, setLogs] = useState([])
     const [loading, setLoading] = useState(true)
     const [staff, setStaff] = useState({})

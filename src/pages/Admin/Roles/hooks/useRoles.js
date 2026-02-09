@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useTenant } from '../../../../hooks/useTenant'
+import { useAuth } from '../../../../hooks/useAuth'
 import { RoleService } from '../../../../services/Admin/RoleService'
 import { toast } from 'react-toastify'
 import { migrateRoles, getMigrationStats } from '../../../../utils/roleMigration'
-import { useCurrentUser } from '../../../../hooks/useCurrentUser'
 
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
 
 export const useRoles = () => {
     const { idTenant, idBranch } = useTenant()
-    const user = useCurrentUser()
+    const { user, updatePermissions } = useAuth()
 
     const [roles, setRoles] = useState([])
     const [loading, setLoading] = useState(false)
@@ -80,21 +80,11 @@ export const useRoles = () => {
                     userName: user.displayName || user.email
                 })
 
-                // Sincronização em tempo real se o cargo editado for o do usuário logado
-                const authUser = localStorage.getItem("authUser")
-                if (authUser) {
-                    const parsedUser = JSON.parse(authUser)
-                    // Verifica se o ID do cargo ou o nome/slug coincidem
-                    if (parsedUser.roleId === data.id || parsedUser.role === data.id) {
-                        const updatedUser = {
-                            ...parsedUser,
-                            permissions: data.permissions
-                        }
-                        localStorage.setItem("authUser", JSON.stringify(updatedUser))
-                        console.log("[useRoles] Sessão local atualizada com as novas permissões do cargo.")
-                        // Força um pequeno delay e refresh no estado se necessário, 
-                        // ou a navegação/sidebar reagirá ao localStorage se usar hooks reativos.
-                    }
+                // Sincronização reativa se o cargo editado for o do usuário logado
+                if (user?.roleId === data.id || user?.role === data.id) {
+                    // Atualiza Redux e localStorage via hook
+                    updatePermissions(data.permissions)
+                    console.log("[useRoles] Permissões atualizadas reativamente via Redux.")
                 }
 
                 toast.success("Função atualizada com sucesso")
@@ -107,12 +97,6 @@ export const useRoles = () => {
             }
 
             await loadRoles(true)
-
-            // Força um reload suave da página para que o Sidebar re-atue sobre o novo localStorage
-            if (data.id && (JSON.parse(localStorage.getItem("authUser"))?.roleId === data.id)) {
-                setTimeout(() => window.location.reload(), 500)
-            }
-
             return true
         } catch (error) {
             console.error("Erro ao salvar função:", error)

@@ -38,15 +38,15 @@ export const useEvaluationDraft = ({
                 const clientsInCurrentCycle = new Set(currentCycleEvaluations.map(e => String(e.idStudent)))
                 const clientsNeedingHistory = missingClientIds.filter(id => !clientsInCurrentCycle.has(id))
 
-                let historyLevels = {}
+                let historyEvaluations = {}
                 if (clientsNeedingHistory.length > 0) {
-                    historyLevels = await EvaluationService.getLatestLevelsForClients(idTenant, idBranch, idActivity, clientsNeedingHistory)
+                    historyEvaluations = await EvaluationService.getLatestEvaluationsForClients(idTenant, idBranch, idActivity, clientsNeedingHistory)
                 }
 
                 setDraftLevelsByTopicId(prev => {
                     const newDraft = { ...prev }
 
-                    // Processar dados do Ciclo Atual (mapeando critérios por tópico)
+                    // 1. Processar dados do Ciclo Atual (mapeando critérios por tópico) - PRIORITÁRIO
                     currentCycleEvaluations.forEach(evalDoc => {
                         const clientId = String(evalDoc.idStudent)
                         if (evalDoc.criteria && Array.isArray(evalDoc.criteria)) {
@@ -58,16 +58,30 @@ export const useEvaluationDraft = ({
                         }
                     })
 
-                    // Processar dados do Histórico (Fallback para o tópico selecionado)
-                    if (selectedTopicId) {
-                        if (!newDraft[selectedTopicId]) newDraft[selectedTopicId] = {}
-                        Object.entries(historyLevels).forEach(([clientId, levelId]) => {
-                            // Só aplica se o Ciclo Atual não tiver preenchido nada para ESSE tópico/aluno
-                            if (!newDraft[selectedTopicId][clientId]) {
-                                newDraft[selectedTopicId][clientId] = levelId
+                    // 2. Processar dados do Histórico (Fallback para quem não tem no ciclo atual)
+                    // Percorre todos os alunos que trouxeram histórico
+                    Object.entries(historyEvaluations).forEach(([clientId, evalDoc]) => {
+                        const cId = String(clientId)
+
+                        // Se houver critérios detalhados, preenchemos todos os tópicos encontrados
+                        if (evalDoc.criteria && Array.isArray(evalDoc.criteria)) {
+                            evalDoc.criteria.forEach(crit => {
+                                const tId = String(crit.id)
+                                if (!newDraft[tId]) newDraft[tId] = {}
+                                // Só aplica se o Ciclo Atual não tiver preenchido nada para esse aluno/tópico
+                                if (!newDraft[tId][cId]) {
+                                    newDraft[tId][cId] = crit.idLevel
+                                }
+                            })
+                        }
+                        // Caso seja uma avaliação antiga sem critérios, podemos usar o idLevel como fallback para o tópico selecionado
+                        else if (selectedTopicId && evalDoc.idLevel) {
+                            if (!newDraft[selectedTopicId]) newDraft[selectedTopicId] = {}
+                            if (!newDraft[selectedTopicId][cId]) {
+                                newDraft[selectedTopicId][cId] = evalDoc.idLevel
                             }
-                        })
-                    }
+                        }
+                    })
 
                     return newDraft
                 })

@@ -5,7 +5,7 @@ import { ReceivableService } from "../../../../services/Financial/ReceivableServ
 import { SalesService } from "../../../../services/Sales/SalesService"
 import { ClientContractService } from "../../../../services/Clients/ClientContractService"
 import { toast } from "react-toastify"
-import { useCurrentUser } from "../../../../hooks/useCurrentUser"
+import { useAuth } from "../../../../hooks/useAuth"
 
 /**
  * Hook para gerenciar os dados financeiros de um cliente específico.
@@ -13,7 +13,7 @@ import { useCurrentUser } from "../../../../hooks/useCurrentUser"
 export const useClientFinancial = () => {
     const { id } = useParams() // Client ID from URL
     const { idTenant, idBranch } = useTenant()
-    const user = useCurrentUser()
+    const { user } = useAuth()
 
     const [summary, setSummary] = useState(null)
     const [receivables, setReceivables] = useState([])

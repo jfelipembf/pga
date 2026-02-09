@@ -1,5 +1,5 @@
 import React from "react"
-import { Card, CardBody, Table, Badge, Spinner } from "reactstrap"
+import { Card, CardBody, Table, Badge, Spinner, Progress } from "reactstrap"
 import { useClientEvaluations } from "../hooks/useClientEvaluations"
 
 const ClientEvaluations = () => {
@@ -30,12 +30,24 @@ const ClientEvaluations = () => {
         <div className="client-evaluations">
             {evaluationMatrix.map(activity => (
                 <Card key={activity.id} className="border shadow-none mb-4 overflow-hidden">
-                    <div className="bg-light p-3 border-bottom d-flex align-items-center justify-content-between">
-                        <h6 className="mb-0 fw-bold text-primary text-uppercase letter-spacing-1">
-                            <i className="mdi mdi-swim me-2"></i>
-                            {activity.activityName}
-                        </h6>
-                        <Badge color="soft-primary" pill>Últimas 5 Avaliações</Badge>
+                    <div className="bg-light p-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div className="d-flex align-items-center">
+                            <h6 className="mb-0 fw-bold text-primary text-uppercase letter-spacing-1">
+                                <i className="mdi mdi-swim me-2"></i>
+                                {activity.activityName}
+                            </h6>
+                        </div>
+
+                        <div className="d-flex align-items-center gap-3 flex-grow-1 justify-content-end" style={{ maxWidth: '400px' }}>
+                            <div className="flex-grow-1 d-none d-sm-block">
+                                <div className="d-flex justify-content-between mb-1">
+                                    <span className="small fw-bold text-muted">AVANÇO TÉCNICO</span>
+                                    <span className="small fw-bold text-primary">{activity.advancePercentage}%</span>
+                                </div>
+                                <Progress value={activity.advancePercentage} color="primary" style={{ height: '6px' }} className="bg-white border" />
+                            </div>
+                            <Badge color="soft-primary" pill className="d-none d-md-block">Últimas 3 Avaliações</Badge>
+                        </div>
                     </div>
                     <CardBody className="p-0">
                         <div className="table-responsive">
@@ -44,10 +56,15 @@ const ClientEvaluations = () => {
                                     <tr>
                                         <th style={{ width: '40%', borderTop: 'none' }}>Objetivos / Tópicos</th>
                                         {activity.dates.map((date, idx) => (
-                                            <th key={idx} className="text-center" style={{ borderTop: 'none' }}>
-                                                <div className="small text-muted mb-1">DATA</div>
-                                                <div className="fw-bold">{date}</div>
-                                            </th>
+                                            <React.Fragment key={idx}>
+                                                <th className="text-center" style={{ borderTop: 'none' }}>
+                                                    <div className="small text-muted mb-1">DATA</div>
+                                                    <div className="fw-bold">{date}</div>
+                                                </th>
+                                                {idx < activity.dates.length - 1 && (
+                                                    <th style={{ width: '40px', borderTop: 'none' }} />
+                                                )}
+                                            </React.Fragment>
                                         ))}
                                     </tr>
                                 </thead>
@@ -55,7 +72,7 @@ const ClientEvaluations = () => {
                                     {activity.objectives.map(obj => (
                                         <React.Fragment key={obj.id}>
                                             <tr className="bg-soft-light">
-                                                <td colSpan={activity.dates.length + 1} className="py-2">
+                                                <td colSpan={activity.dates.length * 2} className="py-2">
                                                     <span className="fw-bold text-dark small text-uppercase">
                                                         {obj.order != null ? `${obj.order}. ` : ""}{obj.title}
                                                     </span>
@@ -67,22 +84,30 @@ const ClientEvaluations = () => {
                                                         <i className="mdi mdi-chevron-right text-muted me-1"></i>
                                                         <span className="text-muted small">{topic.title}</span>
                                                     </td>
-                                                    {topic.values.map((val, idx) => (
-                                                        <td key={idx} className="text-center">
-                                                            {val ? (
-                                                                <Badge
-                                                                    color={
-                                                                        val.toLowerCase() === 'aprovado' || val.toLowerCase() === 'concluído' ? 'success' :
-                                                                            val.toLowerCase() === 'pendente' ? 'warning' : 'info'
-                                                                    }
-                                                                    className="px-2"
-                                                                >
-                                                                    {val}
-                                                                </Badge>
-                                                            ) : (
-                                                                <span className="text-muted opacity-25">-</span>
+                                                    {topic.values.map((valObj, idx) => (
+                                                        <React.Fragment key={`${topic.id}-${idx}`}>
+                                                            <td className="text-center">
+                                                                {valObj ? (
+                                                                    <Badge
+                                                                        color={valObj.color || "info"}
+                                                                        className="px-2"
+                                                                    >
+                                                                        {valObj.title}
+                                                                    </Badge>
+                                                                ) : (
+                                                                    <span className="text-muted opacity-25">-</span>
+                                                                )}
+                                                            </td>
+                                                            {idx < activity.dates.length - 1 && (
+                                                                <td className="text-center p-0 align-middle" style={{ minWidth: '40px' }}>
+                                                                    {topic.values[idx + 1]?.improved && (
+                                                                        <div className="animate__animated animate__fadeIn" title="Houve melhora">
+                                                                            <i className="mdi mdi-thumb-up text-success fs-5"></i>
+                                                                        </div>
+                                                                    )}
+                                                                </td>
                                                             )}
-                                                        </td>
+                                                        </React.Fragment>
                                                     ))}
                                                 </tr>
                                             ))}

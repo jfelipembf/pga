@@ -5,7 +5,7 @@ import { SalesService } from '../../../../services/Sales/SalesService';
 import { AcquirerService } from '../../../../services/Financial/AcquirerService';
 import { ContractService } from '../../../../services/Financial/ContractService';
 import { toast } from 'react-toastify';
-import { useCurrentUser } from '../../../../hooks/useCurrentUser';
+import { useAuth } from '../../../../hooks/useAuth';
 
 /**
  * Hook customizado para gerenciar a lógica da página de Ponto de Venda.
@@ -22,7 +22,7 @@ export const useSalesPoint = () => {
     } = useTenant();
 
     // 1. Obtenção de contexto (Usuário e Cliente)
-    const user = useCurrentUser();
+    const { user } = useAuth();
 
     const idClient = location.state?.idClient;
     const clientName = location.state?.clientName || "Cliente";

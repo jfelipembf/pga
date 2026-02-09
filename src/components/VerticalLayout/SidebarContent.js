@@ -1,5 +1,5 @@
 import PropTypes from "prop-types"
-import React, { useCallback, useEffect, useRef, useMemo } from "react"
+import React, { useCallback, useEffect, useRef } from "react"
 import SimpleBar from "simplebar-react"
 import MetisMenu from "metismenujs"
 import withRouter from "components/Common/withRouter"
@@ -7,27 +7,16 @@ import { Link } from "react-router-dom"
 import { withTranslation } from "react-i18next"
 
 import { useTenant } from "../../hooks/useTenant"
-import { useCurrentUser } from "../../hooks/useCurrentUser"
-import { filterMenuByPermissions } from "../../utils/permissions"
-import { MENU_ITEMS } from "../../routes/menuConfig"
+import { useAuth } from "../../hooks/useAuth"
 
 const SidebarContent = props => {
   const ref = useRef()
   const { tenantSlug, branchSlug } = useTenant()
+  const { filteredMenu } = useAuth()
 
-  // Obtém usuário e suas permissões
-  const user = useCurrentUser()
-  const permissions = useMemo(() => {
-    // Se for owner, permissão total é tratada no utils/permissions ou aqui
-    if (user?.role === 'owner' || user?.role === 'proprietario') return { all: true }
-    return user?.permissions || {}
-  }, [user])
-
-  // Filtra o menu com base nas permissões
-  const filteredMenuItems = useMemo(() => {
-    return filterMenuByPermissions(MENU_ITEMS, permissions)
-  }, [permissions])
-
+  /**
+   * Gera o path completo com tenant/branch prefix
+   */
   const linkTo = (path) => {
     if (!path || path.startsWith("/#") || path === "#") return path
     const cleanPath = path.startsWith('/') ? path : `/${path}`
@@ -81,7 +70,7 @@ const SidebarContent = props => {
       }
       if (parent) {
         const parent2El =
-          parent.childNodes && parent.childNodes.lenght && parent.childNodes[1]
+          parent.childNodes && parent.childNodes.length && parent.childNodes[1]
             ? parent.childNodes[1]
             : null
         if (parent2El && parent2El.id !== "side-menu") {
@@ -120,7 +109,6 @@ const SidebarContent = props => {
     removeActivation(items)
 
     for (let i = 0; i < items.length; ++i) {
-      // Comparação mais robusta para lidar com trailing slashes ou query params se necessário
       if (pathName === items[i].pathname) {
         matchingMenuItem = items[i]
         break
@@ -136,16 +124,18 @@ const SidebarContent = props => {
   }, [])
 
   useEffect(() => {
-    const menu = new MetisMenu("#side-menu")
+    const timer = setTimeout(() => {
+      new MetisMenu("#side-menu")
+    }, 200)
     return () => {
-      // Clean up logic if needed
+      clearTimeout(timer)
     }
-  }, [filteredMenuItems])
+  }, [filteredMenu]) // Re-init when menu changes
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
     activeMenu()
-  }, [activeMenu, filteredMenuItems]) // Reativar menu quando itens mudarem
+  }, [activeMenu])
 
   function scrollElement(item) {
     if (item) {
@@ -153,6 +143,12 @@ const SidebarContent = props => {
       if (currentPosition > window.innerHeight) {
         ref.current.getScrollElement().scrollTop = currentPosition - 300
       }
+    }
+  }
+
+  const closeSidebar = () => {
+    if (document.body.classList.contains("sidebar-enable")) {
+      document.body.classList.remove("sidebar-enable")
     }
   }
 
@@ -164,16 +160,20 @@ const SidebarContent = props => {
 
     // Item com Submenu
     if (item.subItems && item.subItems.length > 0) {
+      const label = props.t(item.label) || item.label
+
       return (
         <li key={index}>
           <Link to="/#" className="has-arrow waves-effect">
             <i className={item.icon}></i>
-            <span>{props.t(item.label)}</span>
+            <span>{label}</span>
           </Link>
-          <ul className="sub-menu" aria-expanded="false">
+          <ul className="sub-menu">
             {item.subItems.map((subItem, subIndex) => (
               <li key={subIndex}>
-                <Link to={linkTo(subItem.link)}>{props.t(subItem.label)}</Link>
+                <Link to={linkTo(subItem.path)} onClick={closeSidebar}>
+                  {props.t(subItem.label) || subItem.label}
+                </Link>
               </li>
             ))}
           </ul>
@@ -184,7 +184,7 @@ const SidebarContent = props => {
     // Item Simples
     return (
       <li key={index}>
-        <Link to={linkTo(item.link)} className="waves-effect">
+        <Link to={linkTo(item.path)} className="waves-effect" onClick={closeSidebar}>
           <i className={item.icon}></i>
           <span>{props.t(item.label)}</span>
         </Link>
@@ -197,9 +197,7 @@ const SidebarContent = props => {
       <SimpleBar style={{ maxHeight: "100%" }} ref={ref}>
         <div id="sidebar-menu">
           <ul className="metismenu list-unstyled" id="side-menu">
-            {filteredMenuItems.map((item, index) => renderMenuItem(item, index))}
-
-            {/* Fallback ou Ajuda Fixo se necessário */}
+            {filteredMenu.map((item, index) => renderMenuItem(item, index))}
           </ul>
         </div>
       </SimpleBar>

@@ -22,7 +22,7 @@ export const useRoleForm = (roles = []) => {
         } else {
             setFormData(null)
         }
-    }, [selectedId, isAddingNew]);
+    }, [selectedId, isAddingNew, roles]);
 
     useEffect(() => {
         if (selectedId && !formData && roles.length > 0) {

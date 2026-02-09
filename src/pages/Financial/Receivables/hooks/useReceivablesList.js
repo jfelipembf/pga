@@ -4,7 +4,7 @@ import { ReceivableService } from '../../../../services/Financial/ReceivableServ
 import { toast } from 'react-toastify';
 import moment from 'moment';
 import { getAuth } from 'firebase/auth';
-import { useCurrentUser } from '../../../../hooks/useCurrentUser';
+import { useAuth } from '../../../../hooks/useAuth';
 
 /**
  * Hook centralizado para gerenciar a lista de recebíveis, filtros e ações.
@@ -13,7 +13,7 @@ export const useReceivablesList = () => {
     // PADRÃO: Usar hook centralizado para evitar inconsistência de IDs
     const { idTenant, idBranch, isReady } = useTenant();
 
-    const user = useCurrentUser();
+    const { user } = useAuth();
 
     // 1. Estados Principais
     const [receivables, setReceivables] = useState([]);

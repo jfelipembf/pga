@@ -3,7 +3,7 @@ import { useTenant } from '../../../../hooks/useTenant'
 import { ActivityService } from '../../../../services/Admin/ActivityService'
 import { AuditService } from '../../../../services/Core/AuditService'
 import { toast } from 'react-toastify'
-import { useCurrentUser } from '../../../../hooks/useCurrentUser'
+import { useAuth } from '../../../../hooks/useAuth'
 
 /**
  * Hook para gerenciar a lógica de Atividades (Activities)
@@ -12,7 +12,7 @@ import { useCurrentUser } from '../../../../hooks/useCurrentUser'
 export const useActivities = () => {
     const { idTenant, idBranch } = useTenant()
 
-    const user = useCurrentUser()
+    const { user } = useAuth()
 
     const [activities, setActivities] = useState([])
     const [loading, setLoading] = useState(true)

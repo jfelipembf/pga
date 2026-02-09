@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTenant } from '../../../../hooks/useTenant'
 import { PayableService } from '../../../../services/Financial/PayableService'
 import { toast } from 'react-toastify'
-import { useCurrentUser } from '../../../../hooks/useCurrentUser'
+import { useAuth } from '../../../../hooks/useAuth'
 
 /**
  * Hook para gerenciar a lógica de Contas a Pagar (Payables)
@@ -11,7 +11,7 @@ export const usePayables = () => {
     const { idTenant, idBranch, isReady } = useTenant()
 
     // Obtenção do Usuário (Centralizado)
-    const user = useCurrentUser()
+    const { user } = useAuth()
 
     const [payables, setPayables] = useState([])
     const [loading, setLoading] = useState(true)

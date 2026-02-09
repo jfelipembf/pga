@@ -1,6 +1,6 @@
 import React from 'react'
 import { Navigate } from 'react-router-dom'
-import { hasPermission, hasAnyPermission, hasAllPermissions, isOwner } from '../../utils/permissions'
+import { useAuth } from '../../hooks/useAuth'
 
 /**
  * Componente Enterprise para proteger rotas baseado em permissões
@@ -15,16 +15,18 @@ import { hasPermission, hasAnyPermission, hasAllPermissions, isOwner } from '../
  *   <Component />
  * </ProtectedRoute>
  */
-export const ProtectedRoute = ({ 
-    children, 
+export const ProtectedRoute = ({
+    children,
     route = null,
-    permission = null, 
+    permission = null,
     permissions = null,
     requireAll = false,
     auth = true,
     redirectTo = "/dashboard",
-    fallback = null 
+    fallback = null
 }) => {
+    const { isAuthenticated, isOwner, hasPermission, hasAnyPermission } = useAuth()
+
     // Se recebeu route config, extrai as props
     if (route) {
         permission = route.permission || permission
@@ -34,34 +36,28 @@ export const ProtectedRoute = ({
     }
 
     // 1. Verifica autenticação
-    if (auth) {
-        const authUser = localStorage.getItem("authUser")
-        if (!authUser) {
-            return <Navigate to="/login" replace />
-        }
+    if (auth && !isAuthenticated) {
+        return <Navigate to="/login" replace />
     }
 
     // 2. Proprietário tem acesso a tudo
-    if (isOwner()) {
+    if (isOwner) {
         return children
     }
 
     // 3. Verifica permissões
-    const authUser = localStorage.getItem("authUser")
-    const user = authUser ? JSON.parse(authUser) : {}
-    const userPermissions = user.permissions || {}
 
     // Permissão única
-    if (permission && !hasPermission(userPermissions, permission)) {
+    if (permission && !hasPermission(permission)) {
         return fallback || <Navigate to={redirectTo} replace />
     }
 
     // Múltiplas permissões
     if (permissions && permissions.length > 0) {
-        const hasAccess = requireAll 
-            ? hasAllPermissions(userPermissions, permissions)
-            : hasAnyPermission(userPermissions, permissions)
-        
+        const hasAccess = requireAll
+            ? permissions.every(p => hasPermission(p))
+            : hasAnyPermission(permissions)
+
         if (!hasAccess) {
             return fallback || <Navigate to={redirectTo} replace />
         }
