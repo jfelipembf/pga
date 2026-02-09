@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardBody } from "reactstrap";
 import ReactApexChart from 'react-apexcharts';
 
-const YearlySales = ({ title, data, series, categories, colors, tooltipFormatter }) => {
+const YearlySales = ({ title, data, series, categories, colors, tooltipFormatter, height = "300", children }) => {
     const options = {
         chart: {
             toolbar: { show: false },
@@ -52,11 +52,18 @@ const YearlySales = ({ title, data, series, categories, colors, tooltipFormatter
     }];
 
     return (
-        <Card>
+        <Card className="h-100">
             <CardBody>
-                <h4 className="card-title mb-4">{title} - Comparativo Anual</h4>
+                <h4 className="card-title mb-4">{title}</h4>
+
+                {children && (
+                    <div className="mb-4">
+                        {children}
+                    </div>
+                )}
+
                 <div id="chart">
-                    <ReactApexChart options={options} series={chartSeries} type="bar" height="300" />
+                    <ReactApexChart options={options} series={chartSeries} type="bar" height={height} />
                 </div>
             </CardBody>
         </Card>

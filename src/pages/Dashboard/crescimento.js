@@ -67,7 +67,7 @@ class Crescimento extends Component {
     render() {
         return (
             <React.Fragment>
-                <Card>
+                <Card className="h-100">
                     <CardBody>
                         <h4 className="card-title mb-4">Crescimento Financeiro</h4>
 

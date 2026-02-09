@@ -6,7 +6,7 @@ import DonutChart from "./DonutChart"
 const MonthlyEarnings = props => {
     return (
         <React.Fragment>
-            <Card>
+            <Card className="h-100">
                 <CardBody>
                     <CardTitle className="h4 mb-4">Mais vendidos</CardTitle>
 

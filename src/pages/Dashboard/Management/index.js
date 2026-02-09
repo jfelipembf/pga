@@ -1,45 +1,64 @@
-import React from "react"
+import React, { useMemo } from "react"
 import { Row, Col } from "reactstrap"
 import Miniwidget from "../Miniwidget"
 import MonthlyEarnings from "../montly-earnings"
 import Crescimento from "../crescimento"
-import LatestOrders from "../latest-orders"
 import YearlySales from "../yearly-sales"
+import TaskDashboard from "../Tasks/TaskDashboard"
+import { useGeneralDashboard } from "../hooks/useGeneralDashboard"
+import PageLoader from "../../../components/Common/PageLoader"
+import { formatCurrency } from "../../../utils/format"
 
 const ManagementDashboard = () => {
     document.title = "Dashboard Gerencial | PGA Admin"
 
-    // Dados mockados - serão conectados depois
-    const reports = [
-        {
-            title: "Alunos Ativos",
-            iconClass: "account-group",
-            total: "1,587",
-            growth: 11,
-            desc: " vs mês passado"
-        },
-        {
-            title: "Receita Total",
-            iconClass: "cash",
-            total: "R$ 46.782",
-            growth: -29,
-            desc: " vs mês passado"
-        },
-        {
-            title: "Ticket Médio",
-            iconClass: "cash-multiple",
-            total: "R$ 285,90",
-            growth: 0,
-            desc: " vs mês passado"
-        },
-        {
-            title: "Novos Alunos",
-            iconClass: "account-plus",
-            total: "1890",
-            growth: 89,
-            desc: " vs mês passado"
-        }
-    ]
+    const { loading, data } = useGeneralDashboard('manager')
+
+    const reports = useMemo(() => {
+        if (!data) return [
+            { title: "Alunos Ativos", iconClass: "account-group", total: "...", growth: 0, desc: " vs mês passado" },
+            { title: "Receita Total", iconClass: "cash", total: "...", growth: 0, desc: " vs mês passado" },
+            { title: "Ticket Médio", iconClass: "cash-multiple", total: "...", growth: 0, desc: " vs mês passado" },
+            { title: "Novos Alunos", iconClass: "account-plus", total: "...", growth: 0, desc: " vs mês passado" }
+        ]
+
+        return [
+            {
+                title: "Alunos Ativos",
+                iconClass: "account-group",
+                total: data.students?.active || 0,
+                growth: data.studentsGrowth?.active,
+                desc: " vs mês passado"
+            },
+            {
+                title: "Receita Total",
+                iconClass: "cash",
+                total: formatCurrency(data.sales?.month || 0),
+                growth: data.sales?.growth,
+                desc: " vs mês passado"
+            },
+            {
+                title: "Ticket Médio",
+                iconClass: "cash-multiple",
+                total: formatCurrency(data.sales?.ticket || 0),
+                desc: " média por venda"
+            },
+            {
+                title: "Novos Alunos",
+                iconClass: "account-plus",
+                total: data.students?.new || 0,
+                growth: data.studentsGrowth?.new,
+                desc: " no mês atual"
+            }
+        ]
+    }, [data])
+
+    if (loading) {
+        return <PageLoader />
+    }
+
+    // Filtramos para pegar os últimos 2 anos (Anterior e Atual) para o gráfico solicitado
+    const seriesStudents = data?.charts?.seriesStudents?.slice(-2) || []
 
     return (
         <React.Fragment>
@@ -47,26 +66,44 @@ const ManagementDashboard = () => {
             <Miniwidget reports={reports} colSize={3} />
 
             <Row className="mt-4">
-                {/* Monthly Earnings - Adaptado para Ganhos Mensais */}
+                {/* Monthly Earnings */}
                 <Col xl={3}>
                     <MonthlyEarnings />
                 </Col>
 
-                {/* Crescimento - Gráfico de Receitas, Despesas e Lucro */}
+                {/* Crescimento */}
                 <Col xl={6}>
                     <Crescimento />
                 </Col>
 
-                {/* Yearly Sales - Adaptado para Crescimento */}
+                {/* Yearly Sales - Alunos Ativos */}
                 <Col xl={3}>
-                    <YearlySales />
+                    <YearlySales
+                        title="Alunos Ativos - Comparativo"
+                        series={seriesStudents}
+                        colors={['#D1D5DB', '#34c38f']}
+                        height="300"
+                    >
+                        <Row className="text-center">
+                            <Col xs="6">
+                                <h5 className="font-size-20">{data?.students?.active || 0}</h5>
+                                <p className="text-muted mb-0">Total Ativos</p>
+                            </Col>
+                            <Col xs="6">
+                                <h5 className={`font-size-20 ${data?.studentsGrowth?.active >= 0 ? 'text-success' : 'text-danger'}`}>
+                                    {data?.studentsGrowth?.active > 0 ? '+' : ''}{data?.studentsGrowth?.active?.toFixed(1) || 0}%
+                                </h5>
+                                <p className="text-muted mb-0">Crescimento</p>
+                            </Col>
+                        </Row>
+                    </YearlySales>
                 </Col>
             </Row>
 
             <Row className="mt-4">
-                {/* Latest Orders - Adaptado para Últimas Atividades */}
+                {/* Gestão de Tarefas - Novo Componente */}
                 <Col xl={12}>
-                    <LatestOrders />
+                    <TaskDashboard />
                 </Col>
             </Row>
         </React.Fragment>
