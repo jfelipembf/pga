@@ -32,6 +32,9 @@ import LockScreen from "../pages/AuthenticationInner/auth-lock-screen"
 
 // Dashboard
 import Dashboard from "../pages/Dashboard/index"
+import OperationalDashboard from "../pages/Dashboard/Operational/index"
+import ManagementDashboard from "../pages/Dashboard/Management/index"
+import FinancialDashboardView from "../pages/Dashboard/Financial/index"
 
 // Financial
 import CashierPage from "../pages/Financial/Cashier/index"
@@ -123,13 +126,18 @@ import ClassesPage from "../pages/Admin/Classes/index"
 import CatalogPage from "../pages/Admin/Catalog/index"
 import EventsPage from "../pages/Admin/Events/index"
 
-import OperationalDashboard from "../pages/Dashboard/Operational/index"
+
 
 // ...
 
 const userRoutes = [
+  // Dashboards
   { path: "/dashboard", component: <Dashboard />, permission: ["dashboards_management_view", "dashboards_commercial_view"] },
-  { path: "/dashboard-operational", component: <OperationalDashboard />, permission: "dashboards_management_view" },
+  { path: "/dashboard-operational", component: <OperationalDashboard />, permission: "dashboards_commercial_view" },
+  { path: "/dashboard-management", component: <ManagementDashboard />, permission: "dashboards_management_view" },
+  { path: "/dashboard-financial", component: <FinancialDashboardView />, permission: "dashboards_financial_view" },
+
+  // Financial Old Dashboard
   { path: "/financial/dashboard", component: <FinancialDashboard />, permission: "dashboards_financial_view" },
   { path: "/financial/cashier", component: <CashierPage />, permission: "financial_cashier" },
   { path: "/financial/cash-flow", component: <CashFlowPage />, permission: "financial_cashflow" },

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from 'react'
+import { useCallback, useRef, useMemo } from 'react'
 
 /**
  * Hook para cache de dados de sessões por semana
@@ -6,7 +6,6 @@ import { useState, useCallback, useRef, useMemo } from 'react'
  */
 export const useWeekCache = () => {
     const cacheRef = useRef(new Map())
-    const [cacheStats, setCacheStats] = useState({ hits: 0, misses: 0 })
 
     /**
      * Gera chave única para a semana

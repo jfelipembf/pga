@@ -12,9 +12,7 @@ const CatalogPage = ({ setBreadcrumbItems }) => {
         filteredCatalog: items,
         loading,
         selectedItem,
-        handleSave,
         handleDelete,
-        handleUpdateStock
     } = useCatalog()
 
     const [selectedId, setSelectedId] = useState(null)
@@ -41,15 +39,6 @@ const CatalogPage = ({ setBreadcrumbItems }) => {
         setIsAddingNew(false)
     }
 
-    const handleCancel = () => {
-        setIsAddingNew(false)
-        setSelectedId(null)
-    }
-
-    const setConfirmDelete = (item) => {
-        setItemToDelete(item)
-        setDeleteModalOpen(true)
-    }
 
     const confirmDelete = async () => {
         if (itemToDelete) {

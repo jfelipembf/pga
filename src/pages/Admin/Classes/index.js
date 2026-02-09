@@ -44,7 +44,7 @@ const ClassesPage = ({ setBreadcrumbItems }) => {
       { title: "Turmas", link: "/admin/classes" }
     ]
     setBreadcrumbItems("Gestão de Turmas", breadcrumbItems)
-  }, []) // Empty dependency array checks ensures this runs only once on mount
+  }, [setBreadcrumbItems]) // Empty dependency array checks ensures this runs only once on mount
 
   if (isInitialLoading) {
     return <PageLoader />

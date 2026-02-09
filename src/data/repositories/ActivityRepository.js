@@ -1,5 +1,5 @@
 import { BaseRepository } from './BaseRepository'
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore'
+import { collection, getDocs, doc } from 'firebase/firestore'
 
 /**
  * Repositório para Atividades (Activities).

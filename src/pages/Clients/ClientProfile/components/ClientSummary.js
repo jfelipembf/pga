@@ -7,8 +7,8 @@ import StatusBadge from '../../../../components/Common/StatusBadge'
 import ClientAttendanceMetrics from './ClientAttendanceMetrics'
 
 const ClientSummary = ({ client }) => {
-    const { summary, contracts, loading } = useClientFinancial()
-    const { enrollments, activeEnrollments } = useClientEnrollments(client?.id)
+    const { summary, contracts } = useClientFinancial()
+    const { enrollments } = useClientEnrollments(client?.id)
 
     const activeContracts = contracts?.filter(c => ['active', 'suspended'].includes(c.status)) || []
 

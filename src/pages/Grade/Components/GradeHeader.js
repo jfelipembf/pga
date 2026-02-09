@@ -1,5 +1,5 @@
 import React from "react"
-import { Col, FormGroup, Input, Label, Row, Button } from "reactstrap"
+import { Col, Row, Button } from "reactstrap"
 
 import TurnSelector from "./TurnSelector"
 import ViewSelector from "./ViewSelector"

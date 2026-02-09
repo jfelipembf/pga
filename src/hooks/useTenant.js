@@ -16,8 +16,10 @@ export const useTenant = () => {
 
     // 3. Dados do LocalStorage (Fallback de Segurança/Refresh)
     // Útil se o Redux ainda não hidratou, mas evitamos depender só disso.
-    const userJson = localStorage.getItem('authUser');
-    const localUser = userJson ? JSON.parse(userJson) : null;
+    const localUser = useMemo(() => {
+        const userJson = localStorage.getItem('authUser');
+        return userJson ? JSON.parse(userJson) : null;
+    }, []);
 
     return useMemo(() => {
         // 1. Normalização
@@ -90,9 +92,6 @@ export const useTenant = () => {
         activeBranch,
         params.idTenant,
         params.idBranch,
-        localUser?.idTenant,
-        localUser?.tenantSlug,
-        localUser?.idBranch,
-        localUser?.branchSlug
+        localUser
     ]);
 };

@@ -102,5 +102,4 @@ module.exports = createScheduledTrigger("25 0 * * *", "processExpiredContracts",
     });
 
     await Promise.all(processPromises);
-    console.log(`[processExpiredContracts] Finalizado. Processados: ${processedCount}`);
 });

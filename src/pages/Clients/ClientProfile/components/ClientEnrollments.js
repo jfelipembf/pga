@@ -4,8 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTenant } from '../../../../hooks/useTenant'
 import { useClientEnrollments } from '../hooks/useClientEnrollments'
 import { useClientFinancial } from '../hooks/useClientFinancial'
-import { formatDate } from '../../../../utils/date'
-import { ENROLLMENT_STATUS_CONFIG, ENROLLMENT_TYPE_CONFIG } from '../../../../data/schemas/Clients/EnrollmentSchema'
+import { ENROLLMENT_STATUS_CONFIG } from '../../../../data/schemas/Clients/EnrollmentSchema'
 import { EnrollmentService } from '../../../../services/Clients/EnrollmentService'
 import { toast } from 'react-toastify'
 import ConfirmDialog from '../../../../components/Common/ConfirmDialog'
@@ -17,7 +16,6 @@ const ClientEnrollments = ({ client }) => {
     const { contracts } = useClientFinancial()
 
     const [cancelModal, setCancelModal] = useState({ open: false, enrollment: null })
-    const [cancelReason, setCancelReason] = useState('')
     const [cancelling, setCancelling] = useState(false)
 
 
@@ -78,7 +76,6 @@ const ClientEnrollments = ({ client }) => {
             toast.success('Matrícula cancelada com sucesso!')
             refreshData()
             setCancelModal({ open: false, enrollment: null })
-            setCancelReason('')
         } catch (error) {
             toast.error(error.message || 'Erro ao cancelar matrícula')
         } finally {
@@ -105,15 +102,6 @@ const ClientEnrollments = ({ client }) => {
         )
     }
 
-    const getTypeBadge = (type) => {
-        const config = ENROLLMENT_TYPE_CONFIG[type] || ENROLLMENT_TYPE_CONFIG.regular
-        return (
-            <Badge color={config.color} className="px-2 py-1">
-                <i className={`mdi mdi-${config.icon} me-1`}></i>
-                {config.label}
-            </Badge>
-        )
-    }
 
     return (
         <div className="animate__animated animate__fadeIn">

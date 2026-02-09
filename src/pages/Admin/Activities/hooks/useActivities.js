@@ -57,7 +57,7 @@ export const useActivities = () => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch, filterStatus, fetchLimit, lastLoadTime, activities.length, CACHE_DURATION])
+    }, [idTenant, idBranch, filterStatus, fetchLimit, lastLoadTime, CACHE_DURATION])
 
     useEffect(() => {
         loadActivities()

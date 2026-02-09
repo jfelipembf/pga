@@ -102,7 +102,7 @@ export const useClientProfile = () => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch, id, navigate])
+    }, [idTenant, idBranch, id, navigate, formik])
 
     // Deletar cliente
     const deleteClient = async () => {

@@ -1,91 +1,66 @@
-import React, { Component } from 'react';
-import { Row, Col, Card, CardBody } from "reactstrap";
-import { Link } from "react-router-dom";
+import React from 'react';
+import { Card, CardBody, Row, Col } from "reactstrap";
 import ReactApexChart from 'react-apexcharts';
 
-class YearlySales extends Component {
-    constructor(props) {
-        super(props);
+const YearlySales = ({ title, data, series, categories, colors, tooltipFormatter }) => {
+    const options = {
+        chart: {
+            toolbar: { show: false },
+        },
+        colors: colors || ['#28bbe3', '#F0F1F4', '#556ee6'],
+        plotOptions: {
+            bar: {
+                borderRadius: 4,
+                horizontal: false,
+                columnWidth: '55%',
+                endingShape: 'rounded'
+            }
+        },
+        dataLabels: { enabled: false },
+        stroke: {
+            show: true,
+            width: 2,
+            colors: ['transparent']
+        },
+        xaxis: {
+            categories: categories || ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+        },
+        yaxis: {
+            labels: {
+                formatter: function (val) {
+                    return val ? val.toFixed(0) : 0;
+                }
+            }
+        },
+        grid: {
+            borderColor: '#f1f1f1',
+        },
+        fill: { opacity: 1 },
+        tooltip: {
+            y: {
+                formatter: function (val) {
+                    return tooltipFormatter ? tooltipFormatter(val) : (val ? val.toFixed(0) : 0);
+                }
+            }
+        },
+        legend: { show: true, position: 'top' }
+    };
 
-        this.state = {
-            options: {
-                chart: {
-                    toolbar: {
-                        show: false,
-                    },
-                },
-                colors: ['#7A6FBE', '#28BBE3'],
-                plotOptions: {
-                    bar: {
-                        columnWidth: '70%',
-                        dataLabels: {
-                            show: false
-                        },
+    const chartSeries = series || [{
+        name: title,
+        data: data || []
+    }];
 
-                    },
-                },
-                legend: {
-                    show: false
-                },
-                dataLabels: {
-                    enabled: false,
-                },
-                grid: {
-                    show: false,
-                    row: {
-                        colors: ['transparent', 'transparent'], // takes an array which will be repeated on columns
-                        opacity: 0.5
-                    },
-                },
-                xaxis: {
-                    labels: {
-                        show: false
-                    },
-                    categories: [],
-                    axisBorder: {
-                        show: false
-                    },
-                    axisTicks: {
-                        show: false
-                    }
-                },
-                yaxis: {
-                    labels: {
-                        show: false
-                    },
-                },
-            },
-            series: [{
-                name: 'Series A',
-                data: [8, 6, 4, 7, 10, 12, 7, 4, 9, 12, 13, 11, 12]
-            },],
-        }
-    }
-    render() {
-        return (
-            <React.Fragment>
-                <Card>
-                    <CardBody>
-                        <h4 className="card-title mb-4">Yearly Sales</h4>
-                        <Row>
-                            <Col md="4">
-                                <div>
-                                    <h3>52,345</h3>
-                                    <p className="text-muted">The languages only differ grammar</p>
-                                    <Link to="#" className="text-primary">Learn more <i className="mdi mdi-chevron-double-right"></i></Link>
-                                </div>
-                            </Col>
-                            <Col md="8" className="text-end">
-                                <div id="sparkline">
-                                    <ReactApexChart options={this.state.options} series={this.state.series} type="bar" height="130" className="apex-charts" />
-                                </div>
-                            </Col>
-                        </Row>
-                    </CardBody>
-                </Card>
-            </React.Fragment>
-        );
-    }
-}
+    return (
+        <Card>
+            <CardBody>
+                <h4 className="card-title mb-4">{title} - Comparativo Anual</h4>
+                <div id="chart">
+                    <ReactApexChart options={options} series={chartSeries} type="bar" height="300" />
+                </div>
+            </CardBody>
+        </Card>
+    );
+};
 
 export default YearlySales;

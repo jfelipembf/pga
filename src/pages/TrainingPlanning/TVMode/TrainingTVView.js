@@ -4,7 +4,6 @@ import ReactDatePicker, { registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { listTrainingPlans } from "../../../services/TrainingPlanning/trainingPlanning.service";
 import { toISODate, formatDateDisplay } from "../../../utils/date";
-import { calculateTotalDistanceFromSections } from "../utils/trainingUtils";
 import PageLoader from "../../../components/Common/PageLoader";
 import logoTV from "../../../assets/images/logoTV.png";
 import { ptBR } from 'date-fns/locale';

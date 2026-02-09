@@ -12,7 +12,7 @@ import { SalesService } from '../../../../services/Sales/SalesService'
 
 const ClientFinancial = () => {
     const {
-        summary, receivables, sales, contracts, loading,
+        summary, receivables, sales, loading,
         selectedReceivable, setSelectedReceivable,
         isSettlementModalOpen, setIsSettlementModalOpen,
         handleSettle

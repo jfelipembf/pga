@@ -2,7 +2,7 @@
 
 // 1. Global Card Overrides
 .card {
-    border-radius: 12px;
+    border-radius: 8px;
     border: none;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     transition: box-shadow 0.3s ease-in-out;
@@ -28,7 +28,7 @@
     gap: 15px;
     padding: 16px;
     background: #fff;
-    border-radius: 12px;
+    border-radius: 8px;
     border: 1px solid rgba(0, 0, 0, 0.05);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     height: 100%;
@@ -48,7 +48,7 @@
     .cashier-summary-card__icon {
         width: 48px;
         height: 48px;
-        border-radius: 10px;
+        border-radius: 6px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -106,7 +106,7 @@
 .premium-modal {
     .premium-modal__content {
         border: none;
-        border-radius: 16px;
+        border-radius: 12px;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     }
 
@@ -114,7 +114,7 @@
         background: #fff;
         padding: 20px 24px;
         border-bottom: 1px solid #edf2f9;
-        border-radius: 16px 16px 0 0;
+        border-radius: 12px 12px 0 0;
 
         .btn-close {
             background-color: #f8f9fa;
@@ -130,7 +130,7 @@
 .attendance-info-card {
     background: #fff;
     padding: 20px;
-    border-radius: 12px;
+    border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     border: 1px solid rgba(0, 0, 0, 0.05);
 
@@ -174,7 +174,7 @@
 .attendance-stat {
     background: #f8f9fa;
     padding: 8px 16px;
-    border-radius: 10px;
+    border-radius: 6px;
     text-align: center;
     min-width: 80px;
 
@@ -214,7 +214,7 @@
     gap: 16px;
     padding: 12px 16px;
     background: #fff;
-    border-radius: 12px;
+    border-radius: 8px;
     border: 1px solid #edf2f9;
     transition: all 0.2s ease;
 

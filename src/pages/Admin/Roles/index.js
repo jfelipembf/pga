@@ -8,7 +8,6 @@ import ManagementLayout from "../../../components/Common/ManagementLayout"
 import ButtonLoader from "../../../components/Common/ButtonLoader"
 import { RoleForm, RoleListItem } from "./Components"
 import ConfirmDialog from "../../../components/Common/ConfirmDialog"
-import { DEFAULT_ROLES, BASE_ROLE_IDS } from "./Constants/permissions"
 
 const RolesPage = ({ setBreadcrumbItems }) => {
     document.title = "Gestão de Funções | PGA Admin"

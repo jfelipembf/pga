@@ -3,8 +3,6 @@ import { createEmptyClassForm } from "../Constants/classesDefaults"
 import {
     getStartOfWeek,
     addDays,
-    getDay,
-    parseISO,
     format
 } from "../../../../utils/sharedUtils"
 

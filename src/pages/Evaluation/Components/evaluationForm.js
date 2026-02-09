@@ -71,7 +71,6 @@ const EvaluationForm = ({
   const {
     testDrafts,
     handleResultChange,
-    handleNotesChange,
     saveTests,
     dirtyCount: testsDirtyCount
   } = useTestFormLogic({

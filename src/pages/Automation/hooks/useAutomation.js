@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTenant } from '../../../hooks/useTenant';
-import { workflowRepository } from '../../../data/repositories/Automation/WorkflowRepository';
 import { integrationRepository } from '../../../data/repositories/Automation/IntegrationRepository';
 import { toast } from 'react-toastify';
 
 export const useAutomation = () => {
-    const { idTenant, idBranch } = useTenant();
+    const { idTenant } = useTenant();
     const [workflows, setWorkflows] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);

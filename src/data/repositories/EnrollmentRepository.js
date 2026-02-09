@@ -9,7 +9,6 @@ import {
     updateDoc,
     query,
     where,
-    orderBy,
     serverTimestamp,
     increment
 } from 'firebase/firestore'
@@ -149,12 +148,6 @@ export const enrollmentRepository = {
             d.deleted !== true
         )
 
-        console.log('[EnrollmentRepository.findByClass] Resultado:', {
-            idClass,
-            totalDocs: docs.length,
-            filteredCount: filtered.length,
-            enrollmentIds: filtered.map(e => e.id)
-        })
 
         return filtered.sort((a, b) => {
             const dateA = a.enrolledAt?.toDate ? a.enrolledAt.toDate() : new Date(a.enrolledAt || 0)

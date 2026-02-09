@@ -27,7 +27,6 @@ const GradeGrid = ({
   selectedClassId,
   // Novos props para modo de seleção (matrícula)
   mode = 'view', // 'view' | 'selection'
-  selectedClasses = [],
   selectedSession = null,
   isClassSelected = null,
   isClassEnrolled = null, // Nova prop para indicar turmas já matriculadas

@@ -8,7 +8,6 @@ export const useEvents = () => {
     const [events, setEvents] = useState([])
     const [loading, setLoading] = useState(false)
     const [saving, setSaving] = useState(false)
-    const [deleting, setDeleting] = useState(false)
 
     const fetchEvents = useCallback(async () => {
         if (!idTenant || !idBranch) return
@@ -73,7 +72,6 @@ export const useEvents = () => {
         events,
         loading,
         saving,
-        deleting,
         refresh: fetchEvents,
         handleSave,
         handleFinish

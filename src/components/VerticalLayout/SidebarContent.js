@@ -162,13 +162,35 @@ const SidebarContent = props => {
           <ul className="metismenu list-unstyled" id="side-menu">
             <li className="menu-title">{props.t("Menu")}</li>
 
-            {/* ========== OPERACIONAL ========== */}
-            {canAny(['dashboards_management_view', 'dashboards_commercial_view']) && (
+            {/* ========== DASHBOARDS ========== */}
+            {canAny(['dashboards_management_view', 'dashboards_commercial_view', 'dashboards_financial_view']) && (
               <li>
-                <Link to={linkTo("/dashboard")} className="waves-effect">
+                <Link to="/#" className="has-arrow waves-effect">
                   <i className="mdi mdi-view-dashboard-outline"></i>
-                  <span>{props.t("Dashboard")}</span>
+                  <span>{props.t("Dashboards")}</span>
                 </Link>
+                <ul className="sub-menu">
+                  {canAny(['dashboards_management_view', 'dashboards_commercial_view']) && (
+                    <li>
+                      <Link to={linkTo("/dashboard")}>{props.t("Geral")}</Link>
+                    </li>
+                  )}
+                  {can('dashboards_commercial_view') && (
+                    <li>
+                      <Link to={linkTo("/dashboard-operational")}>{props.t("Operacional")}</Link>
+                    </li>
+                  )}
+                  {can('dashboards_management_view') && (
+                    <li>
+                      <Link to={linkTo("/dashboard-management")}>{props.t("Gerencial")}</Link>
+                    </li>
+                  )}
+                  {can('dashboards_financial_view') && (
+                    <li>
+                      <Link to={linkTo("/dashboard-financial")}>{props.t("Financeiro")}</Link>
+                    </li>
+                  )}
+                </ul>
               </li>
             )}
 

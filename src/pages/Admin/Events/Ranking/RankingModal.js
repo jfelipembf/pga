@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react"
+import React, { useState, useEffect, useMemo, useCallback } from "react"
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Row, Col, Input, Badge, Table } from "reactstrap"
 import { TestResultService } from "../../../../services/Events/TestResultService"
 import { useTenant } from "../../../../hooks/useTenant"
@@ -15,13 +15,7 @@ const RankingModal = ({ isOpen, toggle, event }) => {
     const [genderFilter, setGenderFilter] = useState("all")
     const [categoryFilter, setCategoryFilter] = useState("all")
 
-    useEffect(() => {
-        if (isOpen && event) {
-            loadRanking()
-        }
-    }, [isOpen, event?.id])
-
-    const loadRanking = async () => {
+    const loadRanking = useCallback(async () => {
         setLoading(true)
         try {
             const data = await TestResultService.getRanking(
@@ -35,7 +29,13 @@ const RankingModal = ({ isOpen, toggle, event }) => {
         } finally {
             setLoading(false)
         }
-    }
+    }, [idTenant, idBranch, event?.id, event?.testConfig?.measureType])
+
+    useEffect(() => {
+        if (isOpen && event) {
+            loadRanking()
+        }
+    }, [isOpen, event, loadRanking])
 
     const categories = useMemo(() => {
         const cats = new Set(rankingData.map(r => r.category))

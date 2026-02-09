@@ -22,7 +22,6 @@ const CashierCloseModal = ({ isOpen, toggle, onConfirm, expectedBalance }) => {
 
     const actual = parseFloat(formik.values.actualBalance || 0)
     const difference = actual - (expectedBalance || 0)
-    const hasDifference = Math.abs(difference) > 0.01
 
     return (
         <Modal isOpen={isOpen} toggle={toggle} centered>

@@ -1,5 +1,6 @@
 import { sessionRepository } from '../../data/repositories/SessionRepository'
 import { AuditService } from '../Core/AuditService'
+import { normalizeDate } from '../../utils/date'
 
 /**
  * Serviço para Gestão de Sessões (Aulas Individuais)

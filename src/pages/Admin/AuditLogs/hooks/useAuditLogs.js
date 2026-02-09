@@ -11,7 +11,6 @@ export const useAuditLogs = () => {
     const [loading, setLoading] = useState(true)
     const [staff, setStaff] = useState({})
     const [kpis, setKpis] = useState([])
-    const [hasMore, setHasMore] = useState(true)
     const [filters, setFilters] = useState({
         action: 'all',
         entityType: 'all',

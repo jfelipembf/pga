@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Table, Row, Col, Badge } from 'reactstrap';
+import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Table, Row, Col } from 'reactstrap';
 import { formatDate } from '../../../utils/date';
 import { formatCurrency } from '../../../utils/format';
 import { formatId } from '../../../utils/sequence';

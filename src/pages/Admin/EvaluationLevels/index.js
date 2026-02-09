@@ -24,7 +24,6 @@ const EvaluationLevelsPage = ({ setBreadcrumbItems }) => {
 
     const {
         selectedId,
-        setSelectedId,
         isAddingNew,
         formData,
         setFormData,

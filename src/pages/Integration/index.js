@@ -5,18 +5,18 @@ import { setBreadcrumbItems } from "../../store/actions";
 import { IntegrationSettings } from "../Automation/components/IntegrationSettings";
 import { useAutomation } from "../Automation/hooks/useAutomation";
 
-const IntegrationPage = (props) => {
+const IntegrationPage = ({ setBreadcrumbItems }) => {
     document.title = "Integrações | PGA Admin";
 
     // Reutilizando o hook existente para carregar/salvar configs
     const { integrationConfig, saving, saveIntegrations } = useAutomation();
 
     useEffect(() => {
-        props.setBreadcrumbItems("Configurações", [
+        setBreadcrumbItems("Configurações", [
             { title: "Sistema", link: "#" },
             { title: "Integrações", link: "/integration" }
         ]);
-    }, [props.setBreadcrumbItems]);
+    }, [setBreadcrumbItems]);
 
     return (
         <React.Fragment>
