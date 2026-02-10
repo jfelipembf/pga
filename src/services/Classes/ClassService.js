@@ -47,6 +47,8 @@ export const ClassService = {
                 startTime,
                 endTime,
                 durationMinutes,
+                startDate,
+                endDate: endDate || null,
                 maxCapacity,
                 isActive: isActive !== false,
                 status: 'active'

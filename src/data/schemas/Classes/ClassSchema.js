@@ -28,6 +28,8 @@ export const ClassSchema = Yup.object().shape({
     endTime: Yup.string().required(),
     durationMinutes: Yup.number().required(),
     maxCapacity: Yup.number().required(),
+    startDate: Yup.string().required(),
+    endDate: Yup.string().nullable().notRequired(),
     isActive: Yup.boolean().default(true),
     status: Yup.string().default('active'),
 })

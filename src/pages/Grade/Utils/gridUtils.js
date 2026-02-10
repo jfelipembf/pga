@@ -20,7 +20,19 @@ export const occursOnDate = (schedule, isoDate, dayIndex) => {
   if (schedule.isClassTemplate) {
     const wd = schedule.weekday
     if (wd === undefined || wd === null) return false
-    return Number(wd) === Number(dayIndex)
+
+    // Validar se o dia da semana bate
+    if (Number(wd) !== Number(dayIndex)) return false
+
+    // Validar se a data atual está dentro da vigência da turma
+    const startDate = schedule?.startDate || null
+    const endDate = schedule?.endDate || null
+    const targetIso = String(isoDate).slice(0, 10)
+
+    if (startDate && targetIso < String(startDate)) return false
+    if (endDate && targetIso > String(endDate)) return false
+
+    return true
   }
 
   // Se não temos data específica, mas temos weekDays (recorrencia)

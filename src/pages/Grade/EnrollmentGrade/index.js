@@ -155,7 +155,7 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
                         const timeFormatted = sessionData.startTime
 
                         // Disparar para o ALUNO
-                        automationService.emit(idTenant, 'EXPERIMENTAL_SCHEDULED', {
+                        await automationService.emit(idTenant, 'EXPERIMENTAL_SCHEDULED', {
                             student: clientData.name, // Nome no template
                             name: clientData.name,    // Alias
                             date: dateFormatted,
@@ -163,9 +163,12 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
                             phone: clientData.phone || clientData.mobile || clientData.cellPhone || clientData.responsavelPhone
                         })
 
+                        // Pequeno delay para não sobrecarregar a API do WhatsApp
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+
                         // Disparar para o PROFESSOR (se houver e tiver telefone)
                         if (instructor && (instructor.mobile || instructor.phone || instructor.cellPhone)) {
-                            automationService.emit(idTenant, 'EXPERIMENTAL_SCHEDULED_TEACHER', {
+                            await automationService.emit(idTenant, 'EXPERIMENTAL_SCHEDULED_TEACHER', {
                                 student: clientData.name,
                                 date: dateFormatted,
                                 time: timeFormatted,
