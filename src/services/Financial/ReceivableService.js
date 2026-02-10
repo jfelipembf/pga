@@ -2,7 +2,7 @@ import { receivableRepository } from '../../data/repositories/ReceivableReposito
 import { salesRepository } from '../../data/repositories/SalesRepository'
 import { CashierService } from './CashierService'
 import { AuditService } from '../Core/AuditService'
-import { LedgerService } from '../Ledger/LedgerService'
+import { LedgerService, safeLedgerCall } from '../Ledger/LedgerService'
 import { normalizeDate } from '../../utils/date'
 
 
@@ -47,14 +47,9 @@ export const ReceivableService = {
             idBankAccount: idBankAccount
         })
 
-        // 4. Atualizar Saldo da Conta Bancária (se não for caixa manual)
+        // 4. Atualizar Saldo da Conta Bancária (ATÔMICO via increment)
         if (bankAccount) {
-            const currentBalance = Number(bankAccount.currentBalance || 0);
-            const newBalance = currentBalance + netAmount;
-            await bankAccountRepository.update(idTenant, idBranch, idBankAccount, {
-                currentBalance: newBalance,
-                updatedAt: normalizeDate(new Date())
-            });
+            await bankAccountRepository.adjustBalance(idTenant, idBranch, idBankAccount, netAmount);
         }
 
         // 5. Atualizar o documento de Recebível
@@ -77,8 +72,8 @@ export const ReceivableService = {
         // Por padrão o 'pending' já reflete o saldo aberto se for liquidação parcial.
 
         // 7. Lançamento Contábil
-        try {
-            await LedgerService.settleReceivableEntry(idTenant, idBranch, receivable, {
+        await safeLedgerCall(idTenant, idBranch,
+            () => LedgerService.settleReceivableEntry(idTenant, idBranch, receivable, {
                 grossAmount: settlementAmount,
                 feeAmount: feeAmount,
                 netAmount: netAmount,
@@ -86,10 +81,9 @@ export const ReceivableService = {
                 bankAccountName: bankAccount?.name || 'Caixa',
                 settlementDate: updatedData.settlementDate,
                 paymentMethod: paymentData.method || receivable.paymentMethod
-            })
-        } catch (ledgerError) {
-            console.error("Erro contábil:", ledgerError)
-        }
+            }),
+            { sourceType: 'receivable', sourceId: idReceivable, operation: 'settleReceivableEntry' }
+        );
 
         // 8. Auditoria
         await AuditService.log({
@@ -309,16 +303,17 @@ export const ReceivableService = {
             });
 
             // Lançamento Contábil (Individual por recebível para o Ledger bater)
-            try {
-                await LedgerService.settleReceivableEntry(idTenant, idBranch, rawRec, {
+            await safeLedgerCall(idTenant, idBranch,
+                () => LedgerService.settleReceivableEntry(idTenant, idBranch, rawRec, {
                     grossAmount: gross,
                     feeAmount: feeShare,
                     netAmount: netShare,
                     idBankAccount: idBankAccount,
                     bankAccountName: bankAccount.name,
                     settlementDate: normalizeDate(settlementDate)
-                });
-            } catch (le) { console.error("Erro contábil na antecipação:", le); }
+                }),
+                { sourceType: 'receivable', sourceId: id, operation: 'settleReceivableEntry_anticipation' }
+            );
         }
 
         // 3. Registrar Transações Financeiras de Ajuste de Caixa (Bulk para o extrato ficar limpo)
@@ -345,13 +340,8 @@ export const ReceivableService = {
             userName: userName
         });
 
-        // 4. Atualizar Saldo Bancário Final
-        const currentBalance = Number(bankAccount.currentBalance || 0);
-        const newBalance = currentBalance + Number(totalNet);
-        await bankAccountRepository.update(idTenant, idBranch, idBankAccount, {
-            currentBalance: newBalance,
-            updatedAt: normalizeDate(new Date())
-        });
+        // 4. Atualizar Saldo Bancário Final (ATÔMICO via increment)
+        await bankAccountRepository.adjustBalance(idTenant, idBranch, idBankAccount, Number(totalNet));
 
         // 5. Auditoria
         await AuditService.log({

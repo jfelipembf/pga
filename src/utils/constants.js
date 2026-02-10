@@ -15,12 +15,15 @@ export const CLIENT_STATUS = {
 }
 
 export const PAYMENT_METHODS = {
-    CREDIT_CARD: 'cartao_credito',
-    DEBIT_CARD: 'cartao_debito',
+    CREDIT_CARD: 'credit_card',
+    DEBIT_CARD: 'debit_card',
     PIX: 'pix',
-    CASH: 'dinheiro',
-    BOLETO: 'boleto',
-    PENDING: 'pending_payment'
+    CASH: 'money',
+    BOLETO: 'bank_slip',
+    PENDING: 'pending_payment',
+    TRANSFER: 'transfer',
+    CORPORATE_CARD: 'corporate_card',
+    CHECK: 'check'
 };
 
 export const PAYMENT_METHOD_LABELS = {

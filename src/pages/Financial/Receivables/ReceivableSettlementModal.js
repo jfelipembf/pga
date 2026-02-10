@@ -141,11 +141,11 @@ const ReceivableSettlementModal = ({ isOpen, toggle, receivable, onSettle }) => 
                                 invalid={formik.touched.paymentMethod && formik.errors.paymentMethod}
                             >
                                 <option value="">Selecione...</option>
-                                <option value="cartao_credito">Cartão de Crédito</option>
-                                <option value="cartao_debito">Cartão de Débito</option>
+                                <option value="credit_card">Cartão de Crédito</option>
+                                <option value="debit_card">Cartão de Débito</option>
                                 <option value="pix">PIX</option>
-                                <option value="dinheiro">Dinheiro</option>
-                                <option value="boleto">Boleto</option>
+                                <option value="money">Dinheiro</option>
+                                <option value="bank_slip">Boleto</option>
                             </Input>
                             {formik.touched.paymentMethod && formik.errors.paymentMethod && (
                                 <FormFeedback>{formik.errors.paymentMethod}</FormFeedback>

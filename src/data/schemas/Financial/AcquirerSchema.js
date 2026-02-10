@@ -13,5 +13,7 @@ export const AcquirerSchema = Yup.object().shape({
         })
     ).min(1, 'Defina pelo menos uma configuração de taxas'),
     isActive: Yup.boolean().default(true),
+    settlementDays: Yup.number().min(1).max(365).default(30)
+        .label('Prazo de liquidação (dias)'),
     metadata: Yup.object().nullable()
 })

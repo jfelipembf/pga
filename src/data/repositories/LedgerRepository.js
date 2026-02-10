@@ -1,9 +1,12 @@
-import { getFirebaseBackend } from '../../helpers/firebase_helper'
-import { collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/firestore'
+import { BaseRepository } from './BaseRepository'
+import { Timestamp } from 'firebase/firestore'
 
 /**
  * Repositório para Lançamentos Contábeis (Ledger Entries)
  * Sistema de Partidas Dobradas
+ * 
+ * Herda BaseRepository para reusar infra multitenant.
+ * Sobrescreve `create` para incluir validação de balanceamento.
  * 
  * Estrutura de um lançamento:
  * {
@@ -18,39 +21,16 @@ import { collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/f
  *   createdAt: Date
  * }
  */
-export class LedgerRepository {
+export class LedgerRepository extends BaseRepository {
     constructor() {
-        this.collectionName = 'ledger_entries'
-    }
-
-    /**
-     * Getter para o banco de dados (lazy loading)
-     */
-    get db() {
-        const backend = getFirebaseBackend()
-        if (!backend) {
-            throw new Error("Firebase Backend não inicializado. Verifique a configuração.")
-        }
-        return backend.db
-    }
-
-    getCollectionRef(idTenant, idBranch) {
-        return collection(
-            this.db,
-            'tenants',
-            idTenant,
-            'branches',
-            idBranch,
-            this.collectionName
-        )
+        super('ledger_entries')
     }
 
     /**
      * Cria um novo lançamento contábil (sempre em partidas dobradas)
+     * Sobrescreve BaseRepository.create para incluir validação de balanceamento.
      */
     async create(idTenant, idBranch, ledgerData) {
-        const ref = this.getCollectionRef(idTenant, idBranch)
-
         // Validar balanceamento (débitos = créditos)
         const totalDebit = ledgerData.entries.reduce((sum, entry) => sum + (entry.debit || 0), 0)
         const totalCredit = ledgerData.entries.reduce((sum, entry) => sum + (entry.credit || 0), 0)
@@ -59,33 +39,29 @@ export class LedgerRepository {
             throw new Error(`Lançamento desbalanceado! Débitos: ${totalDebit}, Créditos: ${totalCredit}`)
         }
 
-        const docData = {
+        // Normalizar data para Timestamp do Firestore
+        const normalizedData = {
             ...ledgerData,
             date: ledgerData.date instanceof Date ? Timestamp.fromDate(ledgerData.date) : ledgerData.date,
-            createdAt: Timestamp.now()
         }
 
-        const docRef = await addDoc(ref, docData)
-        return { id: docRef.id, ...ledgerData }
+        // Delegar para BaseRepository.create (que adiciona id, idTenant, idBranch, timestamps)
+        return super.create(idTenant, idBranch, normalizedData)
     }
 
     /**
      * Busca lançamentos por período
      */
     async findByPeriod(idTenant, idBranch, startDate, endDate) {
-        const ref = this.getCollectionRef(idTenant, idBranch)
-        const q = query(
-            ref,
-            where('date', '>=', Timestamp.fromDate(new Date(startDate))),
-            where('date', '<=', Timestamp.fromDate(new Date(endDate)))
-        )
+        const results = await this.findWhere(idTenant, idBranch, [
+            ['date', '>=', Timestamp.fromDate(new Date(startDate))],
+            ['date', '<=', Timestamp.fromDate(new Date(endDate))]
+        ])
 
-        const snapshot = await getDocs(q)
-        return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            date: doc.data().date?.toDate(),
-            createdAt: doc.data().createdAt?.toDate()
+        return results.map(entry => ({
+            ...entry,
+            date: entry.date?.toDate ? entry.date.toDate() : entry.date,
+            createdAt: entry.createdAt?.toDate ? entry.createdAt.toDate() : entry.createdAt
         }))
     }
 
@@ -93,19 +69,15 @@ export class LedgerRepository {
      * Busca lançamentos de uma fonte específica (ex: payable, receivable)
      */
     async findBySource(idTenant, idBranch, sourceType, sourceId) {
-        const ref = this.getCollectionRef(idTenant, idBranch)
-        const q = query(
-            ref,
-            where('sourceType', '==', sourceType),
-            where('sourceId', '==', sourceId)
-        )
+        const results = await this.findWhere(idTenant, idBranch, [
+            ['sourceType', '==', sourceType],
+            ['sourceId', '==', sourceId]
+        ])
 
-        const snapshot = await getDocs(q)
-        return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            date: doc.data().date?.toDate(),
-            createdAt: doc.data().createdAt?.toDate()
+        return results.map(entry => ({
+            ...entry,
+            date: entry.date?.toDate ? entry.date.toDate() : entry.date,
+            createdAt: entry.createdAt?.toDate ? entry.createdAt.toDate() : entry.createdAt
         }))
     }
 }

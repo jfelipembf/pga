@@ -10,8 +10,22 @@ class PayableRepository extends BaseRepository {
         super('payables')
     }
 
-    // Métodos específicos (como paginação compPGA) podem ser adicionados aqui
-    // se herdarem do BaseRepository, já ganham findAll, findById, create, update, delete.
+    /**
+     * Busca contas por status
+     */
+    async findByStatus(idTenant, idBranch, status) {
+        return this.findWhere(idTenant, idBranch, [['status', '==', status]]);
+    }
+
+    /**
+     * Busca contas atrasadas
+     */
+    async findOverdue(idTenant, idBranch, referenceDate = new Date()) {
+        return this.findWhere(idTenant, idBranch, [
+            ['status', '==', 'open'],
+            ['dueDate', '<', referenceDate]
+        ]);
+    }
 }
 
 export const payableRepository = new PayableRepository()

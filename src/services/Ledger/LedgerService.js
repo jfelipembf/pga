@@ -1,4 +1,5 @@
 import { ledgerRepository } from '../../data/repositories/LedgerRepository'
+import { ledgerErrorRepository } from '../../data/repositories/LedgerErrorRepository'
 import { normalizeDate } from '../../utils/date'
 
 /**
@@ -22,12 +23,12 @@ export const STANDARD_ACCOUNTS = {
 
     // ATIVOS (Grupo 3)
     BANK_ACCOUNTS: '3.1.1',
-    CASH: '3.1.1',
-    ACCOUNTS_RECEIVABLE: '3.1.2',
+    CASH: '3.1.2',           // Caixa Físico (diferente de Banco)
+    ACCOUNTS_RECEIVABLE: '3.1.3',
 
     // PASSIVOS (Grupo 4)
     ACCOUNTS_PAYABLE: '4.1.1',
-    SALARY_PAYABLE: '4.1.1',
+    SALARY_PAYABLE: '4.1.2', // Salários a Pagar (diferente de Fornecedores)
     TAXES_PAYABLE: '4.1.3',
 
     // PATRIMÔNIO (Grupo 5)
@@ -433,7 +434,7 @@ export const LedgerService = {
         // Mas se o sistema ainda joga PIX no "Caixa" (CashierService), mantemos Caixa aqui ou ajustamos no futuro.
         // O SalesService atual joga PIX no CashierService, então contabilmente é "Caixa" (Gaveta Virtual de PIX) ou Banco?
         // Vamos assumir que PIX cai na conta bancária se tiver o ID, senão cai no "Banco Genérico"
-        if (paymentMethod === 'pix' || paymentMethod === 'transferencia' || bankAccountId) {
+        if (paymentMethod === 'pix' || paymentMethod === 'transfer' || bankAccountId) {
             // Se tiver bankAccountId real, usa. Se não, usa o Genérico de Ativo Circulante Bancos
             // ATENÇÃO: Se não tiver conta bancária cadastrada para o PIX, isso gera uma pendência de conciliação.
             debitAccount = bankAccountId || STANDARD_ACCOUNTS.BANK_ACCOUNTS;
@@ -464,3 +465,48 @@ export const LedgerService = {
         })
     }
 }
+
+/**
+ * Wrapper seguro para chamadas ao Ledger.
+ * 
+ * Executa a função contábil e, se falhar, persiste o erro no Firestore
+ * para correção posterior. NUNCA bloqueia a operação financeira principal.
+ * 
+ * @param {string} idTenant
+ * @param {string} idBranch
+ * @param {Function} ledgerFn - Função async que faz o lançamento contábil
+ * @param {Object} context - Dados de contexto para diagnóstico (sourceType, sourceId, etc)
+ * @returns {Promise<{ success: boolean, error?: string }>}
+ * 
+ * @example
+ * await safeLedgerCall(idTenant, idBranch,
+ *   () => LedgerService.createPayableEntry(idTenant, idBranch, payable),
+ *   { sourceType: 'payable', sourceId: payable.id, operation: 'createPayableEntry' }
+ * );
+ */
+export const safeLedgerCall = async (idTenant, idBranch, ledgerFn, context = {}) => {
+    try {
+        await ledgerFn();
+        return { success: true };
+    } catch (ledgerError) {
+        const errorMessage = ledgerError?.message || String(ledgerError);
+        console.error(`[Ledger] Erro contábil em ${context.operation || 'unknown'}:`, errorMessage);
+
+        // Persistir o erro para correção posterior
+        try {
+            await ledgerErrorRepository.create(idTenant, idBranch, {
+                operation: context.operation || 'unknown',
+                sourceType: context.sourceType || null,
+                sourceId: context.sourceId || null,
+                errorMessage: errorMessage,
+                context: JSON.stringify(context),
+                resolvedAt: null
+            });
+        } catch (persistError) {
+            // Se nem salvar o erro consegue, loga tudo no console
+            console.error('[Ledger] Falha ao persistir erro contábil:', persistError);
+        }
+
+        return { success: false, error: errorMessage };
+    }
+};

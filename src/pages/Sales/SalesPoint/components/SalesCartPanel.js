@@ -69,7 +69,7 @@ const SalesCartPanel = ({ cartItems, payments, totals, onRemoveItem, onRemovePay
                                             <div>
                                                 <span className="fw-bold text-dark font-size-13 d-block">{p.methodLabel}</span>
                                                 <small className="text-muted">
-                                                    {p.methodId.includes('cartao') ? `${p.brand} - ${p.installments}` : 'À vista'}
+                                                    {[PAYMENT_METHODS.CREDIT_CARD, PAYMENT_METHODS.DEBIT_CARD].includes(p.methodId) ? `${p.brand} - ${p.installments}` : 'À vista'}
                                                 </small>
                                             </div>
                                         </div>

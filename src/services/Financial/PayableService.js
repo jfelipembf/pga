@@ -4,7 +4,7 @@ import { CashierService } from './CashierService'
 import { AuditService } from '../Core/AuditService'
 import { PayableSchema } from '../../data/schemas/Financial/PayableSchema'
 import { generatePayableId } from '../../utils/sequence'
-import { LedgerService } from '../Ledger/LedgerService'
+import { LedgerService, safeLedgerCall } from '../Ledger/LedgerService'
 import { normalizeDate } from '../../utils/date'
 
 /**
@@ -36,12 +36,10 @@ export const PayableService = {
         // ✅ LANÇAMENTO CONTÁBIL (Partidas Dobradas)
         // D - Despesa (aumenta a despesa no DRE)
         // C - Contas a Pagar (aumenta o passivo no Balanço)
-        try {
-            await LedgerService.createPayableEntry(idTenant, idBranch, newPayable)
-        } catch (ledgerError) {
-            console.error("Erro ao criar lançamento contábil:", ledgerError)
-            // Não falha a operação, mas loga o erro
-        }
+        await safeLedgerCall(idTenant, idBranch,
+            () => LedgerService.createPayableEntry(idTenant, idBranch, newPayable),
+            { sourceType: 'payable', sourceId: newPayable.id, operation: 'createPayableEntry' }
+        );
 
         await AuditService.log({
             idTenant, idBranch, userId,
@@ -96,26 +94,20 @@ export const PayableService = {
             userName: paymentData.userName
         })
 
-        // 3. DEBITAR Saldo Bancário
-        const newBalance = currentBalance - finalAmount;
-        await bankAccountRepository.update(idTenant, idBranch, idBankAccount, {
-            currentBalance: newBalance,
-            updatedAt: normalizeDate(new Date())
-        });
+        // 3. DEBITAR Saldo Bancário (ATÔMICO via increment)
+        await bankAccountRepository.adjustBalance(idTenant, idBranch, idBankAccount, -finalAmount);
 
         // 4. ✅ LANÇAMENTO CONTÁBIL (Partidas Dobradas)
         // D - Contas a Pagar (baixa o passivo)
         // C - Banco (saída de dinheiro)
-        try {
-            await LedgerService.payPayableEntry(idTenant, idBranch, payable, {
+        await safeLedgerCall(idTenant, idBranch,
+            () => LedgerService.payPayableEntry(idTenant, idBranch, payable, {
                 ...paymentData,
                 amount: finalAmount,
                 bankAccountName: bankAccount.name
-            })
-        } catch (ledgerError) {
-            console.error("Erro ao criar lançamento contábil de pagamento:", ledgerError)
-            // Não falha a operação, mas loga o erro
-        }
+            }),
+            { sourceType: 'payable', sourceId: idPayable, operation: 'payPayableEntry' }
+        );
 
         // 5. Atualizar Status do Payable
         await payableRepository.update(idTenant, idBranch, idPayable, {
@@ -138,7 +130,7 @@ export const PayableService = {
             description: `Conta paga: ${payable.expenseNumber || idPayable}. Valor: R$ ${finalAmount.toFixed(2)} via ${paymentMethod}`
         })
 
-        return { success: true, newBalance };
+        return { success: true };
     },
 
     /**

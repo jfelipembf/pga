@@ -64,11 +64,11 @@ export const SalesService = {
         if (saleData.payments && saleData.payments.length > 0) {
             // Import dinâmico ou estático - assumindo estático
             for (const payment of saleData.payments) {
-                if (payment.methodId === 'dinheiro') {
+                if (payment.methodId === 'money') {
                     await SalesPaymentProcessor.processCashPayment(idTenant, idBranch, userId, newSale, payment);
                 } else if (payment.methodId === 'pix') {
                     await SalesPaymentProcessor.processPixPayment(idTenant, idBranch, userId, newSale, payment);
-                } else if (['cartao_debito', 'cartao_credito'].includes(payment.methodId)) {
+                } else if (['debit_card', 'credit_card'].includes(payment.methodId)) {
                     await SalesPaymentProcessor.processCardPayment(idTenant, idBranch, userId, newSale, payment, {
                         idClient: saleData.idClient,
                         clientName: saleData.clientName,
@@ -80,7 +80,7 @@ export const SalesService = {
                     // Vamos assumir que outros métodos (ex: boleto, transferencia) seguem o fluxo de 'outros' ou lançar erro.
                     // Se quisermos aceitar genéricos, usamos um processador genérico. Se quisermos rigor, erro.
                     // Dado o pedido do usuário ("sem fallbacks", "robusto"), erro é melhor se não implementado.
-                    // Mas 'pix' e 'dinheiro' estão cobertos. Se vier 'boleto', hoje ele é ignorado.
+                    // 'pix' and 'money' are covered. If 'bank_slip' comes, it's ignored today.
                     // Vamos implementar um GenericPayment ou lançar erro.
                     throw new Error(`Método de pagamento não suportado ou não implementado: ${payment.methodId}`);
                 }

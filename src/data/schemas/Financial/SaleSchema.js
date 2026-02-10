@@ -10,7 +10,7 @@ const SaleItemSchema = Yup.object().shape({
 })
 
 const SalePaymentSchema = Yup.object().shape({
-    methodId: Yup.string().oneOf(['dinheiro', 'pix', 'cartao_debito', 'cartao_credito']).required(),
+    methodId: Yup.string().oneOf(['money', 'pix', 'debit_card', 'credit_card']).required(),
     methodLabel: Yup.string().required(),
     value: Yup.number().positive().required(),
     installments: Yup.number().min(1).default(1),

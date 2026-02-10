@@ -134,7 +134,7 @@ const ClientFinancial = () => {
                                                         <Badge color="light" className="text-muted border">
                                                             {rec.paymentMethod === 'credit_card' ? 'Cartão Crédito' :
                                                                 rec.paymentMethod === 'debit_card' ? 'Débito' :
-                                                                    rec.paymentMethod === 'cash' ? 'Dinheiro' :
+                                                                    rec.paymentMethod === 'money' ? 'Dinheiro' :
                                                                         rec.paymentMethod === 'pix' ? 'PIX' :
                                                                             rec.paymentMethod === 'pending_payment' ? 'Pendente' : rec.paymentMethod}
                                                         </Badge>

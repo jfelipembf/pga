@@ -29,7 +29,7 @@ export const FinancialDashboardService = {
 
                 if (t.type === 'income') {
                     // Apenas dinheiro físico fica na gaveta
-                    return (t.method === 'money' || t.method === 'dinheiro') ? sum + netAmount : sum;
+                    return (t.method === 'money') ? sum + netAmount : sum;
                 } else if (t.type === 'expense') {
                     return sum - amount;
                 }

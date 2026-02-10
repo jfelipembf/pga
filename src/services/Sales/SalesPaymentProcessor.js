@@ -5,6 +5,7 @@ import { CashierService } from '../Financial/CashierService'
 import { LedgerService } from '../Ledger/LedgerService'
 import { normalizeDate } from '../../utils/date'
 
+
 /**
  * Processador de Pagamentos de Vendas
  * Responsável por lidar com a complexidade de cada método de pagamento (Dinheiro, PIX, Cartão).
@@ -23,7 +24,7 @@ export const SalesPaymentProcessor = {
             amount: pValue,
             netAmount: pValue,
             category: 'sale',
-            method: 'dinheiro',
+            method: 'money',
             description: `Venda #${sale.saleNumber || sale.id.substring(0, 6)}`,
             idSale: sale.id,
             saleNumber: sale.saleNumber,
@@ -35,7 +36,7 @@ export const SalesPaymentProcessor = {
         await LedgerService.registerSalePayment(idTenant, idBranch, {
             saleId: sale.id,
             saleNumber: sale.saleNumber,
-            paymentMethod: 'dinheiro',
+            paymentMethod: 'money',
             amount: pValue
         });
     },
@@ -78,11 +79,12 @@ export const SalesPaymentProcessor = {
         const numInstallments = parseInt(payment.installments) || 1
 
         let feePercentage = 0; // Default zero se erro
+        let activeAcquirer = null;
 
         // 1. Buscar Taxas da Adquirente
         try {
             const activeAcquirers = await acquirerRepository.findActive(idTenant, idBranch)
-            const activeAcquirer = activeAcquirers.find(a => a.name === payment.provider)
+            activeAcquirer = activeAcquirers.find(a => a.name === payment.provider)
 
             if (activeAcquirer) {
                 let targetFees = activeAcquirer.fees
@@ -96,7 +98,7 @@ export const SalesPaymentProcessor = {
                 }
 
                 if (targetFees) {
-                    if (payment.methodId === 'cartao_debito') {
+                    if (payment.methodId === 'debit_card') {
                         feePercentage = parseFloat(targetFees.debitCard) || 0
                     } else {
                         // Busca taxa específica da parcela (ex: creditCard1x, creditCard2x...)
@@ -125,9 +127,10 @@ export const SalesPaymentProcessor = {
             const netAmount = valuePerInstallment - feeAmount
 
             // Calcular vencimento
-            const daysToAdd = payment.methodId === 'cartao_debito'
+            const settlementDays = activeAcquirer?.settlementDays || 30;
+            const daysToAdd = payment.methodId === 'debit_card'
                 ? 1  // Débito = D+1
-                : (30 * i); // Crédito = D+30 * i (simplificado)
+                : (settlementDays * i); // Crédito = D+settlementDays * i
 
             const dueDate = normalizeDate(moment().add(daysToAdd, 'days'));
 

@@ -11,7 +11,7 @@ import { useAuth } from '../../../../hooks/useAuth'
  * Hook customizado para gerenciar a lógica da página de Caixa.
  */
 export const useCashier = () => {
-    const { idTenant, idBranch } = useTenant()
+    const { idTenant, idBranch, isReady } = useTenant()
 
     // Obtenção do Usuário (Centralizado)
     const { user } = useAuth()
@@ -27,7 +27,7 @@ export const useCashier = () => {
     const [selectedDate, setSelectedDate] = useState(new Date())
 
     const loadData = useCallback(async () => {
-        if (!user || !user.uid) {
+        if (!isReady || !user || !user.uid) {
             return
         }
 
@@ -119,7 +119,7 @@ export const useCashier = () => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch, user, selectedDate])
+    }, [idTenant, idBranch, isReady, user, selectedDate])
 
     useEffect(() => {
         loadData()
@@ -208,10 +208,10 @@ export const useCashier = () => {
             netCash: 0,
             expectedBalance: 0,
             methods: {
-                dinheiro: 0,
+                money: 0,
                 pix: 0,
-                cartao_credito: 0,
-                cartao_debito: 0,
+                credit_card: 0,
+                debit_card: 0,
                 others: 0
             }
         };
@@ -231,7 +231,7 @@ export const useCashier = () => {
                 }
 
                 // Apenas dinheiro físico entra na contagem da "gaveta" (expectedBalance)
-                if (method === 'money' || method === 'dinheiro') {
+                if (method === 'money') {
                     summary.netCash += netAmount;
                 }
             } else if (t.type === 'expense') {

@@ -2,7 +2,7 @@ import { cashierRepository } from '../../data/repositories/CashierRepository'
 import { transactionRepository } from '../../data/repositories/TransactionRepository'
 import { AuditService } from '../Core/AuditService'
 import { CashierSessionSchema, TransactionSchema } from '../../data/schemas/FinancialSchemas'
-import { LedgerService } from '../Ledger/LedgerService'
+import { LedgerService, safeLedgerCall } from '../Ledger/LedgerService'
 import { normalizeDate } from '../../utils/date'
 
 /**
@@ -57,11 +57,28 @@ export const CashierService = {
         if (!session) throw new Error("Sessão de caixa não encontrada");
         if (session.status !== 'open') throw new Error("Caixa já está fechado");
 
+        // Recalcular saldo esperado (Auditabilidade)
+        const transactions = await transactionRepository.findBySession(idTenant, idBranch, sessionId);
+        const activeTransactions = transactions.filter(t => !t.deletedAt);
+
+        // Dinheiro Entrou: Income ou Suprimento, method = money
+        const moneyIn = activeTransactions
+            .filter(t => (t.type === 'income' || t.category === 'supply') && t.method === 'money')
+            .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+
+        // Dinheiro Saiu: Expense ou Sangria, method = money
+        const moneyOut = activeTransactions
+            .filter(t => (t.type === 'expense' || t.category === 'withdrawal') && t.method === 'money')
+            .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+
+        const calculatedExpectedBalance = (parseFloat(session.openingBalance) || 0) + moneyIn - moneyOut;
+
         const updateData = {
             status: 'closed',
             closedAt: normalizeDate(new Date()),
+            expectedBalance: calculatedExpectedBalance, // Garante consistência
             actualBalance: parseFloat(closingData.actualBalance) || 0,
-            difference: (parseFloat(closingData.actualBalance) || 0) - session.expectedBalance,
+            difference: (parseFloat(closingData.actualBalance) || 0) - calculatedExpectedBalance,
             closingNotes: closingData.notes
         };
 
@@ -101,19 +118,21 @@ export const CashierService = {
         const newMovement = await transactionRepository.create(idTenant, idBranch, fullMovement);
 
         let updates = {};
-        if (fullMovement.type === 'income') {
-            updates.totalIncome = (cashierSession.totalIncome || 0) + (parseFloat(fullMovement.netAmount) || 0);
+        if (fullMovement.type === 'income' || fullMovement.category === 'supply') { // Entrada ou Suprimento
+            updates.totalIncome = (cashierSession.totalIncome || 0) + (parseFloat(fullMovement.netAmount || fullMovement.amount) || 0);
 
             // Apenas Dinheiro Físico soma na Gaveta
-            if (fullMovement.method === 'money' || fullMovement.method === 'dinheiro') {
-                updates.expectedBalance = (cashierSession.expectedBalance || 0) + (parseFloat(fullMovement.netAmount) || 0);
+            if (fullMovement.method === 'money') {
+                updates.expectedBalance = (cashierSession.expectedBalance || 0) + (parseFloat(fullMovement.amount) || 0);
             }
         } else {
+            // Expenses/Withdrawals (Saída ou Sangria)
             updates.totalExpenses = (cashierSession.totalExpenses || 0) + (parseFloat(fullMovement.amount) || 0);
 
-            // Sangrias sempre saem da Gaveta (pois são feitas em dinheiro físico geralmente)
-            // Se houver despesa paga via PIX direto do caixa, precisaria validar. Mas sangria assume-se retirada física.
-            updates.expectedBalance = (cashierSession.expectedBalance || 0) - (parseFloat(fullMovement.amount) || 0);
+            // Apenas Dinheiro Físico sai da Gaveta
+            if (fullMovement.method === 'money') {
+                updates.expectedBalance = (cashierSession.expectedBalance || 0) - (parseFloat(fullMovement.amount) || 0);
+            }
         }
 
         await cashierRepository.update(idTenant, idBranch, cashierSession.id, updates);
@@ -121,8 +140,8 @@ export const CashierService = {
         // ✅ LANÇAMENTO CONTÁBIL (se for sangria/suprimento com banco vinculado)
         if ((fullMovement.category === 'withdrawal' || fullMovement.category === 'supply')
             && fullMovement.idBankAccount) {
-            try {
-                await LedgerService.createCashierMovement(idTenant, idBranch, {
+            await safeLedgerCall(idTenant, idBranch,
+                () => LedgerService.createCashierMovement(idTenant, idBranch, {
                     id: newMovement.id,
                     type: fullMovement.category,
                     amount: fullMovement.amount,
@@ -130,10 +149,9 @@ export const CashierService = {
                     bankAccountName: fullMovement.bankAccountName || 'Banco',
                     description: fullMovement.description,
                     date: normalizeDate(new Date())
-                })
-            } catch (ledgerError) {
-                console.error("Erro ao criar lançamento contábil de movimentação de caixa:", ledgerError)
-            }
+                }),
+                { sourceType: 'cashier_movement', sourceId: newMovement.id, operation: 'createCashierMovement' }
+            );
         }
 
         await AuditService.log({

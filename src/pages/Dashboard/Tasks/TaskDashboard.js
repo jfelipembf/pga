@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, CardBody, Button, Row, Col, Badge, Input, Table } from 'reactstrap';
+import { Card, CardBody, Button, Badge, Input, Table } from 'reactstrap';
 import { useTasks } from '../hooks/useTasks';
 import TaskModal from './TaskModal';
 

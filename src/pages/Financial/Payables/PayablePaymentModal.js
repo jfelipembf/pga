@@ -117,12 +117,12 @@ const PayablePaymentModal = ({ isOpen, toggle, payable, onPay }) => {
                                 invalid={!!(formik.touched.paymentMethod && formik.errors.paymentMethod)}
                             >
                                 <option value="">Selecione...</option>
-                                <option value="dinheiro">Dinheiro</option>
+                                <option value="money">Dinheiro</option>
                                 <option value="pix">PIX</option>
-                                <option value="ted">TED / Transferência</option>
-                                <option value="boleto">Boleto</option>
-                                <option value="cartao_corporativo">Cartão Corporativo</option>
-                                <option value="cheque">Cheque</option>
+                                <option value="transfer">TED / Transferência</option>
+                                <option value="bank_slip">Boleto</option>
+                                <option value="corporate_card">Cartão Corporativo</option>
+                                <option value="check">Cheque</option>
                             </Input>
                             {formik.errors.paymentMethod && <FormFeedback>{formik.errors.paymentMethod}</FormFeedback>}
                         </Col>

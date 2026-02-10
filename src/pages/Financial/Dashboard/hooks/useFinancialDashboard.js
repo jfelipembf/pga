@@ -5,7 +5,7 @@ import { toast } from 'react-toastify'
 import moment from 'moment'
 
 export const useFinancialDashboard = () => {
-    const { idTenant, idBranch } = useTenant()
+    const { idTenant, idBranch, isReady } = useTenant()
 
     const [loading, setLoading] = useState(true)
     const [data, setData] = useState({
@@ -17,7 +17,7 @@ export const useFinancialDashboard = () => {
     const [chartData, setChartData] = useState(null)
 
     const loadDashboard = useCallback(async () => {
-        if (!idTenant || !idBranch) return;
+        if (!isReady) return;
 
         try {
             setLoading(true);
@@ -86,7 +86,7 @@ export const useFinancialDashboard = () => {
         } finally {
             setLoading(false);
         }
-    }, [idTenant, idBranch]);
+    }, [idTenant, idBranch, isReady]);
 
     useEffect(() => {
         loadDashboard();

@@ -171,7 +171,7 @@ const ReceivablesPage = () => {
             key: "paymentMethod",
             render: (receivable) => (
                 <div>
-                    <i className={`mdi ${['cartao_credito', 'cartao_debito'].includes(receivable.paymentMethod) ? 'mdi-credit-card text-primary' :
+                    <i className={`mdi ${['credit_card', 'debit_card'].includes(receivable.paymentMethod) ? 'mdi-credit-card text-primary' :
                         'mdi-bank text-muted'
                         } font-size-18 me-2`}></i>
                     {PAYMENT_METHOD_LABELS[receivable.paymentMethod] || receivable.paymentMethod}
@@ -351,10 +351,10 @@ const ReceivablesPage = () => {
                                     <Label className="font-size-11 fw-bold text-uppercase text-muted">Forma de Pagto</Label>
                                     <Input type="select" bsSize="sm" value={paymentFilter} onChange={(e) => setPaymentFilter(e.target.value)}>
                                         <option value="all">Todas as Formas</option>
-                                        <option value="cartao_credito">Cartão de Crédito</option>
-                                        <option value="cartao_debito">Cartão de Débito</option>
+                                        <option value="credit_card">Cartão de Crédito</option>
+                                        <option value="debit_card">Cartão de Débito</option>
                                         <option value="pix">PIX</option>
-                                        <option value="dinheiro">Dinheiro</option>
+                                        <option value="money">Dinheiro</option>
                                         <option value="pending_payment">Crediário / Boleto</option>
                                     </Input>
                                 </Col>

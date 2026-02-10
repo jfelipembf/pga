@@ -40,7 +40,7 @@ export const ReceivableSchema = Yup.object().shape({
 
     // Método e Status
     paymentMethod: Yup.string()
-        .oneOf(['dinheiro', 'pix', 'cartao_debito', 'cartao_credito', 'pending_payment', 'boleto'])
+        .oneOf(['money', 'pix', 'debit_card', 'credit_card', 'pending_payment', 'bank_slip'])
         .required('Método de pagamento é obrigatório'),
     status: Yup.string()
         .oneOf(['open', 'paid', 'cancelled', 'pending_settlement', 'overdue'])

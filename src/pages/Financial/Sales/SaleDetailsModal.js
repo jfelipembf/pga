@@ -107,7 +107,7 @@ const SaleDetailsModal = ({ isOpen, toggle, sale, receivables = [] }) => {
                                     </div>
 
                                     {/* Detalhes do Cartão (Bandeira, Auth, Parcelas) */}
-                                    {['cartao_credito', 'cartao_debito'].includes(payment.methodId) && (
+                                    {['credit_card', 'debit_card'].includes(payment.methodId) && (
                                         <div className="ms-4 ps-1">
                                             <div className="d-flex gap-3 text-muted font-size-12">
                                                 {payment.brand && (
