@@ -97,41 +97,65 @@ export const TaskService = {
     },
 
     /**
-     * Lista tarefas para hoje ou por filtro.
+     * Lista tarefas para hoje ou por filtro com enriquecimento de dados.
      */
     listTasks: async (idTenant, idBranch, filters = {}) => {
         try {
-            // Buscamos todas e filtramos em memória para suportar a lógica de recorrência 
-            // sem precisar de índices complexos para cada combinação.
             const allTasks = await taskRepository.findAll(idTenant, idBranch);
+
+            // ✅ Carregamento paralelo de dependências para enriquecimento
+            const { StaffService } = await import('./StaffService');
+            const { ClientService } = await import('../Clients/ClientService');
+
+            const [staffList, clientList] = await Promise.all([
+                StaffService.listAll(idTenant, idBranch),
+                ClientService.listClients(idTenant, idBranch)
+            ]);
+
+            const staffMap = staffList.reduce((acc, s) => ({ ...acc, [s.id]: s }), {});
+            const clientMap = clientList.reduce((acc, c) => ({ ...acc, [c.id]: c }), {});
 
             const today = moment().startOf('day');
 
             return allTasks.filter(task => {
                 const taskDate = moment(task.dueDate?.toDate ? task.dueDate.toDate() : task.dueDate);
 
-                // Filtro por Staff (atribuído para)
-                if (filters.assignedTo && task.assignedTo !== filters.assignedTo) return false;
+                // Enriquecimento de Staff (Múltiplos)
+                const assignees = Array.isArray(task.assignedTo) ? task.assignedTo : [task.assignedTo];
+                task.assignedStaffDetails = assignees.map(id => {
+                    const s = staffMap[id];
+                    return s ? { id: s.id, name: s.name, photo: s.photo, role: s.roleName } : null;
+                }).filter(Boolean);
+
+                // Enriquecimento de Alunos (Múltiplos)
+                const students = Array.isArray(task.relatedStudents) ? task.relatedStudents : [];
+                task.relatedStudentsDetails = students.map(id => {
+                    const c = clientMap[id];
+                    return c ? { id: c.id, name: c.name, photo: c.photoUrl } : null;
+                }).filter(Boolean);
+
+                // Filtro por Staff (atribuído para) - Verifica se o ID está no array
+                if (filters.assignedTo) {
+                    const taskAssignees = Array.isArray(task.assignedTo) ? task.assignedTo : [task.assignedTo];
+                    if (!taskAssignees.includes(filters.assignedTo)) return false;
+                }
 
                 // Filtro por Status
                 if (filters.status && task.status !== filters.status) return false;
 
-                // Lógica de Recorrência e Exibição Diária
+                // Lógica de Recorrência
                 if (task.isRecurring) {
-                    // Se a tarefa é recorrente, ela aparece se o padrão bater hoje
-                    // (Ex simples: diário sempre aparece se estiver pendente)
                     if (task.recurrence?.frequency === 'daily') return true;
-
                     if (task.recurrence?.frequency === 'weekly') {
-                        const dayOfWeek = today.day(); // 0-6
-                        return task.recurrence?.daysOfWeek?.includes(dayOfWeek);
+                        return task.recurrence?.daysOfWeek?.includes(today.day());
+                    }
+                    if (task.recurrence?.frequency === 'monthly') {
+                        return task.recurrence?.dayOfMonth === today.date();
                     }
                 }
 
-                // Se não for recorrente, comparamos a data
                 return taskDate.isSame(today, 'day') || (task.status === 'pending' && taskDate.isBefore(today));
             }).sort((a, b) => {
-                // Ordenar por prioridade (high > medium > low)
                 const priorities = { high: 3, medium: 2, low: 1 };
                 return (priorities[b.priority] || 0) - (priorities[a.priority] || 0);
             });

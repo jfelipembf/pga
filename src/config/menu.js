@@ -22,10 +22,10 @@ export const MENU_STRUCTURE = [
         label: "Dashboards",
         icon: "mdi mdi-view-dashboard-outline",
         subItems: [
-            { label: "Geral", path: "/dashboard", permissions: ["dashboards_management_view", "dashboards_commercial_view", "dashboards_financial_view"] },
-            { label: "Operacional", path: "/dashboard-operational" }, // Sem permissão = público para todos autenticados
+            { label: "Operacional", path: "/dashboard-operational", permission: "dashboards_operational_view" },
             { label: "Gerencial", path: "/dashboard-management", permission: "dashboards_management_view" },
             { label: "Financeiro", path: "/dashboard-financial", permission: "dashboards_financial_view" },
+            { label: "Professor", path: "/dashboard-teacher", permission: "dashboards_teacher_view" },
         ]
     },
 

@@ -33,7 +33,7 @@ const Authmiddleware = (props) => {
 
   // 1. Verificar autenticação
   if (!isAuthenticated) {
-    console.log("[Auth] Usuário não autenticado, redirecionando para login")
+
     const loginPath = idTenant && idBranch
       ? `/${idTenant}/${idBranch}/login`
       : "/login"
@@ -56,7 +56,7 @@ const Authmiddleware = (props) => {
     }
 
     if (!hasAccess) {
-      console.log(`[Auth] Acesso negado para permissão: ${JSON.stringify(permission || permissions)}`)
+
       return <Navigate to={`/${idTenant}/${idBranch}/pages-403`} replace />
     }
   }

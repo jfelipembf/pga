@@ -23,10 +23,9 @@ export const TaskSchema = Yup.object().shape({
         .required('A data de entrega é obrigatória')
         .nullable(),
 
-    assignedTo: Yup.string()
-        .required('Selecione um colaborador'),
+    assignedTo: Yup.array().of(Yup.string()).min(1, 'Selecione pelo menos um responsável'),
 
-    assignedToName: Yup.string(),
+    relatedStudents: Yup.array().of(Yup.string()).default([]),
 
     isRecurring: Yup.boolean()
         .default(false),
@@ -44,6 +43,10 @@ export const TaskSchema = Yup.object().shape({
         endDate: Yup.date().nullable(),
         occurrences: Yup.number().min(1).nullable(),
     }).nullable(),
+
+    category: Yup.string().nullable(),
+
+    estimatedTime: Yup.number().positive('Tempo deve ser positivo').nullable(),
 
     attachments: Yup.array().of(
         Yup.object().shape({

@@ -1,57 +1,18 @@
 import React, { useMemo } from "react"
 import { Row, Col } from "reactstrap"
 import Miniwidget from "../Miniwidget"
-import MonthlyEarnings from "../montly-earnings"
-import Crescimento from "../crescimento"
 import YearlySales from "../yearly-sales"
-import TaskDashboard from "../Tasks/TaskDashboard"
+import TaskSummaryList from "../Tasks/TaskSummaryList"
 import { useGeneralDashboard } from "../hooks/useGeneralDashboard"
 import PageLoader from "../../../components/Common/PageLoader"
-import { formatCurrency } from "../../../utils/format"
+
 
 const ManagementDashboard = () => {
     document.title = "Dashboard Gerencial | PGA Admin"
 
     const { loading, data } = useGeneralDashboard('manager')
 
-    const reports = useMemo(() => {
-        if (!data) return [
-            { title: "Alunos Ativos", iconClass: "account-group", total: "...", growth: 0, desc: " vs mês passado" },
-            { title: "Receita Total", iconClass: "cash", total: "...", growth: 0, desc: " vs mês passado" },
-            { title: "Ticket Médio", iconClass: "cash-multiple", total: "...", growth: 0, desc: " vs mês passado" },
-            { title: "Novos Alunos", iconClass: "account-plus", total: "...", growth: 0, desc: " vs mês passado" }
-        ]
-
-        return [
-            {
-                title: "Alunos Ativos",
-                iconClass: "account-group",
-                total: data.students?.active || 0,
-                growth: data.studentsGrowth?.active,
-                desc: " vs mês passado"
-            },
-            {
-                title: "Receita Total",
-                iconClass: "cash",
-                total: formatCurrency(data.sales?.month || 0),
-                growth: data.sales?.growth,
-                desc: " vs mês passado"
-            },
-            {
-                title: "Ticket Médio",
-                iconClass: "cash-multiple",
-                total: formatCurrency(data.sales?.ticket || 0),
-                desc: " média por venda"
-            },
-            {
-                title: "Novos Alunos",
-                iconClass: "account-plus",
-                total: data.students?.new || 0,
-                growth: data.studentsGrowth?.new,
-                desc: " no mês atual"
-            }
-        ]
-    }, [data])
+    // reports useMemo removed as it's no longer used
 
     if (loading) {
         return <PageLoader />
@@ -63,21 +24,61 @@ const ManagementDashboard = () => {
     return (
         <React.Fragment>
             {/* Cards de Métricas */}
-            <Miniwidget reports={reports} colSize={3} />
+            {/* Cards de Métricas - Linha 1 */}
+            <Row>
+                <Miniwidget reports={[
+                    {
+                        title: "Novos Alunos",
+                        iconClass: "account-plus",
+                        total: data?.students?.new || 0,
+                        growth: data?.studentsGrowth?.new,
+                        desc: " no mês atual"
+                    },
+                    {
+                        title: "Alunos Ativos",
+                        iconClass: "account-group",
+                        total: data?.students?.active || 0,
+                        growth: data?.studentsGrowth?.active,
+                        desc: " total atual"
+                    },
+                    {
+                        title: "Suspensos",
+                        iconClass: "account-off",
+                        total: data?.students?.suspended || 0,
+                        growth: data?.studentsGrowth?.suspended,
+                        desc: " bloqueados temporariamente"
+                    }
+                ]} colSize={4} />
+            </Row>
 
+            {/* Cards de Métricas - Linha 2 */}
             <Row className="mt-4">
-                {/* Monthly Earnings - Mais vendidos */}
-                <Col xl={3}>
-                    <MonthlyEarnings data={data?.charts?.mostSold} />
-                </Col>
-
-                {/* Crescimento Financeiro */}
-                <Col xl={6}>
-                    <Crescimento data={data?.charts?.growthHistory} />
-                </Col>
-
+                <Miniwidget reports={[
+                    {
+                        title: "Cancelamentos",
+                        iconClass: "account-remove",
+                        total: data?.students?.canceled || 0,
+                        growth: data?.studentsGrowth?.canceled,
+                        desc: " perdidos no mês"
+                    },
+                    {
+                        title: "Churn Rate",
+                        iconClass: "chart-timeline-variant",
+                        total: `${((data?.students?.canceled / (data?.students?.active + data?.students?.canceled || 1)) * 100).toFixed(1)}%`,
+                        desc: " taxa de perda"
+                    },
+                    {
+                        title: "Renovações",
+                        iconClass: "restore",
+                        total: data?.students?.renewals || 0,
+                        growth: data?.studentsGrowth?.renewals,
+                        desc: " renovados no mês"
+                    }
+                ]} colSize={4} />
+            </Row>
+            <Row className="mt-4">
                 {/* Yearly Sales - Alunos Ativos */}
-                <Col xl={3}>
+                <Col xl={4}>
                     <YearlySales
                         title="Alunos Ativos - Comparativo"
                         series={seriesStudents}
@@ -98,15 +99,12 @@ const ManagementDashboard = () => {
                         </Row>
                     </YearlySales>
                 </Col>
-            </Row>
 
-            <Row className="mt-4">
-                {/* Gestão de Tarefas - Novo Componente */}
-                <Col xl={12}>
-                    <TaskDashboard />
+                <Col xl={8}>
+                    <TaskSummaryList title="Tarefas da Unidade - Hoje" />
                 </Col>
             </Row>
-        </React.Fragment>
+        </React.Fragment >
     )
 }
 

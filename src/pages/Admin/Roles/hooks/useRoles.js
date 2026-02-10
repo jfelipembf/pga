@@ -84,7 +84,6 @@ export const useRoles = () => {
                 if (user?.roleId === data.id || user?.role === data.id) {
                     // Atualiza Redux e localStorage via hook
                     updatePermissions(data.permissions)
-                    console.log("[useRoles] Permissões atualizadas reativamente via Redux.")
                 }
 
                 toast.success("Função atualizada com sucesso")

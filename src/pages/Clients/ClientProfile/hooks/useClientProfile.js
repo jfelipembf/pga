@@ -75,13 +75,13 @@ export const useClientProfile = () => {
     const loadClient = useCallback(async () => {
         // Validação de Contexto
         if (!idTenant || !idBranch || !id) {
-            console.warn(`[useClientProfile] Parâmetros pendentes. Tenant: ${idTenant}, Branch: ${idBranch}, ID: ${id}`);
+            return;
             return;
         }
 
         try {
             setLoading(true)
-            console.log(`[useClientProfile] Buscando cliente ${id}...`);
+
 
             const data = await ClientService.getClientById(idTenant, idBranch, id)
 
@@ -150,19 +150,8 @@ export const useClientProfile = () => {
     // 6. Efeito para carregar dados
     useEffect(() => {
         let mounted = true;
-        console.log("[useClientProfile] Effect trigger:", { idTenant, idBranch, id, hasLoadClient: !!loadClient });
-
         if (idTenant && idBranch && id) {
             loadClient()
-        } else {
-            // Safety Timeout: Se em 5s não resolver o contexto, destrava a tela e mostra erro no console
-            const timer = setTimeout(() => {
-                if (mounted && loading) {
-                    console.error("[useClientProfile] Timeout: Contexto não resolvido após 5s.");
-                    setLoading(false);
-                }
-            }, 5000);
-            return () => clearTimeout(timer);
         }
 
         return () => {

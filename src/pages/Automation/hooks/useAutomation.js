@@ -42,9 +42,7 @@ export const useAutomation = () => {
             setWorkflows(flows);
 
             // Carregar IntegrationConfig REAL e PERSISTENTE
-            console.log("useAutomation: Fetching settings for tenant:", idTenant);
             const config = await integrationRepository.getSettings(idTenant);
-            console.log("useAutomation: Loaded config:", config);
 
             if (config) {
                 setIntegrationConfig(config);

@@ -88,7 +88,7 @@ class MessagingService {
                 text: message
             };
 
-            console.log(`[MessagingService] Sending to: ${url}`); // Debug URL
+
 
             const response = await axios.post(url, payload, {
                 headers: {

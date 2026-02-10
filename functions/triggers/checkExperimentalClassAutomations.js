@@ -1,7 +1,7 @@
-const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { logger } = require("firebase-functions");
 const admin = require("firebase-admin");
+const { createScheduledTrigger } = require("./utils");
 
+// Inicialização segura do admin (para redundância)
 if (!admin.apps.length) {
     admin.initializeApp();
 }
@@ -10,38 +10,36 @@ if (!admin.apps.length) {
  * Cloud Function agendada para enviar lembretes de aulas experimentais do dia.
  * Roda diariamente às 08:00 (Horário de Brasília/São Paulo).
  * 
- * DESIGN ROBUSTO: Percorre tenants e branches para evitar dependência de índices compostos de Collection Group.
+ * Lógica:
+ * 1. Busca todas as matrículas do tipo 'trial' (experimental) marcadas para HOJE.
+ * 2. Filtra apenas as que o horário de início ainda não passou.
+ * 3. Recupera os dados de contato do aluno e as configurações de WhatsApp da unidade.
+ * 4. Envia a mensagem personalizada.
+ * 
+ * DESIGN ROBUSTO (v1): Percorre tenants e branches para compatibilidade total e evitar erros de índice.
  */
-module.exports = onSchedule({
-    schedule: "00 08 * * *",
-    timeZone: "America/Sao_Paulo",
-    region: "us-central1",
-    memory: "512MiB",
-    timeoutSeconds: 540,
-    maxInstances: 5,
-}, async (event) => {
+module.exports = createScheduledTrigger("00 08 * * *", "checkExperimentalClassAutomations", async (context) => {
     const db = admin.firestore();
 
     // Obter data atual no formato YYYY-MM-DD em São Paulo
     const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
 
-    logger.info(`[checkExperimentalClassAutomations] Iniciando rotina de lembretes para ${today}`);
+    console.log(`[checkExperimentalClassAutomations] Iniciando lembretes para ${today}`);
 
     try {
         const tenantsSnap = await db.collection("tenants").get();
-        logger.info(`[checkExperimentalClassReminders] Processando ${tenantsSnap.size} tenants.`);
 
         for (const tenantDoc of tenantsSnap.docs) {
             const idTenant = tenantDoc.id;
 
-            // 1. Buscar configurações do Tenant (Previamente para evitar chamadas repetidas por trial)
+            // 1. Buscar configurações de Integração do Tenant
             const settingsDoc = await db.collection("tenants").doc(idTenant)
                 .collection("settings").doc("integrations").get();
 
             if (!settingsDoc.exists) continue;
             const settings = settingsDoc.data();
 
-            // Verificar se o gatilho está ativo (se houver essa config) e se tem Evolution API
+            // Verificar se o gatilho está ativo e se tem Evolution API configurada
             const isTriggerActive = settings?.activeTriggers?.EXPERIMENTAL_REMINDER !== false;
             if (!isTriggerActive || !settings.evolutionUrl || !settings.evolutionInstanceName) continue;
 
@@ -50,7 +48,7 @@ module.exports = onSchedule({
             for (const branchDoc of branchesSnap.docs) {
                 const idBranch = branchDoc.id;
 
-                // 2. Buscar aulas experimentais de HOJE neste branch
+                // 2. Buscar aulas experimentais de HOJE
                 const trialsSnap = await db.collection("tenants").doc(idTenant)
                     .collection("branches").doc(idBranch)
                     .collection("enrollments")
@@ -61,20 +59,18 @@ module.exports = onSchedule({
 
                 if (trialsSnap.empty) continue;
 
-                logger.info(`[checkExperimentalClassReminders] Tenant: ${idTenant}, Branch: ${idBranch} -> ${trialsSnap.size} trials encontrados.`);
-
                 for (const trialDoc of trialsSnap.docs) {
                     try {
                         const enrollment = trialDoc.data();
                         const { startTime, clientName, idClient } = enrollment;
 
-                        // Pular aulas que já começaram ou estão prestes a começar (margem até 08:15)
+                        // Pular se o horário já passou (margem 15min)
                         if (startTime && startTime < "08:15") {
-                            logger.info(`[checkExperimentalClassReminders] Pulo: ${clientName} (${startTime}) - horário já passou.`);
+                            console.log(`[checkExperimentalClassAutomations] Pulo: ${clientName} (${startTime}) - já passou.`);
                             continue;
                         }
 
-                        // 3. Buscar telefone do aluno
+                        // 3. Buscar telefone
                         const clientDoc = await db.collection("tenants").doc(idTenant)
                             .collection("branches").doc(idBranch)
                             .collection("clients").doc(idClient).get();
@@ -85,23 +81,22 @@ module.exports = onSchedule({
 
                         if (!phone) continue;
 
-                        // 4. Montar e enviar mensagem
+                        // 4. Enviar mensagem
                         const message = `Oi ${clientName}! 🏊‍♂️ Passando para lembrar da sua aula experimental hoje na *A2 Aquática*!\n\n⏰ Horário: *${startTime}*\n\n📌 *Dicas importantes:*\n- Traga sua *touca* e óculos de natação. 🏊‍♂️\n- Procure chegar uns 10 minutos antes da aula.\n\nEstamos ansiosos para te ver na água! Qualquer dúvida, é só responder aqui. Até logo! 🌊\n\nAtenciosamente,\n*Cibelly* - Sua assistente A2 Aquática 🤖`;
 
                         await sendWhatsApp(settings, phone, message);
-                        logger.info(`[checkExperimentalClassReminders] Enviado para ${clientName} em ${idBranch}`);
+                        console.log(`[checkExperimentalClassAutomations] Lembrete enviado para ${clientName} (${idTenant}/${idBranch})`);
 
                     } catch (trialErr) {
-                        logger.error(`[checkExperimentalClassReminders] Erro trial ${trialDoc.id}:`, trialErr);
+                        console.error(`[checkExperimentalClassAutomations] Erro na matrícula ${trialDoc.id}:`, trialErr);
                     }
                 }
             }
         }
 
-        logger.info("[checkExperimentalClassReminders] Rotina finalizada com sucesso.");
-
     } catch (error) {
-        logger.error("[checkExperimentalClassReminders] Erro fatal:", error);
+        console.error("[checkExperimentalClassAutomations] Erro fatal:", error);
+        throw error;
     }
 });
 
@@ -116,6 +111,7 @@ async function sendWhatsApp(settings, phone, message) {
     const url = `${baseUrl}/message/sendText/${settings.evolutionInstanceName}`;
     const token = settings.evolutionInstanceToken || settings.evolutionKey || settings.apiKey;
 
+    // Usando fetch nativo do Node 22 (conforme package.json engines)
     const response = await fetch(url, {
         method: 'POST',
         headers: {

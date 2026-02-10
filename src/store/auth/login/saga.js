@@ -10,6 +10,7 @@ import { tenantRepository } from "../../../data/repositories/TenantRepository";
 import { staffRepository } from "../../../data/repositories/StaffRepository";
 import { roleRepository } from "../../../data/repositories/RoleRepository";
 import { DEFAULT_ROLES } from "../../../config/permissions";
+import { MENU_ROUTES } from "../../../config/routes";
 
 const fireBaseBackend = getFirebaseBackend();
 
@@ -133,13 +134,24 @@ function* loginUser({ payload: { user, history } }) {
       role: staffProfile.role || staffProfile.roleId || staffProfile.roleName || 'user'
     };
 
-    console.log("[LoginSaga] Final User stored with permissions:", finalUser.permissions);
+
 
     localStorage.setItem("authUser", JSON.stringify(finalUser));
     yield put(loginSuccess(finalUser));
 
-    // 6. Redirect to Operational Dashboard (Accessible to everyone)
-    history(`/${finalTenantSlug}/${finalBranchSlug}/dashboard-operational`);
+    // 6. Determine Redirect based on Permissions dynamically
+    let targetDashboard = '/dashboard-operational'; // Default fallback
+
+    // Iterate through MENU_ROUTES to find the first accessible route
+    for (const [path, config] of Object.entries(MENU_ROUTES)) {
+      if (finalUser.permissions?.all || (config.permission && finalUser.permissions && finalUser.permissions[config.permission])) {
+        targetDashboard = path;
+        break;
+      }
+    }
+
+
+    history(`/${finalTenantSlug}/${finalBranchSlug}${targetDashboard}`);
 
   } catch (error) {
     yield put(apiError(error));

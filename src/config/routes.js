@@ -18,6 +18,7 @@ import { Navigate } from "react-router-dom"
 const Dashboard = React.lazy(() => import("../pages/Dashboard/index"))
 const OperationalDashboard = React.lazy(() => import("../pages/Dashboard/Operational/index"))
 const ManagementDashboard = React.lazy(() => import("../pages/Dashboard/Management/index"))
+const TeacherDashboard = React.lazy(() => import("../pages/Dashboard/Teacher/index"))
 const FinancialDashboardView = React.lazy(() => import("../pages/Dashboard/Financial/index"))
 const FinancialDashboard = React.lazy(() => import("../pages/Financial/Dashboard/index"))
 
@@ -90,10 +91,10 @@ const Pages403 = React.lazy(() => import("../pages/Extra Pages/pages-403"))
  */
 export const MENU_ROUTES = {
     // Dashboards
-    "/dashboard": { component: Dashboard, permissions: ["dashboards_management_view", "dashboards_commercial_view", "dashboards_financial_view"] },
-    "/dashboard-operational": { component: OperationalDashboard },
+    "/dashboard-operational": { component: OperationalDashboard, permission: "dashboards_operational_view" },
     "/dashboard-management": { component: ManagementDashboard, permission: "dashboards_management_view" },
     "/dashboard-financial": { component: FinancialDashboardView, permission: "dashboards_financial_view" },
+    "/dashboard-teacher": { component: TeacherDashboard, permission: "dashboards_teacher_view" },
 
     // Operacional
     "/grade": { component: Grade, permission: "grade_manage" },

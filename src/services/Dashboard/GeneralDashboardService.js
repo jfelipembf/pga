@@ -23,7 +23,8 @@ export const GeneralDashboardService = {
     getOperationalData: async (idTenant, idBranch, userId) => {
         const startMonth = normalizeDate(moment().startOf('month'));
         const endMonth = normalizeDate(moment().endOf('month'));
-        const today = moment().startOf('day');
+        const todayStart = normalizeDate(moment().startOf('day'));
+        const todayEnd = normalizeDate(moment().endOf('day'));
 
         const collectionRef = transactionRepository.getCollectionRef(idTenant, idBranch);
         let salesToday = 0;
@@ -48,19 +49,136 @@ export const GeneralDashboardService = {
                     const date = moment(item.date?.toDate ? item.date.toDate() : item.date);
 
                     salesMonth += amount;
-                    if (date.isSame(today, 'day')) {
+                    if (date.isSame(moment(), 'day')) {
                         salesToday += amount;
                     }
                 }
             });
 
         } catch (err) {
-            console.warn("Erro no dashboard operacional:", err);
+            console.warn("Erro no dashboard operacional (vendas):", err);
+        }
+
+        // --- Tarefas Agendadas para Hoje ---
+        let tasksTodayCount = 0;
+        try {
+            const { taskRepository } = await import('../../data/repositories/Admin/TaskRepository');
+            // Buscamos todas e filtramos em memória para garantir consistência com a lista
+            const allTasks = await taskRepository.findAll(idTenant, idBranch);
+
+            tasksTodayCount = allTasks.filter(task => {
+                // 1. Verifica Atribuição (Single ou Array)
+                const assignees = Array.isArray(task.assignedTo) ? task.assignedTo : [task.assignedTo];
+                const isAssigned = assignees.includes(userId);
+
+                if (!isAssigned) return false;
+
+                // 2. Verifica Data (Hoje) ou Pendente Atrasada
+                const taskDate = moment(task.dueDate?.toDate ? task.dueDate.toDate() : task.dueDate);
+                const isToday = taskDate.isSame(todayStart, 'day');
+                const isPendingLate = task.status === 'pending' && taskDate.isBefore(todayStart);
+
+                // 3. Verifica Recorrência
+                if (task.isRecurring) {
+                    if (task.recurrence?.frequency === 'daily') return true;
+                    if (task.recurrence?.frequency === 'weekly') {
+                        return task.recurrence?.daysOfWeek?.includes(moment().day());
+                    }
+                    if (task.recurrence?.frequency === 'monthly') {
+                        return task.recurrence?.dayOfMonth === moment().date();
+                    }
+                }
+
+                return isToday || isPendingLate;
+            }).length;
+
+        } catch (err) {
+            console.warn("Erro ao buscar tarefas hoje:", err);
+        }
+
+        // --- Contratos Vencendo Hoje ---
+        let expirationsTodayCount = 0;
+        try {
+            const { clientContractRepository } = await import('../../data/repositories/ClientContractRepository');
+            const contractsRes = await clientContractRepository.findWhere(idTenant, idBranch, [
+                ['endDate', '>=', todayStart],
+                ['endDate', '<=', todayEnd],
+                ['status', '==', 'active']
+            ]);
+            // Filtramos por responsabilidade (criador do contrato)
+            expirationsTodayCount = contractsRes.filter(c => c.createdBy === userId).length;
+        } catch (err) {
+            console.warn("Erro ao buscar vencimentos hoje:", err);
+        }
+
+        // --- Vendas Recentes do Consultor (Últimas 5) ---
+        let recentSales = [];
+        try {
+            // Buscamos transações recentes do mês para extrair as do consultor
+            // Isso evita criar índices compostos para cada consultor
+            const qRecent = query(
+                collectionRef,
+                where('date', '>=', startMonth),
+                where('type', '==', 'income')
+            );
+            const snapRecent = await getDocs(qRecent);
+            const myTransactions = [];
+            snapRecent.forEach(doc => {
+                const item = doc.data();
+                if (item.createdBy === userId) {
+                    myTransactions.push({
+                        id: doc.id,
+                        client: item.clientName || 'Cliente',
+                        value: `R$ ${parseFloat(item.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+                        time: moment(item.date?.toDate ? item.date.toDate() : item.date).fromNow(),
+                        type: item.category || 'Venda',
+                        date: item.date?.toDate ? item.date.toDate() : item.date
+                    });
+                }
+            });
+            recentSales = myTransactions.sort((a, b) => b.date - a.date).slice(0, 5);
+        } catch (err) {
+            console.warn("Erro ao buscar vendas recentes:", err);
+        }
+
+        // --- Gráfico de Histórico (12 Meses) ---
+        let salesHistorySeries = [];
+        try {
+            const twelveMonthsAgo = normalizeDate(moment().subtract(11, 'months').startOf('month'));
+            const qChart = query(
+                collectionRef,
+                where('date', '>=', twelveMonthsAgo),
+                where('type', '==', 'income')
+            );
+            const snapChart = await getDocs(qChart);
+            const dataMap = new Array(12).fill(0);
+
+            snapChart.forEach(doc => {
+                const item = doc.data();
+                if (item.createdBy === userId) {
+                    const date = moment(item.date?.toDate ? item.date.toDate() : item.date);
+                    const diff = moment().startOf('month').diff(date.clone().startOf('month'), 'months');
+                    const index = 11 - diff;
+                    if (index >= 0 && index < 12) {
+                        dataMap[index] += parseFloat(item.amount || 0);
+                    }
+                }
+            });
+
+            salesHistorySeries = [{ name: 'Vendas', data: dataMap }];
+        } catch (err) {
+            console.warn("Erro ao buscar histórico de vendas:", err);
         }
 
         return {
             mySalesToday: salesToday,
             mySalesMonth: salesMonth,
+            tasksToday: tasksTodayCount,
+            expirationsToday: expirationsTodayCount,
+            recentSales,
+            charts: {
+                seriesSales: salesHistorySeries
+            },
             myGoal: 0,
             birthdays: [],
             tasks: []
@@ -76,9 +194,13 @@ export const GeneralDashboardService = {
         const today = moment().startOf('day');
 
         const collectionRef = transactionRepository.getCollectionRef(idTenant, idBranch);
+
         let salesToday = 0;
         let salesMonth = 0;
         let salesCount = 0;
+
+        let expensesToday = 0;
+        let expensesMonth = 0;
 
         try {
             // Buscamos apenas por Data (índice automático padrão do SDK)
@@ -91,22 +213,25 @@ export const GeneralDashboardService = {
             const snapshot = await getDocs(q);
             snapshot.forEach(doc => {
                 const item = doc.data();
-                // Filtramos tipo venda (income) em memória
-                if (item.type === 'income') {
-                    const amount = parseFloat(item.amount) || 0;
-                    const date = moment(item.date?.toDate ? item.date.toDate() : item.date);
+                const amount = parseFloat(item.amount) || 0;
+                const date = moment(item.date?.toDate ? item.date.toDate() : item.date);
 
+                if (item.type === 'income') {
                     salesMonth += amount;
                     salesCount++;
-
                     if (date.isSame(today, 'day')) {
                         salesToday += amount;
+                    }
+                } else if (item.type === 'expense') {
+                    expensesMonth += amount;
+                    if (date.isSame(today, 'day')) {
+                        expensesToday += amount;
                     }
                 }
             });
 
         } catch (err) {
-            console.warn("Erro no dashboard gerencial (Atual):", err);
+            console.warn("Erro no dashboard gerencial (Financeiro):", err);
         }
 
         // --- Comparativo: Vendas do Mês Anterior ---
@@ -118,15 +243,13 @@ export const GeneralDashboardService = {
             const qLast = query(
                 collectionRef,
                 where('date', '>=', startLastMonth),
-                where('date', '<=', endLastMonth)
+                where('date', '<=', endLastMonth),
+                where('type', '==', 'income')
             );
 
             const snapLast = await getDocs(qLast);
             snapLast.forEach(doc => {
-                const item = doc.data();
-                if (item.type === 'income') {
-                    salesLastMonth += parseFloat(item.amount) || 0;
-                }
+                salesLastMonth += parseFloat(doc.data().amount) || 0;
             });
         } catch (err) {
             console.warn("Erro no dashboard gerencial (Passado):", err);
@@ -134,6 +257,23 @@ export const GeneralDashboardService = {
 
         const salesGrowth = GeneralDashboardService.calculateGrowth(salesMonth, salesLastMonth);
         const ticketAverage = salesCount > 0 ? (salesMonth / salesCount) : 0;
+
+        // ✅ NOVO: Contas a Pagar (Payables) - Pendentes
+        let payablesPending = 0;
+        try {
+            // Tenta importar o repositório de contas a pagar se existir
+            // Assumindo estrutura padrão. Se falhar, retorna 0.
+            const { payableRepository } = await import('../../data/repositories/Financial/PayableRepository');
+            if (payableRepository) {
+                const allPayables = await payableRepository.findAll(idTenant, idBranch); // Assumindo findAll ou método similar
+                // Filtrar pendentes em memória para evitar erro de index
+                payablesPending = allPayables
+                    .filter(p => p.status === 'pending' || p.status === 'open')
+                    .reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+            }
+        } catch (err) {
+            // Silencioso se não existir ou falhar
+        }
 
         // ✅ NOVO: Busca dados de alunos do DashboardSummary
         const { DashboardSummaryService } = await import('./DashboardSummaryService');
@@ -216,6 +356,15 @@ export const GeneralDashboardService = {
                 lastMonth: salesLastMonth,
                 growth: salesGrowth,
                 ticket: ticketAverage
+            },
+            financial: {
+                salesToday,
+                salesMonth,
+                expensesToday,
+                expensesMonth,
+                payablesPending,
+                profitToday: salesToday - expensesToday,
+                profitMonth: salesMonth - expensesMonth
             },
             charts: {
                 growthHistory: growthHistory || [],

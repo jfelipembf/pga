@@ -40,3 +40,11 @@ export const StaffSchema = yup.object().shape({
 
     metadata: yup.object().nullable()
 })
+
+/**
+ * Schema de validação para Atualização de Colaboradores (sem senha obrigatória)
+ */
+export const StaffUpdateSchema = StaffSchema.shape({
+    password: yup.string().nullable().notRequired(),
+    confirmPassword: yup.string().nullable().notRequired()
+})

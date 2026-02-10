@@ -11,7 +11,7 @@ import { AreaService } from '../../../../services/Admin/AreaService'
 import { StorageService } from '../../../../services/Core/StorageService'
 import { toast } from 'react-toastify'
 import { useFormik } from 'formik'
-import { StaffSchema } from '../../../../data/schemas/Admin/StaffSchema'
+import { StaffSchema, StaffUpdateSchema } from '../../../../data/schemas/Admin/StaffSchema'
 import { StaffMetricsService } from '../../../../services/Admin/StaffMetricsService'
 import moment from 'moment'
 
@@ -146,7 +146,7 @@ export const useStaffProfile = () => {
             city: staff?.city || '',
             state: staff?.state || '',
         },
-        validationSchema: StaffSchema,
+        validationSchema: StaffUpdateSchema,
         onSubmit: async (values) => {
             try {
                 if (!auth.currentUser) {

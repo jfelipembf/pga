@@ -57,29 +57,43 @@ const StaffProfileForm = ({ formik, roles = [], handlePasswordChange, isChanging
                         <Col md={4}>
                             <FormGroup>
                                 <Label>Telefone</Label>
-                                <Input
-                                    tag={InputMask}
+                                <InputMask
                                     mask="(99) 99999-9999"
-                                    name="phone"
-                                    placeholder="(00) 00000-0000"
                                     value={formik.values.phone}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                />
+                                >
+                                    {(inputProps) => (
+                                        <Input
+                                            {...inputProps}
+                                            innerRef={inputProps.ref}
+                                            type="text"
+                                            name="phone"
+                                            placeholder="(00) 00000-0000"
+                                        />
+                                    )}
+                                </InputMask>
                             </FormGroup>
                         </Col>
                         <Col md={4}>
                             <FormGroup>
                                 <Label>CPF</Label>
-                                <Input
-                                    tag={InputMask}
+                                <InputMask
                                     mask="999.999.999-99"
-                                    name="cpf"
-                                    placeholder="000.000.000-00"
                                     value={formik.values.cpf}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                />
+                                >
+                                    {(inputProps) => (
+                                        <Input
+                                            {...inputProps}
+                                            innerRef={inputProps.ref}
+                                            type="text"
+                                            name="cpf"
+                                            placeholder="000.000.000-00"
+                                        />
+                                    )}
+                                </InputMask>
                             </FormGroup>
                         </Col>
                         <Col md={4}>
@@ -132,7 +146,7 @@ const StaffProfileForm = ({ formik, roles = [], handlePasswordChange, isChanging
                                 >
                                     <option value="">Selecione...</option>
                                     {roles.map(role => (
-                                        <option key={role.id} value={role.id}>{role.name}</option>
+                                        <option key={role.id} value={role.id}>{role.name || role.label}</option>
                                     ))}
                                 </Input>
                             </FormGroup>
@@ -206,15 +220,22 @@ const StaffProfileForm = ({ formik, roles = [], handlePasswordChange, isChanging
                                     CEP
                                     {isLoadingCep && <Spinner size="sm" color="primary" />}
                                 </Label>
-                                <Input
-                                    tag={InputMask}
+                                <InputMask
                                     mask="99999-999"
-                                    name="zipCode"
-                                    placeholder="00000-000"
                                     value={formik.values.zipCode}
                                     onChange={formik.handleChange}
                                     onBlur={handleCepBlur}
-                                />
+                                >
+                                    {(inputProps) => (
+                                        <Input
+                                            {...inputProps}
+                                            innerRef={inputProps.ref}
+                                            type="text"
+                                            name="zipCode"
+                                            placeholder="00000-000"
+                                        />
+                                    )}
+                                </InputMask>
                             </FormGroup>
                         </Col>
                         <Col md={5}>

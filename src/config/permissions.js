@@ -28,7 +28,6 @@ export const PERMISSION_CATEGORIES = {
  * - category: categoria para agrupamento na UI
  */
 export const PERMISSIONS = [
-    // DASHBOARD
     {
         id: "dashboards_management_view",
         label: "Dashboard de gestão",
@@ -36,15 +35,21 @@ export const PERMISSIONS = [
         category: "DASHBOARD",
     },
     {
-        id: "dashboards_commercial_view",
-        label: "Dashboard comercial",
-        description: "Indicadores comerciais, funil e performance de vendas.",
-        category: "DASHBOARD",
-    },
-    {
         id: "dashboards_financial_view",
         label: "Dashboard financeiro",
         description: "Visão detalhada de faturamento, taxas e recebíveis.",
+        category: "DASHBOARD",
+    },
+    {
+        id: "dashboards_teacher_view",
+        label: "Dashboard do professor",
+        description: "Visão de turmas, alunos e tarefas do instrutor.",
+        category: "DASHBOARD",
+    },
+    {
+        id: "dashboards_operational_view",
+        label: "Dashboard operacional",
+        description: "Visão do dia-a-dia, vendas e tarefas.",
         category: "DASHBOARD",
     },
 
@@ -258,7 +263,8 @@ export const DEFAULT_ROLES = [
         permissions: {
             ...ALL_PERMISSIONS_FALSE,
             dashboards_management_view: true,
-            dashboards_commercial_view: true,
+            dashboards_teacher_view: true,
+            dashboards_operational_view: true,
             members_manage: true,
             staff_manage: true,
             crm_view: true,
@@ -286,7 +292,8 @@ export const DEFAULT_ROLES = [
         isInstructor: true,
         permissions: {
             ...ALL_PERMISSIONS_FALSE,
-            dashboards_management_view: true,
+            dashboards_teacher_view: true,
+            dashboards_operational_view: true,
             admin_activities: true,
             admin_classes: true,
             grade_manage: true,
@@ -302,7 +309,8 @@ export const DEFAULT_ROLES = [
         isInstructor: true,
         permissions: {
             ...ALL_PERMISSIONS_FALSE,
-            dashboards_management_view: true,
+            dashboards_teacher_view: true,
+            dashboards_operational_view: true,
             admin_activities: true,
             admin_classes: true,
             grade_manage: true,
@@ -317,7 +325,7 @@ export const DEFAULT_ROLES = [
         description: "Controle de entrada, dúvidas e cadastro rápido.",
         permissions: {
             ...ALL_PERMISSIONS_FALSE,
-            dashboards_commercial_view: true,
+            dashboards_operational_view: true,
             members_manage: true,
             crm_view: true,
             sales_purchase: true,
