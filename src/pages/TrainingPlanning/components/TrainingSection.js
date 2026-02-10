@@ -10,13 +10,15 @@ const TrainingSection = ({ section, sectionIndex, onChange, onRemove, onAddItem 
     };
 
     const handleChangeItem = (itemIndex, field, value) => {
-        const newItems = [...section.items];
+        const items = section.items || [];
+        const newItems = [...items];
         newItems[itemIndex] = { ...newItems[itemIndex], [field]: value };
         onChange(sectionIndex, 'items', newItems);
     };
 
     const handleRemoveItem = (itemIndex) => {
-        const newItems = section.items.filter((_, i) => i !== itemIndex);
+        const items = section.items || [];
+        const newItems = items.filter((_, i) => i !== itemIndex);
         onChange(sectionIndex, 'items', newItems);
     };
 
@@ -25,7 +27,8 @@ const TrainingSection = ({ section, sectionIndex, onChange, onRemove, onAddItem 
     };
 
     // Calculate section distance
-    const sectionDistance = section.items.reduce((acc, item) => {
+    const sectionItems = section.items || [];
+    const sectionDistance = sectionItems.reduce((acc, item) => {
         const reps = parseInt(item.reps) || 0;
         const distance = parseInt(item.distance) || 0;
         return acc + (reps * distance);
@@ -35,12 +38,12 @@ const TrainingSection = ({ section, sectionIndex, onChange, onRemove, onAddItem 
         <Card className="mb-3 shadow-sm border-0">
             <CardBody className="p-3">
                 {/* Section Header */}
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                    <div className="d-flex align-items-center flex-grow-1">
+                <div className="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                    <div className="d-flex align-items-center flex-grow-1 mb-2 mb-md-0">
                         <Button
                             color="link"
                             size="sm"
-                            className="p-0 me-2 text-muted"
+                            className="p-0 me-1 text-muted"
                             onClick={() => setIsCollapsed(!isCollapsed)}
                         >
                             <i className={`mdi mdi-chevron-${isCollapsed ? 'right' : 'down'} font-size-18`}></i>
@@ -49,11 +52,11 @@ const TrainingSection = ({ section, sectionIndex, onChange, onRemove, onAddItem 
                             type="text"
                             value={section.name}
                             onChange={(e) => handleChangeSectionName(e.target.value)}
-                            className="form-control-sm border-0 bg-light fw-bold"
-                            placeholder="Nome da seção (ex: Aquecimento)"
-                            style={{ maxWidth: '300px' }}
+                            className="form-control-sm border-0 bg-light fw-bold px-2"
+                            placeholder="Nome da seção"
+                            style={{ maxWidth: '200px', fontSize: '0.9rem' }}
                         />
-                        <Badge color="primary" className="ms-3 px-3 py-2">
+                        <Badge color="primary" className="ms-2 px-2 py-2 section-badge">
                             {sectionDistance}m
                         </Badge>
                     </div>
@@ -61,6 +64,7 @@ const TrainingSection = ({ section, sectionIndex, onChange, onRemove, onAddItem 
                         color="danger"
                         size="sm"
                         outline
+                        className="p-1 px-2"
                         onClick={() => onRemove(sectionIndex)}
                         title="Remover seção"
                     >
@@ -72,7 +76,7 @@ const TrainingSection = ({ section, sectionIndex, onChange, onRemove, onAddItem 
                 {!isCollapsed && (
                     <>
                         {/* Header Row */}
-                        {section.items.length > 0 && (
+                        {(section.items?.length || 0) > 0 && (
                             <Row className="mb-2 text-muted small fw-bold text-uppercase d-none d-md-flex px-1">
                                 <Col md={1}>Reps</Col>
                                 <Col md={1}>Distância</Col>
@@ -87,7 +91,7 @@ const TrainingSection = ({ section, sectionIndex, onChange, onRemove, onAddItem 
 
                         {/* Items */}
                         <div className="section-items">
-                            {section.items.length === 0 ? (
+                            {(section.items?.length || 0) === 0 ? (
                                 <div className="text-center py-3 bg-light rounded border border-dashed">
                                     <p className="text-muted mb-2 small">Nenhuma série nesta seção</p>
                                     <Button color="primary" size="sm" onClick={handleAddItemToSection}>
@@ -96,7 +100,7 @@ const TrainingSection = ({ section, sectionIndex, onChange, onRemove, onAddItem 
                                 </div>
                             ) : (
                                 <>
-                                    {section.items.map((item, itemIndex) => (
+                                    {section.items?.map((item, itemIndex) => (
                                         <WorkoutItem
                                             key={item.id}
                                             index={itemIndex}

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardBody, Button, Row, Col, Spinner } from "reactstrap";
 import TrainingSection from "./TrainingSection";
-import { formatDateDisplay } from "../../../utils/date";
+import { formatDateDisplay, toISODate } from "../../../utils/date";
 import { calculateTotalDistanceFromSections } from "../utils/trainingUtils";
+import { toast } from "react-toastify";
+import { TrainingPlanSchema } from "../../../data/schemas/Training/TrainingPlanSchema";
 
 const TrainingForm = ({ date, initialData, onSave, onBack }) => {
     // Initialize sections from initialData or create empty array
@@ -60,15 +62,25 @@ const TrainingForm = ({ date, initialData, onSave, onBack }) => {
         setIsSaving(true);
         try {
             const workoutData = {
-                id: initialData?.id || Date.now(),
-                date: date,
+                id: initialData?.id || null,
+                dateString: initialData?.dateString || (date ? toISODate(date) : ""),
                 description: description,
                 sections: sections,
                 totalDistance: totalDistance
             };
+
+            // Validar com Schema
+            await TrainingPlanSchema.validate(workoutData, { abortEarly: false });
+
             await onSave(workoutData);
         } catch (error) {
             console.error("Error saving workout:", error);
+            if (error.inner) {
+                // Erros de validação do Yup
+                error.inner.forEach(err => toast.error(err.message));
+            } else {
+                toast.error("Erro ao validar dados do treino.");
+            }
         } finally {
             setIsSaving(false);
         }
@@ -202,7 +214,7 @@ const TrainingForm = ({ date, initialData, onSave, onBack }) => {
                             <Button
                                 color="secondary"
                                 outline
-                                className="me-2 shadow-sm"
+                                className="me-2 shadow-sm w-xs-100 mb-2 mb-sm-0"
                                 onClick={handleAddSection}
                                 style={{ borderRadius: '8px' }}
                                 disabled={isSaving}
@@ -213,7 +225,7 @@ const TrainingForm = ({ date, initialData, onSave, onBack }) => {
                                 color="primary"
                                 onClick={handleSave}
                                 disabled={sections.length === 0 || isSaving}
-                                className="shadow-sm"
+                                className="shadow-sm w-xs-100"
                                 style={{ borderRadius: '8px', minWidth: '140px' }}
                             >
                                 {isSaving ? (

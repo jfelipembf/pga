@@ -20,7 +20,7 @@ export const INTENSITIES = [
 
 export const EQUIPMENT = [
     { value: "fins", label: "Pé de Pato" },
-    { value: "paddles", label: "Palar" },
+    { value: "paddles", label: "Palmar" },
     { value: "pullbuoy", label: "Pull Buoy" },
     { value: "snorkel", label: "Snorkel" },
     { value: "board", label: "Prancha" },

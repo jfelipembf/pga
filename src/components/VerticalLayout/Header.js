@@ -120,7 +120,7 @@ const Header = props => {
 
             {/* Action Icons */}
             <div className="d-flex align-items-center gap-1">
-              {/* Training TV Mode Button */}
+              {/* Training TV Mode Button - Removed for now
               <Link
                 to={activeTenant && activeBranch ? `/${activeTenant.idTenant}/${activeBranch.idBranch}/training-tv` : "/training-tv"}
                 className="btn header-item waves-effect d-flex align-items-center justify-content-center"
@@ -129,6 +129,7 @@ const Header = props => {
               >
                 <i className="mdi mdi-monitor font-size-24"></i>
               </Link>
+              */}
 
               {/* Add Client Button */}
               <button

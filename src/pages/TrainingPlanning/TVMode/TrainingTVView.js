@@ -2,9 +2,10 @@ import React, { useState, useEffect, useCallback, forwardRef } from "react";
 import { Badge, Button } from "reactstrap";
 import ReactDatePicker, { registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { listTrainingPlans } from "../../../services/TrainingPlanning/trainingPlanning.service";
+import { TrainingPlanService } from "../../../services/TrainingPlanning/trainingPlanning.service";
 import { toISODate, formatDateDisplay } from "../../../utils/date";
 import PageLoader from "../../../components/Common/PageLoader";
+import { useTenant } from "../../../hooks/useTenant";
 import logoTV from "../../../assets/images/logoTV.png";
 import { ptBR } from 'date-fns/locale';
 
@@ -25,12 +26,13 @@ const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
 ));
 
 const TrainingTVView = () => {
+    const { idTenant, idBranch, isReady } = useTenant();
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [workouts, setWorkouts] = useState([]);
     const [loading, setLoading] = useState(false);
 
     const loadWorkouts = useCallback(async () => {
-        if (!selectedDate) {
+        if (!isReady || !selectedDate || !idTenant) {
             setWorkouts([]);
             return;
         }
@@ -39,14 +41,14 @@ const TrainingTVView = () => {
 
         try {
             setLoading(true);
-            const data = await listTrainingPlans(dateStr);
-            setWorkouts(data);
+            const data = await TrainingPlanService.listByDate(idTenant, idBranch, dateStr);
+            setWorkouts(data || []);
         } catch (error) {
             console.error("Error loading TV workouts:", error);
         } finally {
             setLoading(false);
         }
-    }, [selectedDate]);
+    }, [selectedDate, idTenant, idBranch, isReady]);
 
     useEffect(() => {
         loadWorkouts();
@@ -111,8 +113,9 @@ const TrainingTVView = () => {
                                 {/* Render Sections or Legacy Items */}
                                 {workout.sections && workout.sections.length > 0 ? (
                                     // NEW: Section-based rendering
-                                    workout.sections.map((section, sectionIdx) => {
-                                        const sectionDistance = section.items.reduce((acc, item) => {
+                                    workout.sections?.map((section, sectionIdx) => {
+                                        const items = section.items || [];
+                                        const sectionDistance = items.reduce((acc, item) => {
                                             const reps = parseInt(item.reps) || 0;
                                             const distance = parseInt(item.distance) || 0;
                                             return acc + (reps * distance);
@@ -145,7 +148,7 @@ const TrainingTVView = () => {
 
                                                 {/* Table Rows */}
                                                 <div className="bg-white rounded-bottom shadow-sm mb-4">
-                                                    {section.items?.map((item, idx) => (
+                                                    {(section.items || [])?.map((item, idx) => (
                                                         <div
                                                             key={idx}
                                                             className="tv-table-row d-flex align-items-center py-2 px-3 border-bottom"

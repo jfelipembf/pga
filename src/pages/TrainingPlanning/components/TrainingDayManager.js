@@ -2,18 +2,18 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardBody } from "reactstrap";
 import WorkoutList from "./WorkoutList";
 import TrainingForm from "./TrainingForm";
-import {
-    listTrainingPlans,
-    createTrainingPlan,
-    updateTrainingPlan,
-    deleteTrainingPlan
-} from "../../../services/TrainingPlanning/trainingPlanning.service";
+import { TrainingPlanService } from "../../../services/TrainingPlanning/trainingPlanning.service";
 import PageLoader from "../../../components/Common/PageLoader";
 import { toast } from "react-toastify";
 import ConfirmDialog from "../../../components/Common/ConfirmDialog";
 import { toISODate } from "../../../utils/date";
+import { useTenant } from "../../../hooks/useTenant";
+import { useAuth } from "../../../hooks/useAuth";
 
 const TrainingDayManager = ({ date }) => {
+    const { idTenant, idBranch, isReady } = useTenant();
+    const { user } = useAuth();
+
     const [viewMode, setViewMode] = useState("LIST"); // "LIST" or "FORM"
     const [workouts, setWorkouts] = useState([]);
     const [selectedWorkout, setSelectedWorkout] = useState(null);
@@ -25,7 +25,7 @@ const TrainingDayManager = ({ date }) => {
 
     // Load workouts for selected date
     const loadWorkouts = useCallback(async () => {
-        if (!date) {
+        if (!isReady || !date || !idTenant) {
             setWorkouts([]);
             return;
         }
@@ -34,7 +34,7 @@ const TrainingDayManager = ({ date }) => {
 
         try {
             setLoading(true);
-            const data = await listTrainingPlans(dateStr);
+            const data = await TrainingPlanService.listByDate(idTenant, idBranch, dateStr);
             setWorkouts(data);
         } catch (error) {
             console.error("Error loading workouts:", error);
@@ -42,7 +42,7 @@ const TrainingDayManager = ({ date }) => {
         } finally {
             setLoading(false);
         }
-    }, [date]);
+    }, [date, idTenant, idBranch, isReady]);
 
     useEffect(() => {
         loadWorkouts();
@@ -65,12 +65,12 @@ const TrainingDayManager = ({ date }) => {
     };
 
     const handleConfirmDelete = async () => {
-        if (!deleteId) return;
+        if (!deleteId || !idTenant) return;
         setDeleteModalOpen(false);
 
         try {
             setLoading(true);
-            await deleteTrainingPlan(deleteId);
+            await TrainingPlanService.delete(idTenant, idBranch, user?.uid, user?.displayName, deleteId);
             toast.success("Treino removido com sucesso.");
 
             // Update UI locally
@@ -86,12 +86,14 @@ const TrainingDayManager = ({ date }) => {
     };
 
     const handleSaveWorkout = async (workoutData) => {
+        if (!idTenant) return;
+
         try {
             setLoading(true);
 
             if (workoutData.id && selectedWorkout) {
                 // Update
-                await updateTrainingPlan(workoutData.id, workoutData);
+                await TrainingPlanService.update(idTenant, idBranch, user?.uid, user?.displayName, workoutData.id, workoutData);
                 toast.success("Treino atualizado com sucesso.");
             } else {
                 // Create
@@ -100,11 +102,10 @@ const TrainingDayManager = ({ date }) => {
                 const payload = {
                     ...workoutData,
                     dateString: dateKey,
-                    date: date // Pass Date object for service helper
                 };
                 delete payload.id;
 
-                await createTrainingPlan(payload);
+                await TrainingPlanService.create(idTenant, idBranch, user?.uid, user?.displayName, payload);
 
                 toast.success("Novo treino criado com sucesso.");
             }
@@ -127,10 +128,14 @@ const TrainingDayManager = ({ date }) => {
     const renderContent = () => {
         if (!date) {
             return (
-                <div className="h-100 d-flex align-items-center justify-content-center text-muted">
-                    <div className="text-center">
-                        <i className="mdi mdi-calendar-cursor font-size-24 mb-2 d-block"></i>
-                        Selecione uma data no calendário ao lado.
+                <div className="h-100 d-flex align-items-center justify-content-center animate-fade-in" style={{ minHeight: '400px' }}>
+                    <div className="text-center p-5 bg-white rounded-3 shadow-sm border" style={{ maxWidth: '400px' }}>
+                        <div className="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4"
+                            style={{ width: '80px', height: '80px' }}>
+                            <i className="mdi mdi-calendar-search text-primary" style={{ fontSize: '40px' }}></i>
+                        </div>
+                        <h5 className="fw-bold text-dark mb-2">Planejamento de Treinos</h5>
+                        <p className="text-muted">Selecione uma data no calendário ao lado para gerenciar ou criar novos treinos.</p>
                     </div>
                 </div>
             );

@@ -134,7 +134,7 @@ export const MENU_ROUTES = {
 export const HIDDEN_ROUTES = {
     "/clients/:id": { component: ClientProfile, permission: "members_manage" },
     "/grade/enroll": { component: EnrollmentGrade, permission: "grade_manage" },
-    "/training-tv": { component: TrainingTVView },
+    // "/training-tv": { component: TrainingTVView },
     "/admin/staff/:id": { component: StaffProfile, permission: "staff_manage" },
     "/sales/new": { component: SalesPoint, permission: "sales_purchase" },
     "/chat": { component: Chat },

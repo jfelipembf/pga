@@ -14,6 +14,7 @@ export const TRIGGER_CONFIG = {
     EVALUATION_RESULT: { label: "Resultado da Avaliação", category: "Pedagógico", variables: ["{student}", "{results}", "{date}"] },
     TEST_RESULT: { label: "Resultado do Teste", category: "Pedagógico", variables: ["{name}"] },
     BIRTHDAY: { label: "Aniversariante", category: "Relacionamento", variables: ["{name}"] },
+    TRAINING_PLAN: { label: "Plano de Treino", category: "Pedagógico", variables: ["{studentName}", "{workoutContent}", "{date}"] },
 }
 
 export const TRIGGER_LABELS = Object.keys(TRIGGER_CONFIG).reduce((acc, key) => {
@@ -36,4 +37,5 @@ export const DEFAULT_MESSAGES = {
     TEST_RESULT: "Mandou bem, {name}! 📝 Seu resultado no teste já está registrado. Continue assim!",
     ENROLLMENT_CREATED: "Matrícula confirmada! 📝 Seja muito bem-vindo(a), {name}! Agora é só cair na água. 🏊‍♂️",
     BIRTHDAY: "Parabéns {name}! 🎂 Muitos anos de vida, saúde e muitas braçadas! Aproveite seu dia! 🎉",
+    TRAINING_PLAN: "Olá *{studentName}*! 🏊‍♂️\n\nAqui está o seu planejamento de treino da PGA para hoje ({date}):\n\n{workoutContent}\n\nBom treino! 💪",
 }

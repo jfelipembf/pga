@@ -1,131 +1,138 @@
-import { getFirebaseBackend } from "../../helpers/firebase_helper";
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy } from "firebase/firestore";
-import { normalizeDate } from "../../utils/date";
+import { trainingPlanRepository } from "../../data/repositories/TrainingPlanRepository";
+import { AuditService } from "../Core/AuditService";
+import { automationService } from "../Automation/AutomationService";
+import { formatTrainingForWhatsApp } from "../../pages/TrainingPlanning/utils/TrainingFormatter";
+import moment from "moment";
 
 /**
- * Service for managing Training Plans with Calendar-based organization
+ * Service para Planejamento de Treinos.
+ * Segue o padrão Multi-tenant e Auditable.
  */
+export const TrainingPlanService = {
+    /**
+     * Lista planos de treino para uma data específica
+     */
+    listByDate: async (idTenant, idBranch, dateString) => {
+        try {
+            return await trainingPlanRepository.findByDate(idTenant, idBranch, dateString);
+        } catch (error) {
+            console.error("[TrainingPlanService] Erro ao listar treinos:", error);
+            throw error;
+        }
+    },
 
-const getDb = () => {
-    const backend = getFirebaseBackend();
-    if (!backend || !backend.db) {
-        throw new Error("Firebase Backend não inicializado");
-    }
-    return backend.db;
-};
+    /**
+     * Cria um novo plano de treino
+     */
+    create: async (idTenant, idBranch, userId, userName, data) => {
+        try {
+            const plan = await trainingPlanRepository.create(idTenant, idBranch, data);
 
-/**
- * List all training plans for a given date
- * @param {string} dateString - Date in format "YYYY-MM-DD"
- * @returns {Promise<Array>} Array of training plans
- */
-export const listTrainingPlans = async (dateString) => {
-    try {
-        const db = getDb();
-        const collectionRef = collection(db, "trainingPlans");
-        const q = query(
-            collectionRef,
-            where("dateString", "==", dateString),
-            where("deletedAt", "==", null),
-            orderBy("createdAt", "desc")
-        );
+            await AuditService.log({
+                idTenant,
+                idBranch,
+                userId,
+                userName,
+                action: 'TRAINING_PLAN_CREATED',
+                entityType: 'training_plan',
+                entityId: plan.id,
+                description: `Criado plano de treino: ${data.description || 'Sem descrição'}`
+            });
 
-        const snapshot = await getDocs(q);
-        const plans = [];
-        snapshot.forEach((doc) => {
-            plans.push({ id: doc.id, ...doc.data() });
-        });
+            return plan;
+        } catch (error) {
+            console.error("[TrainingPlanService] Erro ao criar treino:", error);
+            throw error;
+        }
+    },
 
-        return plans;
-    } catch (error) {
-        console.error("[trainingPlanning.service] Error listing training plans:", error);
-        throw error;
-    }
-};
+    /**
+     * Atualiza um plano de treino existente
+     */
+    update: async (idTenant, idBranch, userId, userName, planId, data) => {
+        try {
+            const oldData = await trainingPlanRepository.findById(idTenant, idBranch, planId);
+            const updated = await trainingPlanRepository.update(idTenant, idBranch, planId, data);
 
-/**
- * Create a new training plan
- * @param {Object} trainingPlanData - Training plan data
- * @returns {Promise<string>} Created document ID
- */
-export const createTrainingPlan = async (trainingPlanData) => {
-    try {
-        const db = getDb();
-        const collectionRef = collection(db, "trainingPlans");
+            await AuditService.logUpdate({
+                idTenant,
+                idBranch,
+                userId,
+                userName,
+                entityType: 'training_plan',
+                entityId: planId,
+                oldData,
+                newData: { ...oldData, ...data },
+                description: `Atualizado plano de treino: ${data.description || oldData?.description}`
+            });
 
-        const payload = {
-            ...trainingPlanData,
-            createdAt: normalizeDate(new Date()),
-            updatedAt: normalizeDate(new Date()),
-            deletedAt: null,
-        };
+            return updated;
+        } catch (error) {
+            console.error("[TrainingPlanService] Erro ao atualizar treino:", error);
+            throw error;
+        }
+    },
 
-        const docRef = await addDoc(collectionRef, payload);
-        return docRef.id;
-    } catch (error) {
-        console.error("[trainingPlanning.service] Error creating training plan:", error);
-        throw error;
-    }
-};
+    /**
+     * Remove (soft delete) um plano de treino
+     */
+    delete: async (idTenant, idBranch, userId, userName, planId) => {
+        try {
+            const plan = await trainingPlanRepository.findById(idTenant, idBranch, planId);
+            await trainingPlanRepository.softDelete(idTenant, idBranch, planId, userId);
 
-/**
- * Update an existing training plan
- * @param {string} planId - Training plan ID
- * @param {Object} updatedData - Updated training plan data
- * @returns {Promise<void>}
- */
-export const updateTrainingPlan = async (planId, updatedData) => {
-    try {
-        const db = getDb();
-        const docRef = doc(db, "trainingPlans", planId);
+            await AuditService.log({
+                idTenant,
+                idBranch,
+                userId,
+                userName,
+                action: 'TRAINING_PLAN_DELETED',
+                entityType: 'training_plan',
+                entityId: planId,
+                description: `Removido plano de treino: ${plan?.description || 'Sem descrição'}`
+            });
 
-        const payload = {
-            ...updatedData,
-            updatedAt: normalizeDate(new Date()),
-        };
+            return true;
+        } catch (error) {
+            console.error("[TrainingPlanService] Erro ao deletar treino:", error);
+            throw error;
+        }
+    },
 
-        delete payload.id;
-        delete payload.createdAt;
+    /**
+     * Envia o treino para uma lista de alunos via WhatsApp
+     */
+    sendToStudents: async (idTenant, idBranch, userId, userName, students, workout) => {
+        try {
+            const workoutContent = formatTrainingForWhatsApp(workout);
+            const date = moment().format('DD/MM/YYYY');
 
-        await updateDoc(docRef, payload);
-    } catch (error) {
-        console.error("[trainingPlanning.service] Error updating training plan:", error);
-        throw error;
-    }
-};
+            const promises = students.map(student =>
+                automationService.emit(idTenant, 'TRAINING_PLAN', {
+                    studentName: student.name,
+                    phone: student.phone || student.cellPhone || student.responsavelPhone,
+                    workoutContent,
+                    date
+                })
+            );
 
-/**
- * Soft delete a training plan
- * @param {string} planId - Training plan ID
- * @returns {Promise<void>}
- */
-export const deleteTrainingPlan = async (planId) => {
-    try {
-        const db = getDb();
-        const docRef = doc(db, "trainingPlans", planId);
+            await Promise.all(promises);
 
-        await updateDoc(docRef, {
-            deletedAt: normalizeDate(new Date()),
-            updatedAt: normalizeDate(new Date()),
-        });
-    } catch (error) {
-        console.error("[trainingPlanning.service] Error deleting training plan:", error);
-        throw error;
-    }
-};
+            await AuditService.log({
+                idTenant,
+                idBranch,
+                userId,
+                userName,
+                action: 'TRAINING_PLAN_SHARED',
+                entityType: 'training_plan',
+                entityId: workout.id,
+                description: `Compartilhado treino "${workout.description}" com ${students.length} alunos`
+            });
 
-/**
- * Permanently delete a training plan
- * @param {string} planId - Training plan ID
- * @returns {Promise<void>}
- */
-export const hardDeleteTrainingPlan = async (planId) => {
-    try {
-        const db = getDb();
-        const docRef = doc(db, "trainingPlans", planId);
-        await deleteDoc(docRef);
-    } catch (error) {
-        console.error("[trainingPlanning.service] Error hard deleting training plan:", error);
-        throw error;
+            return true;
+        } catch (error) {
+            console.error("[TrainingPlanService] Erro ao enviar treinos:", error);
+            throw error;
+        }
     }
 };

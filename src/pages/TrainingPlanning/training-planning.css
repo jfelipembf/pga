@@ -1,0 +1,109 @@
+/* Premium Training Planning Styles */
+
+.training-card-hover {
+    transition: all 0.3s ease;
+    border: 1px solid transparent !important;
+}
+
+.training-card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+    border-color: rgba(70, 106, 143, 0.2) !important;
+}
+
+.workout-item-row {
+    transition: background-color 0.2s ease;
+    border-radius: 8px;
+    margin-bottom: 4px;
+}
+
+.workout-item-row:hover {
+    background-color: rgba(70, 106, 143, 0.05) !important;
+}
+
+/* Glassmorphism elements */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* Custom Scrollbar for list */
+.workout-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.workout-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.workout-list::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+
+.workout-list::-webkit-scrollbar-thumb:hover {
+    background: #466a8f;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+.section-badge {
+    background: linear-gradient(90deg, #466a8f 0%, #5a7fa8 100%) !important;
+    font-weight: 600;
+}
+
+/* Responsive Utilities */
+@media (max-width: 576px) {
+    .w-xs-100 {
+        width: 100% !important;
+    }
+
+    .p-xs-2 {
+        padding: 0.5rem !important;
+    }
+
+    .training-calendar {
+        width: 100% !important;
+    }
+}
+
+/* Accessibility: Better font scaling */
+html {
+    font-size: 16px;
+}
+
+@media (max-width: 1200px) {
+    html {
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    html {
+        font-size: 14px;
+    }
+}
+
+.training-font-bold {
+    font-weight: 700;
+}
+
+.tv-text-dynamic {
+    font-size: clamp(1rem, 2.5vw, 2.5rem);
+}

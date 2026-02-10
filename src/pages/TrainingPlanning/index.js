@@ -4,6 +4,7 @@ import { Row, Col } from "reactstrap";
 import { setBreadcrumbItems } from "../../store/actions";
 import TrainingCalendar from "./components/TrainingCalendar";
 import TrainingDayManager from "./components/TrainingDayManager";
+import "./training-planning.css";
 
 const TrainingPlanning = (props) => {
     const [selectedDate, setSelectedDate] = useState(new Date());
