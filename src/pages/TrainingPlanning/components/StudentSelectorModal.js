@@ -115,12 +115,21 @@ const StudentSelectorModal = ({ isOpen, toggle, onSend, workout }) => {
                                         style={{ cursor: 'pointer' }}
                                     >
                                         <div className="me-3 position-relative">
-                                            <img
-                                                src={student.photo || placeholderAvatar}
-                                                alt={student.name}
-                                                className="rounded-circle border shadow-sm"
-                                                style={{ width: '45px', height: '45px', objectFit: 'cover' }}
-                                            />
+                                            {student.photoUrl || student.photo ? (
+                                                <img
+                                                    src={student.photoUrl || student.photo}
+                                                    alt={student.name}
+                                                    className="rounded-circle border shadow-sm"
+                                                    style={{ width: '45px', height: '45px', objectFit: 'cover' }}
+                                                />
+                                            ) : (
+                                                <div
+                                                    className="rounded-circle border shadow-sm bg-light d-flex align-items-center justify-content-center text-muted"
+                                                    style={{ width: '45px', height: '45px' }}
+                                                >
+                                                    <i className="mdi mdi-account fs-3"></i>
+                                                </div>
+                                            )}
                                             {isSelected && (
                                                 <div className="position-absolute bottom-0 end-0 bg-success rounded-circle d-flex align-items-center justify-content-center border border-white" style={{ width: '18px', height: '18px' }}>
                                                     <i className="mdi mdi-check text-white" style={{ fontSize: '12px' }}></i>
@@ -132,7 +141,11 @@ const StudentSelectorModal = ({ isOpen, toggle, onSend, workout }) => {
                                                 {student.name}
                                             </h6>
                                             <div className="d-flex align-items-center gap-2">
-                                                {student.idGym && <Badge color="secondary" outline className="small text-muted border-0 p-0 font-weight-normal">#{student.idGym}</Badge>}
+                                                {student.idGym && (
+                                                    <span className="text-muted small fw-medium">
+                                                        #{student.idGym}
+                                                    </span>
+                                                )}
                                                 <span className="text-muted small">
                                                     <i className="mdi mdi-phone-outline me-1"></i>
                                                     {student.phone || student.cellPhone || student.responsavelPhone || 'Sem telefone'}

@@ -212,14 +212,13 @@ const TrainingForm = ({ date, initialData, onSave, onBack }) => {
                         </Col>
                         <Col sm={6} className="text-end">
                             <Button
-                                color="secondary"
-                                outline
-                                className="me-2 shadow-sm w-xs-100 mb-2 mb-sm-0"
-                                onClick={handleAddSection}
+                                color="light"
+                                className="me-2 shadow-sm w-xs-100 mb-2 mb-sm-0 px-4"
+                                onClick={onBack}
                                 style={{ borderRadius: '8px' }}
                                 disabled={isSaving}
                             >
-                                <i className="mdi mdi-plus me-1"></i> Seção
+                                Cancelar
                             </Button>
                             <Button
                                 color="primary"
