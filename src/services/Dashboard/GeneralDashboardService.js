@@ -175,12 +175,20 @@ export const GeneralDashboardService = {
             console.warn("Erro ao buscar comparativo de alunos:", err)
         }
 
-        // --- Gráficos: Histórico de 12 Meses (Vendas) ---
-        let salesHistory = [];
+        // --- Gráficos: Histórico de 12 Meses (Crescimento Financeiro: Receita vs Despesa) ---
+        let growthHistory = [];
         try {
-            salesHistory = await GeneralDashboardService.getLast12MonthsSales(idTenant, idBranch);
+            growthHistory = await GeneralDashboardService.getFinancialGrowthData(idTenant, idBranch);
         } catch (err) {
-            console.warn("Erro ao buscar histórico de vendas:", err);
+            console.warn("Erro ao buscar crescimento financeiro:", err);
+        }
+
+        // --- Gráficos: Mais Vendidos (Donut) ---
+        let mostSold = { labels: [], series: [], totalCount: 0 };
+        try {
+            mostSold = await GeneralDashboardService.getMostSoldData(idTenant, idBranch);
+        } catch (err) {
+            console.warn("Erro ao buscar dados de mais vendidos:", err);
         }
 
         // --- Gráficos: Histórico de 12 Meses (Alunos Ativos) ---
@@ -192,7 +200,7 @@ export const GeneralDashboardService = {
         }
 
         // --- Gráficos: Histórico de 3 Anos (Ativos e Vendas - Mês a Mês) ---
-        let last3YearsMonthly = { seriesSales: [], seriesStudents: [], years: [] };
+        let last3YearsMonthly = { salesSeries: [], studentsSeries: [], years: [] };
         try {
             last3YearsMonthly = await GeneralDashboardService.getLast3YearsMonthlyData(idTenant, idBranch);
         } catch (err) {
@@ -210,7 +218,8 @@ export const GeneralDashboardService = {
                 ticket: ticketAverage
             },
             charts: {
-                salesHistory: salesHistory || [],
+                growthHistory: growthHistory || [],
+                mostSold: mostSold || { labels: [], series: [], totalCount: 0 },
                 studentsHistory: studentsHistory || [],
                 seriesSales: last3YearsMonthly?.salesSeries || [],
                 seriesStudents: last3YearsMonthly?.studentsSeries || [],
@@ -220,31 +229,98 @@ export const GeneralDashboardService = {
     },
 
     /**
-     * Busca vendas dos últimos 12 meses agrupadas por mês.
+     * Busca dados de Receita, Despesa e Lucro dos últimos 12 meses.
      */
-    getLast12MonthsSales: async (idTenant, idBranch) => {
-        // ... (existing code, keeping brief for diff context if needed, but tool replaces block)
-        // Re-implementing just in case or leaving as is if not targeted by Replace
-        // Since I can't easily skip lines in ReplaceContent, I will just implement the new method
-        // and let the user delete the old getLast3YearsData if I overwrite it.
-        // Wait, I need to keep getLast12MonthsSales? Yes. 
-        // The Instruction says "Replace getLast3YearsData...". 
-        // So I will target the block starting from getLast3YearsData.
+    getFinancialGrowthData: async (idTenant, idBranch) => {
+        const start = normalizeDate(moment().subtract(11, 'months').startOf('month'));
+        const end = normalizeDate(moment().endOf('month'));
+        const collectionRef = transactionRepository.getCollectionRef(idTenant, idBranch);
 
-        // Actually, I will target the end of the file where getLast3YearsData is.
-        // Let me re-read the file content from step 334.
-        // getLast3YearsData starts at line 279.
+        const q = query(
+            collectionRef,
+            where('date', '>=', start),
+            where('date', '<=', end)
+        );
 
-        // Return to getManagerData (line 184) to update the call:
-        // const yearComparison = await GeneralDashboardService.getLast3YearsData(idTenant, idBranch);
+        const incomeMap = {};
+        const expenseMap = {};
+        const months = [];
 
-        // I will do 2 Replace calls.
-        return null; // Placeholder to stop thought process
+        for (let i = 11; i >= 0; i--) {
+            const m = moment().subtract(i, 'months').format('MMM');
+            months.push(m);
+            incomeMap[m] = 0;
+            expenseMap[m] = 0;
+        }
+
+        try {
+            const snapshot = await getDocs(q);
+            snapshot.forEach(doc => {
+                const item = doc.data();
+                const m = moment(item.date?.toDate ? item.date.toDate() : item.date).format('MMM');
+                const amount = parseFloat(item.amount) || 0;
+
+                if (item.type === 'income') {
+                    if (incomeMap[m] !== undefined) incomeMap[m] += amount;
+                } else if (item.type === 'expense') {
+                    if (expenseMap[m] !== undefined) expenseMap[m] += amount;
+                }
+            });
+        } catch (e) {
+            console.warn("Erro ao buscar crescimento:", e);
+        }
+
+        const incomeData = months.map(m => incomeMap[m]);
+        const expenseData = months.map(m => expenseMap[m]);
+        const profitData = months.map(m => incomeMap[m] - expenseMap[m]);
+
+        return {
+            months,
+            series: [
+                { name: 'Receitas', data: incomeData },
+                { name: 'Despesas', data: expenseData },
+                { name: 'Lucro', data: profitData }
+            ],
+            currentMonth: {
+                income: incomeData[11],
+                expense: expenseData[11],
+                profit: profitData[11]
+            }
+        };
     },
 
-    // ... (This was a thought process, not code to write)
+    /**
+     * Busca dados de itens mais vendidos (Contratos/Planos) no mês atual.
+     */
+    getMostSoldData: async (idTenant, idBranch) => {
+        const start = normalizeDate(moment().startOf('month'));
+        const { clientContractRepository } = await import('../../data/repositories/ClientContractRepository');
 
-    // Proper ReplacementContent below for getLast3YearsData replacement:
+        try {
+            const contracts = await clientContractRepository.findWhere(idTenant, idBranch, [
+                ['createdAt', '>=', start]
+            ]);
+
+            const counts = {};
+            contracts.forEach(c => {
+                const name = c.planName || 'Outros';
+                counts[name] = (counts[name] || 0) + 1;
+            });
+
+            const sorted = Object.entries(counts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5); // Top 5
+
+            return {
+                labels: sorted.map(s => s[0]),
+                series: sorted.map(s => s[1]),
+                totalCount: contracts.length
+            };
+        } catch (e) {
+            console.warn("Erro ao buscar mais vendidos:", e);
+            return { labels: [], series: [], totalCount: 0 };
+        }
+    },
 
     /**
      * Busca histórico de alunos ativos dos últimos 12 meses.

@@ -1,23 +1,16 @@
 import React from "react"
 import ReactApexChart from "react-apexcharts"
 
-const DonutChart = () => {
+const DonutChart = ({ labels = [], series = [], totalLabel = "Janeiro", totalValue = "0" }) => {
   const chartOptions = {
     options: {
       chart: {
         type: 'donut',
       },
-      labels: ['Mensal', 'Semestral', 'Anual'],
-      colors: ['#8E7CC3', '#29B6F6', '#E0E0E0'], // Colors for each slice
+      labels: labels.length > 0 ? labels : ['Sem dados'],
+      colors: ['#8E7CC3', '#29B6F6', '#E0E0E0', '#34c38f', '#f46a6a'], // Core Lexa-like colors
       dataLabels: {
         enabled: false,
-        formatter: function (val, opts) {
-          return opts.w.globals.labels[opts.seriesIndex];
-        },
-        style: {
-          fontSize: '14px',
-          colors: ['#000'],
-        },
       },
       legend: {
         show: true,
@@ -31,26 +24,32 @@ const DonutChart = () => {
               show: true,
               total: {
                 show: true,
-                label: 'Janeiro',
-                formatter: () => '30', // Total sales number to display
+                label: totalLabel,
+                formatter: () => totalValue,
               },
             },
           },
         },
       },
+      tooltip: {
+        y: {
+          formatter: function (val) {
+            return val + " vendas";
+          }
+        }
+      }
     },
   };
 
-  const series = [35, 20, 10]
+  const finalSeries = series.length > 0 ? series : [0];
+
   return (
-    <React.Fragment>
-      <ReactApexChart
-        options={chartOptions.options}
-        series={series}
-        type="donut"
-        height="300"
-      />
-    </React.Fragment>
+    <ReactApexChart
+      options={chartOptions.options}
+      series={finalSeries}
+      type="donut"
+      height="300"
+    />
   )
 }
 

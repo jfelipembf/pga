@@ -66,14 +66,14 @@ const ManagementDashboard = () => {
             <Miniwidget reports={reports} colSize={3} />
 
             <Row className="mt-4">
-                {/* Monthly Earnings */}
+                {/* Monthly Earnings - Mais vendidos */}
                 <Col xl={3}>
-                    <MonthlyEarnings />
+                    <MonthlyEarnings data={data?.charts?.mostSold} />
                 </Col>
 
-                {/* Crescimento */}
+                {/* Crescimento Financeiro */}
                 <Col xl={6}>
-                    <Crescimento />
+                    <Crescimento data={data?.charts?.growthHistory} />
                 </Col>
 
                 {/* Yearly Sales - Alunos Ativos */}
