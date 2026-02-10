@@ -18,7 +18,7 @@ import moment from 'moment'
 export const useStaffProfile = () => {
     const { id } = useParams()
     const navigate = useNavigate()
-    const { idTenant, idBranch } = useTenant()
+    const { idTenant, idBranch, tenantSlug, branchSlug } = useTenant()
     const auth = getAuth()
 
     const [staff, setStaff] = useState(null)
@@ -28,6 +28,9 @@ export const useStaffProfile = () => {
     const [photoPreview, setPhotoPreview] = useState(null)
     const [selectedPhoto, setSelectedPhoto] = useState(null)
     const [isChangingPassword, setIsChangingPassword] = useState(false)
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
+
 
     // Agenda
     const [schedule, setSchedule] = useState([])
@@ -201,15 +204,22 @@ export const useStaffProfile = () => {
         }
     }
 
-    const handleDelete = async () => {
-        if (!window.confirm("Tem certeza que deseja excluir este colaborador?")) return
+    const handleDelete = () => {
+        setShowDeleteDialog(true)
+    }
+
+    const handleConfirmDelete = async () => {
         try {
             if (!auth.currentUser) return
+            setIsDeleting(true)
             await StaffService.deleteStaff(idTenant, idBranch, auth.currentUser.uid, id)
             toast.success("Colaborador excluído com sucesso")
-            navigate('/admin/staff')
+            setShowDeleteDialog(false)
+            navigate(`/${tenantSlug}/${branchSlug}/admin/staff`)
         } catch (error) {
             toast.error("Erro ao excluir: " + error.message)
+        } finally {
+            setIsDeleting(false)
         }
     }
 
@@ -249,6 +259,12 @@ export const useStaffProfile = () => {
         areas,
         metrics,
         metricsLoading,
-        loadMetrics
+        loadMetrics,
+        showDeleteDialog,
+        setShowDeleteDialog,
+        handleConfirmDelete,
+        isDeleting,
+        tenantSlug,
+        branchSlug
     }
 }

@@ -7,6 +7,7 @@ import PageLoader from "../../../components/Common/PageLoader"
 import StaffProfileForm from "./Components/StaffProfileForm"
 import StaffSchedule from "./Components/StaffSchedule"
 import StaffMetrics from "./Components/StaffMetrics"
+import ConfirmDialog from "../../../components/Common/ConfirmDialog"
 import "./StaffProfile.scss"
 
 const StaffProfile = ({ setBreadcrumbItems }) => {
@@ -30,7 +31,13 @@ const StaffProfile = ({ setBreadcrumbItems }) => {
         areas: scheduleAreas,
         metrics,
         metricsLoading,
-        loadMetrics
+        loadMetrics,
+        showDeleteDialog,
+        setShowDeleteDialog,
+        handleConfirmDelete,
+        isDeleting,
+        tenantSlug,
+        branchSlug
     } = useStaffProfile()
 
     const [menuOpen, setMenuOpen] = React.useState(false)
@@ -38,7 +45,7 @@ const StaffProfile = ({ setBreadcrumbItems }) => {
     React.useEffect(() => {
         const breadcrumbItems = [
             { title: "Administrativo", link: "#" },
-            { title: "Colaboradores", link: "/admin/staff" },
+            { title: "Colaboradores", link: `/${tenantSlug}/${branchSlug}/admin/staff` },
             { title: staff?.name || "Perfil", link: "#" },
         ]
         setBreadcrumbItems("Perfil do Colaborador", breadcrumbItems)
@@ -165,6 +172,17 @@ const StaffProfile = ({ setBreadcrumbItems }) => {
                     </Col>
                 </Row>
             </div>
+
+            <ConfirmDialog
+                isOpen={showDeleteDialog}
+                toggle={() => setShowDeleteDialog(!showDeleteDialog)}
+                title="Excluir Colaborador"
+                description={`Tem certeza que deseja excluir o colaborador ${staff?.name}? Esta ação não pode ser desfeita.`}
+                confirmText="Excluir"
+                confirmColor="danger"
+                onConfirm={handleConfirmDelete}
+                loading={isDeleting}
+            />
         </React.Fragment>
     )
 }

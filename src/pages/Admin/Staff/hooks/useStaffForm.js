@@ -5,6 +5,7 @@ import { StaffSchema } from "../../../../data/schemas/Admin/StaffSchema"
 import { StaffService } from "../../../../services/Admin/StaffService"
 import { usePhotoUpload } from "../../../../hooks/usePhotoUpload"
 import { useAuth } from "../../../../hooks/useAuth"
+import { useAddressLookup } from "../../../../hooks/useAddressLookup"
 
 export const useStaffForm = ({ onStaffAdded, toggle, roles }) => {
     const { idTenant, idBranch } = useTenant()
@@ -34,7 +35,16 @@ export const useStaffForm = ({ onStaffAdded, toggle, roles }) => {
             birthDate: "",
             hireDate: new Date().toISOString().split('T')[0],
             status: "active",
-            isActive: true
+            isActive: true,
+            zipCode: "",
+            street: "",
+            number: "",
+            complement: "",
+            neighborhood: "",
+            city: "",
+            state: "",
+            professionalId: "",
+            salary: ""
         },
         validationSchema: StaffSchema,
         onSubmit: async (values, { setSubmitting, resetForm }) => {
@@ -83,15 +93,13 @@ export const useStaffForm = ({ onStaffAdded, toggle, roles }) => {
         }
     })
 
-    const handleCepBlur = async (e) => {
-        // Implementar se Staff precisar de endereço detalhado como os Clientes
-        // Por enquanto seguiremos o schema definido
-    }
+    const { isLoadingCep, handleCepBlur } = useAddressLookup(formik)
 
     return {
         formik,
         photoPreview,
         handlePhotoChange,
-        handleCepBlur
+        handleCepBlur,
+        isLoadingCep
     }
 }
