@@ -3,6 +3,8 @@ import moment from "moment"
 import { useTenant } from "../../../hooks/useTenant"
 import { useWeekCache } from "../../../hooks/useWeekCache"
 import { ClassService } from "../../../services/Classes/ClassService"
+import { SessionService } from "../../../services/Classes/SessionService"
+import { SessionMapper } from "../../../services/Classes/SessionMapper"
 import { ActivityService } from "../../../services/Admin/ActivityService"
 import { AreaService } from "../../../services/Admin/AreaService"
 import { StaffService } from "../../../services/Admin/StaffService"
@@ -56,7 +58,7 @@ export const useGradeData = (referenceDate) => {
                 staffData,
                 classesData
             ] = await Promise.all([
-                ClassService.listSessions(idTenant, idBranch, moment(startDate).format('YYYY-MM-DD'), moment(endDate).format('YYYY-MM-DD')),
+                SessionService.listByDateRange(idTenant, idBranch, moment(startDate).format('YYYY-MM-DD'), moment(endDate).format('YYYY-MM-DD')),
                 ActivityService.listAll(idTenant, idBranch),
                 AreaService.listAreas(idTenant, idBranch),
                 StaffService.listAll(idTenant, idBranch),
@@ -65,28 +67,8 @@ export const useGradeData = (referenceDate) => {
 
             const activeClassIds = new Set((classesData || []).map(c => c.id))
 
-            // Normalização de dados (Mapper)
-            const normalizedSessions = (sessionsData || []).map(s => ({
-                ...s,
-                id: s.id || s.idSession,
-                idSession: s.idSession || s.id,
-                sessionDate: s.sessionDate || s.date || s.activityDate,
-                startTime: String(s.startTime || "").trim(),
-                endTime: String(s.endTime || "").trim(),
-                idActivity: s.idActivity || s.activityId || s.id_activity,
-                idArea: s.idArea || s.areaId || s.id_area || s.locationId || s.idLocation,
-                idStaff: s.idStaff || s.staffId || s.idInstructor || s.instructorId || s.id_staff,
-                weekday: s.weekday !== undefined ? Number(s.weekday) : null,
-                deleted: s.deleted || !!s.deletedAt || false,
-                isActive: s.isActive !== false,
-                status: s.status || 'scheduled',
-                // Auditoria
-                createdAt: s.createdAt,
-                updatedAt: s.updatedAt,
-                updatedBy: s.updatedBy || null,
-                idTenant: s.idTenant,
-                idBranch: s.idBranch
-            })).filter(s => !s.deleted && s.sessionDate && s.startTime && activeClassIds.has(s.idClass))
+            // Usar o Mapper centralizado para normalizar e filtrar os dados
+            const normalizedSessions = SessionMapper.toUIList(sessionsData, activeClassIds)
 
             const loadedData = {
                 sessions: normalizedSessions,

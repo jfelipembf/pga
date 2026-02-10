@@ -4,6 +4,7 @@ import { useWeekCache } from "../../../../hooks/useWeekCache"
 import { useLoading } from "../../../../hooks/useLoading"
 import { toast } from "react-toastify"
 import { ClassService } from "../../../../services/Classes/ClassService"
+import { SessionService } from "../../../../services/Classes/SessionService"
 import { StaffService } from "../../../../services/Admin/StaffService"
 import { ActivityService } from "../../../../services/Admin/ActivityService"
 import { AreaService } from "../../../../services/Admin/AreaService"
@@ -62,7 +63,7 @@ export const useClassesPage = ({ setBreadcrumbItems, referenceDate }) => {
 
             const [classesData, sessionsData, activitiesData, areasData, staffData] = await Promise.all([
                 ClassService.listClasses(idTenant, idBranch),
-                ClassService.listSessions(idTenant, idBranch, startDate, endDate),
+                SessionService.listByDateRange(idTenant, idBranch, startDate, endDate),
                 ActivityService.listAll(idTenant, idBranch),
                 AreaService.listAreas(idTenant, idBranch),
                 StaffService.listAll(idTenant, idBranch)

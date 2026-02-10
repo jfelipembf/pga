@@ -5,7 +5,7 @@ import { useTenant } from '../../../../hooks/useTenant'
 import { useAddressLookup } from '../../../../hooks/useAddressLookup'
 import { StaffService } from '../../../../services/Admin/StaffService'
 import { RoleService } from '../../../../services/Admin/RoleService'
-import { ClassService } from '../../../../services/Classes/ClassService'
+import { SessionService } from '../../../../services/Classes/SessionService'
 import { ActivityService } from '../../../../services/Admin/ActivityService'
 import { AreaService } from '../../../../services/Admin/AreaService'
 import { StorageService } from '../../../../services/Core/StorageService'
@@ -83,7 +83,7 @@ export const useStaffProfile = () => {
             const endOfWeek = today.clone().endOf('isoWeek').format('YYYY-MM-DD')
 
             const [sessionsData, activitiesData, areasData] = await Promise.all([
-                ClassService.listSessions(idTenant, idBranch, startOfWeek, endOfWeek),
+                SessionService.listByDateRange(idTenant, idBranch, startOfWeek, endOfWeek),
                 ActivityService.listAll(idTenant, idBranch),
                 AreaService.listAreas(idTenant, idBranch)
             ])

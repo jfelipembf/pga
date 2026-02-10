@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react"
 import moment from "moment"
-import { ClassService } from "../../../services/Classes/ClassService"
+import { ClassService, SessionService } from "../../../services/Classes"
 import { listActivities, listAreas, listStaff } from "../../../services/Admin"
 import { useLoading } from "../../../hooks/useLoading"
 import { useTenant } from "../../../hooks/useTenant"
 import { getStartOfWeek, addDays } from "../../../utils/sharedUtils"
+import { SessionMapper } from "../../../services/Classes/SessionMapper"
 
 export const useEvaluationData = (referenceDate) => {
     const { idTenant, idBranch, isReady } = useTenant()
@@ -32,33 +33,15 @@ export const useEvaluationData = (referenceDate) => {
 
                 await withLoading(key, async () => {
                     const [sess, acts, ars, stf, cls] = await Promise.all([
-                        ClassService.listSessions(idTenant, idBranch, startStr, endStr),
+                        SessionService.listByDateRange(idTenant, idBranch, startStr, endStr),
                         listActivities(idTenant, idBranch),
                         listAreas(idTenant, idBranch),
                         listStaff(idTenant, idBranch),
                         ClassService.listClasses(idTenant, idBranch),
                     ])
 
-                    // Normalização robusta similar ao useGradeData
-                    const rawSessions = Array.isArray(sess) ? sess : []
-                    const normalized = rawSessions.map(s => {
-                        if (!s) return null
-                        return {
-                            ...s,
-                            id: s.id || s.idSession,
-                            idSession: s.idSession || s.id,
-                            sessionDate: s.sessionDate || s.date || s.activityDate,
-                            startTime: String(s.startTime || "").trim(),
-                            endTime: String(s.endTime || "").trim(),
-                            idActivity: s.idActivity || s.activityId || s.id_activity,
-                            idArea: s.idArea || s.areaId || s.id_area || s.locationId || s.idLocation,
-                            idStaff: s.idStaff || s.staffId || s.idInstructor || s.instructorId || s.id_staff,
-                            weekday: s.weekday !== undefined ? Number(s.weekday) : null,
-                            deleted: s.deleted || false,
-                            isActive: s.isActive !== false,
-                            status: s.status || 'scheduled'
-                        }
-                    }).filter(s => s && !s.deleted && !s.deletedAt && s.sessionDate && s.startTime)
+                    // Usar o Mapper centralizado para normalização
+                    const normalized = SessionMapper.toUIList(sess)
 
                     setSessions(normalized)
                     setActivities(acts || [])

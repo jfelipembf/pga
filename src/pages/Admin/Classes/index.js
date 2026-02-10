@@ -18,6 +18,8 @@ const ClassesPage = ({ setBreadcrumbItems }) => {
   const {
     formState,
     setFormState,
+    errors,
+    touched,
     showDeleteConfirm,
     setShowDeleteConfirm,
     isLoading,
@@ -55,8 +57,8 @@ const ClassesPage = ({ setBreadcrumbItems }) => {
 
           <ScheduleForm
             values={formState}
-            errors={{}}
-            touched={{}}
+            errors={errors}
+            touched={touched}
             handleChange={(e) => {
               const { name, value } = e.target
               setFormState((prev) => ({ ...prev, [name]: value }))

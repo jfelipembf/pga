@@ -5,6 +5,8 @@ import { createEmptyClassForm } from "../Constants/classesDefaults"
 
 export const useClassFormLogic = ({ toast, withLoading, reloadData }) => {
     const [formState, setFormState] = useState(createEmptyClassForm())
+    const [errors, setErrors] = useState({})
+    const [touched, setTouched] = useState({})
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
     const { idTenant, idBranch, user, isReady } = useTenant()
@@ -53,6 +55,9 @@ export const useClassFormLogic = ({ toast, withLoading, reloadData }) => {
             return
         }
 
+        setErrors({})
+        setTouched({})
+
         try {
             await withLoading("save", async () => {
                 if (formState.id) {
@@ -73,17 +78,37 @@ export const useClassFormLogic = ({ toast, withLoading, reloadData }) => {
                 }
 
                 setFormState(createEmptyClassForm())
+                setErrors({})
+                setTouched({})
                 await reloadData()
             })
         } catch (e) {
             console.error(e)
-            toast.error(e?.message || "Erro ao salvar turma")
+
+            if (e.name === 'ValidationError') {
+                const newErrors = {}
+                e.inner?.forEach(err => {
+                    newErrors[err.path] = err.message
+                })
+                setErrors(newErrors)
+
+                // Marcar todos como touched para mostrar os erros
+                const allTouched = {}
+                Object.keys(formState).forEach(key => allTouched[key] = true)
+                setTouched(allTouched)
+
+                toast.warning("Verifique os campos obrigatórios.")
+            } else {
+                toast.error(e?.message || "Erro ao salvar turma")
+            }
         }
     }
 
     return {
         formState,
         setFormState,
+        errors,
+        touched,
         showDeleteConfirm,
         setShowDeleteConfirm,
         handleDeleteClick,

@@ -1,10 +1,11 @@
 import { sessionRepository } from '../../data/repositories/SessionRepository'
 import { enrollmentRepository } from '../../data/repositories/EnrollmentRepository'
 import { AuditService } from '../Core/AuditService'
-import { normalizeDate } from '../../utils/date'
+import { writeBatch, doc, serverTimestamp, increment } from 'firebase/firestore'
 // Import Client and Automation Services
 import { ClientService } from '../Clients/ClientService'
 import { automationService } from '../Automation/AutomationService'
+import moment from 'moment'
 
 /**
  * Serviço de Controle de Presença (Attendance)
@@ -61,47 +62,44 @@ export const AttendanceService = {
 
         const isFirstAttendance = previousSnapshot.length === 0
 
+        // 2. Preparar Batch Atômico
+        const db = sessionRepository.db
+        const mainBatch = writeBatch(db)
 
-        // 2. Calcular estatísticas
+        // 3. Calcular estatísticas e Preparar Update da Sessão
         const presentList = attendanceData.clients.filter(c => c.status !== 'absent')
         const absentList = attendanceData.clients.filter(c => c.status === 'absent')
 
-        // 3. Salvar snapshot na sessão
-        await sessionRepository.update(idTenant, idBranch, idSession, {
+        const sessionRef = doc(sessionRepository.getCollectionRef(idTenant, idBranch), idSession)
+        mainBatch.update(sessionRef, {
             attendanceRecorded: true,
             attendanceSnapshot: attendanceData.clients,
             presentCount: presentList.length,
             absentCount: absentList.length,
-            attendanceRecordedAt: normalizeDate(new Date()),
-            attendanceRecordedBy: userId
+            attendanceRecordedAt: serverTimestamp(),
+            attendanceRecordedBy: userId,
+            updatedAt: serverTimestamp()
         })
 
-        // 4. Atualizar contadores com LÓGICA DIFERENCIAL
+        // 4. Preparar Atualizações das Matrículas no Batch
         let enrollmentsUpdated = 0
 
-        const updatePromises = attendanceData.clients.map(async (client) => {
-            // Alunos extras (sem matrícula) são ignorados
-            if (!client.enrollmentId) {
-                return null
-            }
+        attendanceData.clients.forEach((client) => {
+            if (!client.enrollmentId) return
 
             const newStatus = client.status
-            const oldStatus = previousStatusMap.get(client.enrollmentId) // undefined se é novo
+            const oldStatus = previousStatusMap.get(client.enrollmentId)
 
-            // Se o status NÃO mudou, não faz nada
-            if (oldStatus === newStatus) {
+            if (oldStatus === newStatus) return
 
-                return null
+            const enrollmentRef = doc(enrollmentRepository.getCollectionRef(idTenant, idBranch), client.enrollmentId)
+            const updates = {
+                lastAttendanceDate: serverTimestamp(),
+                lastAttendanceSessionId: idSession,
+                updatedAt: serverTimestamp(),
+                updatedBy: userId
             }
 
-            // Buscar dados atuais da matrícula
-            const enrollment = await enrollmentRepository.findById(idTenant, idBranch, client.enrollmentId)
-            if (!enrollment) {
-                console.warn(`[AttendanceService] Matrícula ${client.enrollmentId} não encontrada`)
-                return null
-            }
-
-            const updates = {}
             let attendedDelta = 0
             let missedDelta = 0
 
@@ -116,52 +114,39 @@ export const AttendanceService = {
             if (newStatus === 'absent') {
                 missedDelta += 1
             } else {
-                // present, late, etc = considera como presença
                 attendedDelta += 1
             }
 
-            // Aplicar deltas (evita números negativos)
-            if (attendedDelta !== 0) {
-                updates.attendedSessions = Math.max(0, (enrollment.attendedSessions || 0) + attendedDelta)
-            }
-            if (missedDelta !== 0) {
-                updates.missedSessions = Math.max(0, (enrollment.missedSessions || 0) + missedDelta)
-            }
+            if (attendedDelta !== 0) updates.attendedSessions = increment(attendedDelta)
+            if (missedDelta !== 0) updates.missedSessions = increment(missedDelta)
 
-            // Só atualiza se houver mudança real
-            if (Object.keys(updates).length > 0) {
-                updates.lastAttendanceDate = new Date()
-                updates.lastAttendanceSessionId = idSession
-
-                await enrollmentRepository.update(idTenant, idBranch, client.enrollmentId, updates)
-                enrollmentsUpdated++
-
-
-            }
-
-            return { enrollmentId: client.enrollmentId, oldStatus, newStatus, ...updates }
+            mainBatch.update(enrollmentRef, updates)
+            enrollmentsUpdated++
         })
 
+        // 5. Automação para Faltas Experimentais (Fora do Batch pois é evento externo)
         const experimentalAbsences = attendanceData.clients.filter(
-            c => c.status === 'absent' && (c.tag === "Extra" || c.enrollmentType === 'experimental' || c.type === 'experimental' || (c.tag && c.tag.includes('EX')))
+            c => c.status === 'absent' && (
+                c.tag === "Extra" ||
+                c.enrollmentType === 'experimental' ||
+                c.type === 'experimental' ||
+                (c.tag && c.tag.includes('EX'))
+            )
         )
 
         if (experimentalAbsences.length > 0) {
-
+            // Disparar em paralelo sem travar o batch
             experimentalAbsences.forEach(async (client) => {
                 try {
-                    // Fetch full client data to ensure we have the phone number
                     const fullClient = await ClientService.getClientById(idTenant, idBranch, client.idClient || client.id)
                     const phone = fullClient?.mobile || fullClient?.phone || fullClient?.cellPhone || fullClient?.responsavelPhone
-
                     if (phone) {
                         automationService.emit(idTenant, 'EXPERIMENTAL_ABSENCE', {
                             student: fullClient.name,
                             name: fullClient.name,
                             phone: phone,
-                            date: new Date().toLocaleDateString('pt-BR')
+                            date: moment().format('DD/MM/YYYY')
                         })
-
                     }
                 } catch (autoErr) {
                     console.error("[Automation] Erro ao disparar EXPERIMENTAL_ABSENCE:", autoErr)
@@ -169,7 +154,8 @@ export const AttendanceService = {
             })
         }
 
-        await Promise.all(updatePromises)
+        // 6. Execução Atômica
+        await mainBatch.commit()
 
         // 5. Auditoria
         await AuditService.log({

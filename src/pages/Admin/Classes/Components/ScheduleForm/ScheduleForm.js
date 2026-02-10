@@ -1,6 +1,6 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Button, FormGroup, Label, Input, Row, Col, Alert } from "reactstrap"
+import { Button, FormGroup, Label, Input, Row, Col, Alert, FormFeedback } from "reactstrap"
 
 import { WEEKDAY_OPTIONS, WEEKDAY_LABELS, WEEKDAY_SHORT_LABELS } from "../../../../../constants/weekdays"
 import ButtonLoader from "../../../../../components/Common/ButtonLoader"
@@ -75,6 +75,7 @@ const ScheduleForm = ({
                     </option>
                   ))}
                 </Input>
+                <FormFeedback>{errors.idActivity}</FormFeedback>
               </FormGroup>
             </Col>
 
@@ -99,6 +100,7 @@ const ScheduleForm = ({
                     </option>
                   ))}
                 </Input>
+                <FormFeedback>{errors.idStaff}</FormFeedback>
               </FormGroup>
             </Col>
 
@@ -121,6 +123,7 @@ const ScheduleForm = ({
                     </option>
                   ))}
                 </Input>
+                <FormFeedback>{errors.idArea}</FormFeedback>
               </FormGroup>
             </Col>
 
@@ -175,6 +178,12 @@ const ScheduleForm = ({
                     )
                   })}
                 </div>
+                {(errors.weekdays || errors.weekday) && (touched.weekdays || touched.weekday) && (
+                  <div className="text-danger small mt-2 px-1">
+                    <i className="mdi mdi-alert-circle-outline me-1"></i>
+                    {errors.weekdays || errors.weekday}
+                  </div>
+                )}
                 {values.id && (
                   <div className="mt-3 p-2 bg-soft-warning rounded border border-warning border-opacity-25">
                     <p className="text-warning small mb-0 d-flex align-items-center">
@@ -209,6 +218,7 @@ const ScheduleForm = ({
                   disabled={Boolean(disabled)}
                   invalid={Boolean(touched.startTime && errors.startTime)}
                 />
+                <FormFeedback>{errors.startTime}</FormFeedback>
               </FormGroup>
             </Col>
 
@@ -225,6 +235,7 @@ const ScheduleForm = ({
                   disabled={Boolean(disabled)}
                   invalid={Boolean(touched.durationMinutes && errors.durationMinutes)}
                 />
+                <FormFeedback>{errors.durationMinutes}</FormFeedback>
               </FormGroup>
             </Col>
 
@@ -244,6 +255,7 @@ const ScheduleForm = ({
                     disabled={Boolean(disabled)}
                     invalid={Boolean(touched.maxCapacity && errors.maxCapacity)}
                   />
+                  <FormFeedback>{errors.maxCapacity}</FormFeedback>
                 </div>
               </FormGroup>
             </Col>
@@ -260,6 +272,7 @@ const ScheduleForm = ({
                   disabled={Boolean(disabled)}
                   invalid={Boolean(touched.startDate && errors.startDate)}
                 />
+                <FormFeedback>{errors.startDate}</FormFeedback>
               </FormGroup>
             </Col>
 
