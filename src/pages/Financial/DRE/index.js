@@ -2,7 +2,6 @@ import React from "react"
 import { Row, Col, Card, CardBody, Button } from "reactstrap"
 import { useDRE } from "./hooks/useDRE"
 import { CashFlowDRE } from "../CashFlow/components/CashFlowDRE"
-import PageLoader from "../../../components/Common/PageLoader"
 
 /**
  * Página de DRE Gerencial (Demonstrativo de Resultado do Exercício)
@@ -14,7 +13,6 @@ const DREPage = () => {
     const {
         transactions,
         summary,
-        loading,
         period,
         setPeriod
     } = useDRE()
@@ -22,7 +20,7 @@ const DREPage = () => {
     const formatVal = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
 
 
-    if (loading && transactions.length === 0) return <PageLoader />
+    // PageLoader removed to follow incremental loading pattern
 
     return (
         <React.Fragment>

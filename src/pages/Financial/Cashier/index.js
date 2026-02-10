@@ -11,13 +11,12 @@ import CashierPrintTemplate from './components/CashierPrintTemplate'
 import Flatpickr from "react-flatpickr"
 import "flatpickr/dist/themes/material_blue.css"
 import { Portuguese } from 'flatpickr/dist/l10n/pt.js'
-import PageLoader from '../../../components/Common/PageLoader'
+
 
 const CashierPage = () => {
     document.title = "Caixa | PGA Admin"
 
     const {
-        loading,
         user,
         currentSession,
         setCurrentSession,
@@ -40,7 +39,7 @@ const CashierPage = () => {
     } = useCashier()
 
 
-    if (loading) return <PageLoader />
+    // Carregamento incremental: a estrutura da página aparece primeiro.
 
     return (
         <React.Fragment>
@@ -76,51 +75,45 @@ const CashierPage = () => {
                                     </div>
                                 </div>
 
-                                {/* Filtros em Barra */}
-                                <div className="d-flex flex-wrap gap-2 mb-4 bg-light p-3 rounded align-items-center">
-                                    <div className="text-primary fw-medium font-size-13 me-3">
-                                        <i className="mdi mdi-calendar-check me-1"></i> Hoje: <strong>{formatDate(new Date())}</strong>
-                                    </div>
-                                    <div className="text-muted fw-medium font-size-13 me-3">
-                                        Operador: <strong>{currentSession?.idUser === user?.uid ? displayUserName : (currentSession?.userName || displayUserName)}</strong>
-                                    </div>
-
-                                    {isAdmin && activeSessions.length > 1 && (
-                                        <div className="ms-auto d-flex align-items-center gap-2">
-                                            <Label className="mb-0 font-size-12 text-muted fw-bold text-uppercase">Alternar Caixa:</Label>
-                                            <Input
-                                                type="select"
-                                                className="form-select-sm border-0 shadow-sm"
-                                                style={{ width: '200px' }}
-                                                value={currentSession?.id || ''}
-                                                onChange={(e) => {
-                                                    const session = activeSessions.find(s => s.id === e.target.value)
-                                                    if (session) setCurrentSession(session)
-                                                }}
-                                            >
-                                                {activeSessions.map(s => (
-                                                    <option key={s.id} value={s.id}>
-                                                        {s.userName}
-                                                    </option>
-                                                ))}
-                                            </Input>
+                                {/* Filtros em Barra - Exibidos apenas se o caixa estiver aberto */}
+                                {currentSession && (
+                                    <div className="d-flex flex-wrap gap-2 mb-4 bg-light p-3 rounded align-items-center">
+                                        <div className="text-primary fw-medium font-size-13 me-3">
+                                            <i className="mdi mdi-calendar-check me-1"></i> Hoje: <strong>{formatDate(new Date())}</strong>
                                         </div>
-                                    )}
-                                </div>
+                                        <div className="text-muted fw-medium font-size-13 me-3">
+                                            Operador: <strong>{currentSession?.idUser === user?.uid ? displayUserName : (currentSession?.userName || displayUserName)}</strong>
+                                        </div>
+
+                                        {isAdmin && activeSessions.length > 1 && (
+                                            <div className="ms-auto d-flex align-items-center gap-2">
+                                                <Label className="mb-0 font-size-12 text-muted fw-bold text-uppercase">Alternar Caixa:</Label>
+                                                <Input
+                                                    type="select"
+                                                    className="form-select-sm border-0 shadow-sm"
+                                                    style={{ width: '200px' }}
+                                                    value={currentSession?.id || ''}
+                                                    onChange={(e) => {
+                                                        const session = activeSessions.find(s => s.id === e.target.value)
+                                                        if (session) setCurrentSession(session)
+                                                    }}
+                                                >
+                                                    {activeSessions.map(s => (
+                                                        <option key={s.id} value={s.id}>
+                                                            {s.userName}
+                                                        </option>
+                                                    ))}
+                                                </Input>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 {/* Conteúdo da Sessão */}
                                 {!currentSession ? (
                                     <div className="text-center py-5 border rounded bg-white shadow-sm border-dashed">
-                                        <div className="mb-4">
-                                            <div className="avatar-lg mx-auto bg-light rounded-circle d-flex align-items-center justify-content-center text-primary display-4">
-                                                <i className="mdi mdi-cash-register"></i>
-                                            </div>
-                                        </div>
                                         <h5 className="text-dark fw-bold">Seu caixa está fechado</h5>
-                                        <p className="text-muted">Abra o caixa para começar a registrar vendas e recebimentos.</p>
-                                        <Button color="primary" size="lg" className="mt-2" onClick={() => setModalOpen(true)}>
-                                            ABRIR MEU CAIXA AGORA
-                                        </Button>
+                                        <p className="text-muted mb-0">Abra o caixa para começar a registrar vendas e recebimentos.</p>
                                     </div>
                                 ) : (
                                     <div className="border rounded p-4 bg-white shadow-sm">

@@ -76,7 +76,6 @@ export const useClientProfile = () => {
         // Validação de Contexto
         if (!idTenant || !idBranch || !id) {
             return;
-            return;
         }
 
         try {
@@ -149,13 +148,8 @@ export const useClientProfile = () => {
 
     // 6. Efeito para carregar dados
     useEffect(() => {
-        let mounted = true;
         if (idTenant && idBranch && id) {
             loadClient()
-        }
-
-        return () => {
-            mounted = false;
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [idTenant, idBranch, id, loadClient])

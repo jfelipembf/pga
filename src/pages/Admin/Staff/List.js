@@ -7,7 +7,6 @@ import { setBreadcrumbItems } from "../../../store/actions"
 import { useNavigate } from "react-router-dom"
 import { useStaff } from "./hooks/useStaff"
 import { RoleService } from "../../../services/Admin/RoleService"
-import PageLoader from "../../../components/Common/PageLoader"
 import StaffAddModal from "./Components/StaffAddModal"
 
 const StaffList = ({ setBreadcrumbItems }) => {
@@ -15,7 +14,6 @@ const StaffList = ({ setBreadcrumbItems }) => {
   const {
     idTenant,
     idBranch,
-    staff,
     loading,
     modal,
     toggleModal,
@@ -143,9 +141,8 @@ const StaffList = ({ setBreadcrumbItems }) => {
     setBreadcrumbItems("Colaboradores", breadcrumbItems)
   }, [setBreadcrumbItems])
 
-  if (loading && !staff.length) {
-    return <PageLoader />
-  }
+  // O PageLoader de tela cheia foi removido. 
+  // O BasicTable abaixo gerencia o estado de carregamento com um overlay.
 
   return (
     <Row>

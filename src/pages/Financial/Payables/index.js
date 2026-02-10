@@ -8,7 +8,6 @@ import GenericModal from "../../../components/Common/GenericModal"
 import { usePayables } from "./hooks/usePayables"
 import { formatCurrency } from "../../../utils/format"
 import { formatDate } from "../../../utils/date"
-import PageLoader from "../../../components/Common/PageLoader"
 
 import {
     PAYABLE_STATUS,
@@ -174,7 +173,7 @@ const PayablesPage = () => {
         }
     ], [handleEdit]);
 
-    if (loading && filteredPayables.length === 0) return <PageLoader />
+    // Carregamento agora é incremental para evitar que a tela branca apareça na navegação
 
     return (
         <React.Fragment>

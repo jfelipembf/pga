@@ -9,7 +9,7 @@ import { getStartOfWeek } from "../../utils/sharedUtils"
 import { setBreadcrumbItems } from "../../store/actions"
 import { useGradeData } from "./Hooks/useGradeData"
 // Removed direct service imports as they are used in the hook
-import PageLoader from "../../components/Common/PageLoader"
+// PageLoader removed
 
 
 
@@ -106,9 +106,7 @@ const Grade = ({ setBreadcrumbItems }) => {
     )
   }
 
-  if (loadingData && !sessions.length) {
-    return <PageLoader />
-  }
+  // Incremental loading: structure appears first
 
   const handleEnrollmentChange = (eventData) => {
     if (!eventData || (!eventData.idSession && !eventData.id)) return

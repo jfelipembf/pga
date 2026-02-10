@@ -12,12 +12,12 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
   <Provider store={store}>
-      <>
-      <BrowserRouter basename={process.env.PUBLIC_URL}>
+    <>
+      <BrowserRouter basename={process.env.PUBLIC_URL} future={{ v7_relativeSplatPath: true }}>
         <App />
       </BrowserRouter>
-  </>
-    </Provider>
+    </>
+  </Provider>
 );
 
 serviceWorker.unregister()

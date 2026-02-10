@@ -5,7 +5,8 @@ import { useFinancialDashboard } from "./hooks/useFinancialDashboard"
 import { formatCurrency } from "../../../utils/format"
 import { Line } from "react-chartjs-2"
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js'
-import PageLoader from "../../../components/Common/PageLoader"
+
+// PageLoader removed to follow incremental loading pattern
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler)
 
@@ -31,30 +32,29 @@ const FinancialDashboard = () => {
 
     const { data, chartData, loading } = useFinancialDashboard()
 
-    if (loading) {
-        return <PageLoader />
-    }
+    // Carregamento incremental: a estrutura da página aparece primeiro.
+    // O Miniwidget e o gráfico tratam o carregamento de seus próprios dados.
 
     // KPIs Superiores
     const reports = [
         {
             title: "Inadimplência",
             iconClass: "alert-circle-outline", // Ícone de alerta
-            total: formatCurrency(data.inadimplencia.amount),
-            average: `${data.inadimplencia.count} títulos em atraso`,
+            total: loading ? "..." : formatCurrency(data?.inadimplencia?.amount || 0),
+            average: loading ? "Calculando..." : `${data?.inadimplencia?.count || 0} títulos em atraso`,
             badgecolor: "danger" // Vermelho
         },
         {
             title: "Contas Vencidas",
             iconClass: "calendar-alert",
-            total: formatCurrency(data.overduePayables.amount),
-            average: `${data.overduePayables.count} contas vencidas`,
+            total: loading ? "..." : formatCurrency(data?.overduePayables?.amount || 0),
+            average: loading ? "Buscando..." : `${data?.overduePayables?.count || 0} contas vencidas`,
             badgecolor: "danger" // Vermelho
         },
         {
             title: "Saldo Disponível",
             iconClass: "wallet-outline",
-            total: formatCurrency(data.balance.total),
+            total: loading ? "..." : formatCurrency(data?.balance?.total || 0),
             average: "Caixa + Bancos",
             badgecolor: "primary" // Azul
         }
@@ -77,16 +77,16 @@ const FinancialDashboard = () => {
                                 <div className="d-flex gap-4 ms-auto">
                                     <div>
                                         <p className="text-muted mb-1 font-size-12 text-uppercase">Total Recebido</p>
-                                        <h5 className="mb-0 text-success fw-bold font-size-20">{formatCurrency(data.performance.income)}</h5>
+                                        <h5 className="mb-0 text-success fw-bold font-size-20">{loading ? "..." : formatCurrency(data?.performance?.income || 0)}</h5>
                                     </div>
                                     <div>
                                         <p className="text-muted mb-1 font-size-12 text-uppercase">Total Gasto</p>
-                                        <h5 className="mb-0 text-danger fw-bold font-size-20">{formatCurrency(data.performance.expense)}</h5>
+                                        <h5 className="mb-0 text-danger fw-bold font-size-20">{loading ? "..." : formatCurrency(data?.performance?.expense || 0)}</h5>
                                     </div>
                                     <div className="border-start ps-4">
                                         <p className="text-muted mb-1 font-size-12 text-uppercase">Resultado</p>
-                                        <h5 className={`mb-0 fw-bold font-size-20 ${data.performance.balance >= 0 ? 'text-primary' : 'text-danger'}`}>
-                                            {formatCurrency(data.performance.balance)}
+                                        <h5 className={`mb-0 fw-bold font-size-20 ${data?.performance?.balance >= 0 ? 'text-primary' : 'text-danger'}`}>
+                                            {loading ? "..." : formatCurrency(data?.performance?.balance || 0)}
                                         </h5>
                                     </div>
                                 </div>

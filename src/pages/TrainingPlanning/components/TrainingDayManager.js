@@ -145,7 +145,7 @@ const TrainingDayManager = ({ date }) => {
             return (
                 <Card className="h-100 shadow-sm border-0">
                     <CardBody className="d-flex align-items-center justify-content-center">
-                        <PageLoader minHeight="auto" />
+                        <PageLoader isFullScreen={false} />
                     </CardBody>
                 </Card>
             );

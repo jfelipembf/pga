@@ -21,17 +21,6 @@ const TaskSummaryList = ({ title = "Minhas Tarefas de Hoje", filters = {} }) => 
         setIsModalOpen(true);
     };
 
-    if (loading) {
-        return (
-            <Card className="shadow-sm border-0">
-                <CardBody className="text-center py-5">
-                    <Spinner color="primary" />
-                    <p className="mt-2 text-muted">Carregando tarefas...</p>
-                </CardBody>
-            </Card>
-        )
-    }
-
     // Agrupar tarefas por categoria
     const tasksByCategory = {
         other: [],
@@ -51,6 +40,7 @@ const TaskSummaryList = ({ title = "Minhas Tarefas de Hoje", filters = {} }) => 
         }
     });
 
+    // Incremental loading: Card structure appears first
     const categories = [
         { key: 'trial', label: 'Experimental', color: 'danger' },
         { key: 'other', label: 'Geral', color: 'secondary' },
@@ -59,17 +49,6 @@ const TaskSummaryList = ({ title = "Minhas Tarefas de Hoje", filters = {} }) => 
         { key: 'admin', label: 'Adm', color: 'primary' },
         { key: 'meeting', label: 'Reunião', color: 'warning' }
     ];
-
-    if (loading) {
-        return (
-            <Card className="shadow-sm border-0">
-                <CardBody className="text-center py-5">
-                    <Spinner color="primary" />
-                    <p className="mt-2 text-muted">Carregando tarefas...</p>
-                </CardBody>
-            </Card>
-        )
-    }
 
     return (
         <Card className="shadow-sm border-0 h-100">
@@ -82,7 +61,10 @@ const TaskSummaryList = ({ title = "Minhas Tarefas de Hoje", filters = {} }) => 
                             </span>
                         </div>
                         <div>
-                            <h5 className="mb-1">{title}</h5>
+                            <div className="d-flex align-items-center gap-2">
+                                <h5 className="mb-1">{title}</h5>
+                                {loading && <Spinner size="sm" color="primary" className="ms-1" />}
+                            </div>
                             <p className="text-muted mb-0 small">Gestão de atividades e alunos</p>
                         </div>
                     </div>
@@ -95,13 +77,19 @@ const TaskSummaryList = ({ title = "Minhas Tarefas de Hoje", filters = {} }) => 
                 <div className="row">
                     {categories.map(cat => (
                         <div key={cat.key} className="col-12 col-md-4 col-lg border-end last-border-0">
-                            <h6 className={`text-uppercase text-${cat.color} font-size-12 fw-bold mb-3 border-bottom pb-2 d-flex justify-content-between`}>
+                            <h6 className={`text-uppercase text-${cat.color} font-size-12 fw-bold mb-3 border-bottom pb-2 d-flex justify-content-between align-items-center`}>
                                 {cat.label}
-                                <Badge color={cat.color} pill className="ms-2">{tasksByCategory[cat.key].length}</Badge>
+                                <Badge color={cat.color} pill className="ms-2">
+                                    {loading ? "..." : (tasksByCategory[cat.key]?.length || 0)}
+                                </Badge>
                             </h6>
 
                             <div className="task-column">
-                                {tasksByCategory[cat.key].length > 0 ? (
+                                {loading ? (
+                                    <div className="text-center py-4 opacity-25">
+                                        <i className="mdi mdi-loading mdi-spin font-size-18"></i>
+                                    </div>
+                                ) : tasksByCategory[cat.key]?.length > 0 ? (
                                     tasksByCategory[cat.key].map(task => (
                                         <div key={task.id}
                                             className="card mb-3 border shadow-none task-card"

@@ -11,7 +11,8 @@ import EvaluationCard from "./Components/evaluationCard"
 import { useEvaluationData } from "./Hooks/useEvaluationData"
 import { mapSessionsToEvaluationSchedules } from "./Utils/mappers"
 import { toISODate, normalizeDate } from "../../utils/date"
-import PageLoader from "../../components/Common/PageLoader"
+
+// PageLoader removed
 
 // import { getActiveTestEvent } from "../../services/Events/events.service" // TODO: Create Events Service
 
@@ -60,7 +61,7 @@ const EvaluationPage = ({ setBreadcrumbItems }) => {
   )
 
   const [selectedStaffId, setSelectedStaffId] = useState("")
-  const { sessions, activities, areas, staff, isLoading } = useEvaluationData(currentDate)
+  const { sessions, activities, areas, staff } = useEvaluationData(currentDate)
 
   // Sync tab with URL changes
   useEffect(() => {
@@ -115,9 +116,7 @@ const EvaluationPage = ({ setBreadcrumbItems }) => {
     setCurrentDate(prev => moment(prev).add(1, 'days').toDate())
   }
 
-  if (isLoading("page") && !sessions.length) {
-    return <PageLoader />
-  }
+  // Incremental loading: structure appears first
 
   return (
     <div className="container-fluid p-0 p-md-2">

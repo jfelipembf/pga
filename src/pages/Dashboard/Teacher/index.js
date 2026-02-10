@@ -1,5 +1,5 @@
 import React, { useMemo } from "react"
-import { Row, Col, Card, CardBody, CardTitle, Table, Spinner, Badge } from "reactstrap"
+import { Row, Col, Card, CardBody, CardTitle, Table, Badge } from "reactstrap"
 import Miniwidget from "../Miniwidget"
 import { useTeacherDashboard } from "../hooks/useTeacherDashboard"
 import TaskSummaryList from "../Tasks/TaskSummaryList"
@@ -14,35 +14,34 @@ const TeacherDashboard = () => {
     const { data, loading } = useTeacherDashboard()
 
     const reports = useMemo(() => {
-        if (!data?.kpi) return []
         return [
             {
                 title: "Turmas Ativas",
                 iconClass: "school",
-                total: data.kpi.activeClasses,
+                total: loading ? "..." : (data?.kpi?.activeClasses || 0),
                 desc: "Turmas sob sua responsabilidade"
             },
             {
                 title: "Capacidade Total",
                 iconClass: "account-multiple-outline",
-                total: data.kpi.maxCapacity,
+                total: loading ? "..." : (data?.kpi?.maxCapacity || 0),
                 desc: "Vagas totais nas turmas"
             },
             {
                 title: "Ocupação Média",
                 iconClass: "percent",
-                total: `${(data.kpi.occupancyRate || 0).toFixed(1)}%`,
-                growth: data.kpi.occupancyRate >= 70 ? 1 : (data.kpi.occupancyRate < 30 ? -1 : 0),
-                desc: `${data.kpi.activeStudents} alunos matriculados`
+                total: loading ? "..." : `${(data?.kpi?.occupancyRate || 0).toFixed(1)}%`,
+                growth: loading ? 0 : (data?.kpi?.occupancyRate >= 70 ? 1 : (data?.kpi?.occupancyRate < 30 ? -1 : 0)),
+                desc: loading ? "Calculando..." : `${data?.kpi?.activeStudents || 0} alunos matriculados`
             },
             {
                 title: "Conversão (Exp -> Mat)",
                 iconClass: "chart-line",
-                total: `${(data.kpi.conversionRate || 0).toFixed(1)}%`,
-                desc: `${data.kpi.conversionTotal} convertidos de ${data.kpi.experimentalTotal}`
+                total: loading ? "..." : `${(data?.kpi?.conversionRate || 0).toFixed(1)}%`,
+                desc: loading ? "Buscando..." : `${data?.kpi?.conversionTotal || 0} convertidos de ${data?.kpi?.experimentalTotal || 0}`
             }
         ]
-    }, [data])
+    }, [data, loading])
 
     const chartOptions = {
         chart: {
@@ -85,14 +84,7 @@ const TeacherDashboard = () => {
     }]
 
 
-    if (loading) {
-        return (
-            <div className="text-center p-5">
-                <Spinner color="primary" />
-                <p className="mt-2">Carregando painel do professor...</p>
-            </div>
-        )
-    }
+    // Incremental loading
 
     return (
         <React.Fragment>

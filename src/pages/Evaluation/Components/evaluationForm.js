@@ -9,7 +9,7 @@ import { useSaveEvaluations } from "../Hooks/useSaveEvaluations"
 import LevelDropdown from "../../Grade/Components/LevelDropdown"
 import ButtonLoader from "../../../components/Common/ButtonLoader"
 // import CenterLoader from "../../../components/Common/CenterLoader" // Removed
-import PageLoader from "../../../components/Common/PageLoader" // Replaced
+// PageLoader removed
 import OverlayLoader from "../../../components/Common/OverlayLoader"
 // import { useToast } from "../../../components/Common/ToastProvider" // Removed
 
@@ -109,12 +109,7 @@ const EvaluationForm = ({
     )
   }
 
-  const showInitialLoader =
-    isLoading("checkEvent") || isLoading("clients") || isLoading("levels") || (isLoading("objectives") && !objectives.length)
-
-  if (showInitialLoader) {
-    return <PageLoader />
-  }
+  // Incremental loading: structure below will handle loading states
 
   const isTechnicalTab = activeTab === "1"
   const isTestTab = activeTab === "2"

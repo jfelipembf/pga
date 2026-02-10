@@ -18,7 +18,6 @@ import "flatpickr/dist/themes/material_blue.css"
 import Flatpickr from "react-flatpickr"
 import { Portuguese } from "flatpickr/dist/l10n/pt.js"
 
-import PageLoader from "../../../components/Common/PageLoader"
 
 // Hook
 import { useReceivablesList } from './hooks/useReceivablesList';
@@ -251,7 +250,8 @@ const ReceivablesPage = () => {
         }
     }
 
-    if (isLoading && receivables.length === 0) return <PageLoader />
+    // Removido PageLoader de tela cheia para evitar "piscadas" na navegação. 
+    // O BasicTable abaixo já trata o estado de loading internamente.
 
     return (
         <React.Fragment>

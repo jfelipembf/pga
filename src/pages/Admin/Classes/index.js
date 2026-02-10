@@ -6,7 +6,7 @@ import ScheduleForm from "./Components/ScheduleForm/ScheduleForm"
 import ClassesGradeCard from "./Components/ClassesGradeCard"
 import { useClassesPage } from "./hooks/useClassesPage"
 import { useGradeControls } from "./hooks/useGradeControls"
-import PageLoader from "../../../components/Common/PageLoader"
+// PageLoader removed
 import { setBreadcrumbItems } from "../../../store/actions"
 
 import ConfirmDialog from "../../../components/Common/ConfirmDialog"
@@ -21,7 +21,6 @@ const ClassesPage = ({ setBreadcrumbItems }) => {
     showDeleteConfirm,
     setShowDeleteConfirm,
     isLoading,
-    isInitialLoading,
     isNavigationLoading,
     activities,
     areas,
@@ -46,9 +45,7 @@ const ClassesPage = ({ setBreadcrumbItems }) => {
     setBreadcrumbItems("Gestão de Turmas", breadcrumbItems)
   }, [setBreadcrumbItems]) // Empty dependency array checks ensures this runs only once on mount
 
-  if (isInitialLoading) {
-    return <PageLoader />
-  }
+  // Incremental loading
 
   return (
     <Container fluid className="classes-page">

@@ -3,7 +3,7 @@ import { sessionRepository } from "../../data/repositories/SessionRepository"
 import { enrollmentRepository } from "../../data/repositories/EnrollmentRepository"
 import { taskRepository } from "../../data/repositories/Admin/TaskRepository"
 import { clientContractRepository } from "../../data/repositories/ClientContractRepository"
-import { query, where, getDocs, orderBy, limit } from "firebase/firestore"
+import { query, where, getDocs } from "firebase/firestore"
 import moment from "moment"
 import { normalizeDate } from "../../utils/date"
 
@@ -53,28 +53,23 @@ export const TeacherDashboardService = {
         try {
             // Janela de análise: últimos 30 dias
             const startCheck = normalizeDate(moment().subtract(30, 'days').startOf('day'));
-            const endCheck = normalizeDate(moment().endOf('day'));
 
-            const sessionsColl = sessionRepository.getCollectionRef(idTenant, idBranch);
+            // Buscar sessões do professor (Filtro simples por idStaff para evitar índices compostos com datas)
+            const sessionsDocs = await sessionRepository.findWhere(idTenant, idBranch, [
+                ['idStaff', '==', userId],
+                ['attendanceRecorded', '==', true]
+            ]);
 
-            // Buscar sessões passadas do professor com presença registrada
-            const qExpSession = query(
-                sessionsColl,
-                where('idStaff', '==', userId),
-                where('sessionDate', '>=', startCheck.toISOString().split('T')[0]), // Ajuste para formato string YYYY-MM-DD se necessário
-                where('attendanceRecorded', '==', true)
-            );
-
-            const expSnap = await getDocs(qExpSession);
             let experimentalStudentsIds = new Set();
+            const dateStr = startCheck.toISOString().split('T')[0];
 
-            expSnap.forEach(doc => {
-                const session = doc.data();
+            sessionsDocs.forEach(session => {
+                // Filtro de data em memória para robustez
+                if (session.sessionDate < dateStr) return;
+
                 const snapshot = session.attendanceSnapshot || [];
 
                 snapshot.forEach(att => {
-                    // Identificar se o aluno era experimental naquela aula
-                    // Verifica status 'present' e tipo/tag indicando experimental
                     const isExperimental = att.enrollmentType === 'experimental' || att.type === 'experimental' || (att.tag && att.tag.includes('Exp'));
                     if (isExperimental && att.status === 'present') {
                         experimentalStudentsIds.add(att.idClient || att.id);
@@ -107,36 +102,23 @@ export const TeacherDashboardService = {
         let upcomingExperimentals = [];
         try {
             const todayStr = moment().format('YYYY-MM-DD');
-            const sessionsColl = sessionRepository.getCollectionRef(idTenant, idBranch);
+            // Próximas sessões do professor (Filtro por idStaff + memória)
+            const allTeacherSessions = await sessionRepository.findWhere(idTenant, idBranch, [
+                ['idStaff', '==', userId]
+            ]);
 
-            // Próximas sessões do professor
-            const qNextSessions = query(
-                sessionsColl,
-                where('idStaff', '==', userId),
-                where('sessionDate', '>=', todayStr),
-                orderBy('sessionDate', 'asc'),
-                orderBy('startTime', 'asc'),
-                limit(10)
-            );
+            const nextSessions = allTeacherSessions
+                .filter(s => s.sessionDate >= todayStr)
+                .sort((a, b) => {
+                    if (a.sessionDate !== b.sessionDate) return a.sessionDate.localeCompare(b.sessionDate);
+                    return (a.startTime || '').localeCompare(b.startTime || '');
+                })
+                .slice(0, 10);
 
-            const nextSessionsSnap = await getDocs(qNextSessions);
-            const nextSessions = [];
-
-            nextSessionsSnap.forEach(doc => {
-                nextSessions.push(doc.data());
-            });
-
-            // Para cada sessão futura, verificar se há ALUNOS EXPERIMENTAIS agendados
-            // Como saber? Consultar Enrollments daquela sessão/turma ou lista de participantes pré-definida?
-            // Vamos assumir que 'Scheduling' (agendamento avulso) cria um enrollment do tipo 'experimental' vinculado à sessão ou turma.
-            // Então buscamos enrollments do tipo 'experimental' nessas turmas/sessões.
-
-            const sessionIds = nextSessions.map(s => s.id);
-            const classIds = [...new Set(nextSessions.map(s => s.idClass))];
-
-            if (classIds.length > 0) {
-                // Buscar enrollments experimentais ativos para essas turmas
-                // Precisamos filtrar por data também se for agendamento único, mas enrollment experimental geralmente tem validade.
+            if (nextSessions.length === 0) {
+                upcomingExperimentals = [];
+            } else {
+                // Buscar enrollments experimentais ativos na unidade
                 const expEnrollments = await enrollmentRepository.findWhere(idTenant, idBranch, [
                     ['status', '==', 'active'],
                     ['enrollmentType', '==', 'experimental']

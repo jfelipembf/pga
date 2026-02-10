@@ -263,7 +263,7 @@ export const GeneralDashboardService = {
         try {
             // Tenta importar o repositório de contas a pagar se existir
             // Assumindo estrutura padrão. Se falhar, retorna 0.
-            const { payableRepository } = await import('../../data/repositories/Financial/PayableRepository');
+            const { payableRepository } = await import('../../data/repositories/PayableRepository');
             if (payableRepository) {
                 const allPayables = await payableRepository.findAll(idTenant, idBranch); // Assumindo findAll ou método similar
                 // Filtrar pendentes em memória para evitar erro de index
@@ -275,20 +275,23 @@ export const GeneralDashboardService = {
             // Silencioso se não existir ou falhar
         }
 
-        // ✅ NOVO: Busca dados de alunos do DashboardSummary
+        // ✅ NOVO: Busca dados de alunos do DashboardSummary (UMA ÚNICA VEZ)
         const { DashboardSummaryService } = await import('./DashboardSummaryService');
-        let studentsData = { active: 0, new: 0, canceled: 0, suspended: 0 };
+        let studentsData = { active: 0, new: 0, canceled: 0, suspended: 0, renewals: 0, winbacks: 0 };
+        let currentSummary = null;
 
         try {
-            const summary = await DashboardSummaryService.getCurrent(idTenant, idBranch);
-            studentsData = {
-                active: summary.activeStudents || 0,
-                new: summary.newStudents || 0,
-                renewals: summary.renewals || 0,
-                winbacks: summary.winbacks || 0,
-                canceled: summary.canceledStudents || 0,
-                suspended: summary.suspendedStudents || 0
-            };
+            currentSummary = await DashboardSummaryService.getCurrent(idTenant, idBranch);
+            if (currentSummary) {
+                studentsData = {
+                    active: currentSummary.activeStudents || 0,
+                    new: currentSummary.newStudents || 0,
+                    renewals: currentSummary.renewals || 0,
+                    winbacks: currentSummary.winbacks || 0,
+                    canceled: currentSummary.canceledStudents || 0,
+                    suspended: currentSummary.suspendedStudents || 0
+                };
+            }
         } catch (err) {
             console.warn("Erro ao buscar summary de alunos:", err);
         }
@@ -297,7 +300,6 @@ export const GeneralDashboardService = {
         let studentsGrowth = { active: 0, new: 0, renewals: 0, winbacks: 0, canceled: 0, suspended: 0 }
 
         try {
-            // Tenta buscar o summary do mês passado (ex: "2023-10")
             const lastMonthKey = moment().subtract(1, 'months').format('YYYY-MM')
             const lastSummaryDoc = await DashboardSummaryService.getMonthSummary(idTenant, idBranch, lastMonthKey)
 
@@ -315,36 +317,25 @@ export const GeneralDashboardService = {
             console.warn("Erro ao buscar comparativo de alunos:", err)
         }
 
-        // --- Gráficos: Histórico de 12 Meses (Crescimento Financeiro: Receita vs Despesa) ---
+        // --- Gráficos: Agregados em Paralelo (Otimizado) ---
         let growthHistory = [];
-        try {
-            growthHistory = await GeneralDashboardService.getFinancialGrowthData(idTenant, idBranch);
-        } catch (err) {
-            console.warn("Erro ao buscar crescimento financeiro:", err);
-        }
-
-        // --- Gráficos: Mais Vendidos (Donut) ---
         let mostSold = { labels: [], series: [], totalCount: 0 };
-        try {
-            mostSold = await GeneralDashboardService.getMostSoldData(idTenant, idBranch);
-        } catch (err) {
-            console.warn("Erro ao buscar dados de mais vendidos:", err);
-        }
-
-        // --- Gráficos: Histórico de 12 Meses (Alunos Ativos) ---
         let studentsHistory = [];
-        try {
-            studentsHistory = await GeneralDashboardService.getLast12MonthsStudents(idTenant, idBranch);
-        } catch (err) {
-            console.warn("Erro ao buscar histórico de alunos:", err);
-        }
-
-        // --- Gráficos: Histórico de 3 Anos (Ativos e Vendas - Mês a Mês) ---
         let last3YearsMonthly = { salesSeries: [], studentsSeries: [], years: [] };
+
         try {
-            last3YearsMonthly = await GeneralDashboardService.getLast3YearsMonthlyData(idTenant, idBranch);
+            const [growth, sold, history, yearly] = await Promise.all([
+                GeneralDashboardService.getFinancialGrowthData(idTenant, idBranch),
+                GeneralDashboardService.getMostSoldData(idTenant, idBranch),
+                GeneralDashboardService.getLast12MonthsStudents(idTenant, idBranch, currentSummary),
+                GeneralDashboardService.getLast3YearsMonthlyData(idTenant, idBranch, currentSummary)
+            ]);
+            growthHistory = growth;
+            mostSold = sold;
+            studentsHistory = history;
+            last3YearsMonthly = yearly;
         } catch (err) {
-            console.warn("Erro ao buscar comparativo 3 anos:", err);
+            console.warn("Erro ao carregar dados complementares do dashboard:", err);
         }
 
         return {
@@ -474,7 +465,7 @@ export const GeneralDashboardService = {
     /**
      * Busca histórico de alunos ativos dos últimos 12 meses.
      */
-    getLast12MonthsStudents: async (idTenant, idBranch) => {
+    getLast12MonthsStudents: async (idTenant, idBranch, cachedSummary = null) => {
         const { DashboardSummaryService } = await import('./DashboardSummaryService');
 
         const promises = [];
@@ -488,8 +479,12 @@ export const GeneralDashboardService = {
                     let active = 0;
                     try {
                         if (i === 0) {
-                            const summary = await DashboardSummaryService.getCurrent(idTenant, idBranch);
-                            active = summary?.activeStudents || 0;
+                            if (cachedSummary) {
+                                active = cachedSummary.activeStudents || 0;
+                            } else {
+                                const summary = await DashboardSummaryService.getCurrent(idTenant, idBranch);
+                                active = summary?.activeStudents || 0;
+                            }
                         } else {
                             const summary = await DashboardSummaryService.getMonthSummary(idTenant, idBranch, monthKey);
                             active = summary?.activeStudents || 0;
@@ -506,7 +501,7 @@ export const GeneralDashboardService = {
      * Busca dados comparativos dos últimos 3 anos, mês a mês.
      * Retorna séries formatadas para ApexCharts.
      */
-    getLast3YearsMonthlyData: async (idTenant, idBranch) => {
+    getLast3YearsMonthlyData: async (idTenant, idBranch, cachedSummary = null) => {
         const currentYear = moment().year();
         const years = [currentYear - 2, currentYear - 1, currentYear]; // [2024, 2025, 2026]
 
@@ -552,20 +547,21 @@ export const GeneralDashboardService = {
 
         years.forEach(year => {
             for (let month = 0; month < 12; month++) {
-                // Se for futuro (ex: Nov 2026 e estamos em Fev), não precisa buscar (ou retorna 0)
-                // Mas vamos buscar tudo para ser generico, o service retorna null se nao existir
                 studentPromises.push((async () => {
                     const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
                     let val = 0;
                     try {
-                        const summary = await DashboardSummaryService.getMonthSummary(idTenant, idBranch, monthKey);
-                        if (summary) val = summary.activeStudents || 0;
-                        // Se for o mês ATUAL, tenta pegar o current se o summary mensal ainda não fechou?
-                        // O getMonthSummary busca documento específico. O DashboardSummaryService.getCurrent() é para AGORA.
-                        // Podemos usar getCurrent se for o mês corrente.
+                        // Se for o mês ATUAL, usa o cachedSummary se fornecido
                         if (moment().year() === year && moment().month() === month) {
-                            const current = await DashboardSummaryService.getCurrent(idTenant, idBranch);
-                            if (current) val = current.activeStudents || 0;
+                            if (cachedSummary) {
+                                val = cachedSummary.activeStudents || 0;
+                            } else {
+                                const current = await DashboardSummaryService.getCurrent(idTenant, idBranch);
+                                if (current) val = current.activeStudents || 0;
+                            }
+                        } else {
+                            const summary = await DashboardSummaryService.getMonthSummary(idTenant, idBranch, monthKey);
+                            if (summary) val = summary.activeStudents || 0;
                         }
                     } catch (e) { }
                     studentsMap[year][month] = val;

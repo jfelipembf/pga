@@ -3,7 +3,7 @@ import { receivableRepository } from "../../data/repositories/ReceivableReposito
 import { payableRepository } from "../../data/repositories/PayableRepository"
 import { bankAccountRepository } from "../../data/repositories/BankAccountRepository"
 import { cashierRepository } from "../../data/repositories/CashierRepository"
-import { query, where, getAggregateFromServer, sum, getDocs } from "firebase/firestore"
+import { query, where, getDocs } from "firebase/firestore"
 import moment from "moment"
 import { normalizeDate } from "../../utils/date"
 
@@ -103,32 +103,26 @@ export const FinancialDashboardService = {
      */
     getOverdueReceivables: async (idTenant, idBranch) => {
         const today = normalizeDate(moment().startOf('day'));
-        const collectionRef = receivableRepository.getCollectionRef(idTenant, idBranch);
 
         try {
-            const q = query(
-                collectionRef,
-                where('status', '==', 'open'),
-                where('dueDate', '<', today)
-            );
+            // Buscamos apenas pelo status (índice simples, geralmente já existente)
+            // e filtramos a data em memória para garantir resiliência total sem índices manuais.
+            const openReceivables = await receivableRepository.findWhere(idTenant, idBranch, [
+                ['status', '==', 'open']
+            ]);
 
-            const snapshot = await getAggregateFromServer(q, {
-                total: sum('amount'),
-                count: sum(1)
+            const overdue = openReceivables.filter(r => {
+                const dueDate = moment(r.dueDate?.toDate ? r.dueDate.toDate() : r.dueDate);
+                return dueDate.isBefore(today);
             });
 
-            return {
-                amount: snapshot.data().total || 0,
-                count: snapshot.data().count || 0
-            };
-        } catch (error) {
-            console.warn("Agregação (Receivables) falhou. Fallback manual.");
-            const openReceivables = await receivableRepository.findWhere(idTenant, idBranch, [['status', '==', 'open']]);
-            const overdue = openReceivables.filter(r => moment(r.dueDate?.toDate ? r.dueDate.toDate() : r.dueDate).isBefore(today));
             return {
                 amount: overdue.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0),
                 count: overdue.length
             };
+        } catch (error) {
+            console.error("Erro ao processar inadimplência (Receivables):", error);
+            return { amount: 0, count: 0 };
         }
     },
 
@@ -137,32 +131,25 @@ export const FinancialDashboardService = {
      */
     getOverduePayables: async (idTenant, idBranch) => {
         const today = normalizeDate(moment().startOf('day'));
-        const collectionRef = payableRepository.getCollectionRef(idTenant, idBranch);
 
         try {
-            const q = query(
-                collectionRef,
-                where('status', '==', 'open'),
-                where('dueDate', '<', today)
-            );
+            // Buscamos apenas pelo status e filtramos em memória.
+            const allOpen = await payableRepository.findWhere(idTenant, idBranch, [
+                ['status', '==', 'open']
+            ]);
 
-            const snapshot = await getAggregateFromServer(q, {
-                total: sum('amount'),
-                count: sum(1)
+            const overdue = allOpen.filter(p => {
+                const dueDate = moment(p.dueDate?.toDate ? p.dueDate.toDate() : p.dueDate);
+                return dueDate.isBefore(today);
             });
 
-            return {
-                amount: snapshot.data().total || 0,
-                count: snapshot.data().count || 0
-            };
-        } catch (error) {
-            console.warn("Agregação (Payables) falhou. Fallback manual.");
-            const allOpen = await payableRepository.findWhere(idTenant, idBranch, [['status', '==', 'open']]);
-            const overdue = allOpen.filter(p => moment(p.dueDate?.toDate ? p.dueDate.toDate() : p.dueDate).isBefore(today));
             return {
                 amount: overdue.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0),
                 count: overdue.length
             };
+        } catch (error) {
+            console.error("Erro ao processar inadimplência (Payables):", error);
+            return { amount: 0, count: 0 };
         }
     }
 }

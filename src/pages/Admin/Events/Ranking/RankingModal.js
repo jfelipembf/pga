@@ -115,7 +115,9 @@ const RankingModal = ({ isOpen, toggle, event }) => {
                 </div>
 
                 {loading ? (
-                    <div className="py-5"><PageLoader /></div>
+                    <div className="py-5 text-center">
+                        <PageLoader isFullScreen={false} />
+                    </div>
                 ) : filteredData.length === 0 ? (
                     <div className="text-center py-5 text-muted">
                         <i className="mdi mdi-account-off-outline fs-1 opacity-25 d-block mb-3"></i>

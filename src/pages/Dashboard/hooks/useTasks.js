@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import moment from 'moment'
 import { useTenant } from '../../../hooks/useTenant'
 import { useAuth } from '../../../hooks/useAuth'
@@ -16,6 +16,7 @@ export const useTasks = (filters = {}) => {
     const [loading, setLoading] = useState(true)
 
     const filtersKey = JSON.stringify(filters)
+    const memoizedFilters = useMemo(() => JSON.parse(filtersKey), [filtersKey])
 
     const fetchTasks = useCallback(async () => {
         if (!idTenant || !idBranch || !user) return
@@ -23,7 +24,7 @@ export const useTasks = (filters = {}) => {
         try {
             setLoading(true)
             const [tasksData, trialsSnapshot] = await Promise.all([
-                TaskService.listTasks(idTenant, idBranch, filters),
+                TaskService.listTasks(idTenant, idBranch, memoizedFilters),
                 (async () => {
                     // Buscar Experimentais do usuário para hoje
                     const { enrollmentRepository } = await import('../../../data/repositories/EnrollmentRepository');
@@ -83,7 +84,7 @@ export const useTasks = (filters = {}) => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch, filtersKey, user])
+    }, [idTenant, idBranch, memoizedFilters, user])
 
     useEffect(() => {
         fetchTasks()

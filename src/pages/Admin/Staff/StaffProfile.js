@@ -3,7 +3,7 @@ import { Row, Col, Button, Dropdown, DropdownToggle, DropdownMenu, DropdownItem,
 import { connect } from "react-redux"
 import { setBreadcrumbItems } from "../../../store/actions"
 import { useStaffProfile } from "./hooks/useStaffProfile"
-import PageLoader from "../../../components/Common/PageLoader"
+// PageLoader removed
 import StaffProfileForm from "./Components/StaffProfileForm"
 import StaffSchedule from "./Components/StaffSchedule"
 import StaffMetrics from "./Components/StaffMetrics"
@@ -13,7 +13,6 @@ import "./StaffProfile.scss"
 const StaffProfile = ({ setBreadcrumbItems }) => {
     const {
         staff,
-        loading,
         activeTab,
         setActiveTab,
         roles,
@@ -49,9 +48,9 @@ const StaffProfile = ({ setBreadcrumbItems }) => {
             { title: staff?.name || "Perfil", link: "#" },
         ]
         setBreadcrumbItems("Perfil do Colaborador", breadcrumbItems)
-    }, [setBreadcrumbItems, staff])
+    }, [setBreadcrumbItems, staff, tenantSlug, branchSlug])
 
-    if (loading) return <PageLoader />
+    // Incremental loading
 
     const roleName = roles.find(r => r.id === staff?.roleId)?.name || staff?.roleName || "Colaborador"
 

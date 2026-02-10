@@ -10,7 +10,7 @@ import AuditLogDetailsModal from "./AuditLogDetailsModal"
 import Flatpickr from "react-flatpickr"
 import { Portuguese } from "flatpickr/dist/l10n/pt.js"
 import "flatpickr/dist/themes/material_blue.css"
-import PageLoader from "../../../components/Common/PageLoader"
+// PageLoader removed
 
 const AuditLogsPage = () => {
     document.title = "Logs de Auditoria | PGA Admin"
@@ -158,9 +158,7 @@ const AuditLogsPage = () => {
         { id: 'technical_log', label: 'Logs Técnicos (Erros)' }
     ]
 
-    if (loading && !logs.length) {
-        return <PageLoader />
-    }
+    // Incremental loading
 
     return (
         <React.Fragment>

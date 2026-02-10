@@ -1,10 +1,10 @@
-import React, { useMemo } from "react"
+import React from "react"
 import { Row, Col } from "reactstrap"
 import Miniwidget from "../Miniwidget"
 import YearlySales from "../yearly-sales"
 import TaskSummaryList from "../Tasks/TaskSummaryList"
 import { useGeneralDashboard } from "../hooks/useGeneralDashboard"
-import PageLoader from "../../../components/Common/PageLoader"
+// PageLoader removed
 
 
 const ManagementDashboard = () => {
@@ -14,9 +14,7 @@ const ManagementDashboard = () => {
 
     // reports useMemo removed as it's no longer used
 
-    if (loading) {
-        return <PageLoader />
-    }
+    // Incremental loading: structure appears first
 
     // Filtramos para pegar os últimos 2 anos (Anterior e Atual) para o gráfico solicitado
     const seriesStudents = data?.charts?.seriesStudents?.slice(-2) || []
@@ -30,21 +28,21 @@ const ManagementDashboard = () => {
                     {
                         title: "Novos Alunos",
                         iconClass: "account-plus",
-                        total: data?.students?.new || 0,
+                        total: loading ? "..." : (data?.students?.new || 0),
                         growth: data?.studentsGrowth?.new,
                         desc: " no mês atual"
                     },
                     {
                         title: "Alunos Ativos",
                         iconClass: "account-group",
-                        total: data?.students?.active || 0,
+                        total: loading ? "..." : (data?.students?.active || 0),
                         growth: data?.studentsGrowth?.active,
                         desc: " total atual"
                     },
                     {
                         title: "Suspensos",
                         iconClass: "account-off",
-                        total: data?.students?.suspended || 0,
+                        total: loading ? "..." : (data?.students?.suspended || 0),
                         growth: data?.studentsGrowth?.suspended,
                         desc: " bloqueados temporariamente"
                     }
@@ -57,20 +55,20 @@ const ManagementDashboard = () => {
                     {
                         title: "Cancelamentos",
                         iconClass: "account-remove",
-                        total: data?.students?.canceled || 0,
+                        total: loading ? "..." : (data?.students?.canceled || 0),
                         growth: data?.studentsGrowth?.canceled,
                         desc: " perdidos no mês"
                     },
                     {
                         title: "Churn Rate",
                         iconClass: "chart-timeline-variant",
-                        total: `${((data?.students?.canceled / (data?.students?.active + data?.students?.canceled || 1)) * 100).toFixed(1)}%`,
+                        total: loading ? "..." : (data?.students ? `${((data.students.canceled / (data.students.active + data.students.canceled || 1)) * 100).toFixed(1)}%` : "0%"),
                         desc: " taxa de perda"
                     },
                     {
                         title: "Renovações",
                         iconClass: "restore",
-                        total: data?.students?.renewals || 0,
+                        total: loading ? "..." : (data?.students?.renewals || 0),
                         growth: data?.studentsGrowth?.renewals,
                         desc: " renovados no mês"
                     }
@@ -87,7 +85,7 @@ const ManagementDashboard = () => {
                     >
                         <Row className="text-center">
                             <Col xs="6">
-                                <h5 className="font-size-20">{data?.students?.active || 0}</h5>
+                                <h5 className="font-size-20">{loading ? "..." : (data?.students?.active || 0)}</h5>
                                 <p className="text-muted mb-0">Total Ativos</p>
                             </Col>
                             <Col xs="6">

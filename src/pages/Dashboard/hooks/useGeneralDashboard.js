@@ -16,7 +16,10 @@ export const useGeneralDashboard = (type = 'manager') => {
     const [data, setData] = useState(null)
 
     const loadData = useCallback(async () => {
-        if (!idTenant || !idBranch) return;
+        if (!idTenant || !idBranch) {
+            setLoading(false);
+            return;
+        }
 
         try {
             setLoading(true);

@@ -7,7 +7,6 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import { useCashFlow } from "./hooks/useCashFlow"
 import { formatCurrency } from "../../../utils/format"
 import { formatDate } from "../../../utils/date"
-import PageLoader from "../../../components/Common/PageLoader"
 import { PAYMENT_METHOD_LABELS } from "../../../utils/constants"
 import "flatpickr/dist/themes/material_blue.css"
 import Flatpickr from "react-flatpickr"
@@ -93,7 +92,7 @@ const CashFlowPage = () => {
         }
     ], []);
 
-    if (loading && transactions.length === 0) return <PageLoader />
+    // Carregamento incremental para evitar tela branca na navegação
 
     return (
         <React.Fragment>

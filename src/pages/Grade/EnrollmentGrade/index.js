@@ -9,7 +9,7 @@ import GradeGrid from "../Components/GradeGrid"
 import { getStartOfWeek } from "../../../utils/sharedUtils"
 import { setBreadcrumbItems } from "../../../store/actions"
 import { useGradeData } from "../Hooks/useGradeData"
-import PageLoader from "../../../components/Common/PageLoader"
+// PageLoader removed
 import { EnrollmentService } from "../../../services/Clients/EnrollmentService"
 import { ClientService } from "../../../services/Clients/ClientService"
 import { automationService } from "../../../services/Automation/AutomationService"
@@ -215,9 +215,7 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
         navigate(-1)
     }
 
-    if (loadingData && !sessions.length) {
-        return <PageLoader />
-    }
+    // Incremental loading
 
     // Verificar se uma turma já tem matrícula ativa
     const isClassEnrolled = (schedule) => {

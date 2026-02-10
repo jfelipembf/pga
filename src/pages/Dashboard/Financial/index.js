@@ -4,7 +4,7 @@ import Miniwidget from "../Miniwidget"
 import Crescimento from "../crescimento"
 import YearlySales from "../yearly-sales"
 import { useGeneralDashboard } from "../hooks/useGeneralDashboard"
-import PageLoader from "../../../components/Common/PageLoader"
+// PageLoader removed
 import { formatCurrency } from "../../../utils/format"
 
 const FinancialDashboard = () => {
@@ -12,45 +12,43 @@ const FinancialDashboard = () => {
 
     const { loading, data } = useGeneralDashboard('manager')
 
-    if (loading) {
-        return <PageLoader />
-    }
+    // Incremental loading
 
     const reports = [
         {
             title: "Vendas Hoje",
             iconClass: "cash-plus",
-            total: formatCurrency(data?.financial?.salesToday || 0),
+            total: loading ? "..." : formatCurrency(data?.financial?.salesToday || 0),
             desc: " recebido hoje"
         },
         {
             title: "Receita (Mês)",
             iconClass: "cash-multiple",
-            total: formatCurrency(data?.financial?.salesMonth || 0),
+            total: loading ? "..." : formatCurrency(data?.financial?.salesMonth || 0),
             desc: " acumulado no mês"
         },
         {
             title: "Despesas (Mês)",
             iconClass: "cash-minus",
-            total: formatCurrency(data?.financial?.expensesMonth || 0),
+            total: loading ? "..." : formatCurrency(data?.financial?.expensesMonth || 0),
             desc: " pago no mês"
         },
         {
             title: "Lucro Líquido",
             iconClass: "chart-line",
-            total: formatCurrency(data?.financial?.profitMonth || 0),
+            total: loading ? "..." : formatCurrency(data?.financial?.profitMonth || 0),
             desc: " resultado do mês"
         },
         {
             title: "Contas a Pagar",
             iconClass: "file-document-alert",
-            total: formatCurrency(data?.financial?.payablesPending || 0),
+            total: loading ? "..." : formatCurrency(data?.financial?.payablesPending || 0),
             desc: " total pendente"
         },
         {
             title: "Ticket Médio",
             iconClass: "ticket-percent",
-            total: formatCurrency(data?.sales?.ticket || 0),
+            total: loading ? "..." : formatCurrency(data?.sales?.ticket || 0),
             desc: " média por venda"
         }
     ]
@@ -86,7 +84,7 @@ const FinancialDashboard = () => {
                     >
                         <Row className="text-center">
                             <Col xs={6}>
-                                <h5 className="font-size-20">{formatCurrency(currentYearTotal)}</h5>
+                                <h5 className="font-size-20">{loading ? "..." : formatCurrency(currentYearTotal)}</h5>
                                 <p className="text-muted mb-0">Total {currentYearSeries?.name || 'Ano Atual'}</p>
                             </Col>
                             <Col xs={6}>

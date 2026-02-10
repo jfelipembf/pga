@@ -15,7 +15,6 @@ import { Navigate } from "react-router-dom"
 
 // ============== LAZY IMPORTS ==============
 // DASHBOARDS
-const Dashboard = React.lazy(() => import("../pages/Dashboard/index"))
 const OperationalDashboard = React.lazy(() => import("../pages/Dashboard/Operational/index"))
 const ManagementDashboard = React.lazy(() => import("../pages/Dashboard/Management/index"))
 const TeacherDashboard = React.lazy(() => import("../pages/Dashboard/Teacher/index"))
@@ -38,7 +37,6 @@ const Grade = React.lazy(() => import("../pages/Grade/index"))
 const EnrollmentGrade = React.lazy(() => import("../pages/Grade/EnrollmentGrade/index"))
 const Evaluation = React.lazy(() => import("../pages/Evaluation/index"))
 const TrainingPlanning = React.lazy(() => import("../pages/TrainingPlanning/index"))
-const TrainingTVView = React.lazy(() => import("../pages/TrainingPlanning/TVMode/TrainingTVView"))
 const AutomationList = React.lazy(() => import("../pages/Automation/AutomationList"))
 const IntegrationPage = React.lazy(() => import("../pages/Integration/index"))
 

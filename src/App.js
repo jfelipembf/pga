@@ -16,6 +16,7 @@ import Authmiddleware from "./routes/middleware/Authmiddleware"
 import VerticalLayout from "./components/VerticalLayout/"
 import HorizontalLayout from "./components/HorizontalLayout/"
 import NonAuthLayout from "./components/NonAuthLayout"
+import PageLoader from "./components/Common/PageLoader"
 
 // Import scss
 import "./assets/scss/theme.scss"
@@ -30,16 +31,7 @@ import { firebaseConfig } from "./helpers/firebase_config"
 // init firebase backend
 initFirebaseBackend(firebaseConfig)
 
-// Loading fallback component
-const PageLoader = () => (
-  <div className="page-content">
-    <div className="container-fluid d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
-      <div className="spinner-border text-primary" role="status">
-        <span className="visually-hidden">Carregando...</span>
-      </div>
-    </div>
-  </div>
-)
+// Branded Loader is imported from Common
 
 const App = props => {
   // Sincronização de logout entre abas

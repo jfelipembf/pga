@@ -9,8 +9,8 @@ import { useClientFinancial } from "./hooks/useClientFinancial"
 import { TAB_LIST, PROFILE_TABS } from "./constants/profileConstants"
 import { ClientService } from "../../../services/Clients/ClientService"
 
-// Componentes Comuns
-import PageLoader from "../../../components/Common/PageLoader"
+// Componentes Comuns   
+// PageLoader removed
 import ButtonLoader from "../../../components/Common/ButtonLoader"
 import StatusBadge from "../../../components/Common/StatusBadge"
 import ConfirmDialog from "../../../components/Common/ConfirmDialog"
@@ -57,7 +57,6 @@ const ClientProfile = () => {
 
     const {
         client,
-        loading,
         activeTab,
         setActiveTab,
         handleDelete,
@@ -78,9 +77,7 @@ const ClientProfile = () => {
     const [menuOpen, setMenuOpen] = React.useState(false)
     const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false)
 
-    if (loading) {
-        return <PageLoader />
-    }
+    // Incremental loading
 
     const profileDisplay = {
         name: client ? `${client.firstName} ${client.lastName}` : "Carregando...",

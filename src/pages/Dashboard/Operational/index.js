@@ -1,5 +1,5 @@
 import React, { useMemo } from "react"
-import { Row, Col, Spinner } from "reactstrap"
+import { Row, Col } from "reactstrap"
 import Miniwidget from "../Miniwidget"
 import { useGeneralDashboard } from "../hooks/useGeneralDashboard"
 import TaskSummaryList from "../Tasks/TaskSummaryList"
@@ -12,44 +12,35 @@ const OperationalDashboard = () => {
     const { data, loading } = useGeneralDashboard('operational')
 
     const reports = useMemo(() => {
-        if (!data) return [];
         return [
             {
                 title: "Vendas (Hoje)",
                 iconClass: "cash-multiple",
-                total: `R$ ${data.mySalesToday.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                total: loading ? "..." : `R$ ${(data?.mySalesToday || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
                 desc: "Total vendido hoje"
             },
             {
                 title: "Vendas (Mês)",
                 iconClass: "calendar-month",
-                total: `R$ ${data.mySalesMonth.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                total: loading ? "..." : `R$ ${(data?.mySalesMonth || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
                 desc: "Acumulado do mês"
             },
             {
                 title: "Tarefas",
                 iconClass: "format-list-checks",
-                total: (data.tasksToday || 0).toString(),
+                total: loading ? "..." : (data?.tasksToday || 0).toString(),
                 desc: "Agendadas para hoje"
             },
             {
                 title: "Vencimentos",
                 iconClass: "calendar-check",
-                total: (data.expirationsToday || 0).toString(),
+                total: loading ? "..." : (data?.expirationsToday || 0).toString(),
                 desc: "Contratos vencendo hoje"
             }
         ];
-    }, [data]);
+    }, [data, loading]);
 
-
-    if (loading) {
-        return (
-            <div className="text-center p-5">
-                <Spinner color="primary" />
-                <p className="mt-2">Carregando painel operacional...</p>
-            </div>
-        )
-    }
+    // Incremental loading: structure appears first
 
     return (
         <React.Fragment>

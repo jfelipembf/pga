@@ -1,6 +1,7 @@
 import React, { Suspense } from "react"
 import { Navigate, useParams, Outlet } from "react-router-dom"
 import { useAuth } from "../../hooks/useAuth"
+import PageLoader from "../../components/Common/PageLoader"
 
 /**
  * Middleware de autenticação e autorização.
@@ -20,15 +21,7 @@ const Authmiddleware = (props) => {
 
   // Loading state
   if (isLoading) {
-    return (
-      <div className="page-content">
-        <div className="container-fluid d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Carregando...</span>
-          </div>
-        </div>
-      </div>
-    )
+    return <PageLoader />
   }
 
   // 1. Verificar autenticação
@@ -65,7 +58,7 @@ const Authmiddleware = (props) => {
   // Se usado como wrapper de componente
   if (props.children) {
     return (
-      <Suspense fallback={<div className="page-content"><div className="container-fluid">Carregando...</div></div>}>
+      <Suspense fallback={<PageLoader />}>
         {props.children}
       </Suspense>
     )

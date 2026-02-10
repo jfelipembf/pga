@@ -44,19 +44,39 @@ export const DashboardSummaryService = {
     },
 
     /**
+     * Cache de promessas pendentes para evitar multiplas chamadas paralelas ao mesmo documento.
+     */
+    _pendingRequests: {},
+
+    /**
      * Busca o summary atual.
      */
     async getCurrent(idTenant, idBranch) {
-        const summaryRef = this.getSummaryRef(idTenant, idBranch)
-        const snapshot = await getDoc(summaryRef)
+        const key = `${idTenant}-${idBranch}`;
+        if (this._pendingRequests[key]) return this._pendingRequests[key];
 
-        if (!snapshot.exists()) {
-            // Inicializa se não existir
-            await this.initialize(idTenant, idBranch)
-            return await this.getCurrent(idTenant, idBranch)
-        }
+        const fetch = async () => {
+            try {
+                const summaryRef = this.getSummaryRef(idTenant, idBranch)
+                const snapshot = await getDoc(summaryRef)
 
-        return snapshot.data()
+                if (!snapshot.exists()) {
+                    // Inicializa se não existir
+                    await this.initialize(idTenant, idBranch)
+                    // Recarrega apos inicializar
+                    const newSnapshot = await getDoc(summaryRef)
+                    return newSnapshot.data()
+                }
+
+                return snapshot.data()
+            } finally {
+                // Remove do cache ao finalizar (seja sucesso ou erro)
+                delete this._pendingRequests[key];
+            }
+        };
+
+        this._pendingRequests[key] = fetch();
+        return this._pendingRequests[key];
     },
 
     /**

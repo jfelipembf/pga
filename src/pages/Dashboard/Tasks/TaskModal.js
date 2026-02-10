@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import {
     Modal,
     ModalHeader,
@@ -39,13 +39,7 @@ const TaskModal = ({ isOpen, toggle, task, onSuccess }) => {
     const [clientList, setClientList] = useState([]);
     const [loadingData, setLoadingData] = useState(false);
 
-    useEffect(() => {
-        if (isOpen) {
-            loadInitialData();
-        }
-    }, [isOpen]);
-
-    const loadInitialData = async () => {
+    const loadInitialData = useCallback(async () => {
         try {
             setLoadingData(true);
             const [staff, clients] = await Promise.all([
@@ -59,7 +53,13 @@ const TaskModal = ({ isOpen, toggle, task, onSuccess }) => {
         } finally {
             setLoadingData(false);
         }
-    };
+    }, [idTenant, idBranch]);
+
+    useEffect(() => {
+        if (isOpen) {
+            loadInitialData();
+        }
+    }, [isOpen, loadInitialData]);
 
     const initialValues = useMemo(() => ({
         title: task?.title || '',
