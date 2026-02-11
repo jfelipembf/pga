@@ -114,7 +114,7 @@ const ClientEnrollments = ({ client }) => {
                         </h5>
                         {hasActiveContract && (
                             <Button color="success" size="sm" onClick={handleNavigateToEnroll}>
-                                <i className="mdi mdi-plus-circle me-1"></i> Nova Matrícula
+                                Nova Matrícula
                             </Button>
                         )}
                     </div>
@@ -173,10 +173,9 @@ const ClientEnrollments = ({ client }) => {
                                                 color="danger"
                                                 outline
                                                 size="sm"
-                                                className="btn-rounded"
                                                 onClick={() => setCancelModal({ open: true, enrollment })}
                                             >
-                                                <i className="mdi mdi-close-circle-outline me-1"></i> Cancelar
+                                                Cancelar
                                             </Button>
                                         </div>
                                     </Col>
@@ -202,11 +201,11 @@ const ClientEnrollments = ({ client }) => {
                         <div className="d-flex gap-2 justify-content-center">
                             {hasActiveContract ? (
                                 <Button color="success" onClick={handleNavigateToEnroll}>
-                                    <i className="mdi mdi-calendar-plus me-1"></i> Matricular em Turmas
+                                    Matricular em Turmas
                                 </Button>
                             ) : (
                                 <Button color="warning" onClick={handleNavigateToTrial}>
-                                    <i className="mdi mdi-star me-1"></i> Agendar Aula Experimental
+                                    Agendar Aula Experimental
                                 </Button>
                             )}
                         </div>

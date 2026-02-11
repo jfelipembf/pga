@@ -29,18 +29,13 @@ export const SalesService = {
             balance: parseFloat(rawSaleData.balance) || 0
         };
 
-        // 2.5. VALIDAÇÃO CRÍTICA: Soma dos pagamentos deve bater com o total
-        // 2.5. VALIDAÇÃO CRÍTICA: Soma dos pagamentos + saldo remanescente deve bater com o total
-        if (saleData.payments && saleData.payments.length > 0) {
-            const sumPayments = saleData.payments.reduce((sum, p) => sum + (parseFloat(p.value) || 0), 0);
-            const totalAccounting = sumPayments + (saleData.balance || 0);
-            const expectedTotal = saleData.total - (saleData.discount || 0);
+        // 2.5. VALIDAÇÃO CRÍTICA (Delegada para FinancialCalculator)
+        if (saleData.items && saleData.items.length > 0) {
+            const { FinancialCalculator } = await import('../Financial/Core/FinancialCalculator');
+            const validation = FinancialCalculator.validateSaleIntegrity(saleData);
 
-            // Tolerância de 1 centavo para evitar problemas de arredondamento
-            if (Math.abs(totalAccounting - expectedTotal) > 0.01) {
-                throw new Error(
-                    `Inconsistência Financeira: Pagamentos (R$ ${sumPayments.toFixed(2)}) + Saldo (R$ ${saleData.balance?.toFixed(2)}) difere do Total (R$ ${expectedTotal.toFixed(2)})`
-                );
+            if (!validation.isValid) {
+                throw new Error(validation.errors.join(' | ')); // Unifica erros se houver múltiplos
             }
         }
 
@@ -159,6 +154,12 @@ export const SalesService = {
                                 else if (duration === 12) planType = 'annual'
                             }
 
+                            // Cálculo de valor com desconto proporcional (se houver desconto na venda)
+                            const originalUnitPrice = parseFloat(item.unitPrice) || 0;
+                            const discountFactor = saleData.subtotal > 0 ? (saleData.total / saleData.subtotal) : 1;
+                            const netUnitPrice = originalUnitPrice * discountFactor;
+                            const itemDiscount = originalUnitPrice - netUnitPrice;
+
                             // Usa o novo ClientContractService (com transações)
                             await ClientContractService.create(idTenant, idBranch, userId, {
                                 idClient: saleData.idClient,
@@ -169,7 +170,10 @@ export const SalesService = {
                                 planType,
                                 startDate,
                                 endDate,
-                                value: parseFloat(item.unitPrice) || 0,
+                                originalValue: originalUnitPrice,
+                                discount: itemDiscount,
+                                value: netUnitPrice,
+                                totalValue: netUnitPrice * (parseInt(item.quantity) || 1),
                                 installments: 1,
                                 status: 'active',
                                 userName: saleData.sellerName || saleData.userName,
@@ -318,21 +322,8 @@ export const SalesService = {
      * Esta é a "Fonte Única de Verdade" para o status da venda.
      */
     calculateSaleStatus: (sale, receivables = []) => {
-        // Se a venda já foi cancelada, permanece cancelada
-        if (sale.status === 'cancelled') return 'cancelled';
-
-        // Filtra recebíveis que pertencem a esta venda e são responsabilidade do cliente
-        const clientReceivables = receivables.filter(r =>
-            r.idSale === sale.id &&
-            (r.type === 'client' || r.paymentMethod === 'pending_payment')
-        );
-
-        // Se não houver recebíveis de cliente, e o status original não for falho, é pago
-        if (clientReceivables.length === 0) return 'paid';
-
-        // Verifica se ainda existe algum valor pendente
-        const totalPending = clientReceivables.reduce((sum, r) => sum + (r.status === 'open' ? (parseFloat(r.pending) || 0) : 0), 0);
-
-        return totalPending > 0.01 ? 'partial' : 'paid';
+        // Delega a lógica de negócio para o Core Calculator (SSOT)
+        const { FinancialCalculator } = require('../Financial/Core/FinancialCalculator');
+        return FinancialCalculator.calculateSaleStatus(sale, receivables);
     }
 }

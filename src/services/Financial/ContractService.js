@@ -22,6 +22,13 @@ export const ContractService = {
     },
 
     /**
+     * Lista apenas contratos ativos para venda
+     */
+    async listActiveContracts(idTenant, idBranch) {
+        return this.listWithFilters(idTenant, idBranch, { isActive: true })
+    },
+
+    /**
      * Lista contratos com filtros
      */
     async listWithFilters(idTenant, idBranch, filters = {}) {
@@ -29,11 +36,11 @@ export const ContractService = {
             const whereConditions = []
 
             if (filters.isActive !== undefined) {
-                whereConditions.push({ field: 'isActive', operator: '==', value: filters.isActive })
+                whereConditions.push(['isActive', '==', filters.isActive])
             }
 
             if (filters.durationType) {
-                whereConditions.push({ field: 'durationType', operator: '==', value: filters.durationType })
+                whereConditions.push(['durationType', '==', filters.durationType])
             }
 
             const contracts = await contractRepository.findWhere(idTenant, idBranch, whereConditions)

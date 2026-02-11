@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardBody, CardHeader, Label, Input, Button, Row, Col, Alert, Spinner } from 'reactstrap';
+import { Card, CardBody, CardHeader, Label, Input, Button, Row, Col, Spinner } from 'reactstrap';
 import { messagingService } from '../../../services/Automation/MessagingService';
 import { aiService } from '../../../services/Automation/AIService';
 import { toast } from 'react-toastify';

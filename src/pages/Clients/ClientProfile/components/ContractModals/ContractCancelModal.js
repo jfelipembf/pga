@@ -175,11 +175,11 @@ const ContractCancelModal = ({ isOpen, toggle, contract, onConfirm }) => {
                     </Row>
                 </ModalBody>
                 <ModalFooter className="bg-light border-top">
-                    <Button color="secondary" outline className="btn-rounded" onClick={toggle}>Manter Contrato</Button>
+                    <Button color="secondary" outline onClick={toggle}>Manter Contrato</Button>
                     <ButtonLoader
                         color="danger"
                         type="submit"
-                        className="btn-rounded px-4 shadow-sm"
+                        className="px-4 shadow-sm"
                         loading={formik.isSubmitting}
                         loadingText={isFuture ? "Agendando..." : "Cancelando..."}
                     >

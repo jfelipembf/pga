@@ -9,17 +9,24 @@ export const DREService = {
     /**
      * Gera o relatório DRE baseado na "Verdade Contábil" (Balancete)
      */
-    getDREData: async (idTenant, idBranch, period = 'month') => {
+    getDREData: async (idTenant, idBranch, filters = {}) => {
         let startDate, endDate;
-        if (period === 'day') {
-            startDate = moment().startOf('day').toDate();
-            endDate = moment().endOf('day').toDate();
-        } else if (period === 'week') {
-            startDate = moment().startOf('week').toDate();
-            endDate = moment().endOf('week').toDate();
+
+        if (filters.startDate && filters.endDate) {
+            startDate = moment(filters.startDate).startOf('day').toDate();
+            endDate = moment(filters.endDate).endOf('day').toDate();
         } else {
-            startDate = moment().startOf('month').toDate();
-            endDate = moment().endOf('month').toDate();
+            const period = typeof filters === 'string' ? filters : (filters.period || 'month');
+            if (period === 'day') {
+                startDate = moment().startOf('day').toDate();
+                endDate = moment().endOf('day').toDate();
+            } else if (period === 'week') {
+                startDate = moment().startOf('week').toDate();
+                endDate = moment().endOf('week').toDate();
+            } else {
+                startDate = moment().startOf('month').toDate();
+                endDate = moment().endOf('month').toDate();
+            }
         }
 
         // 1. Busca o balancete oficial via LedgerService
@@ -67,7 +74,6 @@ export const DREService = {
         const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
 
         return {
-            period,
             startDate,
             endDate,
             revenues: revenues.sort((a, b) => b.amount - a.amount),

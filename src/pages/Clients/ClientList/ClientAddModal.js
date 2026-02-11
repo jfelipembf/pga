@@ -158,18 +158,23 @@ const ClientAddModal = ({ isOpen, toggle, onClientAdded }) => {
                             <Col md="4">
                                 <FormGroup>
                                     <Label>CPF</Label>
-                                    <Input
-                                        tag={InputMask}
+                                    <InputMask
                                         mask="999.999.999-99"
-                                        id="cpf"
-                                        name="cpf"
-                                        placeholder="000.000.000-00"
                                         value={formik.values.cpf}
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
-                                        invalid={formik.touched.cpf && !!formik.errors.cpf}
-                                    />
-                                    {formik.touched.cpf && formik.errors.cpf && <FormFeedback>{formik.errors.cpf}</FormFeedback>}
+                                    >
+                                        {(inputProps) => (
+                                            <Input
+                                                {...inputProps}
+                                                id="cpf"
+                                                name="cpf"
+                                                placeholder="000.000.000-00"
+                                                invalid={formik.touched.cpf && !!formik.errors.cpf}
+                                            />
+                                        )}
+                                    </InputMask>
+                                    {formik.touched.cpf && formik.errors.cpf && <FormFeedback className="d-block">{formik.errors.cpf}</FormFeedback>}
                                 </FormGroup>
                             </Col>
                             <Col md="8">
@@ -191,18 +196,23 @@ const ClientAddModal = ({ isOpen, toggle, onClientAdded }) => {
                             <Col md="4">
                                 <FormGroup>
                                     <Label>Telefone <span className="text-danger">*</span></Label>
-                                    <Input
-                                        tag={InputMask}
+                                    <InputMask
                                         mask="(99) 99999-9999"
-                                        id="phone"
-                                        name="phone"
-                                        placeholder="(00) 00000-0000"
                                         value={formik.values.phone}
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
-                                        invalid={formik.touched.phone && !!formik.errors.phone}
-                                    />
-                                    {formik.touched.phone && formik.errors.phone && <FormFeedback>{formik.errors.phone}</FormFeedback>}
+                                    >
+                                        {(inputProps) => (
+                                            <Input
+                                                {...inputProps}
+                                                id="phone"
+                                                name="phone"
+                                                placeholder="(00) 00000-0000"
+                                                invalid={formik.touched.phone && !!formik.errors.phone}
+                                            />
+                                        )}
+                                    </InputMask>
+                                    {formik.touched.phone && formik.errors.phone && <FormFeedback className="d-block">{formik.errors.phone}</FormFeedback>}
                                 </FormGroup>
                             </Col>
                         </Row>
@@ -221,21 +231,26 @@ const ClientAddModal = ({ isOpen, toggle, onClientAdded }) => {
                                 CEP
                                 {isLoadingCep && <Spinner size="sm" className="ms-1" />}
                             </Label>
-                            <Input
-                                tag={InputMask}
+                            <InputMask
                                 mask="99999-999"
-                                id="zipCode"
-                                name="zipCode"
-                                placeholder="00000-000"
                                 value={formik.values.zipCode}
                                 onChange={formik.handleChange}
                                 onBlur={(e) => {
                                     formik.handleBlur(e)
                                     handleCepBlur(e)
                                 }}
-                                invalid={formik.touched.zipCode && !!formik.errors.zipCode}
-                            />
-                            {formik.touched.zipCode && formik.errors.zipCode && <FormFeedback>{formik.errors.zipCode}</FormFeedback>}
+                            >
+                                {(inputProps) => (
+                                    <Input
+                                        {...inputProps}
+                                        id="zipCode"
+                                        name="zipCode"
+                                        placeholder="00000-000"
+                                        invalid={formik.touched.zipCode && !!formik.errors.zipCode}
+                                    />
+                                )}
+                            </InputMask>
+                            {formik.touched.zipCode && formik.errors.zipCode && <FormFeedback className="d-block">{formik.errors.zipCode}</FormFeedback>}
                         </FormGroup>
                     </Col>
                     <Col md="7">
@@ -341,16 +356,21 @@ const ClientAddModal = ({ isOpen, toggle, onClientAdded }) => {
                     <Col md="4">
                         <FormGroup>
                             <Label>Telefone de Emergência</Label>
-                            <Input
-                                tag={InputMask}
+                            <InputMask
                                 mask="(99) 99999-9999"
-                                id="emergencyPhone"
-                                name="emergencyPhone"
-                                placeholder="(00) 00000-0000"
                                 value={formik.values.emergencyPhone}
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
-                            />
+                            >
+                                {(inputProps) => (
+                                    <Input
+                                        {...inputProps}
+                                        id="emergencyPhone"
+                                        name="emergencyPhone"
+                                        placeholder="(00) 00000-0000"
+                                    />
+                                )}
+                            </InputMask>
                         </FormGroup>
                     </Col>
                     <Col md="4">

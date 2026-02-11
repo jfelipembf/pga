@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Container } from "reactstrap";
+import { } from "reactstrap";
 import { connect } from "react-redux";
 import { setBreadcrumbItems } from "../../store/actions";
 import { IntegrationSettings } from "../Automation/components/IntegrationSettings";

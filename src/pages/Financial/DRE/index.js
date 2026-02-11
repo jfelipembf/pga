@@ -1,26 +1,33 @@
 import React from "react"
-import { Row, Col, Card, CardBody, Button } from "reactstrap"
+import { Row, Col, Card, CardBody } from "reactstrap"
 import { useDRE } from "./hooks/useDRE"
 import { CashFlowDRE } from "../CashFlow/components/CashFlowDRE"
+import moment from "moment"
+import "moment/locale/pt-br"
 
-/**
- * Página de DRE Gerencial (Demonstrativo de Resultado do Exercício)
- * Focada na análise de rentabilidade e performance do negócio.
- */
+const MONTHS = [
+    { value: 0, label: "Janeiro" }, { value: 1, label: "Fevereiro" }, { value: 2, label: "Março" },
+    { value: 3, label: "Abril" }, { value: 4, label: "Maio" }, { value: 5, label: "Junho" },
+    { value: 6, label: "Julho" }, { value: 7, label: "Agosto" }, { value: 8, label: "Setembro" },
+    { value: 9, label: "Outubro" }, { value: 10, label: "Novembro" }, { value: 11, label: "Dezembro" }
+]
+
 const DREPage = () => {
     document.title = "DRE Gerencial | PGA Admin"
+    moment.locale('pt-br')
 
     const {
         transactions,
-        summary,
-        period,
-        setPeriod
+        filters,
+        handleFilterChange
     } = useDRE()
 
-    const formatVal = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+    const currentYear = new Date().getFullYear();
+    const years = [currentYear - 2, currentYear - 1, currentYear, currentYear + 1];
 
-
-    // PageLoader removed to follow incremental loading pattern
+    const periodLabel = filters.startMonth === filters.endMonth
+        ? `${MONTHS[filters.startMonth].label} / ${filters.year}`
+        : `${MONTHS[filters.startMonth].label} a ${MONTHS[filters.endMonth].label} / ${filters.year}`;
 
     return (
         <React.Fragment>
@@ -31,24 +38,33 @@ const DREPage = () => {
                     <p className="text-muted mb-0">Análise de rentabilidade e performance operacional</p>
                 </div>
 
-                <div className="mt-3 mt-md-0 d-flex align-items-center gap-4">
-                    <div className="text-end d-none d-lg-block border-end pe-4">
-                        <span className="d-block font-size-10 text-muted text-uppercase fw-bold">Receitas</span>
-                        <h5 className="m-0 text-success font-size-15 fw-bold">{formatVal(summary?.receitas)}</h5>
-                    </div>
-                    <div className="text-end d-none d-lg-block border-end pe-4">
-                        <span className="d-block font-size-10 text-muted text-uppercase fw-bold">Despesas</span>
-                        <h5 className="m-0 text-danger font-size-15 fw-bold">{formatVal(summary?.despesas)}</h5>
-                    </div>
-                    <div className="text-end me-3">
-                        <span className="d-block font-size-10 text-muted text-uppercase fw-bold">Resultado</span>
-                        <h5 className={`m-0 font-size-16 fw-bold ${summary?.lucro >= 0 ? 'text-primary' : 'text-danger'}`}>{formatVal(summary?.lucro)}</h5>
-                    </div>
+                <div className="mt-3 mt-md-0 d-flex flex-wrap align-items-center gap-3">
+                    <div className="d-flex align-items-center gap-2 bg-white p-2 rounded shadow-sm border">
+                        <select
+                            className="form-select form-select-sm border-0 bg-transparent fw-bold"
+                            value={filters.year}
+                            onChange={(e) => handleFilterChange('year', e.target.value)}
+                        >
+                            {years.map(y => <option key={y} value={y}>{y}</option>)}
+                        </select>
 
-                    <div className="btn-group shadow-sm rounded">
-                        <Button color="light" size="sm" className="px-3" active={period === 'day'} onClick={() => setPeriod('day')}>Hoje</Button>
-                        <Button color="light" size="sm" className="px-3" active={period === 'week'} onClick={() => setPeriod('week')}>Semana</Button>
-                        <Button color="white" size="sm" className="px-3 border-start" active={period === 'month'} onClick={() => setPeriod('month')}>Este Mês</Button>
+                        <div className="border-start ps-2 d-flex align-items-center gap-1">
+                            <select
+                                className="form-select form-select-sm border-0 bg-transparent"
+                                value={filters.startMonth}
+                                onChange={(e) => handleFilterChange('startMonth', e.target.value)}
+                            >
+                                {MONTHS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                            </select>
+                            <span className="text-muted">até</span>
+                            <select
+                                className="form-select form-select-sm border-0 bg-transparent"
+                                value={filters.endMonth}
+                                onChange={(e) => handleFilterChange('endMonth', e.target.value)}
+                            >
+                                {MONTHS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -57,7 +73,7 @@ const DREPage = () => {
                 <Col lg={12}>
                     <CashFlowDRE
                         transactions={transactions}
-                        periodLabel={period === 'day' ? 'Hoje' : period === 'week' ? 'Última Semana' : 'Este Mês'}
+                        periodLabel={periodLabel}
                     />
                 </Col>
             </Row>

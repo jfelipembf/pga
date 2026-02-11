@@ -27,6 +27,8 @@ export const ClientContractSchema = Yup.object().shape({
         .default('active'),
 
     // === FINANCEIRO ===
+    originalValue: Yup.number().min(0).nullable(), // Valor bruto sem desconto
+    discount: Yup.number().min(0).default(0),      // Valor do desconto aplicado
     value: Yup.number().min(0, 'Valor deve ser positivo').required('Valor é obrigatório'),
     installments: Yup.number().min(1).default(1),
     paidInstallments: Yup.number().min(0).default(0),

@@ -51,11 +51,8 @@ export const CashFlowDRE = ({ transactions, periodLabel }) => {
     return (
         <Card className="shadow-sm border-0 mt-4">
             <CardBody>
-                <div className="d-flex justify-content-between align-items-center mb-4">
+                <div className="mb-4">
                     <h5 className="card-title fw-bold text-uppercase text-muted">DRE Gerencial - {periodLabel}</h5>
-                    <span className={`badge ${dreData.result >= 0 ? 'bg-success' : 'bg-danger'} font-size-14 p-2`}>
-                        Resultado: {formatCurrency(dreData.result)}
-                    </span>
                 </div>
 
                 <div className="table-responsive">

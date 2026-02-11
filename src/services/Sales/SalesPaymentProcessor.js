@@ -84,7 +84,12 @@ export const SalesPaymentProcessor = {
         // 1. Buscar Taxas da Adquirente
         try {
             const activeAcquirers = await acquirerRepository.findActive(idTenant, idBranch)
-            activeAcquirer = activeAcquirers.find(a => a.name === payment.provider)
+            // Tenta achar por ID primeiro (idAcquirer), depois por ID no provider, depois por Nome
+            activeAcquirer = activeAcquirers.find(a =>
+                a.id === payment.idAcquirer ||
+                a.id === payment.provider ||
+                a.name === payment.provider
+            )
 
             if (activeAcquirer) {
                 let targetFees = activeAcquirer.fees
@@ -157,12 +162,12 @@ export const SalesPaymentProcessor = {
                 paymentMethod: payment.methodId,
                 status: 'open',
 
-                idAcquirer: payment.idAcquirer || null,
-                provider: payment.provider,
+                idAcquirer: activeAcquirer?.id || payment.idAcquirer || null,
+                provider: activeAcquirer?.name || payment.provider,
                 brand: payment.brand,
                 authCode: payment.auth,
 
-                description: `Parcela ${i}/${numInstallments} - ${payment.provider} ${payment.brand} (Venda #${sale.saleNumber})`,
+                description: `Parcela ${i}/${numInstallments} - ${activeAcquirer?.name || payment.provider} ${payment.brand} (Venda #${sale.saleNumber})`,
                 createdAt: normalizeDate(new Date())
             }
 
@@ -184,12 +189,30 @@ export const SalesPaymentProcessor = {
             netAmount: pValue,
             category: 'sale',
             method: payment.methodId,
-            description: `Venda #${sale.saleNumber || sale.id.substring(0, 6)} - ${brandLabel}${installmentLabel}`,
+            description: `Venda #${sale.saleNumber || sale.id.substring(0, 6)} - ${activeAcquirer?.name || payment.provider} ${brandLabel}${installmentLabel}`,
             idSale: sale.id,
             saleNumber: sale.saleNumber,
             clientName: clientData.clientName,
             userName: sale.sellerName
         })
+
+        // 5. Registrar Despesa de Taxas (Para cálculo correto de Lucro Líquido)
+        const totalFee = receivables.reduce((acc, rec) => acc + (rec.feeAmount || 0), 0);
+
+        if (totalFee > 0) {
+            await CashierService.registerMovement(idTenant, idBranch, userId, {
+                type: 'expense',
+                amount: totalFee,
+                netAmount: totalFee,
+                category: 'Taxas Financeiras',
+                method: payment.methodId,
+                description: `Taxas de Cartão - Venda #${sale.saleNumber}`,
+                idSale: sale.id,
+                saleNumber: sale.saleNumber,
+                clientName: clientData.clientName,
+                userName: sale.sellerName
+            });
+        }
 
         return receivables;
     },

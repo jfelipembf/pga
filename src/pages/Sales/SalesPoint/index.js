@@ -28,7 +28,10 @@ const SalesPoint = () => {
         handleAddPayment,
         handleRemoveItem,
         handleRemovePayment,
-        handleFinalizeSale
+        handleFinalizeSale,
+        startDate, setStartDate,
+        discount, setDiscount,
+        isRenewal, setIsRenewal
     } = useSalesPoint();
 
     return (
@@ -57,9 +60,9 @@ const SalesPoint = () => {
                         <span className="font-size-13 text-white">Venda em Aberto</span>
                     </div>
                     <div className="text-end">
-                        <span className="d-block font-size-10 text-white-50">Total</span>
+                        <span className="d-block font-size-10 text-white-50">Total Final</span>
                         <h5 className="m-0 text-white font-size-16">
-                            {totals?.subtotal ? `R$ ${totals.subtotal.toFixed(2)}` : 'R$ 0,00'}
+                            {totals?.total ? `R$ ${totals.total.toFixed(2)}` : 'R$ 0,00'}
                         </h5>
                     </div>
                 </div>
@@ -76,6 +79,12 @@ const SalesPoint = () => {
                         contracts={data.contracts}
                         acquirers={data.acquirers}
                         suggestedValue={totals.balance > 0 ? totals.balance : 0}
+                        startDate={startDate}
+                        setStartDate={setStartDate}
+                        isRenewal={isRenewal}
+                        setIsRenewal={setIsRenewal}
+                        discount={discount}
+                        setDiscount={setDiscount}
                     />
                 </Col>
 

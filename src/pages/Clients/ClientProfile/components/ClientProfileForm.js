@@ -301,7 +301,7 @@ const ClientProfileForm = ({ formik }) => {
                     <Button
                         type="button"
                         color="light"
-                        className="btn-rounded px-4"
+                        className="px-4"
                         onClick={() => formik.resetForm()}
                     >
                         Descartar Alterações
@@ -309,11 +309,10 @@ const ClientProfileForm = ({ formik }) => {
                     <Button
                         type="submit"
                         color="primary"
-                        className="btn-rounded px-4 shadow-sm"
+                        className="px-4 shadow-sm"
                         disabled={formik.isSubmitting}
                     >
-                        {formik.isSubmitting ? <Spinner size="sm" className="me-2" /> : <i className="mdi mdi-check-circle-outline me-2" />}
-                        {formik.isSubmitting ? "Salvando..." : "Salvar Alterações"}
+                        {formik.isSubmitting ? <Spinner size="sm" className="me-2" /> : "Salvar Alterações"}
                     </Button>
                 </div>
             </Form>

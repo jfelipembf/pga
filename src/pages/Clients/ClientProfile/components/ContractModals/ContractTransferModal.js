@@ -79,11 +79,11 @@ const ContractTransferModal = ({ isOpen, toggle, contract, onConfirm }) => {
                     </FormGroup>
                 </ModalBody>
                 <ModalFooter className="bg-light border-top">
-                    <Button color="secondary" outline className="btn-rounded" onClick={toggle}>Cancelar</Button>
+                    <Button color="secondary" outline onClick={toggle}>Cancelar</Button>
                     <ButtonLoader
                         color="primary"
                         type="submit"
-                        className="btn-rounded px-4"
+                        className="px-4"
                         disabled={formik.isSubmitting || !searchTerm}
                         loading={formik.isSubmitting}
                         loadingText="Transferindo..."

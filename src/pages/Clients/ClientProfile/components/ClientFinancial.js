@@ -40,7 +40,7 @@ const ClientFinancial = () => {
     }
 
     const cards = [
-        { title: "Volume de Vendas", value: summary?.totalOwed || 0, icon: "mdi mdi-cart-outline", color: "primary" },
+        { title: "Volume de Vendas (Bruto)", value: summary?.totalSubtotal || 0, icon: "mdi mdi-cart-outline", color: "primary" },
         { title: "LTV (Total Recebido)", value: summary?.totalPaid || 0, icon: "mdi mdi-check-circle-outline", color: "success" },
         { title: "Saldo Devedor", value: (summary?.totalPending || 0), icon: "mdi mdi-account-cash", color: "warning" },
         { title: "A Receber (Bancos)", value: summary?.totalBankReceivable || 0, icon: "mdi mdi-bank-transfer-in", color: "info" }
@@ -150,7 +150,7 @@ const ClientFinancial = () => {
                                                                     setIsSettlementModalOpen(true);
                                                                 }}
                                                             >
-                                                                <i className="mdi mdi-cash-check me-1"></i> Receber
+                                                                Receber
                                                             </Button>
                                                         ) : rec.status === 'open' ? (
                                                             <span className="text-muted font-size-11">
@@ -185,7 +185,9 @@ const ClientFinancial = () => {
                                         <th>Data</th>
                                         <th>Nº Venda</th>
                                         <th>Itens</th>
-                                        <th>Valor Total</th>
+                                        <th className="text-end">Subtotal</th>
+                                        <th className="text-end text-danger">Desconto</th>
+                                        <th className="text-end">Total Final</th>
                                         <th>Status</th>
                                         <th>Ações</th>
                                     </tr>
@@ -207,7 +209,11 @@ const ClientFinancial = () => {
                                                     {sale.items?.slice(0, 2).map(item => item.name).join(', ')}
                                                     {sale.items?.length > 2 && <small className="text-muted ms-1">+{sale.items.length - 2} mais</small>}
                                                 </td>
-                                                <td className="fw-bold">{formatCurrency(sale.total)}</td>
+                                                <td className="text-end text-muted">{formatCurrency(parseFloat(sale.subtotal) || (sale.total + (sale.discount || 0)))}</td>
+                                                <td className="text-end text-danger">
+                                                    {sale.discount > 0 ? `- ${formatCurrency(sale.discount)}` : '-'}
+                                                </td>
+                                                <td className="fw-bold text-end">{formatCurrency(sale.total)}</td>
                                                 <td>
                                                     <StatusBadge status={getLiveSaleStatus(sale)} />
                                                 </td>
@@ -222,7 +228,7 @@ const ClientFinancial = () => {
                                                             setIsSaleDetailsModalOpen(true);
                                                         }}
                                                     >
-                                                        <i className="mdi mdi-eye me-1"></i> Detalhes
+                                                        Detalhes
                                                     </Button>
                                                 </td>
                                             </tr>

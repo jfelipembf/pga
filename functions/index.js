@@ -36,3 +36,4 @@ exports.processSuspensionEnds = require("./triggers/processSuspensionEnds");
 exports.processScheduledCancellations = require("./triggers/processScheduledCancellations");
 exports.processContractDefaultCancellation = require("./triggers/processContractDefaultCancellation");
 exports.checkExperimentalClassAutomations = require("./triggers/checkExperimentalClassAutomations");
+exports.autoSettleReceivables = require("./triggers/autoSettleReceivables");

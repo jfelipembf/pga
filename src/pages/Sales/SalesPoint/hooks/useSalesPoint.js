@@ -39,6 +39,11 @@ export const useSalesPoint = () => {
     const [contracts, setContracts] = useState([]);
     const [isLoadingData, setIsLoadingData] = useState(true);
 
+    // 2.1 Novos campos da venda
+    const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+    const [discount, setDiscount] = useState('');
+    const [isRenewal, setIsRenewal] = useState(false);
+
     // Carregar Dados Iniciais
     useEffect(() => {
         const loadData = async () => {
@@ -76,7 +81,7 @@ export const useSalesPoint = () => {
         setCartItems(prev => [...prev, {
             // Dados do item (name, price, type, etc)
             name: item.name || item.title,
-            type: item.type, // contract, product, service
+            type: item.type || (item.category === 'Produto' ? 'product' : item.category === 'Serviço' ? 'service' : 'contract'),
             unitPrice: parseFloat(item.price) || 0,
             quantity: 1,
             totalPrice: parseFloat(item.price) || 0,
@@ -107,10 +112,12 @@ export const useSalesPoint = () => {
     // 4. Cálculos Financeiros em Tempo Real
     const totals = useMemo(() => {
         const subtotal = cartItems.reduce((acc, curr) => acc + (parseFloat(curr.totalPrice || curr.price) || 0), 0);
+        const totalWithDiscount = Math.max(0, subtotal - (parseFloat(discount) || 0));
         const totalPaid = payments.reduce((acc, curr) => acc + (parseFloat(curr.value) || 0), 0);
-        const balance = subtotal - totalPaid;
-        return { subtotal, totalPaid, balance };
-    }, [cartItems, payments]);
+        const balance = Math.max(0, totalWithDiscount - totalPaid);
+        const surplus = Math.max(0, totalPaid - totalWithDiscount);
+        return { subtotal, discount: parseFloat(discount) || 0, total: totalWithDiscount, totalPaid, balance, surplus };
+    }, [cartItems, payments, discount]);
 
     // 5. Lógica de Finalização (Integração com Service)
     const handleFinalizeSale = async (finalizeData) => {
@@ -130,6 +137,8 @@ export const useSalesPoint = () => {
             // Preparação do Payload Seguro
             const salePayload = {
                 saleDate: new Date(),
+                startDate: new Date(startDate),
+                isRenewal: isRenewal,
                 idClient: idClient,
                 clientName: clientName,
                 friendlyId: friendlyId,
@@ -149,19 +158,28 @@ export const useSalesPoint = () => {
                     methodLabel: p.methodLabel,
                     value: p.value || 0,
                     installments: parseInt(p.installments) || 1,
-                    provider: p.provider || null,
+                    provider: p.providerName || p.provider || null,
+                    idAcquirer: p.provider || null,
                     brand: p.brand || null,
                     auth: p.auth || null,
                     netValue: p.netValue || p.value // Valor líquido (se calculado)
                 })),
                 subtotal: totals.subtotal,
-                discount: 0,
-                total: totals.subtotal,
+                discount: totals.discount,
+                total: totals.total,
                 totalPaid: totals.totalPaid,
                 balance: totals.balance,
+                surplus: totals.surplus, // Informativo
                 dueDateBalance: finalizeData.dueDate ? new Date(finalizeData.dueDate) : null,
                 status: totals.balance > 0.01 ? 'partial' : 'paid'
             };
+
+            // Validação Final no Frontend antes de enviar
+            if (totals.surplus > 0.01) {
+                toast.warning(`Atenção: Os pagamentos (R$ ${totals.totalPaid.toFixed(2)}) excedem o total da venda (R$ ${totals.total.toFixed(2)}). Ajuste os valores.`);
+                setIsProcessing(false);
+                return;
+            }
 
             await SalesService.processSale(idTenant, idBranch, user.uid, salePayload);
 
@@ -197,6 +215,10 @@ export const useSalesPoint = () => {
         handleAddPayment,
         handleRemoveItem,
         handleRemovePayment,
-        handleFinalizeSale
+        handleFinalizeSale,
+        // Novos estados expostos
+        startDate, setStartDate,
+        discount, setDiscount,
+        isRenewal, setIsRenewal
     };
 };

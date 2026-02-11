@@ -146,11 +146,11 @@ const ContractSuspendModal = ({ isOpen, toggle, contract, onConfirm }) => {
                     </Alert>
                 </ModalBody>
                 <ModalFooter className="bg-light border-top">
-                    <Button color="secondary" outline className="btn-rounded" onClick={toggle}>Fechar</Button>
+                    <Button color="secondary" outline onClick={toggle}>Fechar</Button>
                     <ButtonLoader
                         color="warning"
                         type="submit"
-                        className="btn-rounded px-4"
+                        className="px-4"
                         disabled={formik.isSubmitting || !canSuspend}
                         loading={formik.isSubmitting}
                         loadingText={isFuture ? "Agendando..." : "Suspendendo..."}

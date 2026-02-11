@@ -32,8 +32,8 @@ const ClientSummary = ({ client }) => {
             color: "danger"
         },
         {
-            title: "Total em Vendas",
-            value: summary ? formatCurrency(summary.totalOwed) : '...',
+            title: "Volume Total (Bruto)",
+            value: summary ? formatCurrency(summary.totalSubtotal) : '...',
             icon: "mdi mdi-cart-arrow-down",
             color: "primary"
         }
@@ -104,7 +104,15 @@ const ClientSummary = ({ client }) => {
                                                         </div>
                                                     </td>
                                                     <td><StatusBadge status={contract.status} /></td>
-                                                    <td><span className="fw-bold text-primary">{formatCurrency(contract.value)}</span></td>
+                                                    <td>
+                                                        <span className="fw-bold text-primary">{formatCurrency(contract.value)}</span>
+                                                        {contract.discount > 0.01 && (
+                                                            <div className="font-size-10 text-muted">
+                                                                <span className="text-decoration-line-through">{formatCurrency(contract.originalValue || (contract.value + contract.discount))}</span>
+                                                                <span className="text-danger ms-1">(-{formatCurrency(contract.discount)})</span>
+                                                            </div>
+                                                        )}
+                                                    </td>
                                                 </tr>
                                             ))}
                                         </tbody>

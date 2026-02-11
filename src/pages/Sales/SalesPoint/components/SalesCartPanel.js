@@ -99,7 +99,7 @@ const SalesCartPanel = ({ cartItems, payments, totals, onRemoveItem, onRemovePay
                             <Input
                                 type="date"
                                 className="border-start-0 ps-0"
-                                value={dueDate}
+                                value={dueDate || ''}
                                 onChange={(e) => setDueDate(e.target.value)}
                             />
                         </InputGroup>
@@ -112,19 +112,29 @@ const SalesCartPanel = ({ cartItems, payments, totals, onRemoveItem, onRemovePay
                         <span>Subtotal</span>
                         <span>{formatCurrency(subtotal)}</span>
                     </div>
+
+                    {totals?.discount > 0 && (
+                        <div className="d-flex justify-content-between mb-1 text-danger font-size-13">
+                            <span>Desconto</span>
+                            <span>- {formatCurrency(totals.discount)}</span>
+                        </div>
+                    )}
+
                     <div className="d-flex justify-content-between mb-1 text-muted font-size-13">
                         <span>Total Pago</span>
                         <span className="text-success fw-bold">{formatCurrency(totalPaid)}</span>
                     </div>
 
-                    <div className={`d-flex justify-content-between mt-2 pt-2 border-top ${balance > 0 ? 'text-danger' : 'text-success'}`}>
+                    <div className={`d-flex justify-content-between mt-2 pt-2 border-top ${balance > 0 ? 'text-danger' : totals?.surplus > 0 ? 'text-warning' : 'text-success'}`}>
                         <span className="fw-bold font-size-16">
-                            {balance > 0 ? 'Saldo Restante' : 'Status'}
+                            {balance > 0 ? 'Saldo Restante' : totals?.surplus > 0 ? 'Excesso (Troco)' : 'Status'}
                         </span>
                         <span className="fw-bold font-size-18">
                             {balance > 0
                                 ? formatCurrency(balance)
-                                : 'QUITADO'
+                                : totals?.surplus > 0
+                                    ? formatCurrency(totals.surplus)
+                                    : 'QUITADO'
                             }
                         </span>
                     </div>

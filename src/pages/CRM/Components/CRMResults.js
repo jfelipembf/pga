@@ -161,13 +161,13 @@ export const CRMResults = ({ clients, loading }) => {
                 <div className="d-flex gap-2 font-size-16">
                     <Link to="#" className="text-success" id={`whatsapp-crm-${client.id}`}>
                         <i className="mdi mdi-whatsapp"></i>
-                        <UncontrolledTooltip placement="top" target={`whatsapp-crm-${client.id}`}>
+                        <UncontrolledTooltip placement="top" target={`whatsapp-crm-${client.id}`} fade={false}>
                             WhatsApp
                         </UncontrolledTooltip>
                     </Link>
                     <Link to={`/${idTenant}/${idBranch}/clients/${client.id}`} className="text-primary" id={`view-crm-${client.id}`}>
                         <i className="mdi mdi-eye-outline"></i>
-                        <UncontrolledTooltip placement="top" target={`view-crm-${client.id}`}>
+                        <UncontrolledTooltip placement="top" target={`view-crm-${client.id}`} fade={false}>
                             Ver Perfil
                         </UncontrolledTooltip>
                     </Link>
@@ -186,7 +186,7 @@ export const CRMResults = ({ clients, loading }) => {
                 id="mass-message-tooltip"
             >
                 <i className="mdi mdi-whatsapp font-size-16"></i>
-                <UncontrolledTooltip placement="top" target="mass-message-tooltip">
+                <UncontrolledTooltip placement="top" target="mass-message-tooltip" fade={false}>
                     Mensagem em Massa
                 </UncontrolledTooltip>
             </Button>
@@ -198,7 +198,7 @@ export const CRMResults = ({ clients, loading }) => {
                 id="export-csv-tooltip"
             >
                 <i className="mdi mdi-download font-size-16"></i>
-                <UncontrolledTooltip placement="top" target="export-csv-tooltip">
+                <UncontrolledTooltip placement="top" target="export-csv-tooltip" fade={false}>
                     Exportar Resultados
                 </UncontrolledTooltip>
             </Button>

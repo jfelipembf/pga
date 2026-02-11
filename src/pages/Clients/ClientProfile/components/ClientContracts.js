@@ -144,8 +144,22 @@ const ClientContracts = ({ client }) => {
                                                     </h6>
                                                 </div>
                                                 <div>
-                                                    <p className="text-muted mb-1 font-size-11 text-uppercase fw-bold">Valor Mensal</p>
-                                                    <h5 className="mb-0 text-primary fw-bold">{formatCurrency(contract.value)}</h5>
+                                                    <p className="text-muted mb-1 font-size-11 text-uppercase fw-bold">
+                                                        {contract.planType === 'monthly' ? 'Valor Mensal' : 'Valor Total'}
+                                                    </p>
+                                                    <h5 className="mb-0 text-primary fw-bold">
+                                                        {formatCurrency(contract.value)}
+                                                        {contract.discount > 0.01 && (
+                                                            <small className="text-muted text-decoration-line-through ms-2 font-size-12">
+                                                                {formatCurrency(contract.originalValue || (contract.value + contract.discount))}
+                                                            </small>
+                                                        )}
+                                                    </h5>
+                                                    {contract.discount > 0.01 && (
+                                                        <Badge color="soft-danger" className="mt-1">
+                                                            Desconto: {formatCurrency(contract.discount)}
+                                                        </Badge>
+                                                    )}
                                                 </div>
                                             </div>
                                         </Col>
@@ -196,35 +210,35 @@ const ClientContracts = ({ client }) => {
                                                 )}
 
                                                 <div className="d-flex gap-2">
-                                                    <Button color="light" size="sm" className="btn-rounded px-3">
-                                                        <i className="mdi mdi-information-outline me-1"></i> Dados
+                                                    <Button color="light" size="sm" className="px-3">
+                                                        Dados
                                                     </Button>
 
-                                                    <div className="btn-group btn-group-sm shadow-sm rounded-pill">
+                                                    <div className="btn-group btn-group-sm shadow-sm">
                                                         <Button color="info" outline className="border-end-0" onClick={() => toggleModal('adjust', contract, { mode: 'add' })}>
-                                                            <i className="mdi mdi-calendar-plus"></i>
+                                                            Dias+
                                                         </Button>
                                                         <Button color="info" outline className="border-start-0" onClick={() => toggleModal('adjust', contract, { mode: 'sub' })}>
-                                                            <i className="mdi mdi-calendar-remove"></i>
+                                                            Dias-
                                                         </Button>
                                                     </div>
 
                                                     {isSuspended ? (
-                                                        <Button color="success" size="sm" className="btn-rounded px-3 shadow-sm" onClick={() => toggleModal('reactivate', contract)}>
-                                                            <i className="mdi mdi-play-circle-outline me-1"></i> Reativar
+                                                        <Button color="success" size="sm" className="px-3 shadow-sm" onClick={() => toggleModal('reactivate', contract)}>
+                                                            Reativar
                                                         </Button>
                                                     ) : (
-                                                        <Button color="warning" outline size="sm" className="btn-rounded px-3" onClick={() => toggleModal('suspend', contract)}>
-                                                            <i className="mdi mdi-pause-circle-outline me-1"></i> Suspender
+                                                        <Button color="warning" outline size="sm" className="px-3" onClick={() => toggleModal('suspend', contract)}>
+                                                            Suspender
                                                         </Button>
                                                     )}
 
-                                                    <Button color="primary" outline size="sm" className="btn-rounded px-3" onClick={() => toggleModal('transfer', contract)}>
-                                                        <i className="mdi mdi-account-switch-outline me-1"></i> Transferir
+                                                    <Button color="primary" outline size="sm" className="px-3" onClick={() => toggleModal('transfer', contract)}>
+                                                        Transferir
                                                     </Button>
 
-                                                    <Button color="danger" outline size="sm" className="btn-rounded px-3" onClick={() => toggleModal('cancel', contract)}>
-                                                        <i className="mdi mdi-close-circle-outline me-1"></i> Cancelar
+                                                    <Button color="danger" outline size="sm" className="px-3" onClick={() => toggleModal('cancel', contract)}>
+                                                        Cancelar
                                                     </Button>
                                                 </div>
                                             </div>
@@ -286,7 +300,12 @@ const ClientContracts = ({ client }) => {
                                             </td>
                                             <td>{formatDate(contract.startDate)}</td>
                                             <td>{formatDate(contract.endDate)}</td>
-                                            <td>{formatCurrency(contract.value)}</td>
+                                            <td>
+                                                <div className="fw-bold">{formatCurrency(contract.value)}</div>
+                                                {contract.discount > 0.01 && (
+                                                    <small className="text-danger font-size-10">Desc: {formatCurrency(contract.discount)}</small>
+                                                )}
+                                            </td>
                                             <td>
                                                 <StatusBadge status={contract.status} />
                                             </td>

@@ -3,7 +3,21 @@ import { Row, Col, Card, CardBody, Nav, NavItem, NavLink, TabContent, TabPane, L
 import classnames from 'classnames';
 import { PAYMENT_METHODS } from '../../../../utils/constants';
 
-const SalesSelectionPanel = ({ activeTab, toggleTab, onAddPayment, onAddItem, contracts = [], acquirers = [], suggestedValue = 0 }) => {
+const SalesSelectionPanel = ({
+    activeTab,
+    toggleTab,
+    onAddPayment,
+    onAddItem,
+    contracts = [],
+    acquirers = [],
+    suggestedValue = 0,
+    startDate,
+    setStartDate,
+    isRenewal,
+    setIsRenewal,
+    discount,
+    setDiscount
+}) => {
     const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS.CREDIT_CARD);
 
     const products = [
@@ -113,11 +127,11 @@ const SalesSelectionPanel = ({ activeTab, toggleTab, onAddPayment, onAddItem, co
         });
     };
 
-    const handleSelectionChange = (list, id) => {
+    const handleSelectionChange = (list, id, itemType) => {
         const selected = list.find(item => item.id === id);
         if (selected) {
-            // Passa o item COMPLETO, preservando o ID original do Firestore
-            onAddItem(selected);
+            // Passa o item COMPLETO com o tipo explícito
+            onAddItem({ ...selected, type: itemType });
         }
     };
 
@@ -158,15 +172,48 @@ const SalesSelectionPanel = ({ activeTab, toggleTab, onAddPayment, onAddItem, co
                     <TabPane tabId="1">
                         <Row className="mb-3">
                             <Col md={12}>
-                                <Label className="form-label fw-semibold">Escolha o contrato *</Label>
+                                <Label className="form-label fw-semibold text-dark">Escolha o contrato *</Label>
                                 <Input
                                     type="select"
-                                    className="form-select border-light"
-                                    onChange={(e) => handleSelectionChange(contracts, e.target.value)}
+                                    className="form-select border-light shadow-sm"
+                                    onChange={(e) => handleSelectionChange(contracts, e.target.value, 'contract')}
                                     defaultValue=""
                                 >
                                     <option value="" disabled>Selecionar...</option>
                                     {contracts.map(c => <option key={c.id} value={c.id}>{c.title} - R$ {c.price}</option>)}
+                                </Input>
+                            </Col>
+                        </Row>
+                        <Row className="mb-3 g-3">
+                            <Col md={4}>
+                                <Label className="form-label fw-semibold text-dark">Data de Início *</Label>
+                                <Input
+                                    type="date"
+                                    className="form-control border-light shadow-sm"
+                                    value={startDate || ''}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                />
+                            </Col>
+                            <Col md={4}>
+                                <Label className="form-label fw-semibold text-dark">Desconto (R$)</Label>
+                                <Input
+                                    type="number"
+                                    className="form-control border-light shadow-sm"
+                                    placeholder="0,00"
+                                    value={discount || ''}
+                                    onChange={(e) => setDiscount(e.target.value)}
+                                />
+                            </Col>
+                            <Col md={4}>
+                                <Label className="form-label fw-semibold text-dark">É uma Renovação?</Label>
+                                <Input
+                                    type="select"
+                                    className="form-select border-light shadow-sm"
+                                    value={isRenewal ? "1" : "0"}
+                                    onChange={(e) => setIsRenewal(e.target.value === "1")}
+                                >
+                                    <option value="0">Não</option>
+                                    <option value="1">Sim</option>
                                 </Input>
                             </Col>
                         </Row>
@@ -181,7 +228,7 @@ const SalesSelectionPanel = ({ activeTab, toggleTab, onAddPayment, onAddItem, co
                                 <Input
                                     type="select"
                                     className="form-select"
-                                    onChange={(e) => handleSelectionChange(products, e.target.value)}
+                                    onChange={(e) => handleSelectionChange(products, e.target.value, 'product')}
                                     defaultValue=""
                                 >
                                     <option value="" disabled>Buscar produto...</option>
@@ -199,7 +246,7 @@ const SalesSelectionPanel = ({ activeTab, toggleTab, onAddPayment, onAddItem, co
                                 <Input
                                     type="select"
                                     className="form-select"
-                                    onChange={(e) => handleSelectionChange(services, e.target.value)}
+                                    onChange={(e) => handleSelectionChange(services, e.target.value, 'service')}
                                     defaultValue=""
                                 >
                                     <option value="" disabled>Selecionar...</option>
@@ -245,7 +292,7 @@ const SalesSelectionPanel = ({ activeTab, toggleTab, onAddPayment, onAddItem, co
                                     <Input
                                         type="select"
                                         className="form-select form-select-sm"
-                                        value={paymentData.provider}
+                                        value={paymentData.provider || ''}
                                         onChange={(e) => handleInputChange('provider', e.target.value)}
                                     >
                                         <option value="">Selecione...</option>
@@ -259,7 +306,7 @@ const SalesSelectionPanel = ({ activeTab, toggleTab, onAddPayment, onAddItem, co
                                     <Input
                                         type="select"
                                         className="form-select form-select-sm"
-                                        value={paymentData.brand}
+                                        value={paymentData.brand || ''}
                                         onChange={(e) => handleInputChange('brand', e.target.value)}
                                         disabled={!paymentData.provider}
                                     >
@@ -271,12 +318,12 @@ const SalesSelectionPanel = ({ activeTab, toggleTab, onAddPayment, onAddItem, co
                                 </Col>
                                 <Col md={3}>
                                     <Label className="mb-1">Autorização</Label>
-                                    <Input type="text" placeholder="Nº" className="form-control form-control-sm" value={paymentData.auth} onChange={(e) => handleInputChange('auth', e.target.value)} />
+                                    <Input type="text" placeholder="Nº" className="form-control form-control-sm" value={paymentData.auth || ''} onChange={(e) => handleInputChange('auth', e.target.value)} />
                                 </Col>
                                 {paymentMethod === PAYMENT_METHODS.CREDIT_CARD && (
                                     <Col md={3}>
                                         <Label className="mb-1">Parcelas</Label>
-                                        <Input type="select" className="form-select form-select-sm" value={paymentData.installments} onChange={(e) => handleInputChange('installments', e.target.value)}>
+                                        <Input type="select" className="form-select form-select-sm" value={paymentData.installments || '1'} onChange={(e) => handleInputChange('installments', e.target.value)}>
                                             <option value="1">1x</option>
                                             <option value="2">2x</option>
                                             <option value="3">3x</option>
@@ -295,7 +342,7 @@ const SalesSelectionPanel = ({ activeTab, toggleTab, onAddPayment, onAddItem, co
                                 <Label className="font-size-11 fw-bold text-muted text-uppercase mb-1">Valor do Pagamento</Label>
                                 <div className="d-flex gap-2">
                                     <div className="flex-grow-1">
-                                        <Input type="number" placeholder="0,00" className="form-control fw-bold" value={paymentData.value} onChange={(e) => handleInputChange('value', e.target.value)} />
+                                        <Input type="number" placeholder="0,00" className="form-control fw-bold" value={paymentData.value || ''} onChange={(e) => handleInputChange('value', e.target.value)} />
                                         {estimatedFee !== null && (
                                             <small className="text-muted d-block mt-1">
                                                 Taxa: {estimatedFee}% | Líquido: <span className="text-success fw-bold">R$ {netValueDisplay?.toFixed(2)}</span>

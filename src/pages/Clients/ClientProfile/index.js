@@ -143,7 +143,6 @@ const ClientProfile = () => {
                                 className="d-flex align-items-center gap-2"
                                 onClick={navigateToSale}
                             >
-                                <i className="mdi mdi-cart-outline" />
                                 Nova Venda
                             </Button>
 
@@ -155,7 +154,7 @@ const ClientProfile = () => {
                                     loading={formik.isSubmitting}
                                     loadingText="Salvando..."
                                 >
-                                    <i className="mdi mdi-content-save" /> Salvar Alterações
+                                    Salvar Alterações
                                 </ButtonLoader>
                             )}
 

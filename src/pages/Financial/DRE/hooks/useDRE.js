@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import moment from 'moment'
 import { useTenant } from '../../../../hooks/useTenant'
 import { DREService } from '../../../../services/Financial/DREService'
 import { toast } from 'react-toastify'
@@ -13,15 +14,26 @@ export const useDRE = () => {
         summary: { totalRevenue: 0, totalExpense: 0, netProfit: 0, profitMargin: 0 },
         loading: true
     })
-    const [period, setPeriod] = useState('month')
+
+    // Filtros de competência
+    const [filters, setFilters] = useState({
+        year: new Date().getFullYear(),
+        startMonth: new Date().getMonth(),
+        endMonth: new Date().getMonth(),
+    })
 
     const loadData = useCallback(async () => {
-        if (!isReady) return; // Prevent fetch before tenant context is ready
+        if (!isReady) return;
         if (!idTenant || !idBranch) return;
 
         try {
             setData(prev => ({ ...prev, loading: true }))
-            const dreData = await DREService.getDREData(idTenant, idBranch, period)
+
+            // Converte os meses/ano para datas reais para o serviço
+            const startDate = moment().year(filters.year).month(filters.startMonth).startOf('month').format('YYYY-MM-DD');
+            const endDate = moment().year(filters.year).month(filters.endMonth).endOf('month').format('YYYY-MM-DD');
+
+            const dreData = await DREService.getDREData(idTenant, idBranch, { startDate, endDate })
 
             setData({
                 normalizedTransactions: dreData.normalizedTransactions,
@@ -38,18 +50,22 @@ export const useDRE = () => {
             toast.error("Erro ao carregar dados da DRE")
             setData(prev => ({ ...prev, loading: false }))
         }
-    }, [idTenant, idBranch, period, isReady])
+    }, [idTenant, idBranch, isReady, filters.year, filters.startMonth, filters.endMonth])
 
     useEffect(() => {
         loadData()
     }, [loadData])
 
+    const handleFilterChange = (key, value) => {
+        setFilters(prev => ({ ...prev, [key]: parseInt(value) }))
+    }
+
     return {
         transactions: data.normalizedTransactions,
         summary: data.summary,
-        loading: data.loading || !isReady, // Força loading enquanto o tenant não estiver pronto
-        period,
-        setPeriod,
+        loading: data.loading || !isReady,
+        filters,
+        handleFilterChange,
         refresh: loadData
     }
 }

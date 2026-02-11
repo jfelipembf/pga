@@ -14,7 +14,8 @@ const SalePaymentSchema = Yup.object().shape({
     methodLabel: Yup.string().required(),
     value: Yup.number().positive().required(),
     installments: Yup.number().min(1).default(1),
-    provider: Yup.string().nullable(), // Adquirente
+    idAcquirer: Yup.string().nullable(), // ID Adquirente
+    provider: Yup.string().nullable(), // Nome Adquirente
     brand: Yup.string().nullable(),    // Bandeira
     auth: Yup.string().nullable()      // Código de autorização
 })

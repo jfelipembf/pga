@@ -94,12 +94,12 @@ const ContractAdjustDaysModal = ({ isOpen, toggle, contract, mode, onConfirm }) 
                     </Alert>
                 </ModalBody>
                 <ModalFooter className="bg-light border-top">
-                    <Button color="secondary" outline className="btn-rounded" onClick={toggle}>
+                    <Button color="secondary" outline onClick={toggle}>
                         Cancelar
                     </Button>
                     <ButtonLoader
                         color={isAdding ? 'info' : 'warning'}
-                        className="btn-rounded px-4"
+                        className="px-4"
                         type="submit"
                         loading={formik.isSubmitting}
                         loadingText="Salvando..."

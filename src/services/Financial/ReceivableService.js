@@ -150,6 +150,8 @@ export const ReceivableService = {
      * Cruza dados de Vendas (Volume/LTV) e Recebíveis (A Receber/Vencidos)
      */
     getSummaryByClient: async (idTenant, idBranch, idClient) => {
+        const { FinancialCalculator } = await import('./Core/FinancialCalculator'); // Import dinâmico para evitar ciclo se houver
+
         // Buscar em paralelo para performance
         const [receivables, sales] = await Promise.all([
             receivableRepository.findWhere(idTenant, idBranch, [
@@ -162,58 +164,8 @@ export const ReceivableService = {
             ])
         ]);
 
-        const summary = {
-            totalOwed: 0,      // Volume Bruto de Vendas
-            totalPaid: 0,      // LTV Real (Dinheiro + Pix + Cartão + Parcelas Pagas)
-            totalPending: 0,   // Saldo Devedor do Cliente (Tipo 'client')
-            totalOverdue: 0,   // Débito Vencido do Cliente (Tipo 'client')
-            totalBankReceivable: 0, // A Receber das Adquirentes (Tipo 'acquirer')
-            receivablesCount: receivables.length
-        };
-
-        const now = new Date();
-
-        // 1. Processar Volume de Vendas e Pagamentos Imediatos
-        sales.forEach(sale => {
-            const total = parseFloat(sale.total) || 0;
-            const paidAtSale = parseFloat(sale.totalPaid) || 0;
-
-            summary.totalOwed += total;
-            summary.totalPaid += paidAtSale; // Cash/Pix/Card no ato da venda
-        });
-
-        // 2. Processar Títulos (Parcelas e Recebíveis Futuros)
-        receivables.forEach(rec => {
-            const amount = parseFloat(rec.amount) || 0;
-            const paid = parseFloat(rec.paid) || 0;
-            const pending = Math.max(0, amount - paid);
-
-            // EVITAR DUPLICIDADE NO LTV:
-            // Se o título for 'acquirer' (Cartão), o valor já foi contado no 'totalPaid' da Venda.
-            // Somamos no LTV apenas as baixas de títulos do tipo 'client' (Boleto/Dinheiro Pendente).
-            if (rec.type === 'client' || rec.paymentMethod === 'pending_payment') {
-                summary.totalPaid += paid;
-                summary.totalPending += pending;
-
-                // Normalização de Data para Vencimento
-                let dueDate = null;
-                if (rec.dueDate) {
-                    dueDate = typeof rec.dueDate.toDate === 'function' ? rec.dueDate.toDate() : new Date(rec.dueDate);
-                }
-
-                if (rec.status === 'open' && dueDate && dueDate < now) {
-                    summary.totalOverdue += pending;
-                }
-            } else if (rec.type === 'acquirer') {
-                // Dinheiro que o cliente já pagou (swiped), mas que o banco ainda não repassou
-                summary.totalBankReceivable += pending;
-                // Se a parcela do cartão for paga pelo banco, isso não é "novo faturamento" do aluno,
-                // é apenas liquidação de algo que já contamos no ato da venda.
-            }
-        });
-
-
-        return summary;
+        // Delega a lógica de negócio para o Core Calculator (SSOT)
+        return FinancialCalculator.calculateClientSummary(sales, receivables);
     },
 
     /**
