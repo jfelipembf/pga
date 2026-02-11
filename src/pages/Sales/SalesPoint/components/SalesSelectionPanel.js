@@ -324,14 +324,9 @@ const SalesSelectionPanel = ({
                                     <Col md={3}>
                                         <Label className="mb-1">Parcelas</Label>
                                         <Input type="select" className="form-select form-select-sm" value={paymentData.installments || '1'} onChange={(e) => handleInputChange('installments', e.target.value)}>
-                                            <option value="1">1x</option>
-                                            <option value="2">2x</option>
-                                            <option value="3">3x</option>
-                                            <option value="4">4x</option>
-                                            <option value="5">5x</option>
-                                            <option value="6">6x</option>
-                                            <option value="10">10x</option>
-                                            <option value="12">12x</option>
+                                            {[...Array(12)].map((_, i) => (
+                                                <option key={i + 1} value={i + 1}>{i + 1}x</option>
+                                            ))}
                                         </Input>
                                     </Col>
                                 )}

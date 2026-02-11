@@ -37,24 +37,7 @@ const FinancialDashboard = () => {
             total: loading ? "..." : formatCurrency(data?.financial?.expensesMonth || 0),
             desc: " pago no mês"
         },
-        {
-            title: "Lucro Líquido",
-            iconClass: "chart-line",
-            total: loading ? "..." : formatCurrency(data?.financial?.profitMonth || 0),
-            desc: " resultado do mês"
-        },
-        {
-            title: "Contas a Pagar",
-            iconClass: "file-document-alert",
-            total: loading ? "..." : formatCurrency(data?.financial?.payablesPending || 0),
-            desc: " total pendente"
-        },
-        {
-            title: "Ticket Médio",
-            iconClass: "ticket-percent",
-            total: loading ? "..." : formatCurrency(data?.sales?.ticket || 0),
-            desc: " média por venda"
-        }
+
     ]
 
     const seriesSales = data?.charts?.seriesSales || [];

@@ -6,7 +6,7 @@ const Miniwidget = props => {
     <React.Fragment>
       <Row>
         {props.reports.map((report, key) => (
-          <Col md={6} xl={props.colSize || 3} key={key}>
+          <Col md={12} xl={props.colSize || 3} key={key}>
             <Card className="mini-stat bg-primary">
               <CardBody className="card-body mini-stat-img">
                 <div className="mini-stat-icon">
