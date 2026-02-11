@@ -505,12 +505,26 @@ src/services/
 
 ---
 
-## 9. Próximos Passos
+## 9. Status de Implementação
 
-1. ✅ **Commit realizado** (snapshot pré-reorganização)
-2. ⏳ **Implementar Fase 1** — Corrigir duplicações (`skipLedger`, `idPayable`, remover taxa duplicada)
-3. ⏳ **Implementar Fase 2** — Estorno na exclusão de venda
-4. ⏳ **Implementar Fase 3** — Alinhar Dashboard (opcional)
-5. 📝 **Fase 4** — Reorganização de pastas (postergar)
+✅ **Todas as correções foram aplicadas em 2026-02-11.**
 
-> **DECISÃO NECESSÁRIA DO USUÁRIO:** Deseja que eu implemente a **Fase 1** (correção de duplicações) agora?
+| Fase | Descrição | Status | Commit |
+|------|-----------|--------|--------|
+| **Fase 1** | Corrigir duplicações no Ledger (`skipLedger`, `idPayable`, remover taxa duplicada) | ✅ Implementado | Veja abaixo |
+| **Fase 2** | Estorno contábil na exclusão de venda | ✅ Implementado | Veja abaixo |
+| **Fase 3** | Alinhar Dashboard com Ledger | ✅ Implementado | Veja abaixo |
+| **Fase 4** | Reorganização de pastas | 📝 Postergado (baixa prioridade) | — |
+
+### Arquivos Modificados:
+
+| Arquivo | Mudança |
+|---------|---------|
+| `CashierService.js` | Adicionado guard `if (!skipLedger)` + verificação de `idReceivable` |
+| `PayableService.js` | Corrigido `idSource` → `idPayable` + `skipLedger: true` |
+| `ReceivableService.js` | Adicionado `skipLedger: true` na chamada ao CashierService |
+| `SalesPaymentProcessor.js` | Removido bloco de taxa de cartão duplicada (linhas 199-215) |
+| `SalesService.js` | Adicionado estorno contábil (`createCancellationDeductionEntry`) no `deleteSale` |
+| `FinancialDashboardService.js` | `getMonthData` agora usa `LedgerService.getTrialBalance` com fallback para transactions |
+
+### Build: ✅ Compilação bem-sucedida (Exit code: 0)

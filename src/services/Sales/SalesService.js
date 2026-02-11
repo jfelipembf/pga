@@ -1,7 +1,7 @@
 import { salesRepository } from '../../data/repositories/SalesRepository'
 import { contractRepository } from '../../data/repositories/ContractRepository'
 import { AuditService } from '../Core/AuditService'
-import { LedgerService, STANDARD_ACCOUNTS } from '../Ledger/LedgerService'
+import { LedgerService, STANDARD_ACCOUNTS, safeLedgerCall } from '../Ledger/LedgerService'
 import { SalesPaymentProcessor } from './SalesPaymentProcessor'
 import { SaleSchema } from '../../data/schemas/Financial/SaleSchema'
 import { generateSaleId } from '../../utils/sequence'
@@ -313,7 +313,18 @@ export const SalesService = {
             await receivableRepository.softDelete(idTenant, idBranch, rec.id, userId)
         }
 
-        // 4. Auditoria
+        // 4. Estorno Contábil — Reverte o lançamento de receita da DRE
+        await safeLedgerCall(idTenant, idBranch,
+            () => LedgerService.createCancellationDeductionEntry(idTenant, idBranch, {
+                contractId: sale.id,
+                clientName: sale.clientName || 'Cliente',
+                saleNumber: sale.saleNumber,
+                amount: sale.total
+            }),
+            { sourceType: 'sale_reversal', sourceId: idSale, operation: 'createCancellationDeductionEntry' }
+        )
+
+        // 5. Auditoria
         await AuditService.log({
             idTenant, idBranch, userId,
             action: 'SALE_DELETED',

@@ -87,11 +87,12 @@ export const PayableService = {
             method: paymentMethod,
             description: `Pagamento - ${payable.supplier || 'Fornecedor'} - ${payable.description || payable.title}`,
             idBankAccount: idBankAccount,
-            idSource: idPayable,
+            idPayable: idPayable,
             sourceType: 'payable',
             notes: notes || '',
             supplier: payable.supplier,
-            userName: paymentData.userName
+            userName: paymentData.userName,
+            skipLedger: true // PayableService.payBill já cria o lançamento contábil via payPayableEntry
         })
 
         // 3. DEBITAR Saldo Bancário (ATÔMICO via increment)

@@ -196,23 +196,10 @@ export const SalesPaymentProcessor = {
             userName: sale.sellerName
         })
 
-        // 5. Registrar Despesa de Taxas (Para cálculo correto de Lucro Líquido)
-        const totalFee = receivables.reduce((acc, rec) => acc + (rec.feeAmount || 0), 0);
-
-        if (totalFee > 0) {
-            await CashierService.registerMovement(idTenant, idBranch, userId, {
-                type: 'expense',
-                amount: totalFee,
-                netAmount: totalFee,
-                category: 'Taxas Financeiras',
-                chartOfAccountId: '2.5.3', // Conta padrão para taxas de cartão em STANDARD_ACCOUNTS
-                method: payment.methodId,
-                description: `Taxas de Cartão - Venda #${sale.saleNumber}`,
-                saleNumber: sale.saleNumber,
-                clientName: clientData.clientName,
-                userName: sale.sellerName
-            });
-        }
+        // NOTA: A taxa de cartão NÃO é registrada aqui como despesa.
+        // Ela será reconhecida corretamente no momento da LIQUIDAÇÃO do recebível
+        // via LedgerService.settleReceivableEntry (que registra D: 2.5.3 Taxas de Cartão).
+        // Isso evita duplicação contábil e segue o regime de competência.
 
         return receivables;
     },

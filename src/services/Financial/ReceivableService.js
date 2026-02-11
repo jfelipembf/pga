@@ -44,7 +44,8 @@ export const ReceivableService = {
             clientName: receivable.clientName,
             idReceivable: idReceivable,
             idSale: receivable.idSale,
-            idBankAccount: idBankAccount
+            idBankAccount: idBankAccount,
+            skipLedger: true // ReceivableService.settleReceivable já cria o lançamento contábil via settleReceivableEntry
         })
 
         // 4. Atualizar Saldo da Conta Bancária (ATÔMICO via increment)

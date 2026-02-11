@@ -138,32 +138,36 @@ export const CashierService = {
         await cashierRepository.update(idTenant, idBranch, cashierSession.id, updates);
 
         // ✅ LANÇAMENTO CONTÁBIL
-        // 1. Se for sangria/suprimento com banco vinculado
-        if ((fullMovement.category === 'withdrawal' || fullMovement.category === 'supply')
-            && fullMovement.idBankAccount) {
-            await safeLedgerCall(idTenant, idBranch,
-                () => LedgerService.createCashierMovement(idTenant, idBranch, {
-                    id: newMovement.id,
-                    type: fullMovement.category,
-                    amount: fullMovement.amount,
-                    idBankAccount: fullMovement.idBankAccount,
-                    bankAccountName: fullMovement.bankAccountName || 'Banco',
-                    description: fullMovement.description,
-                    date: normalizeDate(new Date())
-                }),
-                { sourceType: 'cashier_movement', sourceId: newMovement.id, operation: 'createCashierMovement' }
-            );
-        }
-        // 2. Se for uma movimentação avulsa (não vinculada a Venda ou Conta a Pagar já contabilizada)
-        // Isso garante que taxas, pequenas despesas ou receitas manuais apareçam na DRE.
-        else if (!fullMovement.idSale && !fullMovement.idPayable) {
-            await safeLedgerCall(idTenant, idBranch,
-                () => LedgerService.createGenericMovementEntry(idTenant, idBranch, {
-                    ...fullMovement,
-                    id: newMovement.id
-                }),
-                { sourceType: 'cashier_generic', sourceId: newMovement.id, operation: 'createGenericMovementEntry' }
-            );
+        // skipLedger: quando o chamador já faz seu próprio lançamento contábil
+        // (ex: PayableService.payBill, ReceivableService.settleReceivable)
+        if (!fullMovement.skipLedger) {
+            // 1. Se for sangria/suprimento com banco vinculado
+            if ((fullMovement.category === 'withdrawal' || fullMovement.category === 'supply')
+                && fullMovement.idBankAccount) {
+                await safeLedgerCall(idTenant, idBranch,
+                    () => LedgerService.createCashierMovement(idTenant, idBranch, {
+                        id: newMovement.id,
+                        type: fullMovement.category,
+                        amount: fullMovement.amount,
+                        idBankAccount: fullMovement.idBankAccount,
+                        bankAccountName: fullMovement.bankAccountName || 'Banco',
+                        description: fullMovement.description,
+                        date: normalizeDate(new Date())
+                    }),
+                    { sourceType: 'cashier_movement', sourceId: newMovement.id, operation: 'createCashierMovement' }
+                );
+            }
+            // 2. Se for uma movimentação avulsa (não vinculada a Venda, Conta a Pagar ou Recebível já contabilizado)
+            // Isso garante que taxas, pequenas despesas ou receitas manuais apareçam na DRE.
+            else if (!fullMovement.idSale && !fullMovement.idPayable && !fullMovement.idReceivable) {
+                await safeLedgerCall(idTenant, idBranch,
+                    () => LedgerService.createGenericMovementEntry(idTenant, idBranch, {
+                        ...fullMovement,
+                        id: newMovement.id
+                    }),
+                    { sourceType: 'cashier_generic', sourceId: newMovement.id, operation: 'createGenericMovementEntry' }
+                );
+            }
         }
 
         await AuditService.log({

@@ -3,6 +3,7 @@ import { receivableRepository } from "../../data/repositories/ReceivableReposito
 import { payableRepository } from "../../data/repositories/PayableRepository"
 import { bankAccountRepository } from "../../data/repositories/BankAccountRepository"
 import { cashierRepository } from "../../data/repositories/CashierRepository"
+import { LedgerService } from "../Ledger/LedgerService"
 import { query, where, getDocs } from "firebase/firestore"
 import moment from "moment"
 import { normalizeDate } from "../../utils/date"
@@ -47,15 +48,43 @@ export const FinancialDashboardService = {
 
     /**
      * Calcula Totais do Mês e Dados para Gráfico (Diário)
-     * Busca transações reais para montar o gráfico.
+     * 
+     * IMPORTANTE: Os totais de receita/despesa vêm do Ledger (balancete contábil),
+     * garantindo consistência com a DRE. As transações do caixa são mantidas
+     * apenas para alimentar o gráfico diário (visualização operacional).
      */
     getMonthData: async (idTenant, idBranch, date) => {
         try {
+            const startDate = moment(date).startOf('month').format('YYYY-MM-DD');
+            const endDate = moment(date).endOf('month').format('YYYY-MM-DD');
+
+            // 1. Totais contábeis do Ledger (mesma fonte da DRE)
+            let income = 0;
+            let expense = 0;
+
+            try {
+                const trialBalance = await LedgerService.getTrialBalance(idTenant, idBranch, startDate, endDate);
+
+                trialBalance.forEach(item => {
+                    const accountCode = item.account || '';
+                    if (accountCode.startsWith('1.')) {
+                        // Grupo 1: Receitas → Créditos - Débitos
+                        income += (item.credit - item.debit);
+                    } else if (accountCode.startsWith('2.')) {
+                        // Grupo 2: Despesas → Débitos - Créditos
+                        expense += (item.debit - item.credit);
+                    }
+                });
+            } catch (ledgerError) {
+                console.warn("[Dashboard] Fallback: Ledger indisponível, usando transações:", ledgerError.message);
+                // Fallback: se Ledger falhar, usa transações
+            }
+
+            // 2. Transações do caixa (para gráfico diário e como fallback)
             const start = normalizeDate(moment(date).startOf('month'));
             const end = normalizeDate(moment(date).endOf('month'));
             const collectionRef = transactionRepository.getCollectionRef(idTenant, idBranch);
 
-            // Buscar transações (sem orderBy para evitar necessidade de índice composto com range)
             const q = query(
                 collectionRef,
                 where('date', '>=', start),
@@ -71,13 +100,16 @@ export const FinancialDashboardService = {
                     return da - db;
                 });
 
-            const income = transactions
-                .filter(t => t.type === 'income')
-                .reduce((acc, curr) => acc + (parseFloat(curr.netAmount || curr.amount) || 0), 0);
+            // Se o Ledger não retornou dados (ex: período sem lançamentos), usa transações como fallback
+            if (income === 0 && expense === 0 && transactions.length > 0) {
+                income = transactions
+                    .filter(t => t.type === 'income')
+                    .reduce((acc, curr) => acc + (parseFloat(curr.netAmount || curr.amount) || 0), 0);
 
-            const expense = transactions
-                .filter(t => t.type === 'expense')
-                .reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+                expense = transactions
+                    .filter(t => t.type === 'expense')
+                    .reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+            }
 
             return {
                 income,
