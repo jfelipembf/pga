@@ -57,8 +57,15 @@ export const useClientProfile = () => {
                 const userName = user?.displayName || user?.email || 'Usuário Sistema';
                 const userId = user?.uid || 'system';
 
-                await ClientService.updateClient(idTenant, idBranch, userId, id, {
+                const finalValues = {
                     ...values,
+                    firstName: values.firstName?.trim().toUpperCase(),
+                    lastName: values.lastName?.trim().toUpperCase(),
+                    email: values.email?.trim().toLowerCase()
+                };
+
+                await ClientService.updateClient(idTenant, idBranch, userId, id, {
+                    ...finalValues,
                     userName
                 });
 

@@ -18,7 +18,7 @@ const ClientEvaluations = () => {
         return (
             <Card className="border shadow-none">
                 <CardBody className="text-center py-5">
-                    <i className="mdi mdi-clipboard-text-search-outline text-muted" style={{ fontSize: '3rem', opacity: 0.3 }} />
+
                     <h5 className="mt-3 fw-bold">Nenhuma avaliação encontrada</h5>
                     <p className="text-muted">Este aluno ainda não possui registros de avaliações técnicas ou testes.</p>
                 </CardBody>

@@ -120,7 +120,7 @@ const ClientSummary = ({ client }) => {
                                 </div>
                             ) : (
                                 <div className="text-center py-5 bg-light rounded shadow-inner border border-dashed">
-                                    <i className="mdi mdi-file-question-outline font-size-32 text-muted mb-2"></i>
+
                                     <p className="text-muted mb-0">Nenhuma matrícula ativa encontrada.</p>
                                 </div>
                             )}
@@ -199,11 +199,7 @@ const ClientSummary = ({ client }) => {
                             <div className="mt-auto pt-3 border-top pt-3">
                                 <p className="text-muted mb-2 font-size-11 text-uppercase fw-bold letter-spacing-1">Emergência</p>
                                 <div className="p-3 bg-light rounded d-flex align-items-center border border-dashed border-danger-subtle">
-                                    <div className="avatar-xs me-3">
-                                        <span className="avatar-title rounded-sm bg-soft-danger text-danger">
-                                            <i className="mdi mdi-phone-alert"></i>
-                                        </span>
-                                    </div>
+
                                     <div className="flex-grow-1 overflow-hidden">
                                         <h6 className="font-size-13 text-truncate mb-1 fw-bold text-dark">{client?.emergencyContact?.name || 'Não informado'}</h6>
                                         <p className="text-muted text-truncate mb-0 font-size-12">{client?.emergencyContact?.phone || 'Sem telefone'}</p>

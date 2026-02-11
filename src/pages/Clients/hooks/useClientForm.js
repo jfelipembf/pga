@@ -74,13 +74,19 @@ export const useClientForm = ({ onClientAdded, toggle }) => {
                     })
                 }
 
-                // 2. Salvar
+                // 2. Preparar dados finais
                 const user = auth.currentUser || {};
-                await ClientService.createClient(idTenant, idBranch, auth.currentUser.uid, {
+                const finalValues = {
                     ...values,
+                    firstName: values.firstName?.trim().toUpperCase(),
+                    lastName: values.lastName?.trim().toUpperCase(),
+                    email: values.email?.trim().toLowerCase(),
                     photoUrl: photoUrl || null,
                     userName: user.displayName || user.email // Garante Snapshot
-                })
+                }
+
+                // 3. Salvar
+                await ClientService.createClient(idTenant, idBranch, auth.currentUser.uid, finalValues)
 
                 toast.success("Cliente cadastrado com sucesso!")
                 onClientAdded?.()

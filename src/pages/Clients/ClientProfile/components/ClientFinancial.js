@@ -165,7 +165,7 @@ const ClientFinancial = () => {
                                         <tr>
                                             <td colSpan="7" className="text-center py-5">
                                                 <div className="text-muted">
-                                                    <i className="mdi mdi-check-all font-size-24 d-block mb-2"></i>
+
                                                     Nenhum título em aberto. Cliente em dia!
                                                 </div>
                                             </td>

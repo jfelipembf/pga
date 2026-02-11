@@ -252,11 +252,7 @@ const ClientContracts = ({ client }) => {
             ) : (
                 <Card className="border-0 shadow-sm mb-4 bg-soft-light border-dashed">
                     <CardBody className="py-5 text-center">
-                        <div className="avatar-md mx-auto mb-3">
-                            <span className="avatar-title rounded-circle bg-white text-muted font-size-24 border">
-                                <i className="mdi mdi-file-document-outline"></i>
-                            </span>
-                        </div>
+
                         <h5 className="text-dark fw-bold">Nenhum contrato ativo</h5>
                         <p className="text-muted">Este cliente não possui uma matrícula ativa no momento.</p>
                     </CardBody>
