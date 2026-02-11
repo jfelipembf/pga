@@ -8,11 +8,6 @@ export const useClientTableColumns = () => {
 
     const columns = useMemo(() => [
         {
-            label: "ID",
-            key: "id",
-            render: (client) => <span className="text-muted font-size-12">{client.friendlyId || client.idGym || client.id?.substring(0, 6).toUpperCase()}</span>
-        },
-        {
             label: "Foto",
             key: "photo",
             render: (client) => (
@@ -39,13 +34,19 @@ export const useClientTableColumns = () => {
             key: "name",
             render: (client) => {
                 const fullName = client.name || `${client.firstName || ''} ${client.lastName || ''}`.trim() || 'Sem Nome'
+                const idLabel = client.friendlyId || client.idGym || client.id?.substring(0, 6).toUpperCase()
                 return (
                     <div>
                         <h5 className="font-size-14 mb-1">{fullName}</h5>
-                        <p className="text-muted mb-0 font-size-12">{client.email || '-'}</p>
+                        <p className="text-muted mb-0 font-size-12">ID: {idLabel}</p>
                     </div>
                 )
             }
+        },
+        {
+            label: "E-mail",
+            key: "email",
+            render: (client) => client.email || '-'
         },
         {
             label: "Telefone",
