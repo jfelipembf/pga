@@ -117,10 +117,6 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
 
     return (
         <div className="animate__animated animate__fadeIn">
-            <Alert color="info" className="mb-4" fade={false}>
-                Aqui você conecta o sistema PGA às ferramentas externas de IA e Mensageria.
-                Essas chaves são salvas com segurança.
-            </Alert>
 
             {/* CONFIGURAÇÃO EVOLUTION */}
             <Card className="mb-4 border shadow-sm">
@@ -267,8 +263,7 @@ export const IntegrationSettings = ({ initialValues, onSave, loading }) => {
             <div className="d-flex justify-content-end mb-5">
                 <Button color="secondary" className="me-2">Cancelar</Button>
                 <Button color="primary" onClick={() => onSave(data)} disabled={loading} className="px-4">
-                    <i className="mdi mdi-content-save-outline me-1"></i>
-                    {loading ? 'Salvando...' : 'Salvar Credenciais'}
+                    {loading ? 'Salvando...' : 'Salvar'}
                 </Button>
             </div>
 

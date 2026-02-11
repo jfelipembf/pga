@@ -38,12 +38,11 @@ export const CashierMovementModal = ({ isOpen, toggle, onSave, type }) => {
                 <form onSubmit={formik.handleSubmit}>
                     <Row>
                         <Col md={12} className="mb-3">
-                            <Label className="fw-bold">Valor</Label>
+                            <Label>Valor</Label>
                             <Input
                                 name="amount"
                                 type="number"
                                 step="0.01"
-                                className="form-control-lg fw-bold"
                                 placeholder="0,00"
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
@@ -55,7 +54,7 @@ export const CashierMovementModal = ({ isOpen, toggle, onSave, type }) => {
                             )}
                         </Col>
                         <Col md={12} className="mb-3">
-                            <Label className="fw-bold">Descrição</Label>
+                            <Label>Descrição</Label>
                             <Input
                                 name="description"
                                 type="text"
@@ -80,17 +79,19 @@ export const CashierMovementModal = ({ isOpen, toggle, onSave, type }) => {
                             />
                         </Col>
                     </Row>
-                    <ButtonLoader
-                        type="submit"
-                        color={color}
-                        block
-                        size="lg"
-                        className="fw-bold"
-                        loading={formik.isSubmitting}
-                        loadingText="Processando..."
-                    >
-                        CONFIRMAR {isIncome ? 'ENTRADA' : 'SAÍDA'}
-                    </ButtonLoader>
+                    <div className="d-flex justify-content-end gap-2">
+                        <button type="button" className="btn btn-light" onClick={toggle}>
+                            Cancelar
+                        </button>
+                        <ButtonLoader
+                            type="submit"
+                            color={color}
+                            loading={formik.isSubmitting}
+                            loadingText="Processando..."
+                        >
+                            Confirmar {isIncome ? 'Entrada' : 'Saída'}
+                        </ButtonLoader>
+                    </div>
                 </form>
             </ModalBody>
         </Modal>

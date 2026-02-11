@@ -27,15 +27,15 @@ const CashierOpenModal = ({ isOpen, toggle, onConfirm }) => {
                         Informe o valor inicial em gaveta para iniciar as operações.
                     </p>
 
-                    <Label className="fw-bold mb-1">Fundo de Troco (R$)</Label>
+                    <Label className="mb-1">Fundo de Troco (R$)</Label>
                     <div className="input-group mb-4">
-                        <span className="input-group-text bg-light fw-bold border-end-0">R$</span>
+                        <span className="input-group-text bg-light border-end-0">R$</span>
                         <Input
                             autoFocus
                             name="openingBalance"
                             type="number"
                             step="0.01"
-                            className="form-control-lg border-start-0 ps-0 fw-bold text-primary"
+                            className="border-start-0 ps-0"
                             placeholder="0,00"
                             onChange={formik.handleChange}
                             onBlur={formik.handleBlur}
@@ -47,21 +47,18 @@ const CashierOpenModal = ({ isOpen, toggle, onConfirm }) => {
                         )}
                     </div>
 
-                    <div className="d-grid gap-2">
-                        <ButtonLoader
-                            type="submit"
-                            color="primary"
-                            size="lg"
-                            className="w-100 fw-bold shadow-sm"
-                            loading={formik.isSubmitting}
-                            loadingText="Abrindo..."
-                        >
-                            <i className="mdi mdi-check-circle-outline me-1"></i>
-                            CONFIRMAR ABERTURA
-                        </ButtonLoader>
+                    <div className="d-flex justify-content-end gap-2">
                         <button type="button" className="btn btn-light" onClick={toggle}>
                             Cancelar
                         </button>
+                        <ButtonLoader
+                            type="submit"
+                            color="primary"
+                            loading={formik.isSubmitting}
+                            loadingText="Abrindo..."
+                        >
+                            Confirmar Abertura
+                        </ButtonLoader>
                     </div>
                 </form>
             </ModalBody>

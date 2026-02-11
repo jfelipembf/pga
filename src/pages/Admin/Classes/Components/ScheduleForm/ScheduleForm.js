@@ -35,18 +35,6 @@ const ScheduleForm = ({
 
   return (
     <div className="schedule-form py-2">
-      <Alert color="info" className="mb-4 border-0 shadow-sm bg-soft-info text-dark" transition={{ timeout: 0 }}>
-        <div className="d-flex">
-          <i className="mdi mdi-information-outline font-size-24 me-3 text-info"></i>
-          <div>
-            <h5 className="font-size-14 fw-bold mb-1">Configuração da Grade</h5>
-            <p className="mb-0 small">
-              As turmas criadas aqui geram sessões recorrentes automaticamente com base nos dias da semana selecionados.
-              {values.id && <strong> Você está editando uma turma existente.</strong>}
-            </p>
-          </div>
-        </div>
-      </Alert>
 
       <Row>
         <Col lg={7}>
@@ -298,7 +286,7 @@ const ScheduleForm = ({
 
           <div className="p-3 border rounded bg-soft-light small text-dark mt-4 border-dashed">
             <h6 className="font-size-12 fw-bold mb-1"><i className="mdi mdi-calendar-check me-1"></i>Dica de Operação</h6>
-            Se não informar a data de fim, o sistema gerará sessões automaticamente para os <strong>próximos 6 meses</strong>. Você pode definir uma data específica para encerrar antes.
+            Se não informar a data de fim, o sistema gerará sessões de forma recorrente.
           </div>
         </Col>
       </Row>
@@ -308,12 +296,11 @@ const ScheduleForm = ({
           <ButtonLoader
             color="danger"
             outline
-            className="btn-rounded px-4"
+            className="px-4"
             onClick={onDelete}
             disabled={Boolean(disabled) || saving}
             loading={saving}
           >
-            <i className="mdi mdi-trash-can-outline me-1"></i>
             Excluir Turma
           </ButtonLoader>
         ) : (
@@ -325,7 +312,7 @@ const ScheduleForm = ({
             <Button
               color="secondary"
               outline
-              className="btn-rounded px-4"
+              className="px-4"
               onClick={() => onSave({ ...values, cancelEdit: true })}
               disabled={disabled || saving}
             >
@@ -334,12 +321,11 @@ const ScheduleForm = ({
           )}
           <ButtonLoader
             color="primary"
-            className="btn-rounded px-4 shadow-sm"
+            className="px-4 shadow-sm"
             onClick={onSave}
             disabled={Boolean(disabled) || !onSave}
             loading={saving}
           >
-            <i className={`mdi ${values.id ? 'mdi-check-all' : 'mdi-plus-circle-outline'} me-1`}></i>
             {values.id ? "Atualizar" : "Salvar"}
           </ButtonLoader>
         </div>

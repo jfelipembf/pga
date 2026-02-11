@@ -20,15 +20,11 @@ const IntegrationPage = ({ setBreadcrumbItems }) => {
 
     return (
         <React.Fragment>
-            <div className="page-content">
-                <Container fluid>
-                    <IntegrationSettings
-                        initialValues={integrationConfig}
-                        onSave={saveIntegrations}
-                        loading={saving}
-                    />
-                </Container>
-            </div>
+            <IntegrationSettings
+                initialValues={integrationConfig}
+                onSave={saveIntegrations}
+                loading={saving}
+            />
         </React.Fragment>
     );
 };

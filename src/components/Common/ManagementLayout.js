@@ -1,6 +1,6 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Row, Col, Card, CardBody, Button, Input } from "reactstrap"
+import { Row, Col, Card, CardBody, Button } from "reactstrap"
 import PageLoader from "./PageLoader"
 
 const ManagementLayout = ({
@@ -32,12 +32,7 @@ const ManagementLayout = ({
                                 </Button>
                             </div>
 
-                            <div className="search-box chat-search-box pb-3 border-bottom">
-                                <div className="position-relative">
-                                    <Input type="text" className="form-control" placeholder="Buscar..." />
-                                    <i className="mdi mdi-magnify search-icon"></i>
-                                </div>
-                            </div>
+
 
                             <div className="mt-3" style={{ maxHeight: "calc(100vh - 280px)", overflowY: "auto" }}>
                                 {sidebarContent}

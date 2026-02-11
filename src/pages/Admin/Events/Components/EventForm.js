@@ -14,7 +14,7 @@ export const EventForm = ({ value, onChange }) => {
 
         // Resetar unidade se o tipo mudar para evitar inconsistência (ex: metro em prova de tempo)
         if (field === 'measureType') {
-            newConfig.unit = val === 'fixed-time' ? 'min' : 'm'
+            newConfig.unit = val === 'distance' ? 'min' : 'm'
         }
 
         onChange({
@@ -82,8 +82,9 @@ export const EventForm = ({ value, onChange }) => {
                                     value={value.testConfig?.measureType}
                                     onChange={e => updateTestConfig('measureType', e.target.value)}
                                 >
-                                    <option value="fixed-time">Tempo Fixo (Mede Distância)</option>
-                                    <option value="fixed-distance">Distância Fixa (Mede Tempo)</option>                                </Input>
+                                    <option value="distance">Tempo Fixo (Mede Distância)</option>
+                                    <option value="time">Distância Fixa (Mede Tempo)</option>
+                                </Input>
                             </FormGroup>
                         </Col>
                         <Col md={4}>
@@ -91,7 +92,7 @@ export const EventForm = ({ value, onChange }) => {
                                 <Label>Referência Fixa</Label>
                                 <Input
                                     type="number"
-                                    placeholder={value.testConfig?.measureType === 'fixed-time' ? "Ex: 12 (minutos)" : "Ex: 100 (metros)"}
+                                    placeholder={value.testConfig?.measureType === 'distance' ? "Ex: 12 (minutos)" : "Ex: 100 (metros)"}
                                     value={value.testConfig?.referenceValue || ""}
                                     onChange={e => updateTestConfig('referenceValue', e.target.value)}
                                 />
@@ -105,7 +106,7 @@ export const EventForm = ({ value, onChange }) => {
                                     value={value.testConfig?.unit}
                                     onChange={e => updateTestConfig('unit', e.target.value)}
                                 >
-                                    {value.testConfig?.measureType === 'fixed-time' ? (
+                                    {value.testConfig?.measureType === 'distance' ? (
                                         <>
                                             <option value="min">Minutos</option>
                                             <option value="sec">Segundos</option>

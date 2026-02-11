@@ -35,15 +35,15 @@ const CashierCloseModal = ({ isOpen, toggle, onConfirm, expectedBalance }) => {
                 </div>
 
                 <form onSubmit={formik.handleSubmit}>
-                    <Label className="fw-bold mb-1">Valor em Gaveta (Contagem Física)</Label>
+                    <Label className="mb-1">Valor em Gaveta (Contagem Física)</Label>
                     <div className="input-group mb-2">
-                        <span className="input-group-text bg-light fw-bold border-end-0">R$</span>
+                        <span className="input-group-text bg-light border-end-0">R$</span>
                         <Input
                             autoFocus
                             name="actualBalance"
                             type="number"
                             step="0.01"
-                            className="form-control-lg fw-bold border-start-0 ps-0"
+                            className="border-start-0 ps-0"
                             placeholder="0,00"
                             onChange={formik.handleChange}
                             value={formik.values.actualBalance}
@@ -65,7 +65,7 @@ const CashierCloseModal = ({ isOpen, toggle, onConfirm, expectedBalance }) => {
                     </div>
 
                     <div className="mb-4">
-                        <Label className="fw-bold mb-1">Observações</Label>
+                        <Label className="mb-1">Observações</Label>
                         <Input
                             name="notes"
                             type="textarea"
@@ -76,21 +76,18 @@ const CashierCloseModal = ({ isOpen, toggle, onConfirm, expectedBalance }) => {
                         />
                     </div>
 
-                    <div className="d-grid gap-2">
-                        <ButtonLoader
-                            type="submit"
-                            color="primary"
-                            size="lg"
-                            className="w-100 fw-bold shadow-sm"
-                            loading={formik.isSubmitting}
-                            loadingText="Processando..."
-                        >
-                            <i className="mdi mdi-lock-outline me-1"></i>
-                            ENCERRAR CAIXA
-                        </ButtonLoader>
+                    <div className="d-flex justify-content-end gap-2">
                         <button type="button" className="btn btn-light" onClick={toggle}>
                             Cancelar
                         </button>
+                        <ButtonLoader
+                            type="submit"
+                            color="primary"
+                            loading={formik.isSubmitting}
+                            loadingText="Processando..."
+                        >
+                            Encerrar Caixa
+                        </ButtonLoader>
                     </div>
                 </form>
             </ModalBody>

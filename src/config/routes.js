@@ -43,6 +43,7 @@ const IntegrationPage = React.lazy(() => import("../pages/Integration/index"))
 // CRM / MEMBERS
 const ClientsList = React.lazy(() => import("../pages/Clients/ClientList"))
 const ClientProfile = React.lazy(() => import("../pages/Clients/ClientProfile"))
+const CRMPage = React.lazy(() => import("../pages/CRM/index"))
 
 // ADMINISTRATIVE MODULE
 const ActivitiesPage = React.lazy(() => import("../pages/Admin/Activities/ActivitiesPage"))
@@ -97,6 +98,7 @@ export const MENU_ROUTES = {
     // Operacional
     "/grade": { component: Grade, permission: "grade_manage" },
     "/clients": { component: ClientsList, permission: "members_manage" },
+    "/crm": { component: CRMPage, permission: "members_manage" },
     "/evaluation": { component: Evaluation, permission: "management_evaluation_run" },
     "/training": { component: TrainingPlanning, permission: "management_training_manage" },
 

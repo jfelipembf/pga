@@ -2,11 +2,9 @@
 import React, { useState, useMemo } from 'react';
 import {
     Modal, ModalHeader, ModalBody, ModalFooter,
-    Button, Input, ListGroup, ListGroupItem,
-    Badge, Row, Col, Spinner
+    Button, Input, ListGroup, ListGroupItem, Spinner
 } from 'reactstrap';
 import { useActiveClientsPool } from '../../Evaluation/Hooks/useActiveClientsPool';
-import { PLACEHOLDER_AVATAR as placeholderAvatar } from '../../Evaluation/Constants/evaluationDefaults';
 import OverlayLoader from '../../../components/Common/OverlayLoader';
 
 const StudentSelectorModal = ({ isOpen, toggle, onSend, workout }) => {

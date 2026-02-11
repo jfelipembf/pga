@@ -180,8 +180,8 @@ const PayablesPage = () => {
             {/* HEADER */}
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h4 className="font-size-18 text-uppercase fw-bold">Contas a Pagar</h4>
-                <Button color="success" className="waves-effect waves-light shadow-sm" onClick={toggleModal}>
-                    <i className="mdi mdi-plus me-1"></i> Nova Despesa
+                <Button color="primary" className="waves-effect waves-light shadow-sm" onClick={toggleModal}>
+                    Nova Despesa
                 </Button>
             </div>
 

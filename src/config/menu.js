@@ -43,6 +43,12 @@ export const MENU_STRUCTURE = [
         permission: "members_manage"
     },
     {
+        label: "CRM",
+        icon: "mdi mdi-account-search-outline",
+        path: "/crm",
+        permission: "members_manage"
+    },
+    {
         label: "Avaliações e Testes",
         icon: "mdi mdi-file-check-outline",
         path: "/evaluation",
