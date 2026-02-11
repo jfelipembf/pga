@@ -168,6 +168,18 @@ export const CashierService = {
     },
 
     /**
+     * Verifica se existe um caixa aberto para o usuário, lançando erro se não houver.
+     * Útil para transações que dependem do caixa.
+     */
+    ensureOpenSession: async (idTenant, idBranch, userId) => {
+        const session = await cashierRepository.findOpenSession(idTenant, idBranch, userId);
+        if (!session) {
+            throw new Error("É necessário abrir o caixa antes de realizar esta operação.");
+        }
+        return session;
+    },
+
+    /**
      * Lista as transações financeiras (Movimentações de Caixa)
      */
     listTransactions: async (idTenant, idBranch, filters = {}, limitCount = 50) => {

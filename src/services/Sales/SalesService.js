@@ -19,6 +19,17 @@ export const SalesService = {
         // 1. Validar Schema da Venda (Rigorous Validation)
         await SaleSchema.validate(rawSaleData, { abortEarly: false })
 
+        // 1.5. Verificar Caixa (Prevenir vendas órfãs se o caixa estiver fechado)
+        // Se houver pagamentos imediatos (Dinheiro, PIX, Cartão), o caixa DEVE estar aberto.
+        const hasImmediatePayment = rawSaleData.payments?.some(p =>
+            ['money', 'pix', 'credit_card', 'debit_card'].includes(p.methodId)
+        );
+
+        if (hasImmediatePayment) {
+            const { CashierService } = await import('../Financial/CashierService');
+            await CashierService.ensureOpenSession(idTenant, idBranch, userId);
+        }
+
         // 2. Garantir tipagem segura para cálculos financeiros (Anti-NaN)
         const saleData = {
             ...rawSaleData,

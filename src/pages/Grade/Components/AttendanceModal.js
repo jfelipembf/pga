@@ -17,9 +17,7 @@ import ButtonLoader from "../../../components/Common/ButtonLoader"
 
 import { useAttendance } from "../Hooks/useAttendance"
 
-const placeholderAvatar = "data:image/svg+xml;utf8," + encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" fill="#e9ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#6c757d">Aluno</text></svg>'
-)
+
 
 const AttendanceModal = ({ isOpen, onClose, schedule, onAttendanceSaved, onEnrollmentChange }) => {
   const {

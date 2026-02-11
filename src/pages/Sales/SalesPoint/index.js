@@ -5,6 +5,7 @@ import SalesCartPanel from './components/SalesCartPanel';
 import { useNavigate } from 'react-router-dom';
 import { useSalesPoint } from './hooks/useSalesPoint';
 import OverlayLoader from '../../../components/Common/OverlayLoader';
+import PageLoader from '../../../components/Common/PageLoader';
 
 /**
  * Página de Ponto de Venda.
@@ -15,6 +16,7 @@ const SalesPoint = () => {
 
     // Toda a lógica de estado e processamento extraída para o hook
     const {
+        isReady,
         clientName,
         activeTab,
         cartItems,
@@ -34,8 +36,14 @@ const SalesPoint = () => {
         isRenewal, setIsRenewal
     } = useSalesPoint();
 
+    // 1. Prevenir renderização parcial antes do contexto estar pronto ou dados iniciais carregados
+    // Isso elimina o "flicker" de renderizar o esqueleto vazio antes de ter os dados.
+    if (!isReady || isLoadingData) {
+        return <PageLoader isFixed={false} />;
+    }
+
     return (
-        <React.Fragment>
+        <div style={{ position: 'relative', minHeight: '400px' }}>
             {/* Cabeçalho da Venda */}
             <div className="d-flex align-items-center justify-content-between px-4 py-3 bg-dark text-white mb-4 rounded shadow-sm">
                 <div className="d-flex align-items-center">
@@ -101,10 +109,10 @@ const SalesPoint = () => {
                 </Col>
             </Row>
 
-            {/* Loading States */}
+            {/* Loading States - Usando zIndex alto para garantir cobertura */}
             <OverlayLoader show={isLoadingData} label="Carregando dados..." zIndex={1050} />
             <OverlayLoader show={isProcessing} label="Finalizando venda..." zIndex={1051} />
-        </React.Fragment>
+        </div>
     );
 };
 

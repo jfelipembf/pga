@@ -38,7 +38,7 @@ export const useSalesPoint = () => {
     // Dados Carregados
     const [acquirers, setAcquirers] = useState([]);
     const [contracts, setContracts] = useState([]);
-    const [isLoadingData, setIsLoadingData] = useState(false);
+    const [isLoadingData, setIsLoadingData] = useState(true);
 
     // 2.1 Novos campos da venda
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
@@ -201,6 +201,7 @@ export const useSalesPoint = () => {
     };
 
     return {
+        isReady,
         clientName,
         activeTab,
         cartItems,
