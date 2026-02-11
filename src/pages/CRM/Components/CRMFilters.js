@@ -248,7 +248,7 @@ export const CRMFilters = ({ filters, onChange, onApply, activities = [], staff 
 
                             <Col md={12} className="pt-2">
                                 <Button color="primary" block onClick={onApply}>
-                                    Aplicar Filtros
+                                    <i className="mdi mdi-magnify me-1"></i> Buscar
                                 </Button>
                                 <Button
                                     color="link"

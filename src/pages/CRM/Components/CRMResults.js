@@ -31,31 +31,6 @@ export const CRMResults = ({ clients, loading }) => {
         toast.success("Relatório exportado com sucesso!")
     }
 
-    const handleMassMessage = () => {
-        if (!clients || !clients.length) {
-            toast.warning("Nenhum cliente selecionado")
-            return
-        }
-
-        const phones = clients
-            .map(c => c.phone?.replace(/\D/g, ''))
-            .filter(p => p && p.length >= 10)
-
-        if (phones.length === 0) {
-            toast.warning("Nenhum cliente com telefone válido encontrado")
-            return
-        }
-
-        if (phones.length === 1) {
-            window.open(`https://wa.me/55${phones[0]}`, "_blank")
-            return
-        }
-
-        toast.info(`${phones.length} telefones identificados. A lista foi copiada para facilitar o disparo.`)
-        navigator.clipboard.writeText(phones.join('\n'))
-        toast.success("Lista de números copiada!")
-    }
-
     const columns = useMemo(() => [
         {
             label: "Nome / Contato",
@@ -110,7 +85,7 @@ export const CRMResults = ({ clients, loading }) => {
 
                 const config = configs[statusKey] || { label: statusKey, color: "secondary" }
                 return (
-                    <Badge className={`badge-soft-${config.color} font-size-11`}>
+                    <Badge color={config.color} className="font-size-11 text-white">
                         {config.label}
                     </Badge>
                 )
@@ -159,12 +134,6 @@ export const CRMResults = ({ clients, loading }) => {
             key: "actions",
             render: (client) => (
                 <div className="d-flex gap-2 font-size-16">
-                    <Link to="#" className="text-success" id={`whatsapp-crm-${client.id}`}>
-                        <i className="mdi mdi-whatsapp"></i>
-                        <UncontrolledTooltip placement="top" target={`whatsapp-crm-${client.id}`} fade={false}>
-                            WhatsApp
-                        </UncontrolledTooltip>
-                    </Link>
                     <Link to={`/${idTenant}/${idBranch}/clients/${client.id}`} className="text-primary" id={`view-crm-${client.id}`}>
                         <i className="mdi mdi-eye-outline"></i>
                         <UncontrolledTooltip placement="top" target={`view-crm-${client.id}`} fade={false}>
@@ -178,18 +147,6 @@ export const CRMResults = ({ clients, loading }) => {
 
     const topContent = (
         <div className="d-flex gap-2">
-            <Button
-                color="success"
-                className="btn-soft-success waves-effect waves-light"
-                size="sm"
-                onClick={handleMassMessage}
-                id="mass-message-tooltip"
-            >
-                <i className="mdi mdi-whatsapp font-size-16"></i>
-                <UncontrolledTooltip placement="top" target="mass-message-tooltip" fade={false}>
-                    Mensagem em Massa
-                </UncontrolledTooltip>
-            </Button>
             <Button
                 color="primary"
                 className="btn-soft-primary waves-effect waves-light"
@@ -214,6 +171,8 @@ export const CRMResults = ({ clients, loading }) => {
             paginationPosition="bottom"
             searchPlaceholder="Refinar busca local nos resultados..."
             searchKeys={["name", "email", "phone", "planName"]}
+            hideSearch={true}
+            hideNew={true}
         />
     )
 }

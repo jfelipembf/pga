@@ -4,13 +4,16 @@ import Miniwidget from "../Miniwidget"
 import YearlySales from "../yearly-sales"
 import TaskSummaryList from "../Tasks/TaskSummaryList"
 import { useGeneralDashboard } from "../hooks/useGeneralDashboard"
-// PageLoader removed
-
+import PageLoader from "../../../components/Common/PageLoader"
 
 const ManagementDashboard = () => {
     document.title = "Dashboard Gerencial | PGA Admin"
 
     const { loading, data } = useGeneralDashboard('manager')
+
+    if (loading) {
+        return <PageLoader />
+    }
 
     // reports useMemo removed as it's no longer used
 

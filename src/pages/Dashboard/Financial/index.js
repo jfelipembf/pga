@@ -4,13 +4,17 @@ import Miniwidget from "../Miniwidget"
 import Crescimento from "../crescimento"
 import YearlySales from "../yearly-sales"
 import { useGeneralDashboard } from "../hooks/useGeneralDashboard"
-// PageLoader removed
+import PageLoader from "../../../components/Common/PageLoader"
 import { formatCurrency } from "../../../utils/format"
 
 const FinancialDashboard = () => {
     document.title = "Dashboard Financeiro | PGA Admin"
 
     const { loading, data } = useGeneralDashboard('manager')
+
+    if (loading) {
+        return <PageLoader />
+    }
 
     // Incremental loading
 

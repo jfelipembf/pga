@@ -6,6 +6,7 @@ import TaskSummaryList from "../Tasks/TaskSummaryList"
 import ReactApexChart from "react-apexcharts"
 import { useAuth } from "../../../hooks/useAuth"
 import moment from "moment"
+import PageLoader from "../../../components/Common/PageLoader"
 
 const TeacherDashboard = () => {
     document.title = "Dashboard Professor | PGA Admin"
@@ -42,6 +43,10 @@ const TeacherDashboard = () => {
             }
         ]
     }, [data, loading])
+
+    if (loading) {
+        return <PageLoader />
+    }
 
     const chartOptions = {
         chart: {

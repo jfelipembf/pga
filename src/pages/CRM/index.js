@@ -56,12 +56,11 @@ const CRMPage = ({ setBreadcrumbItems }) => {
         ]
         setBreadcrumbItems("CRM e Relatórios", breadcrumbItems)
 
-        // Carregar dados iniciais e auxiliares apenas quando o contexto do tenant estiver pronto
+        // Carregar dados auxiliares apenas quando o contexto do tenant estiver pronto
         if (isReady) {
-            fetchClients(filters)
             loadAuxiliaryData()
         }
-    }, [isReady, setBreadcrumbItems, fetchClients, loadAuxiliaryData, filters])
+    }, [isReady, setBreadcrumbItems, loadAuxiliaryData])
 
     const handleFilterChange = (newFilters) => {
         setFilters(newFilters)

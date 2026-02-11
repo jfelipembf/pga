@@ -4,6 +4,7 @@ import Miniwidget from "../Miniwidget"
 import { useGeneralDashboard } from "../hooks/useGeneralDashboard"
 import TaskSummaryList from "../Tasks/TaskSummaryList"
 import { useAuth } from "../../../hooks/useAuth"
+import PageLoader from "../../../components/Common/PageLoader"
 
 const OperationalDashboard = () => {
     document.title = "Dashboard Operacional | PGA Admin"
@@ -39,6 +40,10 @@ const OperationalDashboard = () => {
             }
         ];
     }, [data, loading]);
+
+    if (loading) {
+        return <PageLoader />
+    }
 
     // Incremental loading: structure appears first
 

@@ -3,6 +3,7 @@ import { Row, Col } from "reactstrap"
 import Miniwidget from "./Miniwidget"
 import { useGeneralDashboard } from "./hooks/useGeneralDashboard"
 import { formatCurrency } from "../../utils/format"
+import PageLoader from "../../components/Common/PageLoader"
 
 import YearlyComparisonChart from "./montly-earnings2"
 
@@ -10,6 +11,10 @@ const Dashboard = () => {
   document.title = "Dashboard Geral | PGA Admin"
 
   const { loading, data } = useGeneralDashboard('manager')
+
+  if (loading) {
+    return <PageLoader />
+  }
 
   // O PageLoader de tela cheia foi removido para permitir que a estrutura da página
   // apareça imediatamente. Os widgets abaixo já tratam o carregamento individualmente.
