@@ -18,7 +18,8 @@ export const useSalesPoint = () => {
         idTenant,
         idBranch,
         tenantSlug,
-        branchSlug
+        branchSlug,
+        isReady
     } = useTenant();
 
     // 1. Obtenção de contexto (Usuário e Cliente)
@@ -37,7 +38,7 @@ export const useSalesPoint = () => {
     // Dados Carregados
     const [acquirers, setAcquirers] = useState([]);
     const [contracts, setContracts] = useState([]);
-    const [isLoadingData, setIsLoadingData] = useState(true);
+    const [isLoadingData, setIsLoadingData] = useState(false);
 
     // 2.1 Novos campos da venda
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
@@ -46,9 +47,9 @@ export const useSalesPoint = () => {
 
     // Carregar Dados Iniciais
     useEffect(() => {
-        const loadData = async () => {
-            if (!idTenant || !idBranch) return;
+        if (!isReady) return;
 
+        const loadData = async () => {
             try {
                 setIsLoadingData(true);
                 const [acqs, conts] = await Promise.all([
@@ -66,8 +67,9 @@ export const useSalesPoint = () => {
                 setIsLoadingData(false);
             }
         };
+
         loadData();
-    }, [idTenant, idBranch]);
+    }, [isReady, idTenant, idBranch]);
 
     // 3. Ações de Interface
     const toggleTab = useCallback((tab) => {
