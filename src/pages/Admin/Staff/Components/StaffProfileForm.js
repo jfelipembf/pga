@@ -66,7 +66,6 @@ const StaffProfileForm = ({ formik, roles = [], handlePasswordChange, isChanging
                                     {(inputProps) => (
                                         <Input
                                             {...inputProps}
-                                            innerRef={inputProps.ref}
                                             type="text"
                                             name="phone"
                                             placeholder="(00) 00000-0000"
@@ -87,7 +86,6 @@ const StaffProfileForm = ({ formik, roles = [], handlePasswordChange, isChanging
                                     {(inputProps) => (
                                         <Input
                                             {...inputProps}
-                                            innerRef={inputProps.ref}
                                             type="text"
                                             name="cpf"
                                             placeholder="000.000.000-00"
@@ -229,7 +227,6 @@ const StaffProfileForm = ({ formik, roles = [], handlePasswordChange, isChanging
                                     {(inputProps) => (
                                         <Input
                                             {...inputProps}
-                                            innerRef={inputProps.ref}
                                             type="text"
                                             name="zipCode"
                                             placeholder="00000-000"

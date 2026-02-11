@@ -8,6 +8,7 @@ import StaffProfileForm from "./Components/StaffProfileForm"
 import StaffSchedule from "./Components/StaffSchedule"
 import StaffMetrics from "./Components/StaffMetrics"
 import ConfirmDialog from "../../../components/Common/ConfirmDialog"
+import { toast } from "react-toastify"
 import "./StaffProfile.scss"
 
 const StaffProfile = ({ setBreadcrumbItems }) => {
@@ -106,7 +107,28 @@ const StaffProfile = ({ setBreadcrumbItems }) => {
                             <Button
                                 color="info"
                                 className="d-flex align-items-center gap-2"
-                                onClick={() => formik.handleSubmit()}
+                                onClick={async () => {
+                                    const errors = await formik.validateForm()
+                                    if (Object.keys(errors).length > 0) {
+                                        formik.setTouched(
+                                            Object.keys(errors).reduce((acc, key) => ({ ...acc, [key]: true }), {})
+                                        )
+                                        const fieldNamesData = {
+                                            name: "Nome",
+                                            email: "E-mail",
+                                            phone: "Telefone",
+                                            cpf: "CPF",
+                                            roleId: "Cargo",
+                                            password: "Senha",
+                                            confirmPassword: "Confirmação de Senha"
+                                        }
+
+                                        const missingFields = Object.keys(errors).map(key => fieldNamesData[key] || key).join(", ")
+                                        toast.error(`Verifique os campos obrigatórios: ${missingFields}`)
+                                    } else {
+                                        formik.handleSubmit()
+                                    }
+                                }}
                                 disabled={formik.isSubmitting}
                             >
                                 {formik.isSubmitting ? <Spinner size="sm" /> : <i className="mdi mdi-content-save" />}
