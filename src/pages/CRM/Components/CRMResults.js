@@ -136,7 +136,7 @@ export const CRMResults = ({ clients, loading }) => {
                 <div className="d-flex gap-2 font-size-16">
                     <Link to={`/${idTenant}/${idBranch}/clients/${client.id}`} className="text-primary" id={`view-crm-${client.id}`}>
                         <i className="mdi mdi-eye-outline"></i>
-                        <UncontrolledTooltip placement="top" target={`view-crm-${client.id}`} fade={false}>
+                        <UncontrolledTooltip placement="top" target={`view-crm-${client.id}`} transition={{ timeout: 0 }} fade={false}>
                             Ver Perfil
                         </UncontrolledTooltip>
                     </Link>
@@ -155,7 +155,7 @@ export const CRMResults = ({ clients, loading }) => {
                 id="export-csv-tooltip"
             >
                 <i className="mdi mdi-download font-size-16"></i>
-                <UncontrolledTooltip placement="top" target="export-csv-tooltip" fade={false}>
+                <UncontrolledTooltip placement="top" target="export-csv-tooltip" transition={{ timeout: 0 }} fade={false}>
                     Exportar Resultados
                 </UncontrolledTooltip>
             </Button>

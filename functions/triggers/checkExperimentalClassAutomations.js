@@ -82,7 +82,7 @@ module.exports = createScheduledTrigger("00 08 * * *", "checkExperimentalClassAu
                         if (!phone) continue;
 
                         // 4. Enviar mensagem
-                        const message = `Oi ${clientName}! 🏊‍♂️ Passando para lembrar da sua aula experimental hoje na *A2 Aquática*!\n\n⏰ Horário: *${startTime}*\n\n📌 *Dicas importantes:*\n- Traga sua *touca* e óculos de natação. 🏊‍♂️\n- Procure chegar uns 10 minutos antes da aula.\n\nEstamos ansiosos para te ver na água! Qualquer dúvida, é só responder aqui. Até logo! 🌊\n\nAtenciosamente,\n*Cibelly* - Sua assistente A2 Aquática 🤖`;
+                        const message = `Oi ${clientName}! 🏊‍♂️ Passando para lembrar da sua aula experimental hoje na *A2 Aquática*!\n\n⏰ Horário: *${startTime}*\n\n📌 *Dicas importantes:*\n- Venha com muita energia e disposição! 💪🔥\n- Procure chegar uns 10 minutos antes da aula.\n\nEstamos ansiosos para te ver na água! Qualquer dúvida, é só responder aqui. Até logo! 🌊\n\nAtenciosamente,\n*Cibelly* - Sua assistente A2 Aquática 🤖`;
 
                         await sendWhatsApp(settings, phone, message);
                         console.log(`[checkExperimentalClassAutomations] Lembrete enviado para ${clientName} (${idTenant}/${idBranch})`);

@@ -234,12 +234,24 @@ export const EnrollmentService = {
         const sessionsCollectionRef = sessionRepository.getCollectionRef(idTenant, idBranch)
 
         // 2. Buscar sessões (Filtro corrigido para deletedAt)
-        const q = query(
-            sessionsCollectionRef,
-            where('idClass', '==', enrollment.idClass),
-            where('sessionDate', '>=', today),
-            where('deletedAt', '==', null)
-        )
+        let q;
+        if (enrollment.enrollmentType === ENROLLMENT_TYPE.TRIAL) {
+            // Para aula experimental, buscamos apenas a sessão da data agendada
+            q = query(
+                sessionsCollectionRef,
+                where('idClass', '==', enrollment.idClass),
+                where('sessionDate', '==', enrollment.startDate),
+                where('deletedAt', '==', null)
+            )
+        } else {
+            // Para matriculas regulares, buscamos todas as sessões futuras
+            q = query(
+                sessionsCollectionRef,
+                where('idClass', '==', enrollment.idClass),
+                where('sessionDate', '>=', today),
+                where('deletedAt', '==', null)
+            )
+        }
 
         const sessionsSnapshot = await getDocs(q)
         const allFutureSessions = sessionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))

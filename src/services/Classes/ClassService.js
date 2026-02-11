@@ -316,5 +316,12 @@ export const ClassService = {
         // Delegar para o novo AttendanceService
         const { AttendanceService } = await import('./AttendanceService')
         return AttendanceService.recordAttendance(idTenant, idBranch, user, idSession, attendanceData)
+    },
+
+    /**
+     * Retorna os alunos matriculados em uma turma
+     */
+    getStudentsForClass: async (idTenant, idBranch, idClass) => {
+        return await enrollmentRepository.findByClass(idTenant, idBranch, idClass)
     }
 }
