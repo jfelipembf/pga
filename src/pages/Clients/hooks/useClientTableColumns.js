@@ -37,7 +37,7 @@ export const useClientTableColumns = () => {
                 const idLabel = client.friendlyId || client.idGym || client.id?.substring(0, 6).toUpperCase()
                 return (
                     <div>
-                        <h5 className="font-size-14 mb-1">{fullName}</h5>
+                        <h5 className="font-size-14 mb-1 text-uppercase">{fullName}</h5>
                         <p className="text-muted mb-0 font-size-12">ID: {idLabel}</p>
                     </div>
                 )
@@ -46,7 +46,7 @@ export const useClientTableColumns = () => {
         {
             label: "E-mail",
             key: "email",
-            render: (client) => client.email || '-'
+            render: (client) => <span className="text-lowercase">{client.email || '-'}</span>
         },
         {
             label: "Telefone",
