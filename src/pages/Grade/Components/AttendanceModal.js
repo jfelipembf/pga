@@ -136,8 +136,8 @@ const AttendanceModal = ({ isOpen, onClose, schedule, onAttendanceSaved, onEnrol
                 {isLoading('addExtra') ? <ButtonLoader size="sm" /> : <i className="mdi mdi-magnify text-muted fs-4" />}
               </span>
               <Input
-                className="form-control-lg border-2 ps-5 shadow-sm rounded-pill"
-                placeholder="Adicionar aluno à chamada (Nome, CPF ou GymID)..."
+                className="form-control-lg border ps-5 shadow-sm"
+                placeholder="Adicionar aluno à chamada (Nome, CPF ou ID)..."
                 style={{ fontSize: '1rem' }}
                 value={searchText}
                 onChange={e => setSearchText(e.target.value)}
@@ -199,7 +199,13 @@ const AttendanceModal = ({ isOpen, onClose, schedule, onAttendanceSaved, onEnrol
                           className={classNames("attendance-item", { "is-new": String(client.id) === String(justAddedId) })}
                         >
                           <div className="attendance-item__avatar">
-                            <img src={client.photo || placeholderAvatar} alt={client.name} />
+                            {client.photo ? (
+                              <img src={client.photo} alt={client.name} className="rounded-circle" />
+                            ) : (
+                              <div className="avatar-title rounded-circle bg-light text-secondary d-flex align-items-center justify-content-center h-100 w-100 border">
+                                <i className="mdi mdi-account fs-3"></i>
+                              </div>
+                            )}
                             {['experimental', 'single-session'].includes(client.type) && (
                               <span className="badge-tag is-experimental" title="Experimental">EX</span>
                             )}
@@ -211,7 +217,7 @@ const AttendanceModal = ({ isOpen, onClose, schedule, onAttendanceSaved, onEnrol
                               {(client.friendlyId || client.idGym) && <span className="text-muted small">#{client.friendlyId || client.idGym}</span>}
                             </div>
                             <div className="d-flex gap-2 align-items-center mt-1">
-                              <span className="badge bg-light text-muted border px-2 py-1">{client.tag}</span>
+
 
                               {/* Status do Cliente */}
                               {client.clientStatus && (
@@ -247,7 +253,7 @@ const AttendanceModal = ({ isOpen, onClose, schedule, onAttendanceSaved, onEnrol
                               <Button
                                 color="danger"
                                 outline
-                                className="btn-rounded btn-sm px-3"
+                                className="btn-sm px-3"
                                 onClick={() => handleMarkAbsence(client.id)}
                               >
                                 <i className="mdi mdi-account-minus-outline me-1"></i>
@@ -286,7 +292,13 @@ const AttendanceModal = ({ isOpen, onClose, schedule, onAttendanceSaved, onEnrol
                     .map(client => (
                       <div key={client.id} className="attendance-item is-absent">
                         <div className="attendance-item__avatar">
-                          <img src={client.photo || placeholderAvatar} alt={client.name} />
+                          {client.photo ? (
+                            <img src={client.photo} alt={client.name} className="rounded-circle" />
+                          ) : (
+                            <div className="avatar-title rounded-circle bg-light text-secondary d-flex align-items-center justify-content-center h-100 w-100 border">
+                              <i className="mdi mdi-account fs-3"></i>
+                            </div>
+                          )}
                         </div>
 
                         <div className="attendance-item__content">
@@ -303,7 +315,7 @@ const AttendanceModal = ({ isOpen, onClose, schedule, onAttendanceSaved, onEnrol
                           <Button
                             color="success"
                             outline
-                            className="btn-rounded btn-sm px-3"
+                            className="btn-sm px-3"
                             onClick={() => handleMarkPresent(client.id)}
                           >
                             <i className="mdi mdi-account-plus-outline me-1"></i>
@@ -319,16 +331,16 @@ const AttendanceModal = ({ isOpen, onClose, schedule, onAttendanceSaved, onEnrol
         </ModalBody>
 
         <div className="premium-modal__footer p-4 d-flex justify-content-between align-items-center bg-light border-top">
-          <Button color="secondary" outline className="btn-rounded px-4">
+          <Button color="secondary" outline className="px-4">
             <i className="mdi mdi-whatsapp me-1"></i> Notificar Alunos
           </Button>
           <div className="d-flex gap-2">
-            <Button color="light" className="btn-rounded px-4" onClick={handleClose}>
+            <Button color="light" className="px-4" onClick={handleClose}>
               Fechar
             </Button>
             <ButtonLoader
               color="primary"
-              className="btn-rounded px-4 shadow-primary"
+              className="px-4 shadow-primary"
               onClick={() => handleSave(onClose)}
               loading={isLoading('save')}
               loadingText="Salvando..."

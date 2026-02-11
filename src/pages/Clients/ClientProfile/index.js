@@ -81,7 +81,7 @@ const ClientProfile = () => {
 
     const profileDisplay = {
         name: client ? `${client.firstName} ${client.lastName}` : "Carregando...",
-        photo: (client?.photo || client?.photoUrl) || `https://ui-avatars.com/api/?name=${client?.firstName}+${client?.lastName}&background=random`,
+        photo: (client?.photo || client?.photoUrl),
         cover: "https://images.unsplash.com/photo-1519315901367-f34ff9154487?q=80&w=2074&auto=format&fit=crop", // Swimming Pool Clear
         id: client?.friendlyId || client?.id?.substring(0, 6).toUpperCase()
     }
@@ -101,10 +101,16 @@ const ClientProfile = () => {
                     <div className="client-profile__content">
                         <div className="d-flex align-items-center gap-4">
                             <div className="client-profile__avatar-wrapper">
-                                <div
-                                    className="client-profile__avatar"
-                                    style={{ backgroundImage: `url("${profileDisplay.photo}")` }}
-                                />
+                                {profileDisplay.photo ? (
+                                    <div
+                                        className="client-profile__avatar bg-light"
+                                        style={{ backgroundImage: `url("${profileDisplay.photo}")` }}
+                                    />
+                                ) : (
+                                    <div className="client-profile__avatar bg-light d-flex align-items-center justify-content-center">
+                                        <i className="mdi mdi-account text-secondary display-4"></i>
+                                    </div>
+                                )}
                                 <label htmlFor="clientAvatar" className="client-profile__camera">
                                     <i className="mdi mdi-camera" />
                                 </label>
