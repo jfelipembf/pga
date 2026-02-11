@@ -463,6 +463,46 @@ export const LedgerService = {
                 }
             ]
         })
+    },
+
+    /**
+     * Lançamento: Registro de Gasto/Entrada Direta no Caixa (Ex: Taxas, Pequenas Despesas)
+     * Quando: Uma movimentação manual ou automática no caixa que afeta o DRE.
+     */
+    createGenericMovementEntry: async (idTenant, idBranch, movement) => {
+        const isIncome = movement.type === 'income';
+        const amount = parseFloat(movement.amount) || 0;
+
+        // Determinar contas
+        // Se for Despesa, D: Despesa (2.x), C: Caixa (3.1.2)
+        // Se for Receita, D: Caixa (3.1.2), C: Receita (1.x)
+        const cashierAccount = STANDARD_ACCOUNTS.CASH;
+        const targetAccount = isIncome
+            ? (movement.chartOfAccountId || STANDARD_ACCOUNTS.PRODUCT_REVENUE)
+            : (movement.chartOfAccountId || STANDARD_ACCOUNTS.OPERATIONAL_EXPENSES);
+
+        const targetAccountName = movement.category || (isIncome ? 'Outras Receitas' : 'Outras Despesas');
+
+        return await ledgerRepository.create(idTenant, idBranch, {
+            date: normalizeDate(movement.date) || new Date(),
+            description: `[Caixa] ${movement.description}`,
+            sourceType: 'cashier_generic_movement',
+            sourceId: movement.id,
+            entries: [
+                {
+                    account: isIncome ? cashierAccount : targetAccount,
+                    accountName: isIncome ? 'Caixa' : targetAccountName,
+                    debit: amount,
+                    credit: 0
+                },
+                {
+                    account: isIncome ? targetAccount : cashierAccount,
+                    accountName: isIncome ? targetAccountName : 'Caixa',
+                    debit: 0,
+                    credit: amount
+                }
+            ]
+        });
     }
 }
 

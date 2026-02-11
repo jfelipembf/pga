@@ -19,6 +19,7 @@ export const useCashier = () => {
     const [loading, setLoading] = useState(true)
     const [currentSession, setCurrentSession] = useState(null)
     const [activeSessions, setActiveSessions] = useState([])
+    const [realSessions, setRealSessions] = useState([]) // Armazena as sessões reais (sem a 'all')
     const [userProfile, setUserProfile] = useState(null)
     const [transactions, setTransactions] = useState([])
     const [modalOpen, setModalOpen] = useState(false)
@@ -88,17 +89,39 @@ export const useCashier = () => {
                 }
             }
 
+            setRealSessions(sessionsFetched);
             setActiveSessions(finalSessions);
-            setCurrentSession(initialSession);
 
-            // 3. Load transactions
-            if (initialSession) {
-                if (initialSession.id === 'all') {
-                    // Fetch for ALL sessions in parallel
+            // 2. Ssmart Update of Current Session (Prevent resetting user selection)
+            setCurrentSession(prev => {
+                if (!prev) return initialSession;
+                // Se já tínhamos uma sessão selecionada, tenta manter ela (atualizada com novos totais se houver)
+                const stillExists = finalSessions.find(s => s.id === prev.id);
+                return stillExists || initialSession;
+            });
+
+        } catch (error) {
+            console.error("Erro ao carregar sessões do caixa:", error)
+            toast.error("Erro ao carregar dados do caixa")
+        } finally {
+            setLoading(false)
+        }
+    }, [idTenant, idBranch, isReady, user, selectedDate])
+
+    // 3. Efeito Reativo para carregar transações quando a sessão muda
+    useEffect(() => {
+        if (!isReady || !currentSession) {
+            setTransactions([]);
+            return;
+        }
+
+        const fetchTransactions = async () => {
+            try {
+                if (currentSession.id === 'all') {
+                    // Busca transações de TODAS as sessões reais do dia
                     const allMoves = await Promise.all(
-                        sessionsFetched.map(s => transactionRepository.findBySession(idTenant, idBranch, s.id))
+                        realSessions.map(s => transactionRepository.findBySession(idTenant, idBranch, s.id))
                     );
-                    // Flatten and sort by date descending
                     const flattened = allMoves.flat().sort((a, b) => {
                         const da = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt);
                         const db = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt);
@@ -106,20 +129,17 @@ export const useCashier = () => {
                     });
                     setTransactions(flattened);
                 } else {
-                    const moves = await transactionRepository.findBySession(idTenant, idBranch, initialSession.id);
+                    // Busca transações apenas da sessão selecionada
+                    const moves = await transactionRepository.findBySession(idTenant, idBranch, currentSession.id);
                     setTransactions(moves);
                 }
-            } else {
-                setTransactions([]);
+            } catch (error) {
+                console.error("Erro ao carregar transações:", error);
             }
+        };
 
-        } catch (error) {
-            console.error("Erro ao carregar caixa:", error)
-            toast.error("Erro ao carregar dados do caixa")
-        } finally {
-            setLoading(false)
-        }
-    }, [idTenant, idBranch, isReady, user, selectedDate])
+        fetchTransactions();
+    }, [idTenant, idBranch, isReady, currentSession?.id, realSessions]); // realSessions deve disparar se houver novo caixa aberto
 
     useEffect(() => {
         loadData()

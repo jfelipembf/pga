@@ -205,9 +205,9 @@ export const SalesPaymentProcessor = {
                 amount: totalFee,
                 netAmount: totalFee,
                 category: 'Taxas Financeiras',
+                chartOfAccountId: '2.5.3', // Conta padrão para taxas de cartão em STANDARD_ACCOUNTS
                 method: payment.methodId,
                 description: `Taxas de Cartão - Venda #${sale.saleNumber}`,
-                idSale: sale.id,
                 saleNumber: sale.saleNumber,
                 clientName: clientData.clientName,
                 userName: sale.sellerName

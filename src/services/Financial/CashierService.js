@@ -137,7 +137,8 @@ export const CashierService = {
 
         await cashierRepository.update(idTenant, idBranch, cashierSession.id, updates);
 
-        // ✅ LANÇAMENTO CONTÁBIL (se for sangria/suprimento com banco vinculado)
+        // ✅ LANÇAMENTO CONTÁBIL
+        // 1. Se for sangria/suprimento com banco vinculado
         if ((fullMovement.category === 'withdrawal' || fullMovement.category === 'supply')
             && fullMovement.idBankAccount) {
             await safeLedgerCall(idTenant, idBranch,
@@ -151,6 +152,17 @@ export const CashierService = {
                     date: normalizeDate(new Date())
                 }),
                 { sourceType: 'cashier_movement', sourceId: newMovement.id, operation: 'createCashierMovement' }
+            );
+        }
+        // 2. Se for uma movimentação avulsa (não vinculada a Venda ou Conta a Pagar já contabilizada)
+        // Isso garante que taxas, pequenas despesas ou receitas manuais apareçam na DRE.
+        else if (!fullMovement.idSale && !fullMovement.idPayable) {
+            await safeLedgerCall(idTenant, idBranch,
+                () => LedgerService.createGenericMovementEntry(idTenant, idBranch, {
+                    ...fullMovement,
+                    id: newMovement.id
+                }),
+                { sourceType: 'cashier_generic', sourceId: newMovement.id, operation: 'createGenericMovementEntry' }
             );
         }
 
