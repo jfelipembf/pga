@@ -4,7 +4,7 @@ import { ClientService } from "../../../services/Clients"
 import { toast } from "react-toastify"
 
 export const useClientList = () => {
-    const { idTenant, idBranch, isReady } = useTenant()
+    const { idTenant, idBranch, tenantSlug, branchSlug, isReady } = useTenant()
     const [clients, setClients] = useState([])
     const [loading, setLoading] = useState(true)
 
@@ -42,8 +42,8 @@ export const useClientList = () => {
     }
 
     const handleRowClick = (client, navigate) => {
-        if (navigate && idTenant && idBranch) {
-            navigate(`/${idTenant}/${idBranch}/clients/${client.id}`)
+        if (navigate && tenantSlug && branchSlug) {
+            navigate(`/${tenantSlug}/${branchSlug}/clients/${client.id}`)
         }
     }
 

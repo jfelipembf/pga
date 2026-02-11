@@ -39,7 +39,7 @@ const Header = props => {
 
   const handleSearch = async (term) => {
     setSearchQuery(term)
-    if (term && term.length >= 3 && activeTenant && activeBranch) {
+    if (term && term.length >= 3 && activeTenant?.idTenant && activeBranch?.idBranch) {
       try {
         const results = await ClientService.searchClients(activeTenant.idTenant, activeBranch.idBranch, term)
         setSearchResults(results)
@@ -53,19 +53,21 @@ const Header = props => {
   }
 
   const handleSelectClient = (client) => {
-    if (activeTenant && activeBranch && props.router && props.router.navigate) {
-      props.router.navigate(`/${activeTenant.idTenant}/${activeBranch.idBranch}/clients/${client.id}`)
+    if (activeTenant?.slug && activeBranch?.slug && props.router?.navigate) {
+      props.router.navigate(`/${activeTenant.slug}/${activeBranch.slug}/clients/${client.id}`)
     }
-  }
+  };
 
   const handleClientAdded = (newClient) => {
     setClientModalOpen(false)
-    if (activeTenant && activeBranch && props.router && props.router.navigate) {
-      props.router.navigate(`/${activeTenant.idTenant}/${activeBranch.idBranch}/clients/${newClient.id}`)
+    if (activeTenant?.slug && activeBranch?.slug && props.router?.navigate) {
+      props.router.navigate(`/${activeTenant.slug}/${activeBranch.slug}/clients/${newClient.id}`)
     }
   }
 
-  const dashboardLink = activeTenant && activeBranch ? `/${activeTenant.idTenant}/${activeBranch.idBranch}/dashboard` : "/";
+  const dashboardLink = activeTenant?.slug && activeBranch?.slug
+    ? `/${activeTenant.slug}/${activeBranch.slug}/dashboard`
+    : "/";
 
   return (
     <React.Fragment>
