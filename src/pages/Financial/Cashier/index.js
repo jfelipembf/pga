@@ -36,7 +36,8 @@ const CashierPage = () => {
         setMovementModalType,
         handleMovement,
         selectedDate,
-        setSelectedDate
+        setSelectedDate,
+        loading
     } = useCashier()
 
 
