@@ -4,6 +4,7 @@ import { AuditService } from '../Core/AuditService'
 import { CashierSessionSchema, TransactionSchema } from '../../data/schemas/FinancialSchemas'
 import { LedgerService, safeLedgerCall } from '../Ledger/LedgerService'
 import { normalizeDate } from '../../utils/date'
+import moment from 'moment'
 
 /**
  * Serviço responsável por gerenciar a "Gaveta de Caixa" (Sessões e Movimentações).
@@ -107,15 +108,17 @@ export const CashierService = {
      */
     registerMovement: async (idTenant, idBranch, userId, movementData) => {
         const cashierSession = await cashierRepository.findOpenSession(idTenant, idBranch, userId);
-        if (!cashierSession) {
-            throw new Error("É necessário ter um caixa aberto para registrar movimentações.");
+        const isHistorical = movementData.date && !moment(movementData.date).isSame(moment(), 'day');
+
+        if (!cashierSession && !isHistorical) {
+            throw new Error("É necessário ter um caixa aberto para registrar movimentações atuais.");
         }
 
         const fullMovement = {
             ...movementData,
-            idCashierSession: cashierSession.id,
-            createdBy: userId, // ✅ Necessário para o Dashboard Operacional (Minhas Vendas)
-            date: normalizeDate(new Date()),
+            idCashierSession: cashierSession?.id || null, // Permite nulo se for histórico sem sessão
+            createdBy: userId,
+            date: normalizeDate(movementData.date || new Date()),
             status: 'completed'
         };
 

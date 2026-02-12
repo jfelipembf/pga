@@ -26,8 +26,11 @@ export const SalesService = {
         );
 
         if (hasImmediatePayment) {
-            const { CashierService } = await import('../Financial/CashierService');
-            await CashierService.ensureOpenSession(idTenant, idBranch, userId);
+            const isToday = moment(saleData.saleDate).isSame(moment(), 'day');
+            if (isToday) {
+                const { CashierService } = await import('../Financial/CashierService');
+                await CashierService.ensureOpenSession(idTenant, idBranch, userId);
+            }
         }
 
         // 2. Garantir tipagem segura para cálculos financeiros (Anti-NaN)

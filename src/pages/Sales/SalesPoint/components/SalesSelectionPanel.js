@@ -11,6 +11,8 @@ const SalesSelectionPanel = ({
     contracts = [],
     acquirers = [],
     suggestedValue = 0,
+    saleDate,
+    setSaleDate,
     startDate,
     setStartDate,
     isRenewal,
@@ -185,7 +187,17 @@ const SalesSelectionPanel = ({
                             </Col>
                         </Row>
                         <Row className="mb-3 g-3">
-                            <Col md={4}>
+                            <Col md={3}>
+                                <Label className="form-label fw-semibold text-dark">Data da Venda</Label>
+                                <Input
+                                    type="date"
+                                    className="form-control border-light shadow-sm bg-light"
+                                    value={saleDate || ''}
+                                    onChange={(e) => setSaleDate(e.target.value)}
+                                />
+                                <small className="text-muted" style={{ fontSize: '9px' }}>Mude para migrar dados históricos</small>
+                            </Col>
+                            <Col md={3}>
                                 <Label className="form-label fw-semibold text-dark">Data de Início *</Label>
                                 <Input
                                     type="date"
@@ -193,8 +205,9 @@ const SalesSelectionPanel = ({
                                     value={startDate || ''}
                                     onChange={(e) => setStartDate(e.target.value)}
                                 />
+                                <small className="text-muted" style={{ fontSize: '9px' }}>Início da vigência/acesso</small>
                             </Col>
-                            <Col md={4}>
+                            <Col md={3}>
                                 <Label className="form-label fw-semibold text-dark">Desconto (R$)</Label>
                                 <Input
                                     type="number"
@@ -204,8 +217,8 @@ const SalesSelectionPanel = ({
                                     onChange={(e) => setDiscount(e.target.value)}
                                 />
                             </Col>
-                            <Col md={4}>
-                                <Label className="form-label fw-semibold text-dark">É uma Renovação?</Label>
+                            <Col md={3}>
+                                <Label className="form-label fw-semibold text-dark">Renovação?</Label>
                                 <Input
                                     type="select"
                                     className="form-select border-light shadow-sm"

@@ -28,7 +28,8 @@ export const SalesPaymentProcessor = {
             description: `Venda #${sale.saleNumber || sale.id.substring(0, 6)}`,
             idSale: sale.id,
             saleNumber: sale.saleNumber,
-            clientName: sale.clientName, // ✅ Novo: Identificação do cliente no caixa
+            clientName: sale.clientName,
+            date: sale.saleDate, // Usa a data da venda para o movimento do caixa
             userName: sale.sellerName // Garante Snapshot para Auditoria
         })
 
@@ -60,7 +61,8 @@ export const SalesPaymentProcessor = {
             description: `Venda #${sale.saleNumber || sale.id.substring(0, 6)}`,
             idSale: sale.id,
             saleNumber: sale.saleNumber,
-            clientName: sale.clientName, // ✅ Novo: Identificação do cliente no caixa
+            clientName: sale.clientName,
+            date: sale.saleDate, // Usa a data da venda
             metadata: { shouldBeBankTransaction: true },
             userName: sale.sellerName // Garante Snapshot para Auditoria
         })
@@ -183,7 +185,7 @@ export const SalesPaymentProcessor = {
                 ? 1  // Débito = D+1
                 : (isAnticipated ? 1 : (settlementDays * i)); // Se antecipado: D+1 fixo. Se não: 30, 60, 90...
 
-            const dueDate = normalizeDate(moment().add(daysToAdd, 'days'));
+            const dueDate = normalizeDate(moment(sale.saleDate).add(daysToAdd, 'days'));
 
             const receivable = {
                 idSale: sale.id,
@@ -219,7 +221,7 @@ export const SalesPaymentProcessor = {
                 authCode: payment.auth,
 
                 description: `Parcela ${i}/${numInstallments} - ${activeAcquirer?.name || payment.provider} ${payment.brand} (Venda #${sale.saleNumber}) ${isAnticipated ? '[Antecipado]' : ''}`,
-                createdAt: normalizeDate(new Date())
+                createdAt: normalizeDate(sale.saleDate)
             }
 
             receivables.push(receivable)
@@ -244,6 +246,7 @@ export const SalesPaymentProcessor = {
             idSale: sale.id,
             saleNumber: sale.saleNumber,
             clientName: clientData.clientName,
+            date: sale.saleDate,
             userName: sale.sellerName
         })
 
@@ -299,7 +302,7 @@ export const SalesPaymentProcessor = {
             status: 'open',
 
             description: `Saldo devedor da Venda #${sale.saleNumber}`,
-            createdAt: normalizeDate(new Date())
+            createdAt: normalizeDate(sale.saleDate)
         })
     }
 }

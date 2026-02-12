@@ -41,6 +41,7 @@ export const useSalesPoint = () => {
     const [isLoadingData, setIsLoadingData] = useState(true);
 
     // 2.1 Novos campos da venda
+    const [saleDate, setSaleDate] = useState(new Date().toISOString().split('T')[0]);
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
     const [discount, setDiscount] = useState('');
     const [isRenewal, setIsRenewal] = useState(false);
@@ -138,7 +139,7 @@ export const useSalesPoint = () => {
 
             // Preparação do Payload Seguro
             const salePayload = {
-                saleDate: new Date(),
+                saleDate: new Date(saleDate),
                 startDate: new Date(startDate),
                 isRenewal: isRenewal,
                 idClient: idClient,
@@ -153,7 +154,8 @@ export const useSalesPoint = () => {
                     name: item.name,
                     quantity: item.quantity || 1,
                     unitPrice: item.unitPrice || 0,
-                    totalPrice: item.totalPrice || 0
+                    totalPrice: item.totalPrice || 0,
+                    startDate: item.type === 'contract' ? new Date(startDate) : null // Fundamental para o contrato
                 })),
                 payments: payments.map(p => ({
                     methodId: p.methodId,
@@ -213,13 +215,8 @@ export const useSalesPoint = () => {
             contracts
         },
         totals,
-        toggleTab,
-        handleAddItem,
-        handleAddPayment,
-        handleRemoveItem,
-        handleRemovePayment,
-        handleFinalizeSale,
         // Novos estados expostos
+        saleDate, setSaleDate,
         startDate, setStartDate,
         discount, setDiscount,
         isRenewal, setIsRenewal
