@@ -25,6 +25,7 @@ import ReceivableSettlementModal from './ReceivableSettlementModal';
 import ReceivableDetailsModal from './ReceivableDetailsModal';
 import ReceivableAnticipationModal from './ReceivableAnticipationModal';
 import Miniwidget from '../../Dashboard/Miniwidget';
+import PageLoader from '../../../components/Common/PageLoader';
 
 /**
  * Página de Contas a Receber (Receivables)
@@ -250,8 +251,10 @@ const ReceivablesPage = () => {
         }
     }
 
-    // Removido PageLoader de tela cheia para evitar "piscadas" na navegação. 
-    // O BasicTable abaixo já trata o estado de loading internamente.
+    // Adicionamos o PageLoader para o carregamento inicial sumir a tela branca
+    if (isLoading && receivables.length === 0) {
+        return <PageLoader />;
+    }
 
     return (
         <React.Fragment>

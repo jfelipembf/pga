@@ -11,6 +11,7 @@ import CashierPrintTemplate from './components/CashierPrintTemplate'
 import Flatpickr from "react-flatpickr"
 import "flatpickr/dist/themes/material_blue.css"
 import { Portuguese } from 'flatpickr/dist/l10n/pt.js'
+import PageLoader from '../../../components/Common/PageLoader'
 
 
 const CashierPage = () => {
@@ -39,7 +40,10 @@ const CashierPage = () => {
     } = useCashier()
 
 
-    // Carregamento incremental: a estrutura da página aparece primeiro.
+    // Carregamento inicial com PageLoader
+    if (loading) {
+        return <PageLoader />
+    }
 
     return (
         <React.Fragment>

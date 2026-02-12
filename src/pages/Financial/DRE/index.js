@@ -4,6 +4,7 @@ import { useDRE } from "./hooks/useDRE"
 import { CashFlowDRE } from "../CashFlow/components/CashFlowDRE"
 import moment from "moment"
 import "moment/locale/pt-br"
+import PageLoader from "../../../components/Common/PageLoader"
 
 const MONTHS = [
     { value: 0, label: "Janeiro" }, { value: 1, label: "Fevereiro" }, { value: 2, label: "Março" },
@@ -19,8 +20,13 @@ const DREPage = () => {
     const {
         transactions,
         filters,
-        handleFilterChange
+        handleFilterChange,
+        loading
     } = useDRE()
+
+    if (loading && transactions.length === 0) {
+        return <PageLoader />
+    }
 
     const currentYear = new Date().getFullYear();
     const years = [currentYear - 2, currentYear - 1, currentYear, currentYear + 1];
