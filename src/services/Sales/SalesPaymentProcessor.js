@@ -125,23 +125,63 @@ export const SalesPaymentProcessor = {
         }
 
         // 2. Cálculos Matemáticos (Parcelamento sem juros para o cliente neste fluxo, juros/taxa descontado do lojista)
-        // Se houver lógica de "Juros para o Cliente", deve ser calculado ANTES e o updated 'pValue' viria maior.
-        // Aqui assumimos que 'pValue' é o valor final cobrado.
 
-        const valuePerInstallment = pValue / numInstallments
+        let valuePerInstallment = pValue / numInstallments
         const receivables = []
 
+        // Verifica se há taxas base (MDR) configuradas para separar o Custo Financeiro
+        // Se a adquirente for D+1 (Antecipada), tentamos identificar o spread.
+        let baseFeePercentage = feePercentage; // Default: Tudo é taxa operacional
+        if (activeAcquirer?.standardFees) {
+            if (payment.methodId === 'debit_card') {
+                baseFeePercentage = parseFloat(activeAcquirer.standardFees.debitCard) || 0
+            } else {
+                const instKey = `creditCard${numInstallments}x`
+                let standardFee = activeAcquirer.standardFees[instKey]
+
+                // Fallback para Grupos Simplificados (bucket) se a taxa específica não existir
+                if (standardFee === undefined || standardFee === null || standardFee === 0) {
+                    if (numInstallments >= 2 && numInstallments <= 6) {
+                        standardFee = activeAcquirer.standardFees['creditCard2x'] // Input do formulário "2x-6x" salva aqui
+                    } else if (numInstallments >= 7 && numInstallments <= 12) {
+                        standardFee = activeAcquirer.standardFees['creditCard7x'] // Input do formulário "7x-12x" salva aqui
+                    }
+                }
+
+                // Se achou alguma taxa base, usa. Se não, assume que é igual a total (sem custo financeiro extra).
+                // Mas cuidado: parseFloat(0) é 0, que é falsey. Se standardFee for 0 explícito, base é 0.
+                // Se achou alguma taxa base válida (> 0), usa.
+                // Se for 0 ou não definida, assume que é igual a total (sem separação de juros).
+                if (standardFee !== undefined && standardFee !== null && parseFloat(standardFee) > 0) {
+                    baseFeePercentage = parseFloat(standardFee)
+                } else {
+                    baseFeePercentage = feePercentage
+                }
+            }
+        }
+
         for (let i = 1; i <= numInstallments; i++) {
-            // Cálculo proporcional da taxa
-            // Ex: 100 reais, 10% taxa. Parcela de 50 (taxa 5). Líquido 45.
-            const feeAmount = (valuePerInstallment * feePercentage) / 100
-            const netAmount = valuePerInstallment - feeAmount
+            // Cálculo proporcional da taxa Total
+            const totalFeeAmount = (valuePerInstallment * feePercentage) / 100
+
+            // Cálculo da Taxa Operacional (Base MDR)
+            const operationalFeeAmount = (valuePerInstallment * baseFeePercentage) / 100
+
+            // Cálculo da Despesa Financeira (Spread de Antecipação)
+            // Se total for 9.45% e base for 1.91%, a diferença é financeiro.
+            let financialFeeAmount = totalFeeAmount - operationalFeeAmount;
+            if (financialFeeAmount < 0) financialFeeAmount = 0; // Proteção
+
+            const netAmount = valuePerInstallment - totalFeeAmount
 
             // Calcular vencimento
+            // Se for Antecipação Automática (D+1), todas as parcelas vencem amanhã.
             const settlementDays = activeAcquirer?.settlementDays || 30;
+            const isAnticipated = settlementDays === 1;
+
             const daysToAdd = payment.methodId === 'debit_card'
                 ? 1  // Débito = D+1
-                : (settlementDays * i); // Crédito = D+settlementDays * i
+                : (isAnticipated ? 1 : (settlementDays * i)); // Se antecipado: D+1 fixo. Se não: 30, 60, 90...
 
             const dueDate = normalizeDate(moment().add(daysToAdd, 'days'));
 
@@ -157,8 +197,13 @@ export const SalesPaymentProcessor = {
                 totalInstallments: numInstallments,
 
                 grossAmount: valuePerInstallment,
-                feeAmount: feeAmount,
-                netAmount: netAmount,       // Líquido esperado
+                feeAmount: totalFeeAmount, // Mantemos o total aqui para conferência simples
+
+                // Novos campos para detalhamento (serão salvos no banco se o schema permitir, mas úteis aqui)
+                operationalFeeAmount: operationalFeeAmount,
+                financialFeeAmount: financialFeeAmount,
+
+                netAmount: netAmount,       // Líquido esperado (já descontando tudo)
                 amount: valuePerInstallment, // Valor de face
                 paid: 0,
                 pending: valuePerInstallment,
@@ -173,7 +218,7 @@ export const SalesPaymentProcessor = {
                 brand: payment.brand,
                 authCode: payment.auth,
 
-                description: `Parcela ${i}/${numInstallments} - ${activeAcquirer?.name || payment.provider} ${payment.brand} (Venda #${sale.saleNumber})`,
+                description: `Parcela ${i}/${numInstallments} - ${activeAcquirer?.name || payment.provider} ${payment.brand} (Venda #${sale.saleNumber}) ${isAnticipated ? '[Antecipado]' : ''}`,
                 createdAt: normalizeDate(new Date())
             }
 
@@ -204,14 +249,18 @@ export const SalesPaymentProcessor = {
 
         // 5. Contabilidade: Provisão de Taxas (Regime de Competência)
         // Isso garante que a taxa apareça na DRE no mês da Venda, não apenas na Liquidação.
-        const totalFees = receivables.reduce((acc, curr) => acc + (parseFloat(curr.feeAmount) || 0), 0);
+        const totalOperationalFees = receivables.reduce((acc, curr) => acc + (parseFloat(curr.operationalFeeAmount) || 0), 0);
+        const totalFinancialFees = receivables.reduce((acc, curr) => acc + (parseFloat(curr.financialFeeAmount) || 0), 0);
 
-        if (totalFees > 0) {
+        const hasFees = (totalOperationalFees + totalFinancialFees) > 0;
+
+        if (hasFees) {
             await safeLedgerCall(idTenant, idBranch,
                 () => LedgerService.createCardFeeProvisionEntry(idTenant, idBranch, {
                     saleId: sale.id,
                     saleNumber: sale.saleNumber,
-                    amount: totalFees
+                    amount: totalOperationalFees, // Passamos apenas a parte Operacional (MDR) como "amount"
+                    financialFeeAmount: totalFinancialFees // Passamos o juros separado
                 }),
                 { sourceType: 'card_fee_provision', sourceId: sale.id, operation: 'createCardFeeProvisionEntry' }
             );

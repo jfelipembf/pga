@@ -72,6 +72,7 @@ export const MENU_STRUCTURE = [
             { label: "Pagáveis", path: "/financial/payables", permission: "financial_cashflow" },
             { label: "Fluxo de Caixa", path: "/financial/cash-flow", permission: "financial_cashflow" },
             { label: "DRE", path: "/financial/dre", permission: "dashboards_financial_view" },
+            { label: "Adquirentes", path: "/financial/acquirers", permission: "financial_acquirers" },
         ]
     },
 
@@ -101,7 +102,7 @@ export const MENU_STRUCTURE = [
             { label: "Catálogo", path: "/admin/catalog", permission: "admin_catalog" },
             { label: "Contratos", path: "/financial/contracts", permission: "admin_contracts" },
             { label: "Contas Bancárias", path: "/financial/bank-accounts", permission: "financial_cashflow" },
-            { label: "Adquirentes", path: "/financial/acquirers", permission: "financial_acquirers" },
+
         ]
     }
 ]

@@ -9,14 +9,23 @@ if (!admin.apps.length) {
     admin.initializeApp();
 }
 
+// Constantes Contábeis (replicando STANDARD_ACCOUNTS do LedgerService.js)
+const STANDARD_ACCOUNTS = {
+    CARD_FEES: '2.5.3',             // Despesa (DRE)
+    CARD_FEES_PROVISION: '4.1.6',   // Provisão (Passivo)
+    ACCOUNTS_RECEIVABLE: '3.1.3',   // Contas a Receber (Ativo)
+    BANK_ACCOUNTS: '3.1.1'          // Banco (Ativo)
+};
+
+// Data de corte para transição do Regime de Caixa para Competência (Mesma do LedgerService)
+const ACCRUAL_BASIS_CUTOFF_DATE = new Date('2026-02-11T00:00:00');
+
 /**
  * Liquidação Automática de Recebíveis de Cartão (Adquirentes)
  * Roda diariamente às 04:00 da manhã.
  * 
  * Verifica recebíveis do tipo 'acquirer' que estão 'open' e venceram (dueDate <= hoje).
- * Realiza a baixa (status='paid') e, idealmente, criaria a transação de entrada se tivéssemos a lógica completa aqui.
- * Por segurança, apenas marcamos como PAGO para atualizar o Dashboard de "Contas a Receber".
- * A criação de Transação exige cuidado com contas bancárias e conciliação.
+ * Realiza a baixa (status='paid') E cria o lançamento contábil (Ledger) para consistência total.
  */
 module.exports = onSchedule({
     schedule: "0 4 * * *",
@@ -25,15 +34,13 @@ module.exports = onSchedule({
     memory: "512MiB",
 }, async (event) => {
     const db = admin.firestore();
-    const now = FieldValue.serverTimestamp(); // Para update/create
-    const queryDate = new Date(); // Para a query (agora)
+    const now = FieldValue.serverTimestamp();
+    const queryDate = new Date();
 
-    logger.info("[autoSettleReceivables] Iniciando processamento de baixas automáticas...");
+    logger.info("[autoSettleReceivables] Iniciando processamento de baixas automáticas com contabilidade...");
 
     try {
-        // 1. Iterar Tenants para respeitar isolamento e buscar configs
         const tenantsSnap = await db.collection('tenants').get();
-
         let totalProcessed = 0;
         let totalErrors = 0;
 
@@ -42,12 +49,12 @@ module.exports = onSchedule({
 
             for (const branchDoc of branchesSnap.docs) {
                 try {
-                    // Carregar Adquirentes deste Branch para saber a conta bancária
+                    // 1. Mapeamento de Contas Bancárias das Adquirentes
                     const acquirersSnap = await branchDoc.ref.collection('acquirers')
                         .where('status', '==', 'active')
                         .get();
 
-                    const acquirerMap = {}; // ID -> { bankAccountId, bankAccountName }
+                    const acquirerMap = {};
                     acquirersSnap.forEach(doc => {
                         const data = doc.data();
                         acquirerMap[doc.id] = {
@@ -55,14 +62,10 @@ module.exports = onSchedule({
                             bankAccountName: data.bankAccountName,
                             name: data.name
                         };
-                        // Mapear também pelo nome do provider se ID falhar
-                        if (data.name) {
-                            acquirerMap[data.name.toLowerCase()] = acquirerMap[doc.id];
-                        }
+                        if (data.name) acquirerMap[data.name.toLowerCase()] = acquirerMap[doc.id];
                     });
 
-                    // Query: Recebíveis abertos, cartões, vencidos
-                    // Usamos Collection simples dentro do branch
+                    // 2. Buscar Recebíveis Vencidos
                     const receivablesSnap = await branchDoc.ref.collection('receivables')
                         .where('status', '==', 'open')
                         .where('type', '==', 'acquirer')
@@ -79,39 +82,97 @@ module.exports = onSchedule({
                     for (const recDoc of receivablesSnap.docs) {
                         const rec = recDoc.data();
 
-                        // Tentar identificar conta destino
+                        // Validar Conta Bancária Destino
                         let bankAccountId = null;
                         let bankAccountName = 'Conta Adquirente';
 
-                        // Tenta pelo ID da Adquirente salvo no Recebível
                         if (rec.idAcquirer && acquirerMap[rec.idAcquirer]) {
                             bankAccountId = acquirerMap[rec.idAcquirer].bankAccountId;
                             bankAccountName = acquirerMap[rec.idAcquirer].bankAccountName;
-                        }
-                        // Tenta pelo nome do provider
-                        else if (rec.provider && acquirerMap[rec.provider.toLowerCase()]) {
+                        } else if (rec.provider && acquirerMap[rec.provider.toLowerCase()]) {
                             bankAccountId = acquirerMap[rec.provider.toLowerCase()].bankAccountId;
                             bankAccountName = acquirerMap[rec.provider.toLowerCase()].bankAccountName;
                         }
 
-                        // Atualiza Recebível para PAID
+                        // Calcular valores
+                        const grossAmount = parseFloat(rec.amount) || 0;
+                        const netAmount = parseFloat(rec.netAmount) || grossAmount;
+                        const feeAmount = grossAmount - netAmount;
+
+                        // ATUALIZAÇÃO DO RECEBÍVEL (Status PAID)
                         batch.update(recDoc.ref, {
                             status: 'paid',
                             settlementDate: now,
-                            paid: rec.netAmount || rec.amount, // Assume valor líquido correto
+                            paid: netAmount,
                             pending: 0,
                             updatedAt: now,
                             autoSettled: true,
-                            destinationBankAccountId: bankAccountId // Rastreabilidade
+                            destinationBankAccountId: bankAccountId
                         });
 
-                        // Opcional: Criar Transação de Entrada (Income) no 'transactions'
-                        // Isso é fundamental para aparecer no CashFlow como "Realizado"
-                        if (bankAccountId) { // Só cria se tiver conta válida para não poluir
+                        // LANÇAMENTO CONTÁBIL (Partidas Dobradas)
+                        // Apenas cria se tivermos uma conta bancária destino válida para debitar
+                        if (bankAccountId) {
+                            // Definir se usa Provisão (Competência) ou Despesa Direta (Caixa/Legado)
+                            const saleDate = rec.createdAt && rec.createdAt.toDate ? rec.createdAt.toDate() : new Date(rec.createdAt || 0);
+                            const isNewRegime = saleDate >= ACCRUAL_BASIS_CUTOFF_DATE;
+
+                            // Entradas do Lançamento
+                            const ledgerEntries = [
+                                {
+                                    // DÉBITO: Banco (Entrada Líquida)
+                                    account: bankAccountId,
+                                    accountName: bankAccountName || 'Banco',
+                                    debit: netAmount,
+                                    credit: 0
+                                },
+                                {
+                                    // CRÉDITO: Contas a Receber (Baixa Bruta)
+                                    account: STANDARD_ACCOUNTS.ACCOUNTS_RECEIVABLE,
+                                    accountName: 'Contas a Receber',
+                                    debit: 0,
+                                    credit: grossAmount
+                                }
+                            ];
+
+                            // Tratar a Taxa (Diferença)
+                            if (feeAmount > 0.01) { // Margem de erro float
+                                if (isNewRegime) {
+                                    // DÉBITO: Baixa da Provisão (Passivo)
+                                    ledgerEntries.push({
+                                        account: STANDARD_ACCOUNTS.CARD_FEES_PROVISION,
+                                        accountName: 'Provisão de Taxas a Liquidar',
+                                        debit: feeAmount,
+                                        credit: 0
+                                    });
+                                } else {
+                                    // DÉBITO: Despesa Direta (DRE) - Vendas Antigas
+                                    ledgerEntries.push({
+                                        account: STANDARD_ACCOUNTS.CARD_FEES,
+                                        accountName: 'Despesa com Taxas de Cartão',
+                                        debit: feeAmount,
+                                        credit: 0
+                                    });
+                                }
+                            }
+
+                            // Criar documento no Ledger
+                            const ledgerRef = branchDoc.ref.collection('ledger').doc();
+                            batch.set(ledgerRef, {
+                                date: now,
+                                description: `Baixa Automática: ${rec.description || 'Recebimento Cartão'}`,
+                                sourceType: 'receivable_settlement_auto',
+                                sourceId: recDoc.id,
+                                entries: ledgerEntries,
+                                createdAt: now
+                            });
+
+                            // Opcional: Criar Transação de Fluxo de Caixa (transactions)
+                            // Mantemos para compatibilidade com relatórios antigos que leem 'transactions' chamados "Fluxo Diário"
                             const transactionRef = branchDoc.ref.collection('transactions').doc();
                             batch.set(transactionRef, {
                                 type: 'income',
-                                amount: parseFloat(rec.netAmount || rec.amount),
+                                amount: netAmount,
                                 category: 'Recebimento Cartão',
                                 description: `Baixa Automática: ${rec.description || 'Cartão'}`,
                                 method: rec.paymentMethod || 'credit_card',
@@ -119,7 +180,7 @@ module.exports = onSchedule({
                                 idBankAccount: bankAccountId,
                                 bankAccountName: bankAccountName,
                                 idReceivable: recDoc.id,
-                                createdAt: now,
+                                createdAt: now, // createdAt do Firestore
                                 createdBy: 'SYSTEM',
                                 isAutoSettlement: true
                             });
@@ -140,7 +201,7 @@ module.exports = onSchedule({
             }
         }
 
-        logger.info(`[autoSettleReceivables] Concluído. Processados: ${totalProcessed}. Erros: ${totalErrors}.`);
+        logger.info(`[autoSettleReceivables] Concluído. Processados com Contabilidade: ${totalProcessed}. Erros: ${totalErrors}.`);
 
     } catch (error) {
         logger.error("[autoSettleReceivables] Erro fatal:", error);

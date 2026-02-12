@@ -1,6 +1,7 @@
 import React from "react"
 import { Row, Col, Label, Input, Button, Form, InputGroup, InputGroupText, FormFeedback, Card, CardBody, UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem } from "reactstrap"
 import { useAcquirerForm } from "../hooks/useAcquirerForm"
+import { FormSwitch } from "../../../../components/Common/FormSwitch"
 
 export const AcquirerForm = ({ initialData, onSave, onCancel }) => {
 
@@ -57,7 +58,110 @@ export const AcquirerForm = ({ initialData, onSave, onCancel }) => {
                     </Col>
                 </Row>
 
-                {/* 2. Brand Pool Tool */}
+                {/* 2. Configurações de Recebimento e Antecipação */}
+                <div className="mb-4 bg-white p-3 border rounded shadow-sm">
+                    <h5 className="font-size-14 mb-3 text-uppercase fw-bold text-muted border-bottom pb-2">
+                        Fluxo de Recebimento
+                    </h5>
+
+                    <Row className="align-items-center mb-3">
+                        <Col md={6}>
+                            <div className="mb-3">
+                                <FormSwitch
+                                    id="isAnticipated"
+                                    checked={!!formik.values.isAnticipated}
+                                    onChange={(checked) => {
+                                        formik.setFieldValue('isAnticipated', checked);
+                                        formik.setFieldValue('settlementDays', checked ? 1 : 30);
+                                    }}
+                                    label="Habilitar Antecipação Automática (D+1)"
+                                    description="Se marcado, o sistema considerará todas as vendas dessa adquirente como recebimento em 1 dia útil."
+                                    onColor="#466a8f"
+                                />
+                            </div>
+                        </Col>
+                        <Col md={6}>
+                            <Label>Prazo de Recebimento (Dias Úteis)</Label>
+                            <Input
+                                type="number"
+                                name="settlementDays"
+                                value={formik.values.settlementDays}
+                                onChange={formik.handleChange}
+                                disabled={formik.values.isAnticipated}
+                                min={1}
+                            />
+                            {formik.values.isAnticipated &&
+                                <small className="text-success"><i className="mdi mdi-check-circle me-1"></i> Fixo em D+1 (Antecipado)</small>
+                            }
+                        </Col>
+                    </Row>
+
+                    {/* Painel de Taxas Base para Cálculo de Spread */}
+                    {formik.values.isAnticipated && (
+                        <div className="mt-3 p-3 bg-soft-warning rounded border border-warning">
+                            <h6 className="text-warning fw-bold mb-2">
+                                <i className="mdi mdi-calculator me-1"></i> Definição de Custo Financeiro
+                            </h6>
+                            <p className="font-size-12 mb-3 text-muted">
+                                Para separar o <strong>MDR (Custo Operacional)</strong> dos <strong>Juros de Antecipação (Despesa Financeira)</strong> no DRE, informe as taxas base "normais" (sem antecipação).
+                                O sistema calculará a diferença entre a Taxa Total cobrada e esta Taxa Base.
+                            </p>
+
+                            <Row className="g-3">
+                                <Col md={3}>
+                                    <Label className="font-size-12 fw-bold">Débito Base</Label>
+                                    <InputGroup size="sm">
+                                        <Input
+                                            type="number" step="0.01"
+                                            name="standardFees.debitCard"
+                                            value={formik.values.standardFees?.debitCard || 0}
+                                            onChange={formik.handleChange}
+                                        />
+                                        <InputGroupText>%</InputGroupText>
+                                    </InputGroup>
+                                </Col>
+                                <Col md={3}>
+                                    <Label className="font-size-12 fw-bold">Crédito 1x Base</Label>
+                                    <InputGroup size="sm">
+                                        <Input
+                                            type="number" step="0.01"
+                                            name="standardFees.creditCard1x"
+                                            value={formik.values.standardFees?.creditCard1x || 0}
+                                            onChange={formik.handleChange}
+                                        />
+                                        <InputGroupText>%</InputGroupText>
+                                    </InputGroup>
+                                </Col>
+                                <Col md={3}>
+                                    <Label className="font-size-12 fw-bold">Crédito 2x-6x Base</Label>
+                                    <InputGroup size="sm">
+                                        <Input
+                                            type="number" step="0.01"
+                                            name="standardFees.creditCard2x"
+                                            value={formik.values.standardFees?.creditCard2x || 0}
+                                            onChange={formik.handleChange}
+                                        />
+                                        <InputGroupText>%</InputGroupText>
+                                    </InputGroup>
+                                </Col>
+                                <Col md={3}>
+                                    <Label className="font-size-12 fw-bold">Crédito 7x-12x Base</Label>
+                                    <InputGroup size="sm">
+                                        <Input
+                                            type="number" step="0.01"
+                                            name="standardFees.creditCard7x"
+                                            value={formik.values.standardFees?.creditCard7x || 0}
+                                            onChange={formik.handleChange}
+                                        />
+                                        <InputGroupText>%</InputGroupText>
+                                    </InputGroup>
+                                </Col>
+                            </Row>
+                        </div>
+                    )}
+                </div>
+
+                {/* 3. Brand Pool Tool */}
                 <div className="mb-4 bg-light p-3 rounded">
                     <Label className="mb-2 fw-bold">1. Cadastrar Bandeiras Disponíveis</Label>
                     <div className="d-flex align-items-center">
@@ -243,18 +347,14 @@ export const AcquirerForm = ({ initialData, onSave, onCancel }) => {
 
                 <Row className="mt-4">
                     <Col md={12}>
-                        <div className="form-check mb-3">
-                            <input
-                                name="isActive"
-                                type="checkbox"
-                                className="form-check-input"
+                        <div className="mb-3">
+                            <FormSwitch
                                 id="isActive"
-                                checked={formik.values.isActive}
-                                onChange={() => formik.setFieldValue('isActive', !formik.values.isActive)}
+                                checked={!!formik.values.isActive}
+                                onChange={(checked) => formik.setFieldValue('isActive', checked)}
+                                label={formik.values.isActive ? "Ativo no sistema" : "Inativo no sistema"}
+                                onColor="#466a8f"
                             />
-                            <label className="form-check-label fw-semibold" htmlFor="isActive">
-                                Ativo no sistema
-                            </label>
                         </div>
                     </Col>
                 </Row>

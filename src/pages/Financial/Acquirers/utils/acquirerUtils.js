@@ -104,9 +104,22 @@ export const calculateInitialValues = (initialData) => {
         return c
     })
 
+    // Detect Anticipation Mode (D+1)
+    const settlementDays = initialData?.settlementDays || 30
+    const isAnticipated = settlementDays === 1
+
     return {
         name: initialData?.name || '',
         isActive: initialData?.isActive !== undefined ? initialData.isActive : true,
-        rateConfigs: configs
+        rateConfigs: configs,
+        settlementDays: settlementDays,
+        isAnticipated: isAnticipated,
+        // Taxas Base para Cálculo Financeiro (Spread)
+        standardFees: initialData?.standardFees || {
+            debitCard: 0,
+            creditCard1x: 0,
+            creditCard2x: 0, // Representa 2x-6x
+            creditCard7x: 0  // Representa 7x-12x
+        }
     }
 }

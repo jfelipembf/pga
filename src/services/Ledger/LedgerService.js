@@ -19,6 +19,7 @@ export const STANDARD_ACCOUNTS = {
     OPERATIONAL_EXPENSES: '2.4',
     CARD_FEES: '2.5.3',
     BANK_FEES: '2.5.4',
+    FINANCIAL_EXPENSES_ANTICIPATION: '2.5.5', // Juros e Encargos de Antecipação
     SALARY_EXPENSES: '2.2.1',
 
     // ATIVOS (Grupo 3)
@@ -216,33 +217,52 @@ export const LedgerService = {
     },
 
     /**
-     * Lançamento: Provisão de Taxas de Cartão (Regime de Competência)
+     * Lançamento: Provisão de Taxas de Cartão + Antecipação (Regime de Competência)
      * Quando: No momento da VENDA
-     * D - Despesa com Taxas (2.5.3) -> Vai para DRE agora
-     * C - Provisão de Taxas (2.1.6) -> Passivo
+     * D - Despesa com Taxas (2.5.3) -> Vai para DRE agora (Operacional)
+     * D - Despesa Financeira (2.5.5) -> Vai para DRE agora (Financeiro - Antecipação)
+     * C - Provisão de Taxas (2.1.6) -> Passivo (Total a ser descontado)
      */
     createCardFeeProvisionEntry: async (idTenant, idBranch, provision) => {
+        const amount = parseFloat(provision.amount) || 0;
+        const financialFeeAmount = parseFloat(provision.financialFeeAmount) || 0;
+        const totalProvision = amount + financialFeeAmount;
+
+        const entries = [
+            {
+                // DÉBITO: Despesa Operacional (MDR) vai para o DRE
+                account: STANDARD_ACCOUNTS.CARD_FEES,
+                accountName: 'Despesa com Taxas de Cartão',
+                debit: amount,
+                credit: 0
+            }
+        ];
+
+        // Se houver Custo de Antecipação (Financeiro)
+        if (financialFeeAmount > 0) {
+            entries.push({
+                // DÉBITO: Despesa Financeira vai para o DRE
+                account: STANDARD_ACCOUNTS.FINANCIAL_EXPENSES_ANTICIPATION,
+                accountName: 'Juros e Encargos de Antecipação',
+                debit: financialFeeAmount,
+                credit: 0
+            });
+        }
+
+        entries.push({
+            // CRÉDITO: Cria uma obrigação/redução de ativo no Passivo pelo TOTAL
+            account: STANDARD_ACCOUNTS.CARD_FEES_PROVISION,
+            accountName: 'Provisão de Taxas a Liquidar',
+            debit: 0,
+            credit: totalProvision
+        });
+
         return await ledgerRepository.create(idTenant, idBranch, {
             date: normalizeDate(new Date()),
             description: `Provisão de Taxas: Venda #${provision.saleNumber}`,
             sourceType: 'card_fee_provision',
             sourceId: provision.saleId,
-            entries: [
-                {
-                    // DÉBITO: Despesa vai para o DRE no mês da venda
-                    account: STANDARD_ACCOUNTS.CARD_FEES,
-                    accountName: 'Despesa com Taxas de Cartão',
-                    debit: provision.amount,
-                    credit: 0
-                },
-                {
-                    // CRÉDITO: Cria uma obrigação/redução de ativo no Passivo
-                    account: STANDARD_ACCOUNTS.CARD_FEES_PROVISION,
-                    accountName: 'Provisão de Taxas a Liquidar',
-                    debit: 0,
-                    credit: provision.amount
-                }
-            ]
+            entries
         })
     },
 

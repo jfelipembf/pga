@@ -33,20 +33,38 @@ export const RATE_PRESETS = {
         cc12x: 11.69
     },
     LOW_COST: {
-        name: 'Taxas Promocionais',
-        debit: 0.99,
-        cc1x: 2.49,
-        cc2x: 3.99,
-        cc3x: 4.49,
-        cc4x: 4.99,
-        cc5x: 5.49,
-        cc6x: 5.99,
-        cc7x: 6.99,
-        cc8x: 7.49,
-        cc9x: 7.99,
-        cc10x: 8.49,
-        cc11x: 8.99,
-        cc12x: 9.49
+        name: 'Taxas Personalizadas (Visa/Master)',
+        debit: 0.84,
+        cc1x: 1.71,
+        // Parcelado 2x a 6x = 1.72%
+        cc2x: 1.72,
+        cc3x: 1.72,
+        cc4x: 1.72,
+        cc5x: 1.72,
+        cc6x: 1.72,
+        // Parcelado 7x a 12x = 1.91%
+        cc7x: 1.91,
+        cc8x: 1.91,
+        cc9x: 1.91,
+        cc10x: 1.91,
+        cc11x: 1.91,
+        cc12x: 1.91
+    },
+    ANTECIPACAO: {
+        name: 'Plano com Antecipação (D+1)',
+        debit: 0.80, // Visa/Master Débito
+        cc1x: 2.35,  // Crédito à Vista
+        cc2x: 3.63,
+        cc3x: 4.23,
+        cc4x: 4.83,
+        cc5x: 5.43,
+        cc6x: 6.03,
+        cc7x: 6.45,
+        cc8x: 7.05,
+        cc9x: 7.65,
+        cc10x: 8.25,
+        cc11x: 8.85,
+        cc12x: 9.45
     }
 }
 
