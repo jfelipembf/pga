@@ -86,10 +86,10 @@ export const useClientForm = ({ onClientAdded, toggle }) => {
                 }
 
                 // 3. Salvar
-                await ClientService.createClient(idTenant, idBranch, auth.currentUser.uid, finalValues)
+                const newClient = await ClientService.createClient(idTenant, idBranch, auth.currentUser.uid, finalValues)
 
                 toast.success("Cliente cadastrado com sucesso!")
-                onClientAdded?.()
+                onClientAdded?.(newClient)
                 resetForm()
                 resetPhoto()
                 toggle()

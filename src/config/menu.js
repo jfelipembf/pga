@@ -83,7 +83,7 @@ export const MENU_STRUCTURE = [
             { label: "Colaboradores", path: "/admin/staff", permission: "staff_manage" },
             { label: "Turmas", path: "/admin/classes", permission: "admin_classes" },
             { label: "Eventos", path: "/admin/events", permission: "management_event_plan" },
-            { label: "Inteligência", path: "/automation", permission: "management_automations" },
+            { label: "Automação", path: "/automation", permission: "management_automations" },
             { label: "Integrações", path: "/settings/integrations", permission: "management_integrations" },
             { label: "Auditoria", path: "/admin/audit-logs", permission: "management_audit_log" },
         ]

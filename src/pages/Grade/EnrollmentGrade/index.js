@@ -235,17 +235,45 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
         <React.Fragment>
             {/* Controles da Grade */}
             <Card className="mb-3">
-                <CardBody className="pb-2">
-                    <GradeHeader
-                        turn={turn}
-                        onTurnChange={setTurn}
-                        view={view}
-                        onViewChange={setView}
-                        referenceDate={referenceDate}
-                        onReferenceDateChange={setReferenceDate}
-                        showOccupancy={showOccupancy}
-                        onShowOccupancyChange={setShowOccupancy}
-                    />
+                <CardBody className="pb-2 d-flex justify-content-between align-items-center">
+                    <div className="flex-grow-1">
+                        <GradeHeader
+                            turn={turn}
+                            onTurnChange={setTurn}
+                            view={view}
+                            onViewChange={setView}
+                            referenceDate={referenceDate}
+                            onReferenceDateChange={setReferenceDate}
+                            showOccupancy={showOccupancy}
+                            onShowOccupancyChange={setShowOccupancy}
+                        />
+                    </div>
+                    <div className="d-flex gap-2 ms-4">
+                        <Button
+                            color="secondary"
+                            onClick={handleCancel}
+                            disabled={enrolling}
+                        >
+                            <i className="mdi mdi-close me-1"></i> Cancelar
+                        </Button>
+                        <Button
+                            color={mode === 'trial' ? 'warning' : 'success'}
+                            onClick={handleConfirm}
+                            disabled={enrolling || (mode === 'trial' ? !selectedSession : selectedClasses.length === 0)}
+                        >
+                            {enrolling ? (
+                                <>
+                                    <span className="spinner-border spinner-border-sm me-2"></span>
+                                    Processando...
+                                </>
+                            ) : (
+                                <>
+                                    <i className={`mdi mdi-${mode === 'trial' ? 'star' : 'check'} me-1`}></i>
+                                    {mode === 'trial' ? 'Agendar Experimental' : 'Confirmar Matrícula'}
+                                </>
+                            )}
+                        </Button>
+                    </div>
                 </CardBody>
             </Card>
 
@@ -282,51 +310,7 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
             </Card>
 
             {/* Botões de Ação Fixos */}
-            <div className="enrollment-actions-footer">
-                <Card className="border-0 shadow-lg">
-                    <CardBody className="py-3">
-                        <div className="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 className="mb-1 fw-bold">
-                                    {mode === 'trial'
-                                        ? selectedSession ? '1 sessão selecionada' : 'Nenhuma sessão selecionada'
-                                        : `${selectedClasses.length} turma(s) selecionada(s)`
-                                    }
-                                </h6>
-                                <small className="text-muted">
-                                    {clientName || 'Cliente não identificado'}
-                                </small>
-                            </div>
-                            <div className="d-flex gap-2">
-                                <Button
-                                    color="secondary"
-                                    onClick={handleCancel}
-                                    disabled={enrolling}
-                                >
-                                    <i className="mdi mdi-close me-1"></i> Cancelar
-                                </Button>
-                                <Button
-                                    color={mode === 'trial' ? 'warning' : 'success'}
-                                    onClick={handleConfirm}
-                                    disabled={enrolling || (mode === 'trial' ? !selectedSession : selectedClasses.length === 0)}
-                                >
-                                    {enrolling ? (
-                                        <>
-                                            <span className="spinner-border spinner-border-sm me-2"></span>
-                                            Processando...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <i className={`mdi mdi-${mode === 'trial' ? 'star' : 'check'} me-1`}></i>
-                                            {mode === 'trial' ? 'Agendar Experimental' : 'Confirmar Matrícula'}
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
-                        </div>
-                    </CardBody>
-                </Card>
-            </div>
+            {/* Botões removidos do rodapé */}
         </React.Fragment>
     )
 }

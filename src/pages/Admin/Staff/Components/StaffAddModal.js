@@ -191,14 +191,15 @@ const StaffAddModal = ({ isOpen, toggle, onStaffAdded, roles = [], loadingRoles 
                         <FormGroup>
                             <Label>CEP</Label>
                             <div className="position-relative">
-                                <Input
-                                    tag={InputMask}
+                                <InputMask
                                     mask="99999-999"
+                                    id="zipCode"
                                     name="zipCode"
                                     placeholder="00000-000"
                                     value={formik.values.zipCode}
                                     onChange={formik.handleChange}
                                     onBlur={handleCepBlur}
+                                    className="form-control"
                                 />
                                 {isLoadingCep && (
                                     <div className="position-absolute end-0 top-0 mt-2 me-2">
@@ -286,15 +287,15 @@ const StaffAddModal = ({ isOpen, toggle, onStaffAdded, roles = [], loadingRoles 
                     <Col md="4">
                         <FormGroup>
                             <Label>Telefone Principal <span className="text-danger">*</span></Label>
-                            <Input
-                                tag={InputMask}
+                            <InputMask
                                 mask="(99) 99999-9999"
+                                id="phone"
                                 name="phone"
                                 placeholder="(00) 00000-0000"
                                 value={formik.values.phone}
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
-                                invalid={formik.touched.phone && !!formik.errors.phone}
+                                className={`form-control ${formik.touched.phone && formik.errors.phone ? 'is-invalid' : ''}`}
                             />
                             {formik.touched.phone && formik.errors.phone && <FormFeedback>{formik.errors.phone}</FormFeedback>}
                         </FormGroup>
@@ -302,15 +303,15 @@ const StaffAddModal = ({ isOpen, toggle, onStaffAdded, roles = [], loadingRoles 
                     <Col md="4">
                         <FormGroup>
                             <Label>CPF <span className="text-danger">*</span></Label>
-                            <Input
-                                tag={InputMask}
+                            <InputMask
                                 mask="999.999.999-99"
+                                id="cpf"
                                 name="cpf"
                                 placeholder="000.000.000-00"
                                 value={formik.values.cpf}
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
-                                invalid={formik.touched.cpf && !!formik.errors.cpf}
+                                className={`form-control ${formik.touched.cpf && formik.errors.cpf ? 'is-invalid' : ''}`}
                             />
                             {formik.touched.cpf && formik.errors.cpf && <FormFeedback>{formik.errors.cpf}</FormFeedback>}
                         </FormGroup>

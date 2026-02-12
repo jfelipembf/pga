@@ -101,14 +101,10 @@ const ClientProfileForm = ({ formik }) => {
                                     value={formik.values.cpf}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                >
-                                    {(inputProps) => (
-                                        <Input
-                                            {...inputProps}
-                                            invalid={formik.touched.cpf && !!formik.errors.cpf}
-                                        />
-                                    )}
-                                </InputMask>
+                                    className={`form-control ${formik.touched.cpf && formik.errors.cpf ? 'is-invalid' : ''}`}
+                                    placeholder="000.000.000-00"
+                                />
+                                {formik.touched.cpf && formik.errors.cpf && <FormFeedback className="d-block">{formik.errors.cpf}</FormFeedback>}
                             </FormGroup>
                         </Col>
                         <Col md={3}>
@@ -134,14 +130,10 @@ const ClientProfileForm = ({ formik }) => {
                                     value={formik.values.phone}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                >
-                                    {(inputProps) => (
-                                        <Input
-                                            {...inputProps}
-                                            invalid={formik.touched.phone && !!formik.errors.phone}
-                                        />
-                                    )}
-                                </InputMask>
+                                    className={`form-control ${formik.touched.phone && formik.errors.phone ? 'is-invalid' : ''}`}
+                                    placeholder="(00) 00000-0000"
+                                />
+                                {formik.touched.phone && formik.errors.phone && <FormFeedback className="d-block">{formik.errors.phone}</FormFeedback>}
                             </FormGroup>
                         </Col>
                     </Row>
@@ -171,9 +163,10 @@ const ClientProfileForm = ({ formik }) => {
                                     value={formik.values.zipCode}
                                     onChange={formik.handleChange}
                                     onBlur={handleCepBlur}
-                                >
-                                    {(inputProps) => <Input {...inputProps} />}
-                                </InputMask>
+                                    className={`form-control ${formik.touched.zipCode && formik.errors.zipCode ? 'is-invalid' : ''}`}
+                                    placeholder="00000-000"
+                                />
+                                {formik.touched.zipCode && formik.errors.zipCode && <FormFeedback className="d-block">{formik.errors.zipCode}</FormFeedback>}
                             </FormGroup>
                         </Col>
                         <Col md={5}>
@@ -269,9 +262,9 @@ const ClientProfileForm = ({ formik }) => {
                                         name="emergencyPhone"
                                         value={formik.values.emergencyPhone}
                                         onChange={formik.handleChange}
-                                    >
-                                        {(inputProps) => <Input {...inputProps} />}
-                                    </InputMask>
+                                        className="form-control"
+                                        placeholder="(00) 00000-0000"
+                                    />
                                 </FormGroup>
                             </Col>
                         </Row>

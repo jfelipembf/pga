@@ -59,19 +59,13 @@ const StaffProfileForm = ({ formik, roles = [], handlePasswordChange, isChanging
                                 <Label>Telefone</Label>
                                 <InputMask
                                     mask="(99) 99999-9999"
+                                    name="phone"
                                     value={formik.values.phone}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                >
-                                    {(inputProps) => (
-                                        <Input
-                                            {...inputProps}
-                                            type="text"
-                                            name="phone"
-                                            placeholder="(00) 00000-0000"
-                                        />
-                                    )}
-                                </InputMask>
+                                    className="form-control"
+                                    placeholder="(00) 00000-0000"
+                                />
                             </FormGroup>
                         </Col>
                         <Col md={4}>
@@ -79,19 +73,13 @@ const StaffProfileForm = ({ formik, roles = [], handlePasswordChange, isChanging
                                 <Label>CPF</Label>
                                 <InputMask
                                     mask="999.999.999-99"
+                                    name="cpf"
                                     value={formik.values.cpf}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                >
-                                    {(inputProps) => (
-                                        <Input
-                                            {...inputProps}
-                                            type="text"
-                                            name="cpf"
-                                            placeholder="000.000.000-00"
-                                        />
-                                    )}
-                                </InputMask>
+                                    className="form-control"
+                                    placeholder="000.000.000-00"
+                                />
                             </FormGroup>
                         </Col>
                         <Col md={4}>
@@ -220,19 +208,13 @@ const StaffProfileForm = ({ formik, roles = [], handlePasswordChange, isChanging
                                 </Label>
                                 <InputMask
                                     mask="99999-999"
+                                    name="zipCode"
                                     value={formik.values.zipCode}
                                     onChange={formik.handleChange}
                                     onBlur={handleCepBlur}
-                                >
-                                    {(inputProps) => (
-                                        <Input
-                                            {...inputProps}
-                                            type="text"
-                                            name="zipCode"
-                                            placeholder="00000-000"
-                                        />
-                                    )}
-                                </InputMask>
+                                    className="form-control"
+                                    placeholder="00000-000"
+                                />
                             </FormGroup>
                         </Col>
                         <Col md={5}>

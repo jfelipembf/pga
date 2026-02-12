@@ -58,12 +58,10 @@ const Header = props => {
     }
   };
 
-  const handleClientAdded = (newClient) => {
+  const handleClientAdded = () => {
     setClientModalOpen(false)
-    if (activeTenant?.slug && activeBranch?.slug && props.router?.navigate) {
-      props.router.navigate(`/${activeTenant.slug}/${activeBranch.slug}/clients/${newClient.id}`)
-    }
   }
+
 
   const dashboardLink = activeTenant?.slug && activeBranch?.slug
     ? `/${activeTenant.slug}/${activeBranch.slug}/dashboard`

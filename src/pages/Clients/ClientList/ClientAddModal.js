@@ -14,6 +14,7 @@ import {
     Spinner
 } from "reactstrap"
 import InputMask from "react-input-mask"
+import { toast } from "react-toastify"
 
 // Components & Utils
 import PhotoPreview from "../../../components/Common/PhotoPreview"
@@ -31,6 +32,18 @@ const ClientAddModal = ({ isOpen, toggle, onClientAdded }) => {
         isLoadingCep,
         handleCepBlur
     } = useClientForm({ onClientAdded, toggle })
+
+    const handleSave = async () => {
+        const errors = await formik.validateForm()
+        if (Object.keys(errors).length > 0) {
+            formik.setTouched(
+                Object.keys(errors).reduce((acc, key) => ({ ...acc, [key]: true }), {})
+            )
+            toast.error("Por favor, preencha os campos obrigatórios em destaque.")
+            return
+        }
+        formik.handleSubmit()
+    }
 
     return (
         <Modal
@@ -160,20 +173,14 @@ const ClientAddModal = ({ isOpen, toggle, onClientAdded }) => {
                                     <Label>CPF</Label>
                                     <InputMask
                                         mask="999.999.999-99"
+                                        id="cpf"
+                                        name="cpf"
                                         value={formik.values.cpf}
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
-                                    >
-                                        {(inputProps) => (
-                                            <Input
-                                                {...inputProps}
-                                                id="cpf"
-                                                name="cpf"
-                                                placeholder="000.000.000-00"
-                                                invalid={formik.touched.cpf && !!formik.errors.cpf}
-                                            />
-                                        )}
-                                    </InputMask>
+                                        className={`form-control ${formik.touched.cpf && formik.errors.cpf ? 'is-invalid' : ''}`}
+                                        placeholder="000.000.000-00"
+                                    />
                                     {formik.touched.cpf && formik.errors.cpf && <FormFeedback className="d-block">{formik.errors.cpf}</FormFeedback>}
                                 </FormGroup>
                             </Col>
@@ -198,20 +205,14 @@ const ClientAddModal = ({ isOpen, toggle, onClientAdded }) => {
                                     <Label>Telefone <span className="text-danger">*</span></Label>
                                     <InputMask
                                         mask="(99) 99999-9999"
+                                        id="phone"
+                                        name="phone"
                                         value={formik.values.phone}
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
-                                    >
-                                        {(inputProps) => (
-                                            <Input
-                                                {...inputProps}
-                                                id="phone"
-                                                name="phone"
-                                                placeholder="(00) 00000-0000"
-                                                invalid={formik.touched.phone && !!formik.errors.phone}
-                                            />
-                                        )}
-                                    </InputMask>
+                                        className={`form-control ${formik.touched.phone && formik.errors.phone ? 'is-invalid' : ''}`}
+                                        placeholder="(00) 00000-0000"
+                                    />
                                     {formik.touched.phone && formik.errors.phone && <FormFeedback className="d-block">{formik.errors.phone}</FormFeedback>}
                                 </FormGroup>
                             </Col>
@@ -233,23 +234,17 @@ const ClientAddModal = ({ isOpen, toggle, onClientAdded }) => {
                             </Label>
                             <InputMask
                                 mask="99999-999"
+                                id="zipCode"
+                                name="zipCode"
                                 value={formik.values.zipCode}
                                 onChange={formik.handleChange}
                                 onBlur={(e) => {
                                     formik.handleBlur(e)
                                     handleCepBlur(e)
                                 }}
-                            >
-                                {(inputProps) => (
-                                    <Input
-                                        {...inputProps}
-                                        id="zipCode"
-                                        name="zipCode"
-                                        placeholder="00000-000"
-                                        invalid={formik.touched.zipCode && !!formik.errors.zipCode}
-                                    />
-                                )}
-                            </InputMask>
+                                className={`form-control ${formik.touched.zipCode && formik.errors.zipCode ? 'is-invalid' : ''}`}
+                                placeholder="00000-000"
+                            />
                             {formik.touched.zipCode && formik.errors.zipCode && <FormFeedback className="d-block">{formik.errors.zipCode}</FormFeedback>}
                         </FormGroup>
                     </Col>
@@ -358,19 +353,14 @@ const ClientAddModal = ({ isOpen, toggle, onClientAdded }) => {
                             <Label>Telefone de Emergência</Label>
                             <InputMask
                                 mask="(99) 99999-9999"
+                                id="emergencyPhone"
+                                name="emergencyPhone"
                                 value={formik.values.emergencyPhone}
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
-                            >
-                                {(inputProps) => (
-                                    <Input
-                                        {...inputProps}
-                                        id="emergencyPhone"
-                                        name="emergencyPhone"
-                                        placeholder="(00) 00000-0000"
-                                    />
-                                )}
-                            </InputMask>
+                                className="form-control"
+                                placeholder="(00) 00000-0000"
+                            />
                         </FormGroup>
                     </Col>
                     <Col md="4">
@@ -411,8 +401,9 @@ const ClientAddModal = ({ isOpen, toggle, onClientAdded }) => {
                 </Button>
                 <ButtonLoader
                     color="primary"
-                    onClick={formik.handleSubmit}
+                    onClick={handleSave}
                     loading={formik.isSubmitting}
+                    disabled={formik.isSubmitting}
                     className="px-4"
                     loadingText="Salvando..."
                 >
