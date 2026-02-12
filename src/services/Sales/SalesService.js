@@ -236,16 +236,15 @@ export const SalesService = {
         }
         // Se for misto, mantém o default (Serviços) ou poderíamos criar rateio (futuro)
 
-        try {
-            await LedgerService.createSaleEntry(idTenant, idBranch, {
+        await safeLedgerCall(idTenant, idBranch,
+            () => LedgerService.createSaleEntry(idTenant, idBranch, {
                 ...newSale,
-                total: saleData.total, // Garantir total correto
+                total: saleData.total,
                 revenueAccountId: revenueId,
                 revenueAccountName: revenueName
-            })
-        } catch (ledgerError) {
-            console.error("Erro ao criar lançamento contábil de venda:", ledgerError)
-        }
+            }),
+            { sourceType: 'sale', sourceId: newSale.id, operation: 'createSaleEntry' }
+        );
 
         // 6. Auditoria (Rastreabilidade total)
         await AuditService.log({

@@ -26,14 +26,20 @@ export const STANDARD_ACCOUNTS = {
     CASH: '3.1.2',           // Caixa Físico (diferente de Banco)
     ACCOUNTS_RECEIVABLE: '3.1.3',
 
-    // PASSIVOS (Grupo 4)
+    // PASSIVOS (Grupo 4) e Provisões (Grupo 2.1 Passivo Circulante - adaptação)
     ACCOUNTS_PAYABLE: '4.1.1',
-    SALARY_PAYABLE: '4.1.2', // Salários a Pagar (diferente de Fornecedores)
+    SALARY_PAYABLE: '4.1.2', // Salários a Pagar
     TAXES_PAYABLE: '4.1.3',
+    CARD_FEES_PROVISION: '4.1.6', // Provisão de Taxas de Cartão (Passivo Circulante)
 
     // PATRIMÔNIO (Grupo 5)
     EQUITY_ADJUSTMENTS: '5.1.2',
 };
+
+// Data de corte para transição do Regime de Caixa para Competência nas taxas de cartão
+// Vendas criadas a partir desta data terão a taxa provisionada na venda.
+// Vendas anteriores continuam lançando taxa na liquidação.
+const ACCRUAL_BASIS_CUTOFF_DATE = new Date('2026-02-11T00:00:00'); // Hoje
 
 /**
  * Serviço de Lançamentos Contábeis (Ledger)
@@ -210,6 +216,38 @@ export const LedgerService = {
     },
 
     /**
+     * Lançamento: Provisão de Taxas de Cartão (Regime de Competência)
+     * Quando: No momento da VENDA
+     * D - Despesa com Taxas (2.5.3) -> Vai para DRE agora
+     * C - Provisão de Taxas (2.1.6) -> Passivo
+     */
+    createCardFeeProvisionEntry: async (idTenant, idBranch, provision) => {
+        return await ledgerRepository.create(idTenant, idBranch, {
+            date: normalizeDate(new Date()),
+            description: `Provisão de Taxas: Venda #${provision.saleNumber}`,
+            sourceType: 'card_fee_provision',
+            sourceId: provision.saleId,
+            entries: [
+                {
+                    // DÉBITO: Despesa vai para o DRE no mês da venda
+                    account: STANDARD_ACCOUNTS.CARD_FEES,
+                    accountName: 'Despesa com Taxas de Cartão',
+                    debit: provision.amount,
+                    credit: 0
+                },
+                {
+                    // CRÉDITO: Cria uma obrigação/redução de ativo no Passivo
+                    account: STANDARD_ACCOUNTS.CARD_FEES_PROVISION,
+                    accountName: 'Provisão de Taxas a Liquidar',
+                    debit: 0,
+                    credit: provision.amount
+                }
+            ]
+        })
+    },
+
+
+    /**
      * Lançamento: Recebimento de Venda (Regime de Caixa)
      * Quando: Ao RECEBER o pagamento
      */
@@ -234,14 +272,32 @@ export const LedgerService = {
             }
         ]
 
-        // Se tiver taxa de cartão, registra como despesa (DÉBITO)
+        // Se tiver taxa de cartão
         if (feeAmount > 0) {
-            entries.push({
-                account: STANDARD_ACCOUNTS.CARD_FEES,
-                accountName: 'Despesa com Taxas de Cartão',
-                debit: feeAmount,
-                credit: 0
-            })
+            // Verificar regime: Competência (Novo) ou Caixa (Velho)?
+            const saleDate = receivable.createdAt?.toDate ? receivable.createdAt.toDate() : (new Date(receivable.createdAt || 0));
+            const isNewRegime = saleDate >= ACCRUAL_BASIS_CUTOFF_DATE;
+
+            if (isNewRegime) {
+                // REGIME DE COMPETÊNCIA: A despesa JÁ FOI lançada na venda.
+                // Agora baixamos a PROVISÃO.
+                // O lançamento acima fechou: D: Banco (Net) + C: Recebível (Gross). Falta D: (Fee) para fechar.
+                // Então D: Provisão (2.1.6).
+                entries.push({
+                    account: STANDARD_ACCOUNTS.CARD_FEES_PROVISION,
+                    accountName: 'Provisão de Taxas a Liquidar',
+                    debit: feeAmount,
+                    credit: 0
+                });
+            } else {
+                // REGIME DE CAIXA (Legado): Lança a despesa agora.
+                entries.push({
+                    account: STANDARD_ACCOUNTS.CARD_FEES,
+                    accountName: 'Despesa com Taxas de Cartão',
+                    debit: feeAmount,
+                    credit: 0
+                });
+            }
         }
 
         return await ledgerRepository.create(idTenant, idBranch, {
@@ -276,7 +332,12 @@ export const LedgerService = {
 
                 balances[item.account].debit += item.debit || 0
                 balances[item.account].credit += item.credit || 0
-                balances[item.account].balance = balances[item.account].debit - balances[item.account].credit
+                // Natureza credora (Receitas 1.x, Passivos 4.x, PL 5.x): Crédito - Débito
+                // Natureza devedora (Despesas 2.x, Ativos 3.x e IDs dinâmicos): Débito - Crédito
+                const isCredorNature = item.account.startsWith('1') || item.account.startsWith('4') || item.account.startsWith('5');
+                balances[item.account].balance = isCredorNature
+                    ? (balances[item.account].credit - balances[item.account].debit)
+                    : (balances[item.account].debit - balances[item.account].credit);
             })
         })
 
@@ -403,7 +464,7 @@ export const LedgerService = {
                 {
                     // DÉBITO: Se positivo, aumenta o banco. Se negativo, diminui (Crédito).
                     // Aqui inverte a lógica pois o Ledger espera Debit/Credit colunas
-                    account: STANDARD_ACCOUNTS.BANK_ACCOUNTS,
+                    account: idAccount,
                     accountName: accountName,
                     debit: isPositive ? absAmount : 0,
                     credit: !isPositive ? absAmount : 0,

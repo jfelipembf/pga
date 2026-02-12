@@ -61,14 +61,20 @@ export const CashierService = {
         const transactions = await transactionRepository.findBySession(idTenant, idBranch, sessionId);
         const activeTransactions = transactions.filter(t => !t.deletedAt);
 
-        // Dinheiro Entrou: Income ou Suprimento, method = money
+        // Dinheiro Entrou: Suprimento (prioridade por category) OU Income que não seja sangria
         const moneyIn = activeTransactions
-            .filter(t => (t.type === 'income' || t.category === 'supply') && t.method === 'money')
+            .filter(t => t.method === 'money' && (
+                t.category === 'supply' ||
+                (t.type === 'income' && t.category !== 'withdrawal')
+            ))
             .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
 
-        // Dinheiro Saiu: Expense ou Sangria, method = money
+        // Dinheiro Saiu: Sangria (prioridade por category) OU Expense que não seja suprimento
         const moneyOut = activeTransactions
-            .filter(t => (t.type === 'expense' || t.category === 'withdrawal') && t.method === 'money')
+            .filter(t => t.method === 'money' && (
+                t.category === 'withdrawal' ||
+                (t.type === 'expense' && t.category !== 'supply')
+            ))
             .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
 
         const calculatedExpectedBalance = (parseFloat(session.openingBalance) || 0) + moneyIn - moneyOut;

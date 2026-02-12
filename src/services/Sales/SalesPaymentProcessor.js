@@ -2,7 +2,7 @@ import moment from 'moment'
 import { receivableRepository } from '../../data/repositories/ReceivableRepository'
 import { acquirerRepository } from '../../data/repositories/AcquirerRepository'
 import { CashierService } from '../Financial/CashierService'
-import { LedgerService } from '../Ledger/LedgerService'
+import { LedgerService, safeLedgerCall } from '../Ledger/LedgerService'
 import { normalizeDate } from '../../utils/date'
 
 
@@ -33,12 +33,15 @@ export const SalesPaymentProcessor = {
         })
 
         // 2. Contabilidade (LedgerService)
-        await LedgerService.registerSalePayment(idTenant, idBranch, {
-            saleId: sale.id,
-            saleNumber: sale.saleNumber,
-            paymentMethod: 'money',
-            amount: pValue
-        });
+        await safeLedgerCall(idTenant, idBranch,
+            () => LedgerService.registerSalePayment(idTenant, idBranch, {
+                saleId: sale.id,
+                saleNumber: sale.saleNumber,
+                paymentMethod: 'money',
+                amount: pValue
+            }),
+            { sourceType: 'sale_payment', sourceId: sale.id, operation: 'registerSalePayment_cash' }
+        );
     },
 
     /**
@@ -63,12 +66,15 @@ export const SalesPaymentProcessor = {
         })
 
         // 2. Contabilidade
-        await LedgerService.registerSalePayment(idTenant, idBranch, {
-            saleId: sale.id,
-            saleNumber: sale.saleNumber,
-            paymentMethod: 'pix',
-            amount: pValue
-        });
+        await safeLedgerCall(idTenant, idBranch,
+            () => LedgerService.registerSalePayment(idTenant, idBranch, {
+                saleId: sale.id,
+                saleNumber: sale.saleNumber,
+                paymentMethod: 'pix',
+                amount: pValue
+            }),
+            { sourceType: 'sale_payment', sourceId: sale.id, operation: 'registerSalePayment_pix' }
+        );
     },
 
     /**
@@ -196,10 +202,20 @@ export const SalesPaymentProcessor = {
             userName: sale.sellerName
         })
 
-        // NOTA: A taxa de cartão NÃO é registrada aqui como despesa.
-        // Ela será reconhecida corretamente no momento da LIQUIDAÇÃO do recebível
-        // via LedgerService.settleReceivableEntry (que registra D: 2.5.3 Taxas de Cartão).
-        // Isso evita duplicação contábil e segue o regime de competência.
+        // 5. Contabilidade: Provisão de Taxas (Regime de Competência)
+        // Isso garante que a taxa apareça na DRE no mês da Venda, não apenas na Liquidação.
+        const totalFees = receivables.reduce((acc, curr) => acc + (parseFloat(curr.feeAmount) || 0), 0);
+
+        if (totalFees > 0) {
+            await safeLedgerCall(idTenant, idBranch,
+                () => LedgerService.createCardFeeProvisionEntry(idTenant, idBranch, {
+                    saleId: sale.id,
+                    saleNumber: sale.saleNumber,
+                    amount: totalFees
+                }),
+                { sourceType: 'card_fee_provision', sourceId: sale.id, operation: 'createCardFeeProvisionEntry' }
+            );
+        }
 
         return receivables;
     },

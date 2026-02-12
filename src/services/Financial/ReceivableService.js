@@ -269,7 +269,9 @@ export const ReceivableService = {
             );
         }
 
-        // 3. Registrar Transações Financeiras de Ajuste de Caixa (Bulk para o extrato ficar limpo)
+        // 3. Registrar Transações Financeiras de Ajuste (apenas para extrato/relatórios)
+        // Nota: Não passa pelo CashierService pois antecipação é operação administrativa.
+        // O Ledger já foi atualizado individualmente por recebível acima.
         await transactionRepository.create(idTenant, idBranch, {
             date: normalizeDate(settlementDate),
             description: `Antecipação (Valor Bruto) - ${receivableIds.length} títulos`,
@@ -278,6 +280,9 @@ export const ReceivableService = {
             category: 'Movimentação Interna (Antecipação)',
             idBankAccount,
             sourceType: 'receivable_bulk',
+            idCashierSession: null,
+            systemGenerated: true,
+            skipLedger: true,
             createdAt: normalizeDate(new Date()),
             userName: userName
         });
@@ -287,8 +292,12 @@ export const ReceivableService = {
             description: `Taxa de Antecipação - ${anticipationFee}%`,
             amount: totalExtraFee,
             type: 'expense',
+            category: 'Taxa de Antecipação',
             idBankAccount,
             sourceType: 'receivable_fee',
+            idCashierSession: null,
+            systemGenerated: true,
+            skipLedger: true,
             createdAt: normalizeDate(new Date()),
             userName: userName
         });

@@ -61,9 +61,11 @@ export const FinancialDashboardService = {
             // 1. Totais contábeis do Ledger (mesma fonte da DRE)
             let income = 0;
             let expense = 0;
+            let hasLedgerData = false;
 
             try {
                 const trialBalance = await LedgerService.getTrialBalance(idTenant, idBranch, startDate, endDate);
+                hasLedgerData = trialBalance.length > 0;
 
                 trialBalance.forEach(item => {
                     const accountCode = item.account || '';
@@ -100,14 +102,15 @@ export const FinancialDashboardService = {
                     return da - db;
                 });
 
-            // Se o Ledger não retornou dados (ex: período sem lançamentos), usa transações como fallback
-            if (income === 0 && expense === 0 && transactions.length > 0) {
+            // Fallback: Se o Ledger NÃO retornou nenhum dado, usa transações como estimativa
+            // Exclui transações com skipLedger/systemGenerated para evitar dupla contagem
+            if (!hasLedgerData && transactions.length > 0) {
                 income = transactions
-                    .filter(t => t.type === 'income')
+                    .filter(t => t.type === 'income' && !t.skipLedger && !t.systemGenerated)
                     .reduce((acc, curr) => acc + (parseFloat(curr.netAmount || curr.amount) || 0), 0);
 
                 expense = transactions
-                    .filter(t => t.type === 'expense')
+                    .filter(t => t.type === 'expense' && !t.skipLedger && !t.systemGenerated)
                     .reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
             }
 
