@@ -74,16 +74,23 @@ export const useAcquirers = () => {
             const authUser = JSON.parse(localStorage.getItem("authUser"));
             const userId = authUser?.uid || authUser?.email || "unknown_user";
 
+            let savedId = selectedId;
+
             if (selectedId) {
                 await AcquirerService.update(idTenant, idBranch, userId, selectedId, data)
                 toast.success("Adquirente atualizada com sucesso")
             } else {
-                await AcquirerService.createAcquirer(idTenant, idBranch, userId, data)
+                const newAcquirer = await AcquirerService.createAcquirer(idTenant, idBranch, userId, data)
+                savedId = newAcquirer.id
                 toast.success("Adquirente cadastrada com sucesso")
             }
-            setIsAddingNew(false)
-            setSelectedId(null)
+
             await loadAcquirers()
+
+            // Mantém selecionado em vez de limpar
+            setIsAddingNew(false)
+            setSelectedId(savedId)
+
         } catch (error) {
             console.error("Erro ao salvar adquirente:", error)
             toast.error(error.message || "Erro ao salvar adquirente")

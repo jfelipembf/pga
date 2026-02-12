@@ -34,8 +34,8 @@ export const AcquirerForm = ({ initialData, onSave, onCancel }) => {
                     <Button color="secondary" outline className="me-2 waves-effect" onClick={onCancel}>
                         Cancelar
                     </Button>
-                    <Button color="success" className="waves-effect waves-light" onClick={formik.handleSubmit}>
-                        <i className="mdi mdi-check me-1"></i> Salvar
+                    <Button color="primary" className="waves-effect waves-light" onClick={formik.handleSubmit}>
+                        Salvar
                     </Button>
                 </div>
             </div>
