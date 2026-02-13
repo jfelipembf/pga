@@ -3,6 +3,7 @@ import React, { useState } from "react"
 import { connect } from "react-redux"
 import { Link } from "react-router-dom"
 import { withTranslation } from "react-i18next"
+import { debounce } from "lodash"
 
 // Components
 import ProfileMenu from "../CommonForBoth/TopbarDropdown/ProfileMenu"
@@ -37,19 +38,27 @@ const Header = props => {
     body.classList.toggle("sidebar-enable");
   }
 
-  const handleSearch = async (term) => {
-    setSearchQuery(term)
-    if (term && term.length >= 3 && activeTenant?.idTenant && activeBranch?.idBranch) {
-      try {
-        const results = await ClientService.searchClients(activeTenant.idTenant, activeBranch.idBranch, term)
-        setSearchResults(results)
-      } catch (error) {
-        console.error("Search error:", error)
+  /* De-bounced Search Implementation */
+  const debouncedSearchApi = React.useMemo(
+    () => debounce(async (term, tenant, branch) => {
+      if (term && term.length >= 3 && tenant?.idTenant && branch?.idBranch) {
+        try {
+          const results = await ClientService.searchClients(tenant.idTenant, branch.idBranch, term)
+          setSearchResults(results)
+        } catch (error) {
+          console.error("Search error:", error)
+          setSearchResults([])
+        }
+      } else {
         setSearchResults([])
       }
-    } else {
-      setSearchResults([])
-    }
+    }, 500),
+    []
+  );
+
+  const handleSearch = (term) => {
+    setSearchQuery(term)
+    debouncedSearchApi(term, activeTenant, activeBranch)
   }
 
   const handleSelectClient = (client) => {

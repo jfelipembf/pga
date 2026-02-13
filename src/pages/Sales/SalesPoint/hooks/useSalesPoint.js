@@ -41,8 +41,16 @@ export const useSalesPoint = () => {
     const [isLoadingData, setIsLoadingData] = useState(true);
 
     // 2.1 Novos campos da venda
-    const [saleDate, setSaleDate] = useState(new Date().toISOString().split('T')[0]);
-    const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+    const [saleDate, setSaleDate] = useState(() => {
+        const d = new Date();
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        return d.toISOString().split('T')[0];
+    });
+    const [startDate, setStartDate] = useState(() => {
+        const d = new Date();
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        return d.toISOString().split('T')[0];
+    });
     const [discount, setDiscount] = useState('');
     const [isRenewal, setIsRenewal] = useState(false);
 
