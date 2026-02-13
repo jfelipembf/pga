@@ -14,7 +14,8 @@ export const STANDARD_ACCOUNTS = {
     PENALTY_REVENUE: '1.1.4', // Receita de Multas
     REVENUE_DEDUCTIONS: '1.1.9', // Deduções/Estornos (Contra-receita)
 
-    // DESPESAS (Grupo 2)
+    // DESPESAS (Grupo 2)ok
+    
     ADMINISTRATIVE_EXPENSES: '2.1', // Grupo geral administrativo
     OPERATIONAL_EXPENSES: '2.4',
     CARD_FEES: '2.5.3',

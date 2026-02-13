@@ -152,15 +152,15 @@ export const SalesService = {
                             let planType = 'monthly' // Default
 
                             if (durationType === 'days' || durationType === 'Dias') {
-                                endDate = moment().add(duration, 'days').toDate()
+                                endDate = moment(startDate).add(duration, 'days').toDate()
                                 planType = 'single'
                             } else if (durationType === 'weeks' || durationType === 'Semanas') {
-                                endDate = moment().add(duration, 'weeks').toDate()
+                                endDate = moment(startDate).add(duration, 'weeks').toDate()
                             } else if (durationType === 'years' || durationType === 'Anos') {
-                                endDate = moment().add(duration, 'years').toDate()
+                                endDate = moment(startDate).add(duration, 'years').toDate()
                                 planType = 'annual'
                             } else {
-                                endDate = moment().add(duration, 'months').toDate()
+                                endDate = moment(startDate).add(duration, 'months').toDate()
                                 // Determina tipo baseado na duração
                                 if (duration === 1) planType = 'monthly'
                                 else if (duration === 3) planType = 'quarterly'
