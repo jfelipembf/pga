@@ -27,6 +27,8 @@ export const useCashier = () => {
 
     const [selectedDate, setSelectedDate] = useState(new Date())
 
+    const [myActiveSession, setMyActiveSession] = useState(null);
+
     const loadData = useCallback(async () => {
         if (!isReady || !user || !user.uid) {
             return
@@ -45,28 +47,29 @@ export const useCashier = () => {
             const today = new Date();
             const isToday = selectedDate.toDateString() === today.toDateString();
 
-            let sessionsFetched = [];
-            let myOpenSession = null;
+            // 1. Sempre buscamos as sessões abertas/fechadas do dia selecionado
+            let sessionsOfDay = await cashierRepository.findByDate(idTenant, idBranch, selectedDate);
 
+            // 2. Se for hoje, incluímos também sessões que ainda estão abertas (mesmo que iniciadas ontem)
             if (isToday) {
-                // Fetch all active sessions if admin, otherwise just mine
-                if (isPowerUser) {
-                    sessionsFetched = await cashierRepository.findActiveSessions(idTenant, idBranch);
-                    myOpenSession = sessionsFetched.find(s => s.idUser === user.uid);
-                } else {
-                    myOpenSession = await cashierRepository.findOpenSession(idTenant, idBranch, user.uid);
-                    sessionsFetched = myOpenSession ? [myOpenSession] : [];
-                }
-            } else {
-                // Historical: Fetch by date
-                const sessionsOfDay = await cashierRepository.findByDate(idTenant, idBranch, selectedDate);
-                if (isPowerUser) {
-                    sessionsFetched = sessionsOfDay;
-                } else {
-                    sessionsFetched = sessionsOfDay.filter(s => s.idUser === user.uid);
-                }
-                myOpenSession = sessionsFetched.find(s => s.idUser === user.uid);
+                const activeSessions = await cashierRepository.findActiveSessions(idTenant, idBranch);
+                const combined = [...sessionsOfDay];
+                activeSessions.forEach(active => {
+                    if (!combined.find(s => s.id === active.id)) {
+                        combined.push(active);
+                    }
+                });
+                sessionsOfDay = combined;
             }
+
+            // 3. Filtro de visibilidade (Power Users veem tudo do dia, Consultores veem apenas o próprio caixa)
+            let sessionsFetched = isPowerUser
+                ? sessionsOfDay
+                : sessionsOfDay.filter(s => s.idUser === user.uid);
+
+            // 4. Identificamos se o usuário atual tem UM caixa aberto para ações rápidas
+            const myOpenSession = sessionsFetched.find(s => s.idUser === user.uid && s.status === 'open');
+            setMyActiveSession(myOpenSession);
 
             // Determine which session to show by default
             let initialSession = null;
@@ -84,7 +87,7 @@ export const useCashier = () => {
                     finalSessions = [consolidated, ...sessionsFetched];
                     initialSession = consolidated;
                 } else {
-                    // One session or regular user: default to first found (or mine)
+                    // One session or regular user: default to most recent (myOpenSession preferred)
                     initialSession = myOpenSession || sessionsFetched[0];
                 }
             }
@@ -92,10 +95,9 @@ export const useCashier = () => {
             setRealSessions(sessionsFetched);
             setActiveSessions(finalSessions);
 
-            // 2. Ssmart Update of Current Session (Prevent resetting user selection)
+            // 2. Smart Update of Current Session (Prevent resetting user selection)
             setCurrentSession(prev => {
                 if (!prev) return initialSession;
-                // Se já tínhamos uma sessão selecionada, tenta manter ela (atualizada com novos totais se houver)
                 const stillExists = finalSessions.find(s => s.id === prev.id);
                 return stillExists || initialSession;
             });
@@ -289,6 +291,7 @@ export const useCashier = () => {
         liveSummary,
         refresh: loadData,
         selectedDate,
-        setSelectedDate
+        setSelectedDate,
+        myActiveSession
     }
 }

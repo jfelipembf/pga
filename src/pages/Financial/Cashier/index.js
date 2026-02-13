@@ -37,7 +37,8 @@ const CashierPage = () => {
         handleMovement,
         selectedDate,
         setSelectedDate,
-        loading
+        loading,
+        myActiveSession
     } = useCashier()
 
 
@@ -45,6 +46,9 @@ const CashierPage = () => {
     if (loading) {
         return <PageLoader />
     }
+
+    const isSessionOpen = currentSession?.status === 'open'
+    const isToday = selectedDate.toDateString() === new Date().toDateString()
 
     return (
         <React.Fragment>
@@ -72,7 +76,7 @@ const CashierPage = () => {
                                         <Button color="secondary" className="btn-md shadow-sm text-white" onClick={() => window.print()}>
                                             <i className="mdi mdi-printer me-1"></i> Imprimir
                                         </Button>
-                                        {!currentSession && (
+                                        {(isToday && !myActiveSession) && (
                                             <Button color="primary" className="btn-md shadow-sm" onClick={() => setModalOpen(true)}>
                                                 Abertura de Caixa
                                             </Button>
@@ -80,11 +84,11 @@ const CashierPage = () => {
                                     </div>
                                 </div>
 
-                                {/* Filtros em Barra - Exibidos apenas se o caixa estiver aberto */}
+                                {/* Filtros em Barra - Exibidos apenas se houver sessões no dia */}
                                 {currentSession && (
                                     <div className="d-flex flex-wrap gap-2 mb-4 bg-light p-3 rounded align-items-center">
                                         <div className="text-primary fw-medium font-size-13 me-3">
-                                            <i className="mdi mdi-calendar-check me-1"></i> Hoje: <strong>{formatDate(new Date())}</strong>
+                                            <i className="mdi mdi-calendar-check me-1"></i> Data: <strong>{formatDate(selectedDate)}</strong>
                                         </div>
                                         <div className="text-muted fw-medium font-size-13 me-3">
                                             Operador: <strong>{currentSession?.idUser === user?.uid ? displayUserName : (currentSession?.userName || displayUserName)}</strong>
@@ -117,19 +121,24 @@ const CashierPage = () => {
                                 {/* Conteúdo da Sessão */}
                                 {!currentSession ? (
                                     <div className="text-center py-5 border rounded bg-white shadow-sm border-dashed">
-                                        <h5 className="text-dark fw-bold">Seu caixa está fechado</h5>
+                                        <h5 className="text-dark fw-bold">Nenhum caixa registrado para este dia</h5>
                                         <p className="text-muted mb-0">Abra o caixa para começar a registrar vendas e recebimentos.</p>
                                     </div>
                                 ) : (
                                     <div className="border rounded p-4 bg-white shadow-sm">
                                         <div className="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
                                             <div>
-                                                <Badge color="success" className="mb-2">CAIXA ABERTO</Badge>
+                                                <Badge
+                                                    color={currentSession.isConsolidated ? "info" : isSessionOpen ? "success" : "danger"}
+                                                    className="mb-2"
+                                                >
+                                                    {currentSession.isConsolidated ? "VISÃO CONSOLIDADA" : isSessionOpen ? "CAIXA ABERTO" : "CAIXA FECHADO"}
+                                                </Badge>
                                                 <h5 className="font-size-16 text-uppercase fw-bold mb-0 text-dark">
                                                     {currentSession?.idUser === user?.uid ? displayUserName : currentSession.userName}
                                                 </h5>
                                             </div>
-                                            {!currentSession.isConsolidated ? (
+                                            {isSessionOpen && !currentSession.isConsolidated ? (
                                                 <div className="d-flex gap-2">
                                                     <Button color="success" outline className="fw-medium" onClick={() => setMovementModalType('income')}>
                                                         <i className="mdi mdi-plus-circle-outline me-1"></i> Suprimento
@@ -144,7 +153,7 @@ const CashierPage = () => {
                                             ) : (
                                                 <div className="text-muted font-size-12 italic">
                                                     <i className="mdi mdi-information-outline me-1"></i>
-                                                    Modo Visualização Geral (Ações desabilitadas)
+                                                    {currentSession.isConsolidated ? "Modo Visualização Geral (Ações desabilitadas)" : "Caixa Encerrado (Ações desabilitadas)"}
                                                 </div>
                                             )}
                                         </div>
