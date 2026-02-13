@@ -2,6 +2,7 @@ import React from 'react';
 import { Row, Col, Button } from 'reactstrap';
 import SalesSelectionPanel from './components/SalesSelectionPanel';
 import SalesCartPanel from './components/SalesCartPanel';
+import SalesReceiptModal from '../../../components/Common/SalesReceiptModal';
 import { useNavigate } from 'react-router-dom';
 import { useSalesPoint } from './hooks/useSalesPoint';
 import OverlayLoader from '../../../components/Common/OverlayLoader';
@@ -34,7 +35,10 @@ const SalesPoint = () => {
         startDate, setStartDate,
         discount, setDiscount,
         isRenewal, setIsRenewal,
-        saleDate, setSaleDate
+        saleDate, setSaleDate,
+        showReceiptModal,
+        saleSuccessData,
+        handleCloseReceipt
     } = useSalesPoint();
 
     // 1. Prevenir renderização parcial antes do contexto estar pronto ou dados iniciais carregados
@@ -111,6 +115,14 @@ const SalesPoint = () => {
                     />
                 </Col>
             </Row>
+
+            {/* Modal de Recibo - Deve vir antes dos loaders para não bugar z-index se loader fechar */}
+            <SalesReceiptModal
+                isOpen={showReceiptModal}
+                toggle={handleCloseReceipt}
+                saleData={saleSuccessData}
+                clientName={clientName}
+            />
 
             {/* Loading States - Usando zIndex alto para garantir cobertura */}
             <OverlayLoader show={isLoadingData} label="Carregando dados..." zIndex={1050} />

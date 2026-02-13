@@ -166,7 +166,7 @@ export const PERMISSIONS = [
         id: "management_integrations",
         label: "Integrações",
         description: "Gerenciar integrações externas.",
-        category: "GERENCIAL",
+        category: "ADMINISTRACAO",
     },
     {
         id: "management_automations",
@@ -192,6 +192,12 @@ export const PERMISSIONS = [
         id: "admin_settings",
         label: "Configurações",
         description: "Acesso às configurações gerais da unidade.",
+        category: "ADMINISTRACAO",
+    },
+    {
+        id: "settings_company_manage",
+        label: "Dados da empresa",
+        description: "Gerenciar informações, logo e endereço da empresa.",
         category: "ADMINISTRACAO",
     },
     {
@@ -281,6 +287,7 @@ export const DEFAULT_ROLES = [
             management_integrations: true,
             management_automations: true,
             management_audit_log: true,
+            settings_company_manage: true,
             sales_purchase: true,
             dashboards_financial_view: true,
         },

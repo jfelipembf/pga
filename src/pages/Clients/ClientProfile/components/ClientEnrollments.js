@@ -8,6 +8,7 @@ import { ENROLLMENT_STATUS_CONFIG } from '../../../../data/schemas/Clients/Enrol
 import { EnrollmentService } from '../../../../services/Clients/EnrollmentService'
 import { toast } from 'react-toastify'
 import ConfirmDialog from '../../../../components/Common/ConfirmDialog'
+import { WEEKDAY_LABELS } from '../../../../utils/constants'
 
 const ClientEnrollments = ({ client }) => {
     const navigate = useNavigate()
@@ -26,7 +27,17 @@ const ClientEnrollments = ({ client }) => {
         return c.status === 'active'
     }) || false
 
+    const getWeekdayLabel = (weekday) => {
+        if (!weekday) return '';
 
+        // Se for array (ex: [1, 3, 5])
+        if (Array.isArray(weekday)) {
+            return weekday.map(d => WEEKDAY_LABELS[d] || d).join(', ');
+        }
+
+        // Se for valor único (ex: "1" ou 1)
+        return WEEKDAY_LABELS[weekday] || weekday;
+    }
 
     const handleNavigateToEnroll = () => {
 
@@ -138,6 +149,12 @@ const ClientEnrollments = ({ client }) => {
                                                             {enrollment.activityName || 'Atividade'}
                                                         </h5>
                                                         <small className="text-muted">{enrollment.className || 'Turma'}</small>
+                                                        {enrollment.weekday && (
+                                                            <div className="text-muted font-size-12 mt-1">
+                                                                <i className="mdi mdi-calendar-week me-1"></i>
+                                                                {getWeekdayLabel(enrollment.weekday)}
+                                                            </div>
+                                                        )}
                                                     </div>
 
                                                     {enrollment.startTime && enrollment.endTime && (

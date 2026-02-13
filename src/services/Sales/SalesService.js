@@ -268,6 +268,13 @@ export const SalesService = {
     },
 
     /**
+     * Busca uma venda pelo ID.
+     */
+    getById: async (idTenant, idBranch, idSale) => {
+        return await salesRepository.findById(idTenant, idBranch, idSale);
+    },
+
+    /**
      * Lista o histórico de vendas de um cliente.
      */
     listByClient: async (idTenant, idBranch, idClient) => {

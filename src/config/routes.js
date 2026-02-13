@@ -56,6 +56,7 @@ const ClassesPage = React.lazy(() => import("../pages/Admin/Classes/index"))
 const CatalogPage = React.lazy(() => import("../pages/Admin/Catalog/index"))
 const EventsPage = React.lazy(() => import("../pages/Admin/Events/index"))
 const AuditLogsPage = React.lazy(() => import("../pages/Admin/AuditLogs/index"))
+const CompanySettings = React.lazy(() => import("../pages/Settings/Company/CompanySettings"))
 
 // UTILITY / UI PAGES
 const Chat = React.lazy(() => import("../pages/Chat/Chat"))
@@ -115,6 +116,7 @@ export const MENU_ROUTES = {
     "/admin/classes": { component: ClassesPage, permission: "admin_classes" },
     "/admin/events": { component: EventsPage, permission: "management_event_plan" },
     "/automation": { component: AutomationList, permission: "management_automations" },
+    "/settings/company": { component: CompanySettings, permission: "settings_company_manage" },
     "/settings/integrations": { component: IntegrationPage, permission: "management_integrations" },
     "/admin/audit-logs": { component: AuditLogsPage, permission: "management_audit_log" },
 

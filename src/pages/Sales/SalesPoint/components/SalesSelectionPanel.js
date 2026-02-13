@@ -20,7 +20,7 @@ const SalesSelectionPanel = ({
     discount,
     setDiscount
 }) => {
-    const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS.CREDIT_CARD);
+    const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS.CASH);
 
     const products = [
         { id: 'p1', name: 'Whey Protein (900g)', price: 150.00, category: 'Produto' },

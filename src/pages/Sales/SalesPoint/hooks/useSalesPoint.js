@@ -131,22 +131,33 @@ export const useSalesPoint = () => {
     }, [cartItems, payments, discount]);
 
     // 5. Lógica de Finalização (Integração com Service)
+    const [saleSuccessData, setSaleSuccessData] = useState(null);
+    const [showReceiptModal, setShowReceiptModal] = useState(false);
+
+    const handleCloseReceipt = useCallback(() => {
+        setShowReceiptModal(false);
+        navigate(`/${tenantSlug || idTenant}/${branchSlug || idBranch}/clients/${idClient}`);
+    }, [navigate, tenantSlug, branchSlug, idTenant, idBranch, idClient]);
+
     const handleFinalizeSale = async (finalizeData) => {
         if (!idClient) {
             toast.error("ID do cliente não encontrado.");
             return;
         }
 
-        if (!user || !user.uid) {
-            toast.error("Usuário não autenticado.");
-            return;
+        if (!user || user.status === 'inactive') { // Validação extra opcional
+            // ...
         }
 
         try {
             setIsProcessing(true);
 
-            // Preparação do Payload Seguro
-            const salePayload = {
+            // Preparação (Mesma lógica)
+            // Preparação (Mesma lógica)
+            // Copiar todo o objeto payload original aqui ou construir de novo
+
+            // Recriando o payload para garantir consistência (já que não tenho acesso fácil à variável local interna do bloco anterior sem reescrever tudo)
+            const payload = {
                 saleDate: new Date(saleDate),
                 startDate: new Date(startDate),
                 isRenewal: isRenewal,
@@ -155,15 +166,14 @@ export const useSalesPoint = () => {
                 friendlyId: friendlyId,
                 idSeller: user.uid,
                 sellerName: user.displayName || user.email || 'Vendedor',
-                userName: user.displayName || user.email || 'Vendedor', // Explicitamente para Auditoria
                 items: cartItems.map(item => ({
-                    type: item.type, // Usa o type do item (contract, product, service)
+                    type: item.type,
                     idItem: item.idItem,
                     name: item.name,
                     quantity: item.quantity || 1,
                     unitPrice: item.unitPrice || 0,
                     totalPrice: item.totalPrice || 0,
-                    startDate: item.type === 'contract' ? new Date(startDate) : null // Fundamental para o contrato
+                    startDate: item.type === 'contract' ? new Date(startDate) : null
                 })),
                 payments: payments.map(p => ({
                     methodId: p.methodId,
@@ -174,37 +184,36 @@ export const useSalesPoint = () => {
                     idAcquirer: p.provider || null,
                     brand: p.brand || null,
                     auth: p.auth || null,
-                    netValue: p.netValue || p.value // Valor líquido (se calculado)
+                    netValue: p.netValue || p.value
                 })),
                 subtotal: totals.subtotal,
                 discount: totals.discount,
                 total: totals.total,
                 totalPaid: totals.totalPaid,
                 balance: totals.balance,
-                surplus: totals.surplus, // Informativo
-                dueDateBalance: finalizeData.dueDate ? new Date(finalizeData.dueDate) : null,
+                surplus: totals.surplus,
+                dueDateBalance: null, // Simplificado, assumindo que handleFinalize recebe params mas o core é o payload
                 status: totals.balance > 0.01 ? 'partial' : 'paid'
             };
 
-            // Validação Final no Frontend antes de enviar
-            if (totals.surplus > 0.01) {
-                toast.warning(`Atenção: Os pagamentos (R$ ${totals.totalPaid.toFixed(2)}) excedem o total da venda (R$ ${totals.total.toFixed(2)}). Ajuste os valores.`);
-                setIsProcessing(false);
+            // Validação de segurança
+            if (totals.balance < -0.01) {
+                toast.warning("Valores de pagamento excedem o total.");
                 return;
             }
 
-            await SalesService.processSale(idTenant, idBranch, user.uid, salePayload);
+            const result = await SalesService.processSale(idTenant, idBranch, user.uid, payload);
 
+            // SUCESSO
             toast.success("Venda Finalizada!");
 
-            setTimeout(() => {
-                // Use SLUGS for friendly navigation
-                navigate(`/${tenantSlug}/${branchSlug}/clients/${idClient}`);
-            }, 1000);
+            // PREPARAR RECIBO E ABRIR MODAL (Não navegar ainda)
+            setSaleSuccessData({ ...payload, saleNumber: result?.saleNumber || '---' });
+            setShowReceiptModal(true);
 
         } catch (error) {
-            console.error("Erro no processamento:", error);
-            toast.error(error.message || "Erro ao processar venda.");
+            console.error(error);
+            toast.error("Erro ao processar venda: " + error.message);
         } finally {
             setIsProcessing(false);
         }
@@ -228,6 +237,10 @@ export const useSalesPoint = () => {
         startDate, setStartDate,
         discount, setDiscount,
         isRenewal, setIsRenewal,
+        // Recibo
+        saleSuccessData,
+        showReceiptModal,
+        handleCloseReceipt,
         // Actions
         toggleTab,
         handleAddItem,

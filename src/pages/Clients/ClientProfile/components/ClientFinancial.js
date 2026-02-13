@@ -9,8 +9,9 @@ import StatusBadge from '../../../../components/Common/StatusBadge'
 import ReceivableSettlementModal from '../../../Financial/Receivables/ReceivableSettlementModal'
 import SaleDetailsModal from '../../../Financial/Sales/SaleDetailsModal'
 import { SalesService } from '../../../../services/Sales/SalesService'
+import SalesReceiptModal from '../../../../components/Common/SalesReceiptModal'
 
-const ClientFinancial = () => {
+const ClientFinancial = ({ client }) => {
     const {
         summary, receivables, sales, loading,
         selectedReceivable, setSelectedReceivable,
@@ -22,6 +23,9 @@ const ClientFinancial = () => {
     // UI State for Sales Details
     const [selectedSale, setSelectedSale] = useState(null)
     const [isSaleDetailsModalOpen, setIsSaleDetailsModalOpen] = useState(false)
+
+    // UI State for Receipt
+    const [transactionForReceipt, setTransactionForReceipt] = useState(null)
 
     const toggle = tab => {
         if (activeTab !== tab) setActiveTab(tab)
@@ -218,18 +222,30 @@ const ClientFinancial = () => {
                                                     <StatusBadge status={getLiveSaleStatus(sale)} />
                                                 </td>
                                                 <td>
-                                                    <Button
-                                                        color="primary"
-                                                        size="sm"
-                                                        outline
-                                                        className="waves-effect"
-                                                        onClick={() => {
-                                                            setSelectedSale(sale);
-                                                            setIsSaleDetailsModalOpen(true);
-                                                        }}
-                                                    >
-                                                        Detalhes
-                                                    </Button>
+                                                    <div className="d-flex gap-2 justify-content-end">
+                                                        <Button
+                                                            color="info"
+                                                            size="sm"
+                                                            outline
+                                                            className="waves-effect"
+                                                            title="Imprimir Recibo"
+                                                            onClick={() => setTransactionForReceipt(sale)}
+                                                        >
+                                                            <i className="mdi mdi-printer font-size-14"></i>
+                                                        </Button>
+                                                        <Button
+                                                            color="primary"
+                                                            size="sm"
+                                                            outline
+                                                            className="waves-effect"
+                                                            onClick={() => {
+                                                                setSelectedSale(sale);
+                                                                setIsSaleDetailsModalOpen(true);
+                                                            }}
+                                                        >
+                                                            Detalhes
+                                                        </Button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))
@@ -265,6 +281,16 @@ const ClientFinancial = () => {
                     toggle={() => setIsSaleDetailsModalOpen(!isSaleDetailsModalOpen)}
                     sale={selectedSale}
                     receivables={receivables}
+                />
+            )}
+
+            {/* Modal de Recibo */}
+            {transactionForReceipt && (
+                <SalesReceiptModal
+                    isOpen={!!transactionForReceipt}
+                    toggle={() => setTransactionForReceipt(null)}
+                    saleData={transactionForReceipt}
+                    clientName={client?.name || 'Cliente'}
                 />
             )}
         </div>

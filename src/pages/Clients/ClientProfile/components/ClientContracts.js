@@ -7,6 +7,8 @@ import StatusBadge from '../../../../components/Common/StatusBadge'
 import { ClientContractService } from '../../../../services/Clients/ClientContractService'
 import { useTenant } from '../../../../hooks/useTenant'
 import { toast } from 'react-toastify'
+import SalesReceiptModal from '../../../../components/Common/SalesReceiptModal'
+import { SalesService } from '../../../../services/Sales/SalesService'
 
 // Modals
 import ContractAdjustDaysModal from './ContractModals/ContractAdjustDaysModal'
@@ -29,6 +31,10 @@ const ClientContracts = ({ client }) => {
         reactivate: { open: false },
         targetContract: null // Contrato sendo editado no momento
     })
+
+    // Receipt States
+    const [receiptSale, setReceiptSale] = useState(null)
+    const [loadingReceipt, setLoadingReceipt] = useState(false)
 
     const toggleModal = (key, contract = null, extra = {}) => {
         setModalState(prev => ({
@@ -83,6 +89,28 @@ const ClientContracts = ({ client }) => {
         } catch (error) { toast.error(error.message || "Erro ao reativar") }
     }
 
+    const handlePrintReceipt = async (contract) => {
+        if (!contract.idSale) {
+            toast.warning("Este contrato não possui uma venda vinculada para gerar recibo.");
+            return;
+        }
+
+        try {
+            setLoadingReceipt(true);
+            const sale = await SalesService.getById(idTenant, idBranch, contract.idSale);
+            if (sale) {
+                setReceiptSale(sale);
+            } else {
+                toast.error("Venda original não encontrada.");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Erro ao buscar dados do recibo.");
+        } finally {
+            setLoadingReceipt(false);
+        }
+    }
+
     if (loading) {
         return (
             <div className="text-center py-5">
@@ -92,7 +120,7 @@ const ClientContracts = ({ client }) => {
         )
     }
 
-    // Remover declaração duplicada
+    // Remover declaração duplicada e ordenar
     const sortedContracts = [...(contracts || [])].sort((a, b) => {
         if (a.status === 'active' && b.status !== 'active') return -1
         if (a.status !== 'active' && b.status === 'active') return 1
@@ -240,6 +268,18 @@ const ClientContracts = ({ client }) => {
                                                     <Button color="danger" outline size="sm" className="px-3" onClick={() => toggleModal('cancel', contract)}>
                                                         Cancelar
                                                     </Button>
+
+                                                    {/* Botão de impressão de recibo */}
+                                                    <Button
+                                                        color="secondary"
+                                                        outline
+                                                        size="sm"
+                                                        className="px-3"
+                                                        onClick={() => handlePrintReceipt(contract)}
+                                                        disabled={loadingReceipt}
+                                                    >
+                                                        <i className="mdi mdi-printer me-1"></i> Recibo
+                                                    </Button>
                                                 </div>
                                             </div>
                                         </Col>
@@ -306,9 +346,19 @@ const ClientContracts = ({ client }) => {
                                                 <StatusBadge status={contract.status} />
                                             </td>
                                             <td className="text-end pe-4">
-                                                <Button color="link" className="text-primary p-0">
-                                                    <i className="mdi mdi-eye-outline fs-5"></i>
-                                                </Button>
+                                                <div className="d-flex justify-content-end gap-2">
+                                                    <Button
+                                                        color="link"
+                                                        className="text-secondary p-0"
+                                                        title="Imprimir Recibo Original"
+                                                        onClick={() => handlePrintReceipt(contract)}
+                                                    >
+                                                        <i className="mdi mdi-printer fs-5"></i>
+                                                    </Button>
+                                                    <Button color="link" className="text-primary p-0">
+                                                        <i className="mdi mdi-eye-outline fs-5"></i>
+                                                    </Button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -373,8 +423,17 @@ const ClientContracts = ({ client }) => {
                 confirmColor="success"
                 onConfirm={handleConfirmReactivate}
             />
+
+            {/* Modal de Recibo */}
+            {receiptSale && (
+                <SalesReceiptModal
+                    isOpen={!!receiptSale}
+                    toggle={() => setReceiptSale(null)}
+                    saleData={receiptSale}
+                    clientName={client?.name || 'Cliente'}
+                />
+            )}
         </div >
     )
 }
-
 export default ClientContracts

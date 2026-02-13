@@ -72,7 +72,23 @@ export const MENU_STRUCTURE = [
             { label: "Pagáveis", path: "/financial/payables", permission: "financial_cashflow" },
             { label: "Fluxo de Caixa", path: "/financial/cash-flow", permission: "financial_cashflow" },
             { label: "DRE", path: "/financial/dre", permission: "dashboards_financial_view" },
+            { label: "Contas Bancárias", path: "/financial/bank-accounts", permission: "financial_cashflow" },
             { label: "Adquirentes", path: "/financial/acquirers", permission: "financial_acquirers" },
+        ]
+    },
+
+    // ADMINISTRATIVO
+    {
+        label: "Administrativo",
+        icon: "mdi mdi-cog-outline",
+        subItems: [
+            { label: "Colaboradores", path: "/admin/staff", permission: "staff_manage" },
+            { label: "Atividades", path: "/admin/activities", permission: "admin_activities" },
+            { label: "Áreas", path: "/admin/areas", permission: "admin_areas" },
+            { label: "Cargos", path: "/admin/roles", permission: "admin_roles" },
+            { label: "Níveis", path: "/admin/evaluation-levels", permission: "management_evaluation_levels" },
+            { label: "Catálogo", path: "/admin/catalog", permission: "admin_catalog" },
+            { label: "Contratos", path: "/financial/contracts", permission: "admin_contracts" },
         ]
     },
 
@@ -81,28 +97,20 @@ export const MENU_STRUCTURE = [
         label: "Gerencial",
         icon: "mdi mdi-chart-areaspline",
         subItems: [
-            { label: "Colaboradores", path: "/admin/staff", permission: "staff_manage" },
             { label: "Turmas", path: "/admin/classes", permission: "admin_classes" },
             { label: "Eventos", path: "/admin/events", permission: "management_event_plan" },
             { label: "Automação", path: "/automation", permission: "management_automations" },
-            { label: "Integrações", path: "/settings/integrations", permission: "management_integrations" },
             { label: "Auditoria", path: "/admin/audit-logs", permission: "management_audit_log" },
         ]
     },
 
-    // CADASTROS
+    // CONFIGURAÇÕES
     {
-        label: "Cadastros",
+        label: "Configurações",
         icon: "mdi mdi-cog-outline",
         subItems: [
-            { label: "Atividades", path: "/admin/activities", permission: "admin_activities" },
-            { label: "Áreas", path: "/admin/areas", permission: "admin_areas" },
-            { label: "Cargos", path: "/admin/roles", permission: "admin_roles" },
-            { label: "Níveis", path: "/admin/evaluation-levels", permission: "management_evaluation_levels" },
-            { label: "Catálogo", path: "/admin/catalog", permission: "admin_catalog" },
-            { label: "Contratos", path: "/financial/contracts", permission: "admin_contracts" },
-            { label: "Contas Bancárias", path: "/financial/bank-accounts", permission: "financial_cashflow" },
-
+            { label: "Dados da Empresa", path: "/settings/company", permission: "settings_company_manage" },
+            { label: "Integrações", path: "/settings/integrations", permission: "management_integrations" },
         ]
     }
 ]
