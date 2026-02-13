@@ -227,6 +227,13 @@ export const useSalesPoint = () => {
         saleDate, setSaleDate,
         startDate, setStartDate,
         discount, setDiscount,
-        isRenewal, setIsRenewal
+        isRenewal, setIsRenewal,
+        // Actions
+        toggleTab,
+        handleAddItem,
+        handleAddPayment,
+        handleRemoveItem,
+        handleRemovePayment,
+        handleFinalizeSale
     };
 };

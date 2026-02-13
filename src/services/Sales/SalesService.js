@@ -26,7 +26,7 @@ export const SalesService = {
         );
 
         if (hasImmediatePayment) {
-            const isToday = moment(saleData.saleDate).isSame(moment(), 'day');
+            const isToday = moment(rawSaleData.saleDate).isSame(moment(), 'day');
             if (isToday) {
                 const { CashierService } = await import('../Financial/CashierService');
                 await CashierService.ensureOpenSession(idTenant, idBranch, userId);

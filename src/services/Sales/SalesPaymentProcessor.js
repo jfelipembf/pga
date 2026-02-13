@@ -39,7 +39,8 @@ export const SalesPaymentProcessor = {
                 saleId: sale.id,
                 saleNumber: sale.saleNumber,
                 paymentMethod: 'money',
-                amount: pValue
+                amount: pValue,
+                paymentDate: sale.saleDate
             }),
             { sourceType: 'sale_payment', sourceId: sale.id, operation: 'registerSalePayment_cash' }
         );
@@ -73,7 +74,8 @@ export const SalesPaymentProcessor = {
                 saleId: sale.id,
                 saleNumber: sale.saleNumber,
                 paymentMethod: 'pix',
-                amount: pValue
+                amount: pValue,
+                paymentDate: sale.saleDate
             }),
             { sourceType: 'sale_payment', sourceId: sale.id, operation: 'registerSalePayment_pix' }
         );
@@ -263,7 +265,8 @@ export const SalesPaymentProcessor = {
                     saleId: sale.id,
                     saleNumber: sale.saleNumber,
                     amount: totalOperationalFees, // Passamos apenas a parte Operacional (MDR) como "amount"
-                    financialFeeAmount: totalFinancialFees // Passamos o juros separado
+                    financialFeeAmount: totalFinancialFees, // Passamos o juros separado
+                    date: sale.saleDate
                 }),
                 { sourceType: 'card_fee_provision', sourceId: sale.id, operation: 'createCardFeeProvisionEntry' }
             );

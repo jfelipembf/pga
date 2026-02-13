@@ -15,7 +15,7 @@ export const STANDARD_ACCOUNTS = {
     REVENUE_DEDUCTIONS: '1.1.9', // Deduções/Estornos (Contra-receita)
 
     // DESPESAS (Grupo 2)ok
-    
+
     ADMINISTRATIVE_EXPENSES: '2.1', // Grupo geral administrativo
     OPERATIONAL_EXPENSES: '2.4',
     CARD_FEES: '2.5.3',
@@ -136,7 +136,7 @@ export const LedgerService = {
         const revenueName = sale.revenueAccountName || 'Prestação de Serviços';
 
         return await ledgerRepository.create(idTenant, idBranch, {
-            date: sale.createdAt || new Date(),
+            date: sale.saleDate || sale.createdAt || new Date(), // Prioriza Data da Venda (Competência)
             description: `Venda: ${sale.saleNumber}`,
             sourceType: 'sale',
             sourceId: sale.id,
@@ -259,7 +259,7 @@ export const LedgerService = {
         });
 
         return await ledgerRepository.create(idTenant, idBranch, {
-            date: normalizeDate(new Date()),
+            date: provision.date || normalizeDate(new Date()), // Permite data retroativa
             description: `Provisão de Taxas: Venda #${provision.saleNumber}`,
             sourceType: 'card_fee_provision',
             sourceId: provision.saleId,
@@ -508,7 +508,7 @@ export const LedgerService = {
      * D - Caixa/Banco
      * C - Contas a Receber (baixa o direito criado na Venda)
      */
-    registerSalePayment: async (idTenant, idBranch, { saleId, saleNumber, paymentMethod, amount, bankAccountId, bankAccountName }) => {
+    registerSalePayment: async (idTenant, idBranch, { saleId, saleNumber, paymentMethod, amount, bankAccountId, bankAccountName, paymentDate }) => {
         let debitAccount = STANDARD_ACCOUNTS.CASH;
         let debitAccountName = 'Caixa';
 
@@ -524,7 +524,7 @@ export const LedgerService = {
         }
 
         return await ledgerRepository.create(idTenant, idBranch, {
-            date: normalizeDate(new Date()),
+            date: normalizeDate(paymentDate) || normalizeDate(new Date()),
             description: `Recebimento à Vista (${paymentMethod}): Venda #${saleNumber}`,
             sourceType: 'sale_payment_instant',
             sourceId: saleId,

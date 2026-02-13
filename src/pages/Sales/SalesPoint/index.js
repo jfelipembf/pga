@@ -33,7 +33,8 @@ const SalesPoint = () => {
         handleFinalizeSale,
         startDate, setStartDate,
         discount, setDiscount,
-        isRenewal, setIsRenewal
+        isRenewal, setIsRenewal,
+        saleDate, setSaleDate
     } = useSalesPoint();
 
     // 1. Prevenir renderização parcial antes do contexto estar pronto ou dados iniciais carregados
@@ -93,6 +94,8 @@ const SalesPoint = () => {
                         setIsRenewal={setIsRenewal}
                         discount={discount}
                         setDiscount={setDiscount}
+                        saleDate={saleDate}
+                        setSaleDate={setSaleDate}
                     />
                 </Col>
 
