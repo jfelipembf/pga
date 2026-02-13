@@ -67,12 +67,6 @@ const Logout = React.lazy(() => import("../pages/Authentication/Logout"))
 const Register = React.lazy(() => import("../pages/Authentication/Register"))
 const ForgetPwd = React.lazy(() => import("../pages/Authentication/ForgetPassword"))
 
-// INNER AUTH PAGES
-const Login1 = React.lazy(() => import("../pages/AuthenticationInner/Login"))
-const Register1 = React.lazy(() => import("../pages/AuthenticationInner/Register"))
-const Recoverpw = React.lazy(() => import("../pages/AuthenticationInner/Recoverpw"))
-const LockScreen = React.lazy(() => import("../pages/AuthenticationInner/auth-lock-screen"))
-
 // EXTRA PAGES
 const Pages404 = React.lazy(() => import("../pages/Extra Pages/pages-404"))
 const Pages500 = React.lazy(() => import("../pages/Extra Pages/pages-500"))
@@ -138,6 +132,7 @@ export const HIDDEN_ROUTES = {
     "/profile": { component: UserProfile },
 }
 
+
 /**
  * Rotas públicas (não requerem autenticação)
  */
@@ -149,10 +144,6 @@ export const PUBLIC_ROUTES = {
     "/pages-404": { component: Pages404 },
     "/pages-500": { component: Pages500 },
     "/pages-403": { component: Pages403 },
-    "/pages-login": { component: Login1 },
-    "/pages-register": { component: Register1 },
-    "/page-recoverpw": { component: Recoverpw },
-    "/auth-lock-screen": { component: LockScreen },
 }
 
 // ============== HELPERS ==============
