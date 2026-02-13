@@ -6,7 +6,7 @@ import { toast } from "react-toastify"
 
 import GradeHeader from "../Components/GradeHeader"
 import GradeGrid from "../Components/GradeGrid"
-import { getStartOfWeek } from "../../../utils/date"
+import { getStartOfWeek, formatDate } from "../../../utils/date"
 import { setBreadcrumbItems } from "../../../store/actions"
 import { useGradeData } from "../Hooks/useGradeData"
 // PageLoader removed
@@ -14,7 +14,7 @@ import { EnrollmentService } from "../../../services/Clients/EnrollmentService"
 import { ClientService } from "../../../services/Clients/ClientService"
 import { automationService } from "../../../services/Automation/AutomationService"
 import { useTenant } from "../../../hooks/useTenant"
-import moment from "moment"
+
 
 import "./EnrollmentGrade.scss"
 
@@ -151,7 +151,7 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
                     const instructor = staff.find(s => String(s.id) === String(sessionData.idStaff)) || {}
 
                     if (sessionData && clientData) {
-                        const dateFormatted = moment(sessionData.sessionDate).format('DD/MM/YYYY')
+                        const dateFormatted = formatDate(sessionData.sessionDate)
                         const timeFormatted = sessionData.startTime
 
                         // Disparar para o ALUNO

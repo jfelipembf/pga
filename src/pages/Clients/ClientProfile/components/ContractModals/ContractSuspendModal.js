@@ -4,6 +4,7 @@ import ButtonLoader from '../../../../../components/Common/ButtonLoader'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import moment from 'moment'
+import { formatDate, toISODate } from '../../../../../utils/date'
 
 const ContractSuspendModal = ({ isOpen, toggle, contract, onConfirm }) => {
 
@@ -13,8 +14,8 @@ const ContractSuspendModal = ({ isOpen, toggle, contract, onConfirm }) => {
 
     const formik = useFormik({
         initialValues: {
-            startDate: moment().format('YYYY-MM-DD'),
-            endDate: moment().add(maxDays > 30 ? 30 : maxDays, 'days').format('YYYY-MM-DD'),
+            startDate: toISODate(new Date()),
+            endDate: toISODate(moment().add(maxDays > 30 ? 30 : maxDays, 'days')),
             reason: ''
         },
         validationSchema: Yup.object({
@@ -36,7 +37,7 @@ const ContractSuspendModal = ({ isOpen, toggle, contract, onConfirm }) => {
         }
     })
 
-    const todayIso = moment().format('YYYY-MM-DD')
+    const todayIso = toISODate(new Date())
     const isFuture = moment(formik.values.startDate).isAfter(todayIso, 'day')
     const currentDays = moment(formik.values.endDate).diff(moment(formik.values.startDate), 'days') || 0;
     const totalUsed = contract?.suspension?.totalDaysUsed || 0
@@ -77,7 +78,7 @@ const ContractSuspendModal = ({ isOpen, toggle, contract, onConfirm }) => {
                             <div className="mt-3">
                                 <Badge color="soft-info" className="px-3 py-2 font-size-12">
                                     <i className="mdi mdi-clock-outline me-1"></i>
-                                    Ação Agendada para {moment(formik.values.startDate).format('DD/MM/YYYY')}
+                                    Ação Agendada para {formatDate(formik.values.startDate)}
                                 </Badge>
                             </div>
                         )}

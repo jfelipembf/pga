@@ -5,7 +5,7 @@ import { writeBatch, doc, serverTimestamp, increment } from 'firebase/firestore'
 // Import Client and Automation Services
 import { ClientService } from '../Clients/ClientService'
 import { automationService } from '../Automation/AutomationService'
-import moment from 'moment'
+import { formatDate } from '../../utils/date'
 
 /**
  * Serviço de Controle de Presença (Attendance)
@@ -145,7 +145,7 @@ export const AttendanceService = {
                             student: fullClient.name,
                             name: fullClient.name,
                             phone: phone,
-                            date: moment().format('DD/MM/YYYY')
+                            date: formatDate(new Date())
                         })
                     }
                 } catch (autoErr) {

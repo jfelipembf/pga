@@ -5,6 +5,7 @@ import { useTenant } from '../../../hooks/useTenant'
 import { toast } from 'react-toastify'
 import { useAuth } from '../../../hooks/useAuth'
 import moment from 'moment'
+import { formatDate } from '../../../utils/date'
 
 export const useSaveEvaluations = ({
     idActivity,
@@ -189,7 +190,7 @@ export const useSaveEvaluations = ({
                 const historyLines = [...prevEvals].reverse().map((ev, idx) => {
                     const pct = calculatePct(ev.criteria)
                     const statusIcon = idx === 0 ? '📉' : '📊'
-                    return `${statusIcon} ${moment(ev.date).format('DD/MM/YY')}: ${pct}%`
+                    return `${statusIcon} ${formatDate(ev.date, 'DD/MM/YY')}: ${pct}%`
                 })
                 progressHeader += `${historyLines.join('\n')}\n`
             }
@@ -248,7 +249,7 @@ export const useSaveEvaluations = ({
                 name: client.name,
                 phone: client.phone || client.cellPhone || client.responsavelPhone,
                 results: finalResultsText,
-                date: moment().format('DD/MM/YYYY')
+                date: formatDate(new Date())
             })
 
             toast.success(`Mensagem enviada para ${client.name}!`)

@@ -2,7 +2,7 @@ import { trainingPlanRepository } from "../../data/repositories/TrainingPlanRepo
 import { AuditService } from "../Core/AuditService";
 import { automationService } from "../Automation/AutomationService";
 import { formatTrainingForWhatsApp } from "../../pages/TrainingPlanning/utils/TrainingFormatter";
-import moment from "moment";
+import { formatDate } from "../../utils/date";
 
 /**
  * Service para Planejamento de Treinos.
@@ -105,7 +105,7 @@ export const TrainingPlanService = {
     sendToStudents: async (idTenant, idBranch, userId, userName, students, workout) => {
         try {
             const workoutContent = formatTrainingForWhatsApp(workout);
-            const date = moment().format('DD/MM/YYYY');
+            const date = formatDate(new Date());
 
             const promises = students.map(student =>
                 automationService.emit(idTenant, 'TRAINING_PLAN', {

@@ -4,6 +4,7 @@ import ButtonLoader from '../../../../../components/Common/ButtonLoader'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import moment from 'moment'
+import { formatDate, toISODate } from '../../../../../utils/date'
 import { FormSwitch } from '../../../../../components/Common/FormSwitch'
 
 const ContractCancelModal = ({ isOpen, toggle, contract, onConfirm }) => {
@@ -18,7 +19,7 @@ const ContractCancelModal = ({ isOpen, toggle, contract, onConfirm }) => {
     const formik = useFormik({
         initialValues: {
             reason: '',
-            effectiveDate: moment().format('YYYY-MM-DD'),
+            effectiveDate: toISODate(new Date()),
             cancellationFee: 0,
             cancelFutureReceivables: true,
             notes: ''
@@ -33,7 +34,7 @@ const ContractCancelModal = ({ isOpen, toggle, contract, onConfirm }) => {
         }
     })
 
-    const todayIso = moment().format('YYYY-MM-DD')
+    const todayIso = toISODate(new Date())
     const isFuture = moment(formik.values.effectiveDate).isAfter(todayIso, 'day')
 
     return (
@@ -63,7 +64,7 @@ const ContractCancelModal = ({ isOpen, toggle, contract, onConfirm }) => {
                             <h5 className="alert-heading font-size-14"><i className="mdi mdi-alert-outline me-2"></i>Atenção: Ação Irreversível</h5>
                             <p className="mb-0 small">
                                 {isFuture
-                                    ? `O contrato será automaticamente encerrado em ${moment(formik.values.effectiveDate).format('DD/MM/YYYY')}.`
+                                    ? `O contrato será automaticamente encerrado em ${formatDate(formik.values.effectiveDate)}.`
                                     : "O cancelamento imediato encerrará o acesso do aluno e cessará novas cobranças automáticas."
                                 }
                                 Verifique as pendências financeiras abaixo.

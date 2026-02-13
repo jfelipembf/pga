@@ -1,6 +1,7 @@
 import React from "react"
 import { Badge } from "reactstrap"
 import moment from "moment"
+import { formatDate } from "../../../../utils/date"
 
 export const EventListItem = ({ event, isSelected, onClick }) => {
     const isFinished = moment().isAfter(moment(event.endDate)) || event.status === 'finished'
@@ -21,7 +22,7 @@ export const EventListItem = ({ event, isSelected, onClick }) => {
             </div>
             <div className="text-muted small d-flex align-items-center mb-1">
                 <i className="mdi mdi-calendar-range me-1"></i>
-                {moment(event.startDate).format('DD/MM')} - {moment(event.endDate).format('DD/MM/YYYY')}
+                {formatDate(event.startDate, 'DD/MM')} - {formatDate(event.endDate)}
             </div>
             <div className="d-flex gap-1">
                 <Badge color="info" className="border" style={{ fontSize: '0.65rem' }}>

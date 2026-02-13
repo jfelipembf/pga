@@ -5,7 +5,7 @@ import { taskRepository } from "../../data/repositories/Admin/TaskRepository"
 import { clientContractRepository } from "../../data/repositories/ClientContractRepository"
 import { query, where, getDocs } from "firebase/firestore"
 import moment from "moment"
-import { normalizeDate } from "../../utils/date"
+import { normalizeDate, formatDate, toISODate } from "../../utils/date"
 
 export const TeacherDashboardService = {
 
@@ -101,7 +101,7 @@ export const TeacherDashboardService = {
         // 3. Aulas Experimentais Próximas (Lista)
         let upcomingExperimentals = [];
         try {
-            const todayStr = moment().format('YYYY-MM-DD');
+            const todayStr = toISODate(new Date());
             // Próximas sessões do professor (Filtro por idStaff + memória)
             const allTeacherSessions = await sessionRepository.findWhere(idTenant, idBranch, [
                 ['idStaff', '==', userId]
@@ -257,7 +257,7 @@ export const TeacherDashboardService = {
                     id: c.id,
                     studentName: c.clientName || 'Aluno',
                     planName: c.planName || 'Plano',
-                    endDate: c.endDate?.toDate ? moment(c.endDate.toDate()).format('DD/MM/YYYY') : moment(c.endDate).format('DD/MM/YYYY'),
+                    endDate: formatDate(c.endDate),
                     daysRemaining: c.endDate?.toDate ? moment(c.endDate.toDate()).diff(today, 'days') : moment(c.endDate).diff(today, 'days')
                 })).sort((a, b) => a.daysRemaining - b.daysRemaining).slice(0, 5);
             }
@@ -292,7 +292,7 @@ export const TeacherDashboardService = {
                 // Inicializar buckets
                 for (let i = 0; i < 6; i++) {
                     const m = moment().subtract(i, 'months');
-                    monthBuckets[m.format('MM/YYYY')] = { expired: 0, renewed: 0 };
+                    monthBuckets[formatDate(m, 'MM/YYYY')] = { expired: 0, renewed: 0 };
                 }
 
                 // Para verificar renovação, precisamos saber se o aluno tem OUTRO contrato começando DEPOIS
@@ -314,7 +314,7 @@ export const TeacherDashboardService = {
                     if (!historicalStudentIds.includes(contract.idClient)) return;
 
                     const endD = contract.endDate?.toDate ? moment(contract.endDate.toDate()) : moment(contract.endDate);
-                    const monthKey = endD.format('MM/YYYY');
+                    const monthKey = formatDate(endD, 'MM/YYYY');
 
                     if (monthBuckets[monthKey]) {
                         monthBuckets[monthKey].expired++;

@@ -3,6 +3,7 @@ import { clientContractRepository } from '../../data/repositories/ClientContract
 import { enrollmentRepository } from '../../data/repositories/EnrollmentRepository'
 import { salesRepository } from '../../data/repositories/SalesRepository'
 import moment from 'moment'
+import { formatDate } from '../../utils/date'
 
 /**
  * Serviço de CRM para busca avançada e filtragem cruzada de alunos.
@@ -180,7 +181,7 @@ export const CRMService = {
                     ...client,
                     planName: activeContract?.planName || 'Sem Plano',
                     contractStatus: activeContract?.status || 'no_contract',
-                    contractEndDate: lastContractDate ? moment(lastContractDate).format('DD/MM/YYYY') : '-',
+                    contractEndDate: lastContractDate ? formatDate(lastContractDate) : '-',
                     daysToExpiration: lastContractDate ? moment(lastContractDate).diff(moment(), 'days') : 0,
                     activities: [...new Set(clientEnrollments.map(e => e.activityName).filter(Boolean))],
                     monthlyValue: activeContract?.value || 0

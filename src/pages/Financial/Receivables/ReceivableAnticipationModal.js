@@ -5,6 +5,7 @@ import { formatCurrency } from '../../../utils/format';
 import { bankAccountRepository } from '../../../data/repositories/BankAccountRepository';
 import { useTenant } from '../../../hooks/useTenant';
 import moment from 'moment';
+import { formatDate } from '../../../utils/date';
 
 const ReceivableAnticipationModal = ({ isOpen, toggle, selectedReceivables, onAnticipate }) => {
     const { idTenant, idBranch } = useTenant();
@@ -121,7 +122,7 @@ const ReceivableAnticipationModal = ({ isOpen, toggle, selectedReceivables, onAn
                             {selectedReceivables.map(r => (
                                 <tr key={r.id}>
                                     <td className="font-size-12">{r.clientName}</td>
-                                    <td className="font-size-12">{moment(r.dueDate).format('DD/MM/YYYY')}</td>
+                                    <td className="font-size-12">{formatDate(r.dueDate)}</td>
                                     <td className="text-end font-size-12 fw-bold">{formatCurrency(r.amount)}</td>
                                 </tr>
                             ))}

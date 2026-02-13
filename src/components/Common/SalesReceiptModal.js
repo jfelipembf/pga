@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Modal, ModalBody, Button } from 'reactstrap';
 import { useReactToPrint } from 'react-to-print';
 import moment from 'moment';
+import { formatDate } from '../../utils/date';
 import { useTenant } from '../../hooks/useTenant';
 import CompanyService from '../../services/Company/CompanyService';
 
@@ -88,7 +89,7 @@ const SalesReceiptModal = ({ isOpen, toggle, saleData, clientName }) => {
 
                     {/* Dados da Venda */}
                     <div className="mb-3 text-start">
-                        <p className="mb-1"><strong>Data:</strong> {moment(saleData.saleDate || new Date()).format('DD/MM/YYYY HH:mm')}</p>
+                        <p className="mb-1"><strong>Data:</strong> {formatDate(saleData.saleDate || new Date(), 'DD/MM/YYYY HH:mm')}</p>
                         <p className="mb-1"><strong>Venda Nº:</strong> {saleData.saleNumber || '---'}</p>
                         <p className="mb-1"><strong>Cliente:</strong> {clientName}</p>
                     </div>
