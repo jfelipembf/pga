@@ -8,7 +8,7 @@ import { useAuth } from '../../../../hooks/useAuth'
  * Hook para gerenciar a lógica de Catálogo (Catalog)
  */
 export const useCatalog = () => {
-    const { idTenant, idBranch } = useTenant()
+    const { idTenant, idBranch, isReady } = useTenant()
 
     const { user } = useAuth()
 
@@ -23,6 +23,7 @@ export const useCatalog = () => {
     const [searchTerm, setSearchTerm] = useState('')
 
     const loadCatalog = useCallback(async () => {
+        if (!isReady) return
         try {
             setLoading(true)
 
@@ -40,7 +41,7 @@ export const useCatalog = () => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch, filterStatus, filterType, filterCategory])
+    }, [idTenant, idBranch, isReady, filterStatus, filterType, filterCategory])
 
     useEffect(() => {
         loadCatalog()
@@ -121,7 +122,7 @@ export const useCatalog = () => {
     return {
         idTenant,
         idBranch,
-        loading,
+        loading: loading || !isReady,
         modal,
         selectedItem,
         filterStatus,

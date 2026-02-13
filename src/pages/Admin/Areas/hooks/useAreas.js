@@ -8,7 +8,7 @@ import { useAuth } from '../../../../hooks/useAuth'
  * Hook para gerenciar a lógica de Áreas (Areas)
  */
 export const useAreas = () => {
-    const { idTenant, idBranch } = useTenant()
+    const { idTenant, idBranch, isReady } = useTenant()
 
     const { user } = useAuth()
 
@@ -27,6 +27,8 @@ export const useAreas = () => {
     const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
 
     const loadAreas = useCallback(async (forceReload = false) => {
+        if (!isReady) return
+
         // Cache: verifica se precisa recarregar
         const now = Date.now()
         if (!forceReload && lastLoadTime && (now - lastLoadTime) < CACHE_DURATION) {
@@ -44,7 +46,7 @@ export const useAreas = () => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch, fetchLimit, lastLoadTime, CACHE_DURATION])
+    }, [idTenant, idBranch, isReady, fetchLimit, lastLoadTime, CACHE_DURATION])
 
     useEffect(() => {
         loadAreas()

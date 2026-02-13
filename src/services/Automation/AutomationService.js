@@ -1,5 +1,5 @@
 import { integrationRepository } from "../../data/repositories/Automation/IntegrationRepository";
-import { DEFAULT_MESSAGES } from "../../pages/Automation/config/triggers";
+import { DEFAULT_MESSAGES } from "../../pages/Management/Automation/config/triggers";
 import { aiService } from "./AIService";
 import { messagingService } from "./MessagingService";
 

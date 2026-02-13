@@ -24,9 +24,6 @@ const DREPage = () => {
         loading
     } = useDRE()
 
-    if (loading && transactions.length === 0) {
-        return <PageLoader />
-    }
 
     const currentYear = new Date().getFullYear();
     const years = [currentYear - 2, currentYear - 1, currentYear, currentYear + 1];
@@ -77,10 +74,18 @@ const DREPage = () => {
 
             <Row>
                 <Col lg={12}>
-                    <CashFlowDRE
-                        transactions={transactions}
-                        periodLabel={periodLabel}
-                    />
+                    {loading ? (
+                        <Card className="shadow-sm border-0 mt-4 position-relative" style={{ minHeight: '400px' }}>
+                            <CardBody>
+                                <PageLoader isFullScreen={false} />
+                            </CardBody>
+                        </Card>
+                    ) : (
+                        <CashFlowDRE
+                            transactions={transactions}
+                            periodLabel={periodLabel}
+                        />
+                    )}
                 </Col>
             </Row>
 

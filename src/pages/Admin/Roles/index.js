@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from "react"
 import { connect } from "react-redux"
-import { Spinner } from "reactstrap"
 import { setBreadcrumbItems } from "../../../store/actions"
 import { useRoles } from "./hooks/useRoles"
 import { useRoleForm } from "./hooks/useRoleForm"
 import ManagementLayout from "../../../components/Common/ManagementLayout"
 import ButtonLoader from "../../../components/Common/ButtonLoader"
+import PageLoader from "../../../components/Common/PageLoader"
+import OverlayLoader from "../../../components/Common/OverlayLoader"
 import { RoleForm, RoleListItem } from "./Components"
 import ConfirmDialog from "../../../components/Common/ConfirmDialog"
+import { useTenant } from "../../../hooks/useTenant"
 
 const RolesPage = ({ setBreadcrumbItems }) => {
     document.title = "Gestão de Funções | PGA Admin"
+    const { isReady } = useTenant()
 
     const {
         filteredRoles: roles,
@@ -58,12 +61,9 @@ const RolesPage = ({ setBreadcrumbItems }) => {
 
     // Render Sidebar Content (Lista)
     const SidebarContent = (
-        <div>
+        <div className="position-relative" style={{ minHeight: '300px' }}>
             {loading && roles.length === 0 ? (
-                <div className="text-center p-4">
-                    <Spinner size="sm" color="primary" />
-                    <p className="mt-2 mb-0 text-muted small">Carregando funções...</p>
-                </div>
+                <PageLoader isFullScreen={false} />
             ) : roles.length === 0 ? (
                 <div className="p-4 text-center text-muted small">
                     <i className="mdi mdi-account-tie d-block font-size-24 mb-2"></i>
@@ -82,58 +82,65 @@ const RolesPage = ({ setBreadcrumbItems }) => {
     )
 
     // Render Main Content (Formulário)
-    const MainContent = (selectedId || isAddingNew) && formData ? (
-        <div>
-            {/* Header */}
-            <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5 className="mb-0">
-                    {formData.id ? 'Editar Função' : 'Nova Função'}
-                </h5>
-                <div className="d-flex gap-2">
-                    {formData.id && (
-                        <button
-                            className="btn btn-danger btn-sm"
-                            onClick={() => {
-                                setRoleToDelete(formData)
-                                setDeleteModalOpen(true)
-                            }}
-                            disabled={saving || deleting}
-                            title="Excluir Função"
-                        >
-                            <i className="mdi mdi-trash-can-outline"></i>
-                        </button>
-                    )}
-                    <button className="btn btn-secondary btn-sm" onClick={handleCancel} disabled={saving}>
-                        Cancelar
-                    </button>
-                    <ButtonLoader
-                        loading={saving}
-                        color="primary"
-                        size="sm"
-                        onClick={async () => {
-                            await handleSave(formData)
-                        }}
-                    >
-                        Salvar
-                    </ButtonLoader>
-                </div>
-            </div>
+    const MainContent = (
+        <div className="position-relative" style={{ minHeight: '400px' }}>
+            <OverlayLoader show={saving} label="Salvando função..." />
+            <OverlayLoader show={deleting} label="Excluindo função..." />
 
-            <RoleForm
-                value={formData}
-                onChange={setFormData}
-            />
-        </div>
-    ) : (
-        <div className="d-flex flex-column align-items-center justify-content-center h-100 text-muted" style={{ minHeight: '400px' }}>
-            <i className="mdi mdi-account-tie mb-3" style={{ fontSize: '5rem', opacity: 0.2 }}></i>
-            <h5 className="fw-bold">Gestão de Funções</h5>
-            <p className="text-center px-4" style={{ maxWidth: '300px' }}>
-                Selecione uma função na lista lateral para editar ou crie uma nova função.
-            </p>
-            <button className="btn btn-primary btn-sm mt-3 px-4 shadow" onClick={handleAddClick}>
-                Nova Função
-            </button>
+            {(selectedId || isAddingNew) && formData ? (
+                <div>
+                    {/* Header */}
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                        <h5 className="mb-0">
+                            {formData.id ? 'Editar Função' : 'Nova Função'}
+                        </h5>
+                        <div className="d-flex gap-2">
+                            {formData.id && (
+                                <button
+                                    className="btn btn-danger btn-sm"
+                                    onClick={() => {
+                                        setRoleToDelete(formData)
+                                        setDeleteModalOpen(true)
+                                    }}
+                                    disabled={saving || deleting}
+                                    title="Excluir Função"
+                                >
+                                    <i className="mdi mdi-trash-can-outline"></i>
+                                </button>
+                            )}
+                            <button className="btn btn-secondary btn-sm" onClick={handleCancel} disabled={saving}>
+                                Cancelar
+                            </button>
+                            <ButtonLoader
+                                loading={saving}
+                                color="primary"
+                                size="sm"
+                                onClick={async () => {
+                                    await handleSave(formData)
+                                }}
+                            >
+                                Salvar
+                            </ButtonLoader>
+                        </div>
+                    </div>
+
+                    <RoleForm
+                        value={formData}
+                        onChange={setFormData}
+                    />
+                </div>
+            ) : (
+                <div className="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
+                    <i className="mdi mdi-account-tie mb-3" style={{ fontSize: '5rem', opacity: 0.1 }}></i>
+                    <h5 className="fw-bold">Gestão de Funções</h5>
+                    <p className="text-center px-4" style={{ maxWidth: '300px' }}>
+                        Selecione uma função na lista lateral para editar ou crie uma nova função.
+                    </p>
+                    <button className="btn btn-primary btn-sm mt-3 px-4 shadow" onClick={handleAddClick}>
+                        Nova Função
+                    </button>
+                </div>
+            )}
         </div>
     )
 
@@ -145,7 +152,7 @@ const RolesPage = ({ setBreadcrumbItems }) => {
                 mainContent={MainContent}
                 onAddClick={handleAddClick}
                 addLabel="Nova Função"
-                isLoading={loading}
+                isLoading={loading && !isReady}
             />
 
             {/* Delete Confirmation Dialog */}

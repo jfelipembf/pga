@@ -7,13 +7,14 @@ import { toast } from 'react-toastify'
  * Hook para gerenciar a lógica de Contas Bancárias
  */
 export const useBankAccounts = () => {
-    const { idTenant, idBranch } = useTenant()
+    const { idTenant, idBranch, isReady } = useTenant()
     const [accounts, setAccounts] = useState([])
     const [loading, setLoading] = useState(true)
     const [selectedId, setSelectedId] = useState(null)
     const [isAddingNew, setIsAddingNew] = useState(false)
 
     const loadAccounts = useCallback(async () => {
+        if (!isReady) return;
         try {
             setLoading(true)
             const data = await BankAccountService.listAll(idTenant, idBranch)
@@ -24,7 +25,7 @@ export const useBankAccounts = () => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch])
+    }, [idTenant, idBranch, isReady])
 
     useEffect(() => {
         loadAccounts()
@@ -78,7 +79,7 @@ export const useBankAccounts = () => {
 
     return {
         accounts,
-        loading,
+        loading: loading || !isReady,
         selectedId,
         isAddingNew,
         selectedAccount,

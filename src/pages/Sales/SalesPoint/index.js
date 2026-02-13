@@ -6,7 +6,7 @@ import SalesReceiptModal from '../../../components/Common/SalesReceiptModal';
 import { useNavigate } from 'react-router-dom';
 import { useSalesPoint } from './hooks/useSalesPoint';
 import OverlayLoader from '../../../components/Common/OverlayLoader';
-import PageLoader from '../../../components/Common/PageLoader';
+
 
 /**
  * Página de Ponto de Venda.
@@ -17,7 +17,6 @@ const SalesPoint = () => {
 
     // Toda a lógica de estado e processamento extraída para o hook
     const {
-        isReady,
         clientName,
         activeTab,
         cartItems,
@@ -43,9 +42,6 @@ const SalesPoint = () => {
 
     // 1. Prevenir renderização parcial antes do contexto estar pronto ou dados iniciais carregados
     // Isso elimina o "flicker" de renderizar o esqueleto vazio antes de ter os dados.
-    if (!isReady || isLoadingData) {
-        return <PageLoader isFixed={false} />;
-    }
 
     return (
         <div style={{ position: 'relative', minHeight: '400px' }}>

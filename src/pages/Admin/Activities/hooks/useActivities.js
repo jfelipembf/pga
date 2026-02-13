@@ -10,7 +10,7 @@ import { useAuth } from '../../../../hooks/useAuth'
  * Segue o padrão do Financial/Payables
  */
 export const useActivities = () => {
-    const { idTenant, idBranch } = useTenant()
+    const { idTenant, idBranch, isReady } = useTenant()
 
     const { user } = useAuth()
 
@@ -35,6 +35,8 @@ export const useActivities = () => {
     }, [filterStatus])
 
     const loadActivities = useCallback(async (forceReload = false) => {
+        if (!isReady) return
+
         // Cache: verifica se precisa recarregar
         const now = Date.now()
         if (!forceReload && lastLoadTime && (now - lastLoadTime) < CACHE_DURATION) {
@@ -57,7 +59,7 @@ export const useActivities = () => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch, filterStatus, fetchLimit, lastLoadTime, CACHE_DURATION])
+    }, [idTenant, idBranch, isReady, filterStatus, fetchLimit, lastLoadTime, CACHE_DURATION])
 
     useEffect(() => {
         loadActivities()
@@ -287,7 +289,7 @@ export const useActivities = () => {
     return {
         idTenant,
         idBranch,
-        loading,
+        loading: loading || !isReady,
         saving,
         deleting,
         modal,

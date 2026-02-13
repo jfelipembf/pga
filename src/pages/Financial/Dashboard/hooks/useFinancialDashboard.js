@@ -93,7 +93,7 @@ export const useFinancialDashboard = () => {
     }, [loadDashboard]);
 
     return {
-        loading,
+        loading: loading || !isReady,
         data,
         chartData,
         refresh: loadDashboard

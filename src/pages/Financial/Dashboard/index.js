@@ -4,7 +4,7 @@ import Miniwidget from "../../Dashboard/Miniwidget"
 import { useFinancialDashboard } from "./hooks/useFinancialDashboard"
 import { formatCurrency } from "../../../utils/format"
 import { Line } from "react-chartjs-2"
-import PageLoader from "../../../components/Common/PageLoader"
+
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js'
 
 // PageLoader removed to follow incremental loading pattern
@@ -33,10 +33,6 @@ const FinancialDashboard = () => {
 
     const { data, chartData, loading } = useFinancialDashboard()
 
-    // Carregamento inicial com PageLoader
-    if (loading && !data) {
-        return <PageLoader />
-    }
 
     // KPIs Superiores
     const reports = [

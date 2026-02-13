@@ -141,7 +141,7 @@ export const useCashier = () => {
         };
 
         fetchTransactions();
-    }, [idTenant, idBranch, isReady, currentSession?.id, realSessions]); // realSessions deve disparar se houver novo caixa aberto
+    }, [idTenant, idBranch, isReady, currentSession, realSessions]); // realSessions deve disparar se houver novo caixa aberto
 
     useEffect(() => {
         loadData()
@@ -271,7 +271,7 @@ export const useCashier = () => {
         idBranch,
         user,
         userProfile,
-        loading,
+        loading: loading || !isReady,
         currentSession,
         setCurrentSession,
         activeSessions,

@@ -8,7 +8,7 @@ import GenericModal from "../../../components/Common/GenericModal"
 import { usePayables } from "./hooks/usePayables"
 import { formatCurrency } from "../../../utils/format"
 import { formatDate } from "../../../utils/date"
-import PageLoader from "../../../components/Common/PageLoader"
+
 
 import {
     PAYABLE_STATUS,
@@ -174,10 +174,6 @@ const PayablesPage = () => {
         }
     ], [handleEdit]);
 
-    // Adicionamos o PageLoader para o carregamento inicial
-    if (loading && filteredPayables.length === 0) {
-        return <PageLoader />
-    }
 
     return (
         <React.Fragment>

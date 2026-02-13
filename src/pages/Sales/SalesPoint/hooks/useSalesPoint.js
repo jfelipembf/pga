@@ -226,7 +226,7 @@ export const useSalesPoint = () => {
         cartItems,
         payments,
         isProcessing,
-        isLoadingData,
+        isLoadingData: isLoadingData || !isReady,
         data: {
             acquirers,
             contracts

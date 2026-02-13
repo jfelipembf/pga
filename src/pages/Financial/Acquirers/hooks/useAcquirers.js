@@ -8,7 +8,7 @@ import { ALL_MOCKS } from '../constants/AcquirerMocks'
  * Hook para gerenciar a lógica de Adquirentes (Máquinas de Cartão)
  */
 export const useAcquirers = () => {
-    const { idTenant, idBranch } = useTenant()
+    const { idTenant, idBranch, isReady } = useTenant()
 
     const [acquirers, setAcquirers] = useState([])
     const [loading, setLoading] = useState(true)
@@ -16,7 +16,7 @@ export const useAcquirers = () => {
     const [isAddingNew, setIsAddingNew] = useState(false)
 
     const loadAcquirers = useCallback(async () => {
-        if (!idTenant || !idBranch) return;
+        if (!isReady) return;
 
         try {
             setLoading(true)
@@ -52,7 +52,7 @@ export const useAcquirers = () => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch])
+    }, [idTenant, idBranch, isReady])
 
     useEffect(() => {
         loadAcquirers()
@@ -103,7 +103,7 @@ export const useAcquirers = () => {
 
     return {
         acquirers,
-        loading,
+        loading: loading || !isReady,
         selectedId,
         isAddingNew,
         selectedAcquirer,

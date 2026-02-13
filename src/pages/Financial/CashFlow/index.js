@@ -11,7 +11,7 @@ import { PAYMENT_METHOD_LABELS } from "../../../utils/constants"
 import "flatpickr/dist/themes/material_blue.css"
 import Flatpickr from "react-flatpickr"
 import { Portuguese } from "flatpickr/dist/l10n/pt.js"
-import PageLoader from "../../../components/Common/PageLoader"
+
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler)
 
@@ -93,10 +93,6 @@ const CashFlowPage = () => {
         }
     ], []);
 
-    // Adicionamos o PageLoader para o carregamento inicial
-    if (loading && transactions.length === 0) {
-        return <PageLoader />
-    }
 
     return (
         <React.Fragment>

@@ -1,7 +1,6 @@
 import React from "react"
 import PropTypes from "prop-types"
 import { Row, Col, Card, CardBody, Button } from "reactstrap"
-import PageLoader from "./PageLoader"
 
 const ManagementLayout = ({
     sidebarTitle,
@@ -11,7 +10,10 @@ const ManagementLayout = ({
     mainContent,
     isLoading
 }) => {
-    if (isLoading) return <PageLoader />
+    // We no longer return PageLoader here to prevent the full screen 'white flash' flicker.
+    // Child components or the sidebarContent/mainContent should handle their own subtle loading states.
+    // This allows the layout structure (Sidebar and Main Card) to remain visible while data is loading,
+    // matching the 'Incremental Loading' pattern of other modules.
 
     return (
         <React.Fragment>

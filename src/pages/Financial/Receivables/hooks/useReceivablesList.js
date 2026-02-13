@@ -215,7 +215,7 @@ export const useReceivablesList = () => {
 
     return {
         receivables,
-        isLoading,
+        isLoading: isLoading || !isReady,
         filteredData,
         kpis,
         selectedIds,

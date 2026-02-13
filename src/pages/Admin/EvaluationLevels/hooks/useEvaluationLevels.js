@@ -7,18 +7,18 @@ import { useAuth } from '../../../../hooks/useAuth'
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
 
 export const useEvaluationLevels = () => {
-    const { idTenant, idBranch } = useTenant()
+    const { idTenant, idBranch, isReady } = useTenant()
 
     const { user } = useAuth()
 
     const [levels, setLevels] = useState([])
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [deleting, setDeleting] = useState(false)
     const [lastLoadTime, setLastLoadTime] = useState(null)
 
     const loadLevels = useCallback(async (force = false) => {
-        if (!idTenant || !idBranch) return
+        if (!isReady) return
 
         const now = Date.now()
         if (!force && lastLoadTime && (now - lastLoadTime) < CACHE_DURATION) {
@@ -36,13 +36,13 @@ export const useEvaluationLevels = () => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch, lastLoadTime])
+    }, [idTenant, idBranch, isReady, lastLoadTime])
 
     useEffect(() => {
-        if (idTenant && idBranch) {
+        if (isReady) {
             loadLevels()
         }
-    }, [idTenant, idBranch, loadLevels])
+    }, [isReady, loadLevels])
 
     const handleSave = async (data) => {
         try {
@@ -129,7 +129,7 @@ export const useEvaluationLevels = () => {
 
     return {
         levels,
-        loading,
+        loading: loading || !isReady,
         saving,
         deleting,
         handleSave,

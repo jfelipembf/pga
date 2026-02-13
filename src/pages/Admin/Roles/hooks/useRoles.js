@@ -8,17 +8,17 @@ import { migrateRoles, getMigrationStats } from '../../../../utils/roleMigration
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
 
 export const useRoles = () => {
-    const { idTenant, idBranch } = useTenant()
+    const { idTenant, idBranch, isReady } = useTenant()
     const { user, updatePermissions } = useAuth()
 
     const [roles, setRoles] = useState([])
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [deleting, setDeleting] = useState(false)
     const [lastLoadTime, setLastLoadTime] = useState(null)
 
     const loadRoles = useCallback(async (force = false) => {
-        if (!idTenant || !idBranch) return
+        if (!isReady) return
 
         const now = Date.now()
         if (!force && lastLoadTime && (now - lastLoadTime) < CACHE_DURATION) {
@@ -62,13 +62,13 @@ export const useRoles = () => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch, user, lastLoadTime])
+    }, [idTenant, idBranch, isReady, user, lastLoadTime])
 
     useEffect(() => {
-        if (idTenant && idBranch) {
+        if (isReady) {
             loadRoles()
         }
-    }, [idTenant, idBranch, loadRoles])
+    }, [isReady, loadRoles])
 
     const handleSave = async (data) => {
         try {
@@ -133,7 +133,7 @@ export const useRoles = () => {
 
     return {
         filteredRoles: roles,
-        loading,
+        loading: loading || !isReady,
         saving,
         deleting,
         handleSave,

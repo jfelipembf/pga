@@ -25,7 +25,7 @@ const FinancialDashboard = React.lazy(() => import("../pages/Financial/Dashboard
 const CashierPage = React.lazy(() => import("../pages/Financial/Cashier/index"))
 const CashFlowPage = React.lazy(() => import("../pages/Financial/CashFlow/index"))
 const DREPage = React.lazy(() => import("../pages/Financial/DRE/index"))
-const ContractsList = React.lazy(() => import("../pages/Contracts/index"))
+const ContractsList = React.lazy(() => import("../pages/Admin/Contracts/index"))
 const AcquirersList = React.lazy(() => import("../pages/Financial/Acquirers/index"))
 const BankAccountsList = React.lazy(() => import("../pages/Financial/BankAccounts/index"))
 const PayablesList = React.lazy(() => import("../pages/Financial/Payables/index"))
@@ -37,8 +37,8 @@ const Grade = React.lazy(() => import("../pages/Grade/index"))
 const EnrollmentGrade = React.lazy(() => import("../pages/Grade/EnrollmentGrade/index"))
 const Evaluation = React.lazy(() => import("../pages/Evaluation/index"))
 const TrainingPlanning = React.lazy(() => import("../pages/TrainingPlanning/index"))
-const AutomationList = React.lazy(() => import("../pages/Automation/AutomationList"))
-const IntegrationPage = React.lazy(() => import("../pages/Integration/index"))
+const AutomationList = React.lazy(() => import("../pages/Management/Automation/index"))
+const IntegrationPage = React.lazy(() => import("../pages/Settings/Integration/index"))
 
 // CRM / MEMBERS
 const ClientsList = React.lazy(() => import("../pages/Clients/ClientList"))
@@ -52,19 +52,14 @@ const RolesPage = React.lazy(() => import("../pages/Admin/Roles/index"))
 const EvaluationLevelsPage = React.lazy(() => import("../pages/Admin/EvaluationLevels/index"))
 const StaffList = React.lazy(() => import("../pages/Admin/Staff/List"))
 const StaffProfile = React.lazy(() => import("../pages/Admin/Staff/StaffProfile"))
-const ClassesPage = React.lazy(() => import("../pages/Admin/Classes/index"))
+const ClassesPage = React.lazy(() => import("../pages/Management/Classes/index"))
 const CatalogPage = React.lazy(() => import("../pages/Admin/Catalog/index"))
-const EventsPage = React.lazy(() => import("../pages/Admin/Events/index"))
-const AuditLogsPage = React.lazy(() => import("../pages/Admin/AuditLogs/index"))
-const CompanySettings = React.lazy(() => import("../pages/Settings/Company/CompanySettings"))
+const EventsPage = React.lazy(() => import("../pages/Management/Events/index"))
+const AuditLogsPage = React.lazy(() => import("../pages/Management/AuditLogs/index"))
+const CompanySettings = React.lazy(() => import("../pages/Settings/Company"))
 
 // UTILITY / UI PAGES
-const Chat = React.lazy(() => import("../pages/Chat/Chat"))
-const Kanban = React.lazy(() => import("../pages/Kanban"))
 const UserProfile = React.lazy(() => import("../pages/Authentication/user-profile"))
-const EmailInbox = React.lazy(() => import("../pages/Email/email-inbox"))
-const EmailRead = React.lazy(() => import("../pages/Email/email-read"))
-const EmailCompose = React.lazy(() => import("../pages/Email/email-compose"))
 
 // AUTH PAGES
 const Login = React.lazy(() => import("../pages/Authentication/Login"))
@@ -140,12 +135,7 @@ export const HIDDEN_ROUTES = {
     // "/training-tv": { component: TrainingTVView },
     "/admin/staff/:id": { component: StaffProfile, permission: "staff_manage" },
     "/sales/new": { component: SalesPoint, permission: "sales_purchase" },
-    "/chat": { component: Chat },
-    "/kanbanboard": { component: Kanban },
     "/profile": { component: UserProfile },
-    "/email-inbox": { component: EmailInbox },
-    "/email-read": { component: EmailRead },
-    "/email-compose": { component: EmailCompose },
 }
 
 /**

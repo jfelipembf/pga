@@ -8,7 +8,7 @@ import { useAuth } from '../../../../hooks/useAuth'
  * Hook para gerenciar a lógica de Colaboradores (Staff)
  */
 export const useStaff = () => {
-    const { idTenant, idBranch } = useTenant()
+    const { idTenant, idBranch, isReady } = useTenant()
     const { user } = useAuth()
 
     const [staff, setStaff] = useState([])
@@ -22,6 +22,7 @@ export const useStaff = () => {
     const [searchTerm, setSearchTerm] = useState('')
 
     const loadStaff = useCallback(async () => {
+        if (!isReady) return
         try {
             setLoading(true)
 
@@ -39,7 +40,7 @@ export const useStaff = () => {
         } finally {
             setLoading(false)
         }
-    }, [idTenant, idBranch, filterStatus, filterRole, filterArea])
+    }, [idTenant, idBranch, isReady, filterStatus, filterRole, filterArea])
 
     useEffect(() => {
         loadStaff()

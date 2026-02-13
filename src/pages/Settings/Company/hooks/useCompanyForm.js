@@ -7,11 +7,30 @@ import { toast } from "react-toastify";
 import CompanyService from "../../../../services/Company/CompanyService";
 import { useTenant } from "../../../../hooks/useTenant";
 import { usePhotoUpload } from "../../../../hooks/usePhotoUpload";
-import { useAddressLookup } from "../../../../hooks/useAddressLookup";
-import { CompanySchema } from "../schemas/CompanySchema";
+import { CompanySchema } from "../../../../data/schemas/Company/CompanySchema";
+
+// Initial Values defined outside to have stable reference
+const initialValues = {
+    name: "",
+    openingDate: "",
+    email: "",
+    phone: "",
+    // Address
+    zipCode: "",
+    state: "",
+    city: "",
+    neighborhood: "",
+    street: "",
+    number: "",
+    complement: "",
+    // Managers
+    managers: [
+        { name: "", email: "", phone: "" }
+    ]
+};
 
 export const useCompanyForm = () => {
-    const { idTenant } = useTenant();
+    const { idTenant, isReady } = useTenant();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
@@ -22,26 +41,6 @@ export const useCompanyForm = () => {
         handlePhotoChange,
         updatePreview
     } = usePhotoUpload();
-
-    // Initial Values
-    const initialValues = {
-        name: "",
-        openingDate: "",
-        email: "",
-        phone: "",
-        // Address
-        zipCode: "",
-        state: "",
-        city: "",
-        neighborhood: "",
-        street: "",
-        number: "",
-        complement: "",
-        // Managers
-        managers: [
-            { name: "", email: "", phone: "" }
-        ]
-    };
 
     const formik = useFormik({
         initialValues,
@@ -62,6 +61,7 @@ export const useCompanyForm = () => {
                 };
 
                 await CompanyService.updateCompanyData(idTenant, companyData);
+                toast.success("Dados da empresa salvos com sucesso!");
             } catch (error) {
                 console.error("Error saving company data:", error);
                 toast.error("Erro ao salvar dados da empresa.");
@@ -71,16 +71,10 @@ export const useCompanyForm = () => {
         }
     });
 
-    // Address Hook (passing formik instance)
-    const {
-        handleCepBlur: handleCepBlurHook,
-        isLoadingCep
-    } = useAddressLookup(formik);
-
     // Fetch existing data
     useEffect(() => {
         const fetchData = async () => {
-            if (!idTenant) return;
+            if (!isReady) return;
             setLoading(true);
             try {
                 const data = await CompanyService.getCompanyData(idTenant);
@@ -101,17 +95,11 @@ export const useCompanyForm = () => {
             }
         };
 
-        fetchData();
-    }, [idTenant, updatePreview]);
-
-    // Wrapper for CEP blur to ensure formik blur is also called if needed, 
-    // although useAddressLookup might not call formik.handleBlur(e) directly on event, check implementation?
-    // Implementation: handleCepBlur(e) takes event, but updates fields directly. 
-    // Usually we want formik.handleBlur(e) to mark field as touched.
-    const handleCepBlur = (e) => {
-        formik.handleBlur(e);
-        handleCepBlurHook(e);
-    };
+        if (isReady) {
+            fetchData();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [idTenant, updatePreview, isReady]);
 
     return {
         formik,
@@ -119,9 +107,6 @@ export const useCompanyForm = () => {
         saving,
         // Photo
         photoPreview: preview,
-        handlePhotoChange,
-        // Address
-        handleCepBlur,
-        isLoadingCep
+        handlePhotoChange
     };
 };

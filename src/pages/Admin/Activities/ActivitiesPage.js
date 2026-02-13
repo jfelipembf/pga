@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react"
 import { connect } from "react-redux"
-import { Spinner } from "reactstrap"
 import { setBreadcrumbItems } from "../../../store/actions"
 import { useActivities } from "./hooks/useActivities"
 import { useActivityForm } from "./hooks/useActivityForm"
@@ -9,9 +8,13 @@ import ButtonLoader from "../../../components/Common/ButtonLoader"
 import { ActivityForm, ActivityObjectives, ActivityListItem } from "./Components"
 import ConfirmDialog from "../../../components/Common/ConfirmDialog"
 import { transformObjectivesToArray, hasObjectives } from "./utils/objectivesTransform"
+import PageLoader from "../../../components/Common/PageLoader"
+import OverlayLoader from "../../../components/Common/OverlayLoader"
+import { useTenant } from "../../../hooks/useTenant"
 
 const ActivitiesPage = ({ setBreadcrumbItems }) => {
     document.title = "Gestão de Atividades | PGA Admin"
+    const { isReady } = useTenant()
 
     const {
         filteredActivities: activities,
@@ -62,12 +65,9 @@ const ActivitiesPage = ({ setBreadcrumbItems }) => {
 
     // Render Sidebar Content (Lista)
     const SidebarContent = (
-        <div>
+        <div className="position-relative" style={{ minHeight: '300px' }}>
             {loading && activities.length === 0 ? (
-                <div className="text-center p-4">
-                    <Spinner size="sm" color="primary" />
-                    <p className="mt-2 mb-0 text-muted small">Carregando atividades...</p>
-                </div>
+                <PageLoader isFullScreen={false} />
             ) : activities.length === 0 ? (
                 <div className="p-4 text-center text-muted small">
                     <i className="mdi mdi-run d-block font-size-24 mb-2"></i>
@@ -86,92 +86,97 @@ const ActivitiesPage = ({ setBreadcrumbItems }) => {
     )
 
     // Render Main Content (Formulário)
-    const MainContent = (selectedId || isAddingNew) && formData ? (
-        <div>
-            <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5 className="mb-0">{formData.id ? 'Editar Atividade' : 'Nova Atividade'}</h5>
-                <div className="d-flex gap-2">
-                    {formData.id && (
-                        <button
-                            className="btn btn-danger btn-sm"
-                            onClick={() => {
-                                setActivityToDelete(formData)
-                                setDeleteModalOpen(true)
-                            }}
-                            disabled={saving || deleting}
-                            title="Excluir Atividade"
-                        >
-                            <i className="mdi mdi-trash-can-outline"></i>
-                        </button>
-                    )}
-                    <button className="btn btn-secondary btn-sm" onClick={handleCancel} disabled={saving}>
-                        Cancelar
-                    </button>
-                    <ButtonLoader
-                        loading={saving}
-                        color="primary"
-                        size="sm"
-                        onClick={async () => {
-                            // Salvar dados básicos da atividade (sem objectives)
-                            const { objectives, ...activityData } = formData
-                            const dataToSave = { ...activityData, photoFile }
-                            await handleSave(dataToSave, objectives)
-                            // Não fecha o formulário após salvar - permite continuar editando
-                        }}
-                    >
-                        Salvar
-                    </ButtonLoader>
-                </div>
-            </div>
+    const MainContent = (
+        <div className="position-relative" style={{ minHeight: '400px' }}>
+            <OverlayLoader show={saving} label="Salvando atividade..." />
+            <OverlayLoader show={deleting} label="Excluindo atividade..." />
 
-            <ActivityForm
-                value={formData}
-                onChange={setFormData}
-                photoPreview={photoPreview}
-                onPhotoChange={handlePhotoChange}
-            />
-
-            {formData.id && (
-                <div className="mt-4">
-                    {!hasObjectives(formData.objectives) ? (
-                        <div className="alert alert-info">
-                            <i className="mdi mdi-information-outline me-2"></i>
-                            Esta atividade ainda não possui objetivos cadastrados.
-                            {formData.name && ` Use o sistema antigo para adicionar objetivos à atividade "${formData.name}".`}
+            {(selectedId || isAddingNew) && formData ? (
+                <div>
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                        <h5 className="mb-0">{formData.id ? 'Editar Atividade' : 'Nova Atividade'}</h5>
+                        <div className="d-flex gap-2">
+                            {formData.id && (
+                                <button
+                                    className="btn btn-danger btn-sm"
+                                    onClick={() => {
+                                        setActivityToDelete(formData)
+                                        setDeleteModalOpen(true)
+                                    }}
+                                    disabled={saving || deleting}
+                                    title="Excluir Atividade"
+                                >
+                                    <i className="mdi mdi-trash-can-outline"></i>
+                                </button>
+                            )}
+                            <button className="btn btn-secondary btn-sm" onClick={handleCancel} disabled={saving}>
+                                Cancelar
+                            </button>
+                            <ButtonLoader
+                                loading={saving}
+                                color="primary"
+                                size="sm"
+                                onClick={async () => {
+                                    const { objectives, ...activityData } = formData
+                                    const dataToSave = { ...activityData, photoFile }
+                                    await handleSave(dataToSave, objectives)
+                                }}
+                            >
+                                Salvar
+                            </ButtonLoader>
                         </div>
-                    ) : (
-                        <ActivityObjectives
-                            objectives={transformObjectivesToArray(formData.objectives)}
-                            onChange={(updatedObjectives) => {
-                                setFormData({ ...formData, objectives: updatedObjectives })
-                            }}
-                        />
+                    </div>
+
+                    <ActivityForm
+                        value={formData}
+                        onChange={setFormData}
+                        photoPreview={photoPreview}
+                        onPhotoChange={handlePhotoChange}
+                    />
+
+                    {formData.id && (
+                        <div className="mt-4">
+                            {!hasObjectives(formData.objectives) ? (
+                                <div className="alert alert-info">
+                                    <i className="mdi mdi-information-outline me-2"></i>
+                                    Esta atividade ainda não possui objetivos cadastrados.
+                                    {formData.name && ` Use o sistema antigo para adicionar objetivos à atividade "${formData.name}".`}
+                                </div>
+                            ) : (
+                                <ActivityObjectives
+                                    objectives={transformObjectivesToArray(formData.objectives)}
+                                    onChange={(updatedObjectives) => {
+                                        setFormData({ ...formData, objectives: updatedObjectives })
+                                    }}
+                                />
+                            )}
+                        </div>
                     )}
+                </div>
+            ) : (
+                <div className="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
+                    <i className="mdi mdi-run mb-3" style={{ fontSize: '5rem', opacity: 0.1 }}></i>
+                    <h5 className="fw-bold">Gestão de Atividades</h5>
+                    <p className="text-center px-4" style={{ maxWidth: '300px' }}>
+                        Selecione uma atividade na lista lateral para editar ou crie uma nova atividade.
+                    </p>
+                    <button className="btn btn-primary btn-sm mt-3 px-4 shadow" onClick={handleAddClick}>
+                        Nova Atividade
+                    </button>
                 </div>
             )}
-        </div>
-    ) : (
-        <div className="d-flex flex-column align-items-center justify-content-center h-100 text-muted" style={{ minHeight: '400px' }}>
-            <i className="mdi mdi-run mb-3" style={{ fontSize: '5rem', opacity: 0.2 }}></i>
-            <h5 className="fw-bold">Gestão de Atividades</h5>
-            <p className="text-center px-4" style={{ maxWidth: '300px' }}>
-                Selecione uma atividade na lista lateral para editar ou crie uma nova atividade.
-            </p>
-            <button className="btn btn-primary btn-sm mt-3 px-4 shadow" onClick={handleAddClick}>
-                Nova Atividade
-            </button>
         </div>
     )
 
     return (
         <React.Fragment>
             <ManagementLayout
-                sidebarTitle="Minhas Atividades"
+                sidebarTitle="Atividades da Unidade"
                 sidebarContent={SidebarContent}
                 mainContent={MainContent}
                 onAddClick={handleAddClick}
                 addLabel="Nova Atividade"
-                isLoading={loading}
+                isLoading={loading && !isReady}
             />
 
             {/* Delete Confirmation Dialog */}
