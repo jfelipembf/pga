@@ -5,7 +5,7 @@ import { connect } from "react-redux"
 import GradeHeader from "./Components/GradeHeader"
 import GradeGrid from "./Components/GradeGrid"
 import AttendanceModal from "./Components/AttendanceModal"
-import { getStartOfWeek } from "../../utils/sharedUtils"
+import { getStartOfWeek } from "../../utils/date"
 import { setBreadcrumbItems } from "../../store/actions"
 import { useGradeData } from "./Hooks/useGradeData"
 // Removed direct service imports as they are used in the hook

@@ -5,7 +5,7 @@ import {
     getStartOfWeek,
     normalizeDate,
     minutesToTime,
-} from "../../../utils/sharedUtils"
+} from "../../../utils/date"
 import { buildVisibleMinutes, isWithinTurn, occursOnDate } from "../Utils/gridUtils"
 
 export const useGradeGrid = ({

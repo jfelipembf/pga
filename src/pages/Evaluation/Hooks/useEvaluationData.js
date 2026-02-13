@@ -4,7 +4,7 @@ import { ClassService, SessionService } from "../../../services/Classes"
 import { listActivities, listAreas, listStaff } from "../../../services/Admin"
 import { useLoading } from "../../../hooks/useLoading"
 import { useTenant } from "../../../hooks/useTenant"
-import { getStartOfWeek, addDays } from "../../../utils/sharedUtils"
+import { getStartOfWeek, addDays } from "../../../utils/date"
 import { SessionMapper } from "../../../services/Classes/SessionMapper"
 
 export const useEvaluationData = (referenceDate) => {

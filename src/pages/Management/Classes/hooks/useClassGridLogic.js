@@ -4,7 +4,7 @@ import {
     getStartOfWeek,
     addDays,
     format
-} from "../../../../utils/sharedUtils"
+} from "../../../../utils/date"
 
 export const useClassGridLogic = ({ data, formState, setFormState, referenceDate }) => {
 

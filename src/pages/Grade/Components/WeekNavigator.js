@@ -6,7 +6,7 @@ import {
   getStepForView,
   formatRangeLabel,
   getStartOfWeek
-} from "../../../utils/sharedUtils"
+} from "../../../utils/date"
 
 const WeekNavigator = ({ referenceDate, view, onReferenceDateChange }) => {
   const step = getStepForView(view)

@@ -7,7 +7,7 @@ import {
   CardHeader,
 } from "reactstrap"
 import GradeEventCard from "./GradeEventCard"
-import { formatDate } from "../../../utils/sharedUtils"
+import { formatDate } from "../../../utils/date"
 
 const formatHeaderDate = formatDate // Use centralized function
 

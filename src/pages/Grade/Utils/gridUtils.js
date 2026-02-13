@@ -1,5 +1,5 @@
 import { GRID_END_MINUTES, GRID_START_MINUTES, isMinutesInTurn } from "../Constants"
-import { timeToMinutes, toISODate, parseFirestoreDate } from "../../../utils/sharedUtils"
+import { timeToMinutes, toISODate, parseFirestoreDate } from "../../../utils/date"
 
 export const isWithinTurn = (turn, startTime) => {
   const m = timeToMinutes(startTime)

@@ -1,5 +1,5 @@
 import React from "react"
-import { timeToMinutes, minutesToTime } from "../../../../../../utils/sharedUtils"
+import { timeToMinutes, minutesToTime } from "../../../../../../utils/date"
 
 export const useScheduleFormHandlers = ({
   values,

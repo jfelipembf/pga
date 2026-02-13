@@ -6,7 +6,7 @@ import {
   formatDayHeaderLabel,
   toISODate,
   isSameDay,
-} from "../../../utils/sharedUtils"
+} from "../../../utils/date"
 import GradeEventCard from "./GradeEventCard"
 
 import { useGradeGrid } from "../Hooks/useGradeGrid"

@@ -22,8 +22,10 @@ export const formatDate = (date, format = 'date') => {
 
     if (format === 'time') return m.format('HH:mm');
     if (format === 'datetime' || format === 'full') return m.format('DD/MM/YYYY HH:mm');
+    if (format === 'date') return m.format('DD/MM/YYYY');
 
-    return m.format('DD/MM/YYYY');
+    // Se o formato não for uma keyword conhecida, usa como string de formatação do Moment
+    return m.format(format);
 };
 
 /**
@@ -92,7 +94,7 @@ export const normalizeDate = (date) => {
         return moment(date).toDate();
     }
 
-    // Fallback usando moment
+    // Fallback using moment
     const m = moment(date);
     return m.isValid() ? m.toDate() : null;
 };
@@ -125,3 +127,99 @@ export const formatDateDisplay = (date, options = {}) => {
         return formatDate(date);
     }
 };
+
+// ============================================================================
+// Funcionalidades migradas de sharedUtils.js (Centralização)
+// ============================================================================
+
+/**
+ * Converte string de hora (HH:mm) para minutos totais.
+ * @param {string} timeString 
+ * @returns {number}
+ */
+export const timeToMinutes = (timeString) => {
+    if (!timeString) return 0
+    const [hours, minutes] = timeString.split(':').map(Number)
+    return (hours * 60) + (minutes || 0)
+}
+
+/**
+ * Converte minutos totais para string de hora (HH:mm).
+ * @param {number} minutes 
+ * @returns {string}
+ */
+export const minutesToTime = (minutes) => {
+    if (!minutes && minutes !== 0) return ''
+    const hours = Math.floor(minutes / 60)
+    const mins = minutes % 60
+    return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`
+}
+
+export const addDays = (date, days) => {
+    return moment(date).add(days, 'days').toDate()
+}
+
+/**
+ * Parses generic ISO string to Date object
+ * (Wrapper for normalizeDate, kept for compatibility if needed or alias)
+ */
+export const parseISO = (dateString) => {
+    return normalizeDate(dateString)
+}
+
+/**
+ * Alias for formatDate to support custom format string directly
+ * (Since formatDate now supports custom patterns)
+ */
+export const format = (date, formatString) => {
+    return formatDate(date, formatString)
+}
+
+export const getDay = (date) => {
+    return moment(date).day()
+}
+
+export const isSameDay = (date1, date2) => {
+    return moment(date1).isSame(moment(date2), 'day')
+}
+
+// Retorna sempre o Domingo anterior (ou o próprio dia se for domingo), independente do locale.
+export const getStartOfWeek = (date) => {
+    const m = moment(date)
+    const day = m.day() // 0 = Domingo, 1 = Segunda...
+    return m.clone().subtract(day, 'days').startOf('day').toDate()
+}
+
+// Deprecated alias for normalizeDate (from sharedUtils)
+export const parseFirestoreDate = normalizeDate;
+
+export const getStepForView = (view) => {
+    switch (view) {
+        case 'day': return 1
+        case 'week': return 7
+        case 'month': return 30
+        default: return 7
+    }
+}
+
+export const formatRangeLabel = (startDate, endDate, view) => {
+    // Ensure inputs are parsed correctly whether they are Dates or strings
+    const start = moment(startDate instanceof Date ? startDate : String(startDate))
+    const end = moment(endDate instanceof Date ? endDate : String(endDate))
+
+    if (!start.isValid() || !end.isValid()) return ''
+
+    if (view === 'day') {
+        return start.format('DD/MM/YYYY')
+    }
+
+    if (view === 'week') {
+        return `${start.format('DD/MM')} - ${end.format('DD/MM/YYYY')}`
+    }
+
+    return `${start.format('MMM/YYYY')}`
+}
+
+export const formatDayHeaderLabel = (date) => {
+    return moment(date).format('ddd DD/MM')
+}

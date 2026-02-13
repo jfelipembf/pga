@@ -8,7 +8,7 @@ import { SessionMapper } from "../../../services/Classes/SessionMapper"
 import { ActivityService } from "../../../services/Admin/ActivityService"
 import { AreaService } from "../../../services/Admin/AreaService"
 import { StaffService } from "../../../services/Admin/StaffService"
-import { getStartOfWeek, addDays } from "../../../utils/sharedUtils"
+import { getStartOfWeek, addDays } from "../../../utils/date"
 import { toast } from "react-toastify"
 
 export const useGradeData = (referenceDate) => {

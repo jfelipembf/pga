@@ -6,7 +6,7 @@ import { toast } from "react-toastify"
 
 import GradeHeader from "../Components/GradeHeader"
 import GradeGrid from "../Components/GradeGrid"
-import { getStartOfWeek } from "../../../utils/sharedUtils"
+import { getStartOfWeek } from "../../../utils/date"
 import { setBreadcrumbItems } from "../../../store/actions"
 import { useGradeData } from "../Hooks/useGradeData"
 // PageLoader removed
