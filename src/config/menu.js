@@ -24,7 +24,7 @@ export const MENU_STRUCTURE = [
         subItems: [
             { label: "Operacional", path: "/dashboard-operational", permission: "dashboards_operational_view" },
             { label: "Gerencial", path: "/dashboard-management", permission: "dashboards_management_view" },
-            // { label: "Financeiro", path: "/dashboard-financial", permission: "dashboards_financial_view" },
+            { label: "Financeiro", path: "/dashboard-financial", permission: "dashboards_financial_view" },
             { label: "Professor", path: "/dashboard-teacher", permission: "dashboards_teacher_view" },
         ]
     },
