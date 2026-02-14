@@ -1,94 +1,111 @@
-import React from "react"
-import { Row, Col } from "reactstrap"
-import Miniwidget from "./Miniwidget"
-import { useGeneralDashboard } from "./hooks/useGeneralDashboard"
-import { formatCurrency } from "../../utils/format"
-import PageLoader from "../../components/Common/PageLoader"
+import React, { useState } from "react"
+import { Row, Col, Nav, NavItem, NavLink, TabContent, TabPane } from "reactstrap"
+import classnames from "classnames"
 
-import YearlyComparisonChart from "./montly-earnings2"
+// Import Dashboards
+import ManagementDashboard from "./Management"
+import OperationalDashboard from "./Operational"
+import FinancialDashboard from "./Financial"
+import TeacherDashboard from "./Teacher"
 
 const Dashboard = () => {
-  document.title = "Dashboard Geral | PGA Admin"
+  document.title = "Dashboard | PGA Admin"
 
-  const { loading, data } = useGeneralDashboard('manager')
+  const [activeTab, setActiveTab] = useState("1")
 
-  if (loading) {
-    return <PageLoader />
+  const toggle = tab => {
+    if (activeTab !== tab) setActiveTab(tab)
   }
-
-  // O PageLoader de tela cheia foi removido para permitir que a estrutura da página
-  // apareça imediatamente. Os widgets abaixo já tratam o carregamento individualmente.
-
-  // Organizando os cards desejados: 3 por linha
-  const reports = [
-    {
-      title: "Vendas (Mês)",
-      iconClass: "calendar-month",
-      total: loading ? "..." : formatCurrency(data?.sales?.month || 0),
-      growth: data?.sales?.growth, // Comparativo calculado no backend
-      desc: " vs mês passado"
-    },
-    {
-      title: "Alunos Ativos",
-      iconClass: "account-group",
-      total: loading ? "..." : (data?.students?.active || 0),
-      growth: data?.studentsGrowth?.active,
-      desc: " vs mês passado"
-    },
-    {
-      title: "Novas Matrículas",
-      iconClass: "account-plus",
-      total: loading ? "..." : (data?.students?.new || 0),
-      growth: data?.studentsGrowth?.new,
-      desc: " vs mês passado"
-    },
-    {
-      title: "Renovações",
-      iconClass: "autorenew",
-      total: loading ? "..." : (data?.students?.renewals || 0),
-      growth: data?.studentsGrowth?.renewals,
-      desc: " vs mês passado"
-    },
-    {
-      title: "Cancelamentos",
-      iconClass: "account-remove",
-      total: loading ? "..." : (data?.students?.canceled || 0),
-      growth: data?.studentsGrowth?.canceled,
-      // Para cancelamentos, crescimento positivo é ruim (danger), negativo é bom (success) - Ajustar lógica no Miniwidget futuramente se desejar cores invertidas
-      desc: " vs mês passado"
-    },
-    {
-      title: "Suspensos",
-      iconClass: "pause-circle-outline",
-      total: loading ? "..." : (data?.students?.suspended || 0),
-      growth: data?.studentsGrowth?.suspended,
-      desc: " vs mês passado"
-    }
-  ];
 
   return (
     <React.Fragment>
-      {/* 
-          Exibindo os cards com colSize=4. 
-          O sistema de grid do Bootstrap automaticamente quebrará a linha a cada 3 cards (4+4+4 = 12).
-      */}
-      <Miniwidget reports={reports} colSize={4} />
+      <Row>
+        <Col lg={12}>
+          <Nav className="mb-4">
+            <NavItem>
+              <NavLink
+                className={classnames({ active: activeTab === "1" })}
+                onClick={() => { toggle("1") }}
+                style={{
+                  cursor: "pointer",
+                  border: "none",
+                  borderBottom: activeTab === "1" ? "4px solid #466a8f" : "4px solid transparent",
+                  backgroundColor: "transparent",
+                  color: activeTab === "1" ? "#466a8f" : "#495057",
+                  fontWeight: activeTab === "1" ? "600" : "400"
+                }}
+              >
+                <i className="mdi mdi-home-variant d-sm-none"></i>
+                <span className="d-none d-sm-block">Gerencial</span>
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink
+                className={classnames({ active: activeTab === "2" })}
+                onClick={() => { toggle("2") }}
+                style={{
+                  cursor: "pointer",
+                  border: "none",
+                  borderBottom: activeTab === "2" ? "4px solid #466a8f" : "4px solid transparent",
+                  backgroundColor: "transparent",
+                  color: activeTab === "2" ? "#466a8f" : "#495057",
+                  fontWeight: activeTab === "2" ? "600" : "400"
+                }}
+              >
+                <i className="mdi mdi-account-group d-sm-none"></i>
+                <span className="d-none d-sm-block">Operacional</span>
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink
+                className={classnames({ active: activeTab === "3" })}
+                onClick={() => { toggle("3") }}
+                style={{
+                  cursor: "pointer",
+                  border: "none",
+                  borderBottom: activeTab === "3" ? "4px solid #466a8f" : "4px solid transparent",
+                  backgroundColor: "transparent",
+                  color: activeTab === "3" ? "#466a8f" : "#495057",
+                  fontWeight: activeTab === "3" ? "600" : "400"
+                }}
+              >
+                <i className="mdi mdi-cash-multiple d-sm-none"></i>
+                <span className="d-none d-sm-block">Financeiro</span>
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink
+                className={classnames({ active: activeTab === "4" })}
+                onClick={() => { toggle("4") }}
+                style={{
+                  cursor: "pointer",
+                  border: "none",
+                  borderBottom: activeTab === "4" ? "4px solid #466a8f" : "4px solid transparent",
+                  backgroundColor: "transparent",
+                  color: activeTab === "4" ? "#466a8f" : "#495057",
+                  fontWeight: activeTab === "4" ? "600" : "400"
+                }}
+              >
+                <i className="mdi mdi-school d-sm-none"></i>
+                <span className="d-none d-sm-block">Professor</span>
+              </NavLink>
+            </NavItem>
+          </Nav>
 
-      <Row className="mt-4">
-        <Col lg={6}>
-          <YearlyComparisonChart
-            title="Alunos Ativos - Últimos 3 Anos"
-            series={data?.charts?.seriesStudents || []}
-            colors={['#34c38f', '#556ee6', '#f1b44c']}
-          />
-        </Col>
-        <Col lg={6}>
-          <YearlyComparisonChart
-            title="Vendas - Últimos 3 Anos"
-            series={data?.charts?.seriesSales || []}
-            colors={['#556ee6', '#f1b44c', '#34c38f']}
-            tooltipFormatter={formatCurrency}
-          />
+          <TabContent activeTab={activeTab} className="text-muted">
+            <TabPane tabId="1">
+              <ManagementDashboard />
+            </TabPane>
+            <TabPane tabId="2">
+              <OperationalDashboard />
+            </TabPane>
+            <TabPane tabId="3">
+              <FinancialDashboard />
+            </TabPane>
+            <TabPane tabId="4">
+              <TeacherDashboard />
+            </TabPane>
+          </TabContent>
         </Col>
       </Row>
     </React.Fragment>

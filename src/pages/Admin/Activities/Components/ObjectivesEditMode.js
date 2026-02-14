@@ -67,26 +67,52 @@ const ObjectivesEditMode = ({
                         {obj.topics.map((topic, tIndex) => (
                             <Row
                                 key={topic.id}
-                                className="g-1 align-items-center"
+                                className="g-2 align-items-center mb-2"
                                 draggable
                                 onDragStart={() => dragHandlers.handleDragStart("topic", topic.id, obj.id)}
                                 onDragOver={e => dragHandlers.handleTopicDragOver(e, obj.id, topic.id)}
                                 onDragEnd={dragHandlers.resetDrag}
                                 style={{ cursor: "grab" }}
                             >
-                                <Col xs="3" sm="2" md="2" lg="1">
+                                <Col xs="auto" style={{ width: '50px' }}>
                                     <Badge color="light" className="text-dark w-100">
                                         {index + 1}.{tIndex + 1}
                                     </Badge>
                                 </Col>
-                                <Col xs="7" sm="8" md="9" lg="10">
+                                <Col>
                                     <Input
                                         value={topic.description}
-                                        onChange={e => updateTopic(obj.id, topic.id, e.target.value)}
+                                        onChange={e => updateTopic(obj.id, topic.id, 'description', e.target.value)}
                                         placeholder="Descrição do tópico"
                                     />
                                 </Col>
-                                <Col xs="2" sm="2" md="1" className="text-end d-flex align-items-center justify-content-end gap-1">
+                                <Col xs="auto" className="d-flex align-items-center">
+                                    <Col xs="auto" className="d-flex align-items-center mb-0">
+                                        <div
+                                            className="form-check custom-checkbox mb-0 d-flex align-items-center"
+                                            title="Item fundamental para aprovação de nível"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                updateTopic(obj.id, topic.id, 'isFundamental', !topic.isFundamental);
+                                            }}
+                                            onMouseDown={e => e.stopPropagation()}
+                                            style={{ cursor: 'pointer' }}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                className="form-check-input"
+                                                id={`fund-${topic.id}`}
+                                                checked={!!topic.isFundamental}
+                                                onChange={() => { }} // Controlled by wrapper onClick
+                                                style={{ cursor: 'pointer', width: '1.2rem', height: '1.2rem', marginTop: 0 }}
+                                            />
+                                            <label className="form-check-label ms-2 small fw-bold mb-0" htmlFor={`fund-${topic.id}`} style={{ cursor: 'pointer', lineHeight: '1.2rem' }}>
+                                                Fund.
+                                            </label>
+                                        </div>
+                                    </Col>
+                                </Col>
+                                <Col xs="auto" className="text-end d-flex align-items-center justify-content-end gap-1">
                                     <Button
                                         color="link"
                                         className="px-1 text-secondary"

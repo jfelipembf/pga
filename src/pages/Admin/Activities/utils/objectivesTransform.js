@@ -30,6 +30,7 @@ const transformTopicsToArray = (topics) => {
         .map(([topicKey, topic]) => ({
             id: topic.idTopic || topicKey,
             description: topic.description || '',
+            isFundamental: !!topic.isFundamental,
             order: topic.order || 0
         }))
         .sort((a, b) => a.order - b.order)

@@ -52,11 +52,11 @@ const ActivityObjectives = ({ objectives: externalObjectives = [], onChange, rea
     )
   }, [updateObjectives])
 
-  const updateTopic = useCallback((objId, topicId, description) => {
+  const updateTopic = useCallback((objId, topicId, field, value) => {
     updateObjectives(prev =>
       prev.map(o =>
         o.id === objId
-          ? { ...o, topics: o.topics.map(t => (t.id === topicId ? { ...t, description } : t)) }
+          ? { ...o, topics: o.topics.map(t => (t.id === topicId ? { ...t, [field]: value } : t)) }
           : o
       )
     )
@@ -67,7 +67,9 @@ const ActivityObjectives = ({ objectives: externalObjectives = [], onChange, rea
       <CardHeader className="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
           <h5 className="mb-0">Objetivos e tópicos</h5>
-          <p className="text-muted mb-0 small">Visualize ou edite a estrutura da atividade.</p>
+          <p className="text-muted mb-0 small">
+            Marque como <strong>Fundamental</strong> os tópicos obrigatórios para aprovação de nível.
+          </p>
         </div>
 
         {!readOnly && (
