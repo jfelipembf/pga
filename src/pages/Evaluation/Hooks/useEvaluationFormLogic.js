@@ -2,13 +2,14 @@ import { useState, useMemo, useEffect } from "react"
 import { useTenant } from "../../../hooks/useTenant"
 import { useLoading } from "../../../hooks/useLoading"
 import { EvaluationLevelService } from "../../../services/Admin/EvaluationLevelService"
-import { useActiveClientsPool } from "./useActiveClientsPool"
+import { useActiveClientsPool } from "../../../hooks/useActiveClientsPool"
 import { useClassClients } from "./useClassClients"
 import { EventService } from "../../../services/Events/EventService"
 
 export const useEvaluationFormLogic = ({ classId }) => {
     const { idTenant, idBranch, isReady } = useTenant()
-    const { isLoading, anyLoading, withLoading } = useLoading()
+    const { isLoading, withLoading } = useLoading()
+    const anyLoading = isLoading()
     const [extraClients, setExtraClients] = useState([])
     const [searchText, setSearchText] = useState("")
     const [excludedClientIds, setExcludedClientIds] = useState(() => new Set())

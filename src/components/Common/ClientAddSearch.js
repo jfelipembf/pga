@@ -37,6 +37,7 @@ const ClientAddSearch = ({
                 </span>
                 <Input
                     type="text"
+                    name="headerClientSearch"
                     className="form-control border-start-0 ps-0"
                     placeholder={placeholder}
                     value={value}
@@ -44,6 +45,7 @@ const ClientAddSearch = ({
                     onFocus={() => setShowDropdown(true)}
                     onBlur={handleBlur}
                     disabled={disabled}
+                    autoComplete="off"
                 />
             </div>
 

@@ -118,10 +118,12 @@ const BasicTable = ({
                         {!hideSearch && (
                             <Input
                                 type="text"
+                                name="tableSearch"
                                 placeholder={searchPlaceholder}
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                                 style={{ minWidth: 220 }}
+                                autoComplete="off"
                             />
                         )}
                         {!hideNew && (

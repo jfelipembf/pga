@@ -1,23 +1,25 @@
+// Assuming standard relative import if needed
+// This file likely imports sub-components or hooks.
+// Let's verify its imports first with view_file or assume we fix them later when needed.
+// However, I need to update index.js first.
+// I will rewrite index.js to use the new sidebar and updated paths.
 import React, { useMemo, useState, useEffect } from "react"
-import { Col, Row, Nav, NavItem, NavLink, Input, Button } from "reactstrap"
+import { Col, Row, Button } from "reactstrap"
 import { useLocation } from "react-router-dom"
-import classnames from "classnames"
 import moment from "moment"
-
-import ClassBar from "../Grade/Components/ClassBar"
-
-import EvaluationCard from "./Components/evaluationCard"
-// import TestCard from "./Components/TestCard" // TODO: Migrate TestCard
-import { useEvaluationData } from "./Hooks/useEvaluationData"
-import { mapSessionsToEvaluationSchedules } from "./Utils/mappers"
-import { toISODate, normalizeDate } from "../../utils/date"
-
-// PageLoader removed
-
-// import { getActiveTestEvent } from "../../services/Events/events.service" // TODO: Create Events Service
-
 import { connect } from "react-redux"
 import { setBreadcrumbItems } from "../../store/actions"
+
+import { EvaluationSidebar } from "./components/EvaluationSidebar"
+import EvaluationCard from "./components/EvaluationCard"
+import { useEvaluationData } from "./hooks/useEvaluationData"
+import { mapSessionsToEvaluationSchedules } from "./utils/mappers"
+import { toISODate, normalizeDate } from "../../utils/date"
+
+// Local Helpers need to be kept or moved.
+// For simplicity, I'll keep them in index for now or extract to utils.
+// Let's keep existing logic in index but use the new component.
+
 
 // Local Helpers to avoid circular dependencies with Grade module
 const isWithinTurn = (turn, startTime) => {
@@ -122,55 +124,18 @@ const EvaluationPage = ({ setBreadcrumbItems }) => {
     <div className="container-fluid p-0 p-md-2">
       <Row className="g-2 g-md-4">
         <Col xs="12" md="3" lg="3" className={selectedSchedule ? "d-none d-md-block" : ""}>
-          <Nav pills className="mb-3 nav-justified bg-light p-1 rounded shadow-sm">
-            <NavItem>
-              <NavLink
-                active={activeTab === "technical"}
-                onClick={() => setActiveTab("technical")}
-                style={{ cursor: "pointer" }}
-                className={classnames({ "bg-white text-primary shadow-sm": activeTab === "technical" })}
-              >
-                <i className="mdi mdi-medal-outline me-1"></i>
-                Avaliação
-              </NavLink>
-            </NavItem>
-            <NavItem>
-              <NavLink
-                active={activeTab === "performance"}
-                onClick={() => setActiveTab("performance")}
-                style={{ cursor: "pointer" }}
-                className={classnames({ "bg-white text-primary shadow-sm": activeTab === "performance" })}
-              >
-                <i className="mdi mdi-timer-outline me-1"></i>
-                Testes
-              </NavLink>
-            </NavItem>
-          </Nav>
-
-          <div className="mb-3">
-            <Input
-              type="select"
-              value={selectedStaffId}
-              onChange={(e) => setSelectedStaffId(e.target.value)}
-              className="form-select border-0 shadow-sm"
-              style={{ backgroundColor: "#f8f9fa", fontWeight: "500" }}
-            >
-              <option value="">Todos os Professores</option>
-              {instructors.map(inst => (
-                <option key={inst.id} value={inst.id}>
-                  {inst.name || `${inst.firstName || ""} ${inst.lastName || ""}`.trim()}
-                </option>
-              ))}
-            </Input>
-          </div>
-          <ClassBar
-            date={currentDate}
-            onPrevDay={handlePrevDay}
-            onNextDay={handleNextDay}
-            schedules={todaySchedules}
-            emptyLabel="Nenhuma aula encontrada para este dia."
-            onScheduleSelect={setSelectedSchedule}
-            selectedId={selectedSchedule?.id}
+          <EvaluationSidebar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            selectedStaffId={selectedStaffId}
+            setSelectedStaffId={setSelectedStaffId}
+            instructors={instructors}
+            currentDate={currentDate}
+            handlePrevDay={handlePrevDay}
+            handleNextDay={handleNextDay}
+            todaySchedules={todaySchedules}
+            selectedSchedule={selectedSchedule}
+            setSelectedSchedule={setSelectedSchedule}
           />
         </Col>
 

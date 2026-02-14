@@ -2,10 +2,10 @@ import React from "react"
 import PropTypes from "prop-types"
 import { Button, Input, Col, Row, Alert, Badge } from "reactstrap"
 
-import { useActivityObjectivesTopics } from "../Hooks/useActivityObjectivesTopics"
-import { useEvaluationDraft } from "../Hooks/useEvaluationDraft"
-import { useTestFormLogic } from "../Hooks/useTestFormLogic"
-import { useSaveEvaluations } from "../Hooks/useSaveEvaluations"
+import { useActivityObjectivesTopics } from "../hooks/useActivityObjectivesTopics"
+import { useEvaluationDraft } from "../hooks/useEvaluationDraft"
+import { useTestFormLogic } from "../hooks/useTestFormLogic"
+import { useSaveEvaluations } from "../hooks/useSaveEvaluations"
 import LevelDropdown from "../../Grade/Components/LevelDropdown"
 import ButtonLoader from "../../../components/Common/ButtonLoader"
 // import CenterLoader from "../../../components/Common/CenterLoader" // Removed
@@ -13,7 +13,7 @@ import ButtonLoader from "../../../components/Common/ButtonLoader"
 import OverlayLoader from "../../../components/Common/OverlayLoader"
 // import { useToast } from "../../../components/Common/ToastProvider" // Removed
 
-import { PLACEHOLDER_AVATAR as placeholderAvatar } from "../Constants/evaluationDefaults"
+import { PLACEHOLDER_AVATAR as placeholderAvatar } from "../constants/evaluationDefaults"
 
 const EvaluationForm = ({
   classId,
@@ -81,7 +81,7 @@ const EvaluationForm = ({
     withLoading
   })
 
-  const { saveAll: saveEvaluations, sendEvaluationToClient } = useSaveEvaluations({
+  const { saveAll: saveEvaluations, sendEvaluationToClient, sendAllEvaluations, sendingStatus } = useSaveEvaluations({
     idActivity,
     classId,
     clients: allClients,
@@ -391,17 +391,28 @@ const EvaluationForm = ({
         )}
 
         {/* Footer com botões de ação */}
-        <div className="d-flex justify-content-end mt-4 pt-3 border-top">
+        <div className="d-flex justify-content-end mt-4 pt-3 border-top gap-2">
           {isTechnicalTab ? (
-            <ButtonLoader
-              color="success"
-              onClick={saveEvaluations}
-              loading={isLoading("saveAll")}
-              disabled={isLoading("saveAll") || objectives.length === 0 || evaluationDirtyCount === 0 || !activeEvent}
-              className="px-4 shadow-sm"
-            >
-              <i className="mdi mdi-check-all me-2" /> Salvar
-            </ButtonLoader>
+            <>
+              <Button
+                color="success"
+                outline
+                onClick={sendAllEvaluations}
+                disabled={isLoading("saveAll") || objectives.length === 0 || !activeEvent || evaluationClients.length === 0}
+                className="px-4 shadow-sm d-flex align-items-center"
+              >
+                <i className="mdi mdi-whatsapp me-2" /> Enviar Todos
+              </Button>
+              <ButtonLoader
+                color="success"
+                onClick={saveEvaluations}
+                loading={isLoading("saveAll")}
+                disabled={isLoading("saveAll") || objectives.length === 0 || evaluationDirtyCount === 0 || !activeEvent}
+                className="px-4 shadow-sm"
+              >
+                <i className="mdi mdi-check-all me-2" /> Salvar
+              </ButtonLoader>
+            </>
           ) : (
             <ButtonLoader
               color="primary"
@@ -415,6 +426,47 @@ const EvaluationForm = ({
           )}
         </div>
       </div>
+
+      {/* Modal de Progresso do Envio em Massa */}
+      {sendingStatus.loading && (
+        <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 9999 }}>
+          <div className="bg-white rounded shadow-lg p-4" style={{ maxWidth: '400px', width: '90%' }}>
+            <div className="text-center mb-4">
+              <div className="avatar-md mx-auto mb-3">
+                <span className="avatar-title rounded-circle bg-soft-success text-success font-size-24">
+                  <i className="mdi mdi-whatsapp"></i>
+                </span>
+              </div>
+              <h5 className="font-size-16 fw-bold mb-1">Enviando Avaliações</h5>
+              <p className="text-muted mb-0">Por favor, aguarde...</p>
+            </div>
+
+            <div className="mb-3">
+              <div className="d-flex justify-content-between font-size-13 mb-1">
+                <span className="fw-medium">{sendingStatus.step}</span>
+                <span>{sendingStatus.progress}%</span>
+              </div>
+              <div className="progress progress-sm rounded-pill">
+                <div
+                  className="progress-bar bg-success"
+                  role="progressbar"
+                  style={{ width: `${sendingStatus.progress}%`, transition: 'width 0.3s ease' }}
+                  aria-valuenow={sendingStatus.progress}
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                ></div>
+              </div>
+            </div>
+
+            {sendingStatus.currentClientName && (
+              <div className="text-center small text-muted mt-2">
+                Processando: <strong>{sendingStatus.currentClientName}</strong>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

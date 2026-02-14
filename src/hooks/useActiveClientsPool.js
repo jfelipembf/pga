@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
-import { useTenant } from "../../../hooks/useTenant"
-import { ClientService } from "../../../services/Clients/ClientService"
+import { useTenant } from "./useTenant"
+import { ClientService } from "../services/Clients/ClientService"
 
 export const useActiveClientsPool = ({ enabled }) => {
     const { idTenant, idBranch, isReady } = useTenant()

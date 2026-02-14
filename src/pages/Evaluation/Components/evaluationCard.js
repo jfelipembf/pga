@@ -1,8 +1,8 @@
 import React from "react"
 import PropTypes from "prop-types"
 import { Card, CardBody, CardHeader, Badge } from "reactstrap"
-import EvaluationForm from "./evaluationForm"
-import { useEvaluationFormLogic } from "../Hooks/useEvaluationFormLogic"
+import EvaluationForm from "./EvaluationForm"
+import { useEvaluationFormLogic } from "../hooks/useEvaluationFormLogic"
 import ClientAddSearch from "../../../components/Common/ClientAddSearch"
 
 const EvaluationCard = ({ schedule, activeMode = "technical" }) => {

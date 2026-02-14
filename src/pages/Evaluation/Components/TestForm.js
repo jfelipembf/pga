@@ -6,10 +6,10 @@ import { toast } from "react-toastify"
 const saveTestResult = async () => ({})
 const getTestResultsByEvent = async () => []
 
-import { useEvaluationFormLogic } from "../Hooks/useEvaluationFormLogic"
-import { PLACEHOLDER_AVATAR as placeholderAvatar } from "../Constants/evaluationDefaults"
+import { useEvaluationFormLogic } from "../../Hooks/useEvaluationFormLogic"
+import { PLACEHOLDER_AVATAR as placeholderAvatar } from "../../Constants/evaluationDefaults"
 import InputMask from "react-input-mask"
-import ButtonLoader from "../../../components/Common/ButtonLoader"
+import ButtonLoader from "../../Common/ButtonLoader"
 
 
 const TestForm = ({ testEvent, classId }) => {

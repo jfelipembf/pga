@@ -4,7 +4,7 @@ import {
     Modal, ModalHeader, ModalBody, ModalFooter,
     Button, Input, ListGroup, ListGroupItem, Spinner
 } from 'reactstrap';
-import { useActiveClientsPool } from '../../Evaluation/Hooks/useActiveClientsPool';
+import { useActiveClientsPool } from '../../../hooks/useActiveClientsPool';
 import OverlayLoader from '../../../components/Common/OverlayLoader';
 
 const StudentSelectorModal = ({ isOpen, toggle, onSend, workout }) => {
