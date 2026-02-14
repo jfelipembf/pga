@@ -117,7 +117,7 @@ export const useSaveEvaluations = ({
     ])
 
     // Função Interna Reutilizável de Envio
-    const processEvaluationMessage = async (client) => {
+    const processEvaluationMessage = useCallback(async (client) => {
         const clientId = String(client.id)
 
         // 1. Buscar histórico real do aluno
@@ -259,7 +259,8 @@ export const useSaveEvaluations = ({
         })
 
         return { success: true }
-    }
+    }, [idTenant, idBranch, idActivity, allTopicIds, topicMetaById, draftLevelsByTopicId, levels, activeEventId])
+
 
     // Envio Individual (Botão ao lado do aluno)
     const sendEvaluationToClient = useCallback(async (client) => {
@@ -340,7 +341,7 @@ export const useSaveEvaluations = ({
                 setSendingStatus(prev => ({ ...prev, loading: false, step: '', progress: 0 }))
             }, 2000)
         }
-    }, [idActivity, clients, excludedIds, processEvaluationMessage])
+    }, [clients, excludedIds, processEvaluationMessage])
 
 
     return { saveAll, sendEvaluationToClient, sendAllEvaluations, sendingStatus }

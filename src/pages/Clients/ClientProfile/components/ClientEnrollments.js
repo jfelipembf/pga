@@ -8,7 +8,7 @@ import { ENROLLMENT_STATUS_CONFIG } from '../../../../data/schemas/Clients/Enrol
 import { EnrollmentService } from '../../../../services/Clients/EnrollmentService'
 import { toast } from 'react-toastify'
 import ConfirmDialog from '../../../../components/Common/ConfirmDialog'
-import { WEEKDAY_LABELS } from '../../../../utils/constants'
+import { WEEKDAY_LABELS, WEEKDAY_SHORT_LABELS } from '../../../../utils/constants'
 
 const ClientEnrollments = ({ client }) => {
     const navigate = useNavigate()
@@ -32,7 +32,7 @@ const ClientEnrollments = ({ client }) => {
 
         // Se for array (ex: [1, 3, 5])
         if (Array.isArray(weekday)) {
-            return weekday.map(d => WEEKDAY_LABELS[d] || d).join(', ');
+            return weekday.map(d => WEEKDAY_SHORT_LABELS[d] || d).join(', ');
         }
 
         // Se for valor único (ex: "1" ou 1)

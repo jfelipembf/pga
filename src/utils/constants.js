@@ -111,13 +111,33 @@ export const WEEKDAYS = {
 
 export const WEEKDAY_LABELS = {
     [WEEKDAYS.SUNDAY]: 'Domingo',
-    [WEEKDAYS.MONDAY]: 'Segunda',
-    [WEEKDAYS.TUESDAY]: 'Terça',
-    [WEEKDAYS.WEDNESDAY]: 'Quarta',
-    [WEEKDAYS.THURSDAY]: 'Quinta',
-    [WEEKDAYS.FRIDAY]: 'Sexta',
+    [WEEKDAYS.MONDAY]: 'Segunda-feira',
+    [WEEKDAYS.TUESDAY]: 'Terça-feira',
+    [WEEKDAYS.WEDNESDAY]: 'Quarta-feira',
+    [WEEKDAYS.THURSDAY]: 'Quinta-feira',
+    [WEEKDAYS.FRIDAY]: 'Sexta-feira',
     [WEEKDAYS.SATURDAY]: 'Sábado'
 }
+
+export const WEEKDAY_SHORT_LABELS = {
+    [WEEKDAYS.SUNDAY]: 'Dom',
+    [WEEKDAYS.MONDAY]: 'Seg',
+    [WEEKDAYS.TUESDAY]: 'Ter',
+    [WEEKDAYS.WEDNESDAY]: 'Qua',
+    [WEEKDAYS.THURSDAY]: 'Qui',
+    [WEEKDAYS.FRIDAY]: 'Sex',
+    [WEEKDAYS.SATURDAY]: 'Sáb'
+}
+
+export const WEEKDAY_OPTIONS = [
+    { value: WEEKDAYS.SUNDAY, label: 'Domingo' },
+    { value: WEEKDAYS.MONDAY, label: 'Segunda' },
+    { value: WEEKDAYS.TUESDAY, label: 'Terça' },
+    { value: WEEKDAYS.WEDNESDAY, label: 'Quarta' },
+    { value: WEEKDAYS.THURSDAY, label: 'Quinta' },
+    { value: WEEKDAYS.FRIDAY, label: 'Sexta' },
+    { value: WEEKDAYS.SATURDAY, label: 'Sábado' }
+]
 
 export const MONTHS = [
     { value: 0, label: "Janeiro" },
