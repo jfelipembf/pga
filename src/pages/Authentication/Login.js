@@ -11,7 +11,7 @@ import PropTypes from "prop-types";
 
 import { useFormik } from "formik";
 import withRouter from 'components/Common/withRouter';
-import { loginSchema } from '../../validations/authSchemas';
+import { LoginSchema } from '../../data/schemas/Auth/AuthSchema';
 
 // actions
 import { loginUser } from "../../store/actions";
@@ -29,7 +29,7 @@ const Login = props => {
       email: "admin@themesbrand.com" || '',
       password: "123456" || '',
     },
-    validationSchema: loginSchema,
+    validationSchema: LoginSchema,
     onSubmit: (values) => {
       const { idTenant, idBranch } = props.router.params;
       dispatch(loginUser({ ...values, idTenant, idBranch }, props.router.navigate));

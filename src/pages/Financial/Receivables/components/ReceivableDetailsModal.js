@@ -1,8 +1,8 @@
 import React from 'react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Row, Col, Badge } from 'reactstrap';
-import { formatDate } from '../../../utils/date';
-import { formatCurrency } from '../../../utils/format';
-import { PAYMENT_METHOD_LABELS } from '../../../utils/constants';
+import { formatDate } from '../../../../utils/date';
+import { formatCurrency } from '../../../../utils/format';
+import { PAYMENT_METHOD_LABELS } from '../../../../utils/constants';
 const getMethodLabel = (id) => PAYMENT_METHOD_LABELS[id] || id || '-';
 
 const ReceivableDetailsModal = ({ isOpen, toggle, receivable }) => {
@@ -10,7 +10,7 @@ const ReceivableDetailsModal = ({ isOpen, toggle, receivable }) => {
 
     return (
         <Modal isOpen={isOpen} toggle={toggle} centered size="md">
-            <ModalHeader toggle={toggle} className="bg-primary text-white">
+            <ModalHeader toggle={toggle}>
                 Detalhes do Título
             </ModalHeader>
             <ModalBody className="p-4">

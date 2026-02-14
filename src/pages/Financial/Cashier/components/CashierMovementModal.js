@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { Modal, ModalHeader, ModalBody, Label, Input, FormFeedback, Row, Col } from 'reactstrap'
 import ButtonLoader from "../../../../components/Common/ButtonLoader"
 import { useFormik } from 'formik'
-import { cashierMovementSchema } from '../../../../validations/financialSchemas'
+import { CashierMovementSchema } from '../../../../data/schemas/Financial/CashierSessionSchema'
 
 export const CashierMovementModal = ({ isOpen, toggle, onSave, type }) => {
     const isIncome = type === 'income'
@@ -15,7 +15,7 @@ export const CashierMovementModal = ({ isOpen, toggle, onSave, type }) => {
             description: '',
             notes: ''
         },
-        validationSchema: cashierMovementSchema,
+        validationSchema: CashierMovementSchema,
         onSubmit: (values) => {
             onSave({
                 ...values,

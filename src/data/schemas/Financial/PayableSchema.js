@@ -37,3 +37,10 @@ export const PayableSchema = Yup.object().shape({
 
     attachments: Yup.array().of(Yup.string()).nullable() // URLs de arquivos
 })
+
+export const PayablePaymentSchema = Yup.object({
+    paymentDate: Yup.date().required('Data obrigatória'),
+    amountPaid: Yup.number().positive('Valor deve ser positivo').required('Obrigatório'),
+    paymentMethod: Yup.string().required('Selecione a forma de pagamento'),
+    idBankAccount: Yup.string().required('Selecione a conta de destino')
+});

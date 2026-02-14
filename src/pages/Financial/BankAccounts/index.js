@@ -1,58 +1,70 @@
 import React from "react"
 import ManagementLayout from "../../../components/Common/ManagementLayout"
-import { BankAccountFormVisual } from "./BankAccountFormVisual"
-import { BankAccountListItem } from "./BankAccountListItem"
-import { useBankAccounts } from "./hooks/useBankAccounts"
-import PageLoader from "../../../components/Common/PageLoader"
+import { useBankAccountData } from "./hooks/useBankAccountData"
+import { useBankAccountOperations } from "./hooks/useBankAccountOperations"
+import { useBankAccountSelection } from "./hooks/useBankAccountSelection"
+import { BankAccountList } from "./components/BankAccountList"
+import { BankAccountForm } from "./components/BankAccountForm"
 import { useTenant } from "../../../hooks/useTenant"
 
-const BankAccountList = () => {
+const BankAccountsPage = () => {
     document.title = "Contas Bancárias | PGA Admin"
     const { isReady } = useTenant()
 
+    // 1. Data Hook
+    const { accounts, loading, refresh } = useBankAccountData()
+
+    // 2. Selection Hook
     const {
-        accounts,
-        loading,
         selectedId,
         isAddingNew,
         selectedAccount,
         handleAddClick,
         handleItemClick,
-        handleSave,
-        handleDelete
-    } = useBankAccounts()
+        clearSelection
+    } = useBankAccountSelection(accounts)
 
-    // Sidebar Content
+    // 3. Operations Hook
+    const { createAccount, updateAccount, deleteAccount } = useBankAccountOperations({
+        onSuccess: () => {
+            refresh()
+            clearSelection()
+        }
+    })
+
+    // Handlers
+    const handleSave = async (data) => {
+        if (selectedAccount) {
+            await updateAccount(selectedAccount.id, data)
+        } else {
+            await createAccount(data)
+        }
+    }
+
+    const handleDeleteClick = async () => {
+        if (selectedAccount) {
+            await deleteAccount(selectedAccount.id)
+        }
+    }
+
+    // Layout
     const SidebarContent = (
-        <div className="position-relative" style={{ minHeight: '300px' }}>
-            {loading && accounts.length === 0 ? (
-                <PageLoader isFullScreen={false} />
-            ) : accounts.length === 0 ? (
-                <div className="p-3 text-center text-muted small">
-                    <i className="mdi mdi-bank-off-outline d-block font-size-24 mb-2"></i>
-                    Nenhuma conta cadastrada.
-                </div>
-            ) : null}
-            {accounts.map(item => (
-                <BankAccountListItem
-                    key={item.id}
-                    account={item}
-                    active={selectedId === item.id}
-                    onClick={() => handleItemClick(item)}
-                />
-            ))}
-        </div>
+        <BankAccountList
+            accounts={accounts}
+            loading={loading}
+            selectedId={selectedId}
+            onSelect={handleItemClick}
+        />
     )
 
-    // Main Content
     const MainContent = (
         <div className="position-relative" style={{ minHeight: '400px' }}>
             {(selectedId || isAddingNew) ? (
-                <BankAccountFormVisual
+                <BankAccountForm
                     initialData={selectedAccount}
                     onSave={handleSave}
-                    onCancel={() => { }}
-                    onDelete={selectedAccount ? () => handleDelete(selectedAccount.id) : undefined}
+                    onCancel={clearSelection}
+                    onDelete={selectedAccount ? handleDeleteClick : undefined}
                 />
             ) : (
                 <div className="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
@@ -81,4 +93,4 @@ const BankAccountList = () => {
     )
 }
 
-export default BankAccountList
+export default BankAccountsPage

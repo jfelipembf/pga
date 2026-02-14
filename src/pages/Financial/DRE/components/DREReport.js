@@ -2,7 +2,7 @@ import React, { useMemo } from 'react'
 import { Card, CardBody, Table, Progress } from 'reactstrap'
 import { formatCurrency } from '../../../../utils/format'
 
-export const CashFlowDRE = ({ transactions, periodLabel }) => {
+export const DREReport = ({ transactions, periodLabel }) => {
 
     const dreData = useMemo(() => {
         const data = {

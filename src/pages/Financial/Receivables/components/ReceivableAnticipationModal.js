@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, ModalHeader, ModalBody, Button, Row, Col, Label, Input, Alert, Table } from 'reactstrap';
-import ButtonLoader from '../../../components/Common/ButtonLoader';
-import { formatCurrency } from '../../../utils/format';
-import { bankAccountRepository } from '../../../data/repositories/BankAccountRepository';
-import { useTenant } from '../../../hooks/useTenant';
-import moment from 'moment';
-import { formatDate } from '../../../utils/date';
+import ButtonLoader from '../../../../components/Common/ButtonLoader';
+import { formatCurrency } from '../../../../utils/format';
+import { bankAccountRepository } from '../../../../data/repositories/BankAccountRepository';
+import { useTenant } from '../../../../hooks/useTenant';
+import { formatDate } from '../../../../utils/date';
 
 const ReceivableAnticipationModal = ({ isOpen, toggle, selectedReceivables, onAnticipate }) => {
     const { idTenant, idBranch } = useTenant();
@@ -57,8 +56,8 @@ const ReceivableAnticipationModal = ({ isOpen, toggle, selectedReceivables, onAn
 
     return (
         <Modal isOpen={isOpen} toggle={toggle} centered size="lg">
-            <ModalHeader toggle={toggle} className="bg-primary text-white">
-                <i className="mdi mdi-flash me-2"></i> Antecipação de Recebíveis
+            <ModalHeader toggle={toggle}>
+                Antecipação de Recebíveis
             </ModalHeader>
             <ModalBody className="p-4">
                 <Alert color="info" className="border-0 shadow-sm mb-4">
@@ -131,16 +130,17 @@ const ReceivableAnticipationModal = ({ isOpen, toggle, selectedReceivables, onAn
                 </div>
 
                 <div className="d-flex justify-content-end gap-2">
-                    <Button color="light" onClick={toggle} disabled={loading}>Cancelar</Button>
+                    <Button color="light" onClick={toggle} disabled={loading} size="sm">Cancelar</Button>
                     <ButtonLoader
                         color="primary"
-                        className="px-4 fw-bold shadow-sm"
+                        className="fw-bold"
                         onClick={handleSubmit}
                         disabled={loading || !idBankAccount}
                         loading={loading}
                         loadingText="Processando..."
+                        size="sm"
                     >
-                        CONFIRMAR ANTECIPAÇÃO DE {formatCurrency(totalNet)}
+                        Confirmar
                     </ButtonLoader>
                 </div>
             </ModalBody>

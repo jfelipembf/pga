@@ -2,7 +2,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Modal, ModalBody, Button } from 'reactstrap';
 import { useReactToPrint } from 'react-to-print';
-import moment from 'moment';
 import { formatDate } from '../../utils/date';
 import { useTenant } from '../../hooks/useTenant';
 import CompanyService from '../../services/Company/CompanyService';

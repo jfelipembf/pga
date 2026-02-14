@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { Modal, ModalHeader, ModalBody, Label, Input } from 'reactstrap'
 import { useFormik } from 'formik'
-import { cashierCloseSchema } from '../../../../validations/financialSchemas'
+import { CashierCloseSchema } from '../../../../data/schemas/Financial/CashierSessionSchema'
 import { formatCurrency } from '../../../../utils/format'
 import ButtonLoader from '../../../../components/Common/ButtonLoader'
 import { FormFeedback } from 'reactstrap'
@@ -9,7 +9,7 @@ import { FormFeedback } from 'reactstrap'
 const CashierCloseModal = ({ isOpen, toggle, onConfirm, expectedBalance }) => {
     const formik = useFormik({
         initialValues: { actualBalance: '', notes: '' },
-        validationSchema: cashierCloseSchema,
+        validationSchema: CashierCloseSchema,
         onSubmit: async (values) => {
             await onConfirm(values)
         }

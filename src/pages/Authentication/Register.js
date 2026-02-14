@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 // Formik Validation
 import { useFormik } from "formik";
-import { registerSchema } from '../../validations/authSchemas';
+import { RegisterSchema } from '../../data/schemas/Auth/AuthSchema';
 
 import logoDark from "../../assets/images/pgaLogo.png";
 import logoLight from "../../assets/images/pgaLogo.png";
@@ -32,7 +32,7 @@ const Register = props => {
       username: '',
       password: '',
     },
-    validationSchema: registerSchema,
+    validationSchema: RegisterSchema,
     onSubmit: (values) => {
       dispatch(registerUser(values));
     }

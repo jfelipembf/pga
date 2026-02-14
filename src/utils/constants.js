@@ -118,3 +118,39 @@ export const WEEKDAY_LABELS = {
     [WEEKDAYS.FRIDAY]: 'Sexta',
     [WEEKDAYS.SATURDAY]: 'Sábado'
 }
+
+export const MONTHS = [
+    { value: 0, label: "Janeiro" },
+    { value: 1, label: "Fevereiro" },
+    { value: 2, label: "Março" },
+    { value: 3, label: "Abril" },
+    { value: 4, label: "Maio" },
+    { value: 5, label: "Junho" },
+    { value: 6, label: "Julho" },
+    { value: 7, label: "Agosto" },
+    { value: 8, label: "Setembro" },
+    { value: 9, label: "Outubro" },
+    { value: 10, label: "Novembro" },
+    { value: 11, label: "Dezembro" }
+];
+
+export const BANK_OPTIONS = [
+    { value: '341', label: '341 - Itaú Unibanco' },
+    { value: '001', label: '001 - Banco do Brasil' },
+    { value: '237', label: '237 - Bradesco' },
+    { value: '033', label: '033 - Santander' },
+    { value: '104', label: '104 - Caixa Econômica' },
+    { value: '260', label: '260 - Nubank' },
+    { value: '077', label: '077 - Inter' },
+    { value: '999', label: '999 - Outro Banco' }
+];
+
+export const BANK_NAMES = {
+    '341': 'Itaú Unibanco',
+    '001': 'Banco do Brasil',
+    '237': 'Bradesco',
+    '033': 'Santander',
+    '104': 'Caixa Econômica',
+    '260': 'Nubank',
+    '077': 'Inter'
+};

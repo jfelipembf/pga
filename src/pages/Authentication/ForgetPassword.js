@@ -10,7 +10,7 @@ import withRouter from 'components/Common/withRouter';
 // Formik Validation
 
 import { useFormik } from "formik";
-import { forgotPasswordSchema } from '../../validations/authSchemas';
+import { ForgotPasswordSchema } from '../../data/schemas/Auth/AuthSchema';
 
 // action
 import { userForgetPassword } from "../../store/actions";
@@ -27,7 +27,7 @@ const ForgetPasswordPage = props => {
     initialValues: {
       email: '',
     },
-    validationSchema: forgotPasswordSchema,
+    validationSchema: ForgotPasswordSchema,
     onSubmit: (values) => {
       dispatch(userForgetPassword(values, props.history));
     }

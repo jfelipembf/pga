@@ -1,4 +1,5 @@
 import * as Yup from 'yup'
+import { PAYMENT_METHODS } from '../../../utils/constants'
 
 /**
  * Schema para Contas a Receber (Receivables)
@@ -56,3 +57,20 @@ export const ReceivableSchema = Yup.object().shape({
     createdAt: Yup.date().default(() => new Date()),
     updatedAt: Yup.date().default(() => new Date())
 })
+
+export const ReceivableSettlementSchema = Yup.object({
+    settlementDate: Yup.date().required('Data obrigatória'),
+    amountReceived: Yup.number().positive('Valor deve ser positivo').required('Obrigatório'),
+    paymentMethod: Yup.string().required('Selecione a forma de pagamento'),
+    idBankAccount: Yup.string().required('Selecione a conta de destino'),
+    provider: Yup.string().when('paymentMethod', {
+        is: (val) => [PAYMENT_METHODS.CREDIT_CARD, PAYMENT_METHODS.DEBIT_CARD].includes(val),
+        then: (schema) => schema.required('Selecione a adquirente'),
+        otherwise: (schema) => schema.nullable()
+    }),
+    brand: Yup.string().when('paymentMethod', {
+        is: (val) => [PAYMENT_METHODS.CREDIT_CARD, PAYMENT_METHODS.DEBIT_CARD].includes(val),
+        then: (schema) => schema.required('Selecione a bandeira'),
+        otherwise: (schema) => schema.nullable()
+    })
+});

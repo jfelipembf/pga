@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Modal, ModalHeader, ModalBody, Button, Row, Col, Label, Input, FormFeedback, Alert } from 'reactstrap';
-import { FormSwitch } from '../../../components/Common/FormSwitch';
-import ButtonLoader from '../../../components/Common/ButtonLoader';
-import CurrencyInput from '../../../components/Common/CurrencyInput';
+import { FormSwitch } from '../../../../components/Common/FormSwitch';
+import ButtonLoader from '../../../../components/Common/ButtonLoader';
+import CurrencyInput from '../../../../components/Common/CurrencyInput';
 import { useFormik } from 'formik';
-import { receivableSettlementSchema } from '../../../validations/financialSchemas';
-import { formatCurrency } from '../../../utils/format';
-import { bankAccountRepository } from '../../../data/repositories/BankAccountRepository';
-import { AcquirerService } from '../../../services/Financial/AcquirerService';
-import { PAYMENT_METHODS } from '../../../utils/constants';
-import { useTenant } from '../../../hooks/useTenant';
+import { ReceivableSettlementSchema } from '../../../../data/schemas/Financial/ReceivableSchema';
+import { formatCurrency } from '../../../../utils/format';
+import { bankAccountRepository } from '../../../../data/repositories/BankAccountRepository';
+import { AcquirerService } from '../../../../services/Financial/AcquirerService';
+import { PAYMENT_METHODS } from '../../../../utils/constants';
+import { useTenant } from '../../../../hooks/useTenant';
 
 const ReceivableSettlementModal = ({ isOpen, toggle, receivable, onSettle }) => {
     const { idTenant, idBranch } = useTenant();
@@ -51,7 +51,7 @@ const ReceivableSettlementModal = ({ isOpen, toggle, receivable, onSettle }) => 
             keepRemainingOpen: false
         },
         enableReinitialize: true,
-        validationSchema: receivableSettlementSchema,
+        validationSchema: ReceivableSettlementSchema,
         onSubmit: (values) => {
             onSettle({
                 ...values,
@@ -332,15 +332,16 @@ const ReceivableSettlementModal = ({ isOpen, toggle, receivable, onSettle }) => 
                     </Row>
 
                     <div className="d-flex justify-content-end gap-2 mt-4">
-                        <Button color="light" onClick={toggle}>Cancelar</Button>
+                        <Button color="light" onClick={toggle} size="sm">Cancelar</Button>
                         <ButtonLoader
                             type="submit"
                             color="primary"
-                            className="px-5 fw-bold btn-lg"
+                            className="fw-bold"
                             loading={formik.isSubmitting}
                             loadingText="Processando..."
+                            size="sm"
                         >
-                            <i className="mdi mdi-check-circle-outline me-1"></i> CONFIRMAR BAIXA
+                            Confirmar Baixa
                         </ButtonLoader>
                     </div>
                 </form>

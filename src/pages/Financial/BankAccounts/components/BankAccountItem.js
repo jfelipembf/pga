@@ -1,7 +1,7 @@
 import React from "react"
 import { Badge } from "reactstrap"
 
-export const BankAccountListItem = ({ account, active, onClick }) => {
+export const BankAccountItem = ({ account, active, onClick }) => {
     return (
         <div
             className={`d-flex align-items-center p-3 border-bottom cursor-pointer ${active ? 'bg-light' : ''}`}

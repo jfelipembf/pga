@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react'
 import { Modal, ModalHeader, ModalBody, Label, Input, FormFeedback } from 'reactstrap'
 import { useFormik } from 'formik'
-import { cashierOpenSchema } from '../../../../validations/financialSchemas'
+import { CashierOpenSchema } from '../../../../data/schemas/Financial/CashierSessionSchema'
 import ButtonLoader from '../../../../components/Common/ButtonLoader'
 
 const CashierOpenModal = ({ isOpen, toggle, onConfirm }) => {
     const formik = useFormik({
         initialValues: { openingBalance: '0', notes: '' },
-        validationSchema: cashierOpenSchema,
+        validationSchema: CashierOpenSchema,
         onSubmit: async (values) => {
             await onConfirm(values)
         }

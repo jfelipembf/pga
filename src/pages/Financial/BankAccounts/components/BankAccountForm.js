@@ -1,10 +1,11 @@
 import React from "react"
 import { Row, Col, Label, Input, Button, Form, InputGroup, InputGroupText, FormFeedback } from "reactstrap"
-import { FormSwitch } from "../../../components/Common/FormSwitch"
+import { FormSwitch } from "../../../../components/Common/FormSwitch"
 import { useFormik } from "formik"
-import { BankAccountSchema } from "../../../data/schemas/Financial/BankAccountSchema"
+import { BankAccountSchema } from "../../../../data/schemas/Financial/BankAccountSchema"
+import { BANK_OPTIONS, BANK_NAMES } from "../../../../utils/constants"
 
-export const BankAccountFormVisual = ({ initialData, onSave, onCancel, onDelete }) => {
+export const BankAccountForm = ({ initialData, onSave, onCancel, onDelete }) => {
 
     const formik = useFormik({
         initialValues: {
@@ -28,20 +29,11 @@ export const BankAccountFormVisual = ({ initialData, onSave, onCancel, onDelete 
     const handleBankChange = (e) => {
         const value = e.target.value
         formik.setFieldValue('bankCode', value)
-        // Mapear nome do banco baseado no código (exemplo simples)
-        const banks = {
-            '341': 'Itaú Unibanco',
-            '001': 'Banco do Brasil',
-            '237': 'Bradesco',
-            '033': 'Santander',
-            '104': 'Caixa Econômica',
-            '260': 'Nubank',
-            '077': 'Inter'
-        }
+
         if (value === '999') {
             formik.setFieldValue('bank', '')
         } else {
-            formik.setFieldValue('bank', banks[value] || 'Outro')
+            formik.setFieldValue('bank', BANK_NAMES[value] || 'Outro')
         }
     }
 
@@ -99,14 +91,9 @@ export const BankAccountFormVisual = ({ initialData, onSave, onCancel, onDelete 
                             invalid={!!(formik.touched.bankCode && formik.errors.bankCode)}
                         >
                             <option value="">Selecione...</option>
-                            <option value="341">341 - Itaú Unibanco</option>
-                            <option value="001">001 - Banco do Brasil</option>
-                            <option value="237">237 - Bradesco</option>
-                            <option value="033">033 - Santander</option>
-                            <option value="104">104 - Caixa Econômica</option>
-                            <option value="260">260 - Nubank</option>
-                            <option value="077">077 - Inter</option>
-                            <option value="999">999 - Outro Banco</option>
+                            {BANK_OPTIONS.map(option => (
+                                <option key={option.value} value={option.value}>{option.label}</option>
+                            ))}
                         </Input>
                         {formik.errors.bankCode && <FormFeedback>{formik.errors.bankCode}</FormFeedback>}
                     </Col>

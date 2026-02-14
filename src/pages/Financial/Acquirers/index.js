@@ -1,56 +1,56 @@
+
 import React from "react"
 import ManagementLayout from "../../../components/Common/ManagementLayout"
 import { AcquirerForm } from "./components/AcquirerForm"
-import { AcquirerListItem } from "./AcquirerListItem"
-import { useAcquirers } from "./hooks/useAcquirers"
-import PageLoader from "../../../components/Common/PageLoader"
+import { AcquirerList } from "./components/AcquirerList"
+import { useAcquirerData } from "./hooks/useAcquirerData"
+import { useAcquirerSelection } from "./hooks/useAcquirerSelection"
+import { useAcquirerOperations } from "./hooks/useAcquirerOperations"
 import { useTenant } from "../../../hooks/useTenant"
 
-const AcquirerList = () => {
+const AcquirersPage = () => {
     document.title = "Adquirentes | PGA Admin"
     const { isReady } = useTenant()
 
+    const { acquirers, loading, refresh } = useAcquirerData()
+
     const {
-        acquirers,
-        loading,
         selectedId,
         isAddingNew,
         selectedAcquirer,
         handleAddClick,
         handleItemClick,
-        handleSave
-    } = useAcquirers()
+        clearSelection,
+        setSelectionById
+    } = useAcquirerSelection(acquirers)
 
-    // Sidebar Content
+    const { saveAcquirer } = useAcquirerOperations({
+        onSuccess: (savedId) => {
+            refresh()
+            if (savedId) setSelectionById(savedId)
+        }
+    })
+
+    const handleSave = async (data) => {
+        await saveAcquirer(data, selectedId)
+    }
+
     const SidebarContent = (
-        <div className="position-relative" style={{ minHeight: '300px' }}>
-            {loading && acquirers.length === 0 ? (
-                <PageLoader isFullScreen={false} />
-            ) : acquirers.length === 0 ? (
-                <div className="p-3 text-center text-muted small">
-                    <i className="mdi mdi-credit-card-off-outline d-block font-size-24 mb-2"></i>
-                    Nenhuma adquirente cadastrada.
-                </div>
-            ) : null}
-            {acquirers.map(item => (
-                <AcquirerListItem
-                    key={item.id}
-                    acquirer={item}
-                    active={selectedId === item.id}
-                    onClick={() => handleItemClick(item)}
-                />
-            ))}
-        </div>
+        <AcquirerList
+            acquirers={acquirers}
+            loading={loading}
+            selectedId={selectedId}
+            onSelect={handleItemClick}
+        />
     )
 
-    // Main Content
     const MainContent = (
         <div className="position-relative" style={{ minHeight: '400px' }}>
             {(selectedId || isAddingNew) ? (
                 <AcquirerForm
                     initialData={selectedAcquirer}
                     onSave={handleSave}
-                    onCancel={() => { /* Could add logic to cancel */ }}
+                    onCancel={clearSelection}
                 />
             ) : (
                 <div className="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
@@ -79,4 +79,4 @@ const AcquirerList = () => {
     )
 }
 
-export default AcquirerList
+export default AcquirersPage

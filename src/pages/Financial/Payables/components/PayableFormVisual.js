@@ -1,9 +1,9 @@
 import React, { useMemo } from "react"
 import { Row, Col, Label, Input, Button, Form, InputGroup, InputGroupText, FormFeedback } from "reactstrap"
 import { useFormik } from "formik"
-import { PayableSchema } from "../../../data/schemas/Financial/PayableSchema"
-import { DEFAULT_CHART_OF_ACCOUNTS, DEFAULT_COST_CENTERS } from "../../../data/consts/FinancialStructs"
-import { toISODate } from "../../../utils/date"
+import { PayableSchema } from "../../../../data/schemas/Financial/PayableSchema"
+import { DEFAULT_CHART_OF_ACCOUNTS, DEFAULT_COST_CENTERS } from "../../../../data/consts/FinancialStructs"
+import { toISODate } from "../../../../utils/date"
 
 export const PayableFormVisual = ({ initialData, onCancel, onSave, hideTitle = false }) => {
 

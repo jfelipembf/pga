@@ -1,55 +1,52 @@
-import React, { useState, useRef, useCallback } from "react"
-import { Row, Col, Card, CardBody, Button, Input, Badge, Label, UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem, Collapse } from "reactstrap"
-import BasicTable from "../../../components/Common/BasicTable"
-import { PayableFormVisual } from "./PayableFormVisual"
-import PayablePaymentModal from "./PayablePaymentModal"
-import Miniwidget from "../../Dashboard/Miniwidget"
-import GenericModal from "../../../components/Common/GenericModal"
-import { usePayables } from "./hooks/usePayables"
-import { formatCurrency } from "../../../utils/format"
-import { formatDate } from "../../../utils/date"
+import React, { useState, useRef, useCallback } from "react";
+import { usePayablesList } from "./hooks/usePayablesList";
 
-
-import {
-    PAYABLE_STATUS,
-    PAYABLE_STATUS_COLORS,
-    PAYABLE_STATUS_LABELS
-} from "../../../utils/constants"
-import "flatpickr/dist/themes/material_blue.css"
-import Flatpickr from "react-flatpickr"
-import { Portuguese } from "flatpickr/dist/l10n/pt.js"
+// Componentes
+import { PayablesHeader } from "./components/PayablesHeader";
+import { PayablesKPIs } from "./components/PayablesKPIs";
+import { PayablesFilter } from "./components/PayablesFilter";
+import { PayablesTable } from "./components/PayablesTable";
+import { PayableFormVisual } from "./components/PayableFormVisual";
+import PayablePaymentModal from "./components/PayablePaymentModal";
+import GenericModal from "../../../components/Common/GenericModal";
+import ConfirmDialog from "../../../components/Common/ConfirmDialog";
 
 const PayablesPage = () => {
-    document.title = "Contas a Pagar | PGA Admin"
+    document.title = "Contas a Pagar | PGA Admin";
 
+    // 1. Hooks (Estado e Lógica Orquestrada)
     const {
-        loading,
-        modal,
-        selectedPayable,
-        filterStatus,
-        setFilterStatus,
-        filterCategory,
-        setFilterCategory,
-        filterStartDate,
-        setFilterStartDate,
-        filterEndDate,
-        setFilterEndDate,
+        payables,
+        filteredPayables,
+        totals, // stats
+        isLoading,
         searchTerm,
         setSearchTerm,
-        filteredPayables,
-        totals,
-        toggleModal,
-        handleEdit,
-        handleSave,
+        statusFilter,
+        setStatusFilter,
+        categoryFilter,
+        setCategoryFilter,
+        dateRange,
+        setDateRange,
+        handleCreate,
+        handleUpdate,
         handlePay,
-        handleLoadMore,
-        hasMore
-    } = usePayables()
+        handleDelete,
+        hasMore,
+        handleLoadMore
+    } = usePayablesList();
+
+    // 2. Estado Local (Modais e Interações)
+    const [modal, setModal] = useState(false);
+    const [selectedPayable, setSelectedPayable] = useState(null);
+    const [paymentModal, setPaymentModal] = useState(false);
+    const [selectedPayableForPayment, setSelectedPayableForPayment] = useState(null);
+    const [payableToDeleteId, setPayableToDeleteId] = useState(null);
 
     // Observer Infinite Scroll
     const observer = useRef();
     const lastElementRef = useCallback(node => {
-        if (loading) return;
+        if (isLoading) return;
         if (observer.current) observer.current.disconnect();
         observer.current = new IntersectionObserver(entries => {
             if (entries[0].isIntersecting && hasMore) {
@@ -57,11 +54,30 @@ const PayablesPage = () => {
             }
         });
         if (node) observer.current.observe(node);
-    }, [loading, hasMore, handleLoadMore]);
+    }, [isLoading, hasMore, handleLoadMore]);
 
-    const [moreFiltersOpen, setMoreFiltersOpen] = useState(false)
-    const [paymentModal, setPaymentModal] = useState(false)
-    const [selectedPayableForPayment, setSelectedPayableForPayment] = useState(null)
+    // Categories Derived (Moved to Hook or keep here if purely visual)
+    const categories = React.useMemo(() => Array.from(new Set(payables.map(p => p.category || 'Geral'))), [payables]);
+
+    // Handlers
+    const toggleModal = () => {
+        setModal(!modal);
+        if (modal) setSelectedPayable(null);
+    };
+
+    const handleEdit = (item) => {
+        setSelectedPayable(item);
+        setModal(true);
+    };
+
+    const handleSave = async (data) => {
+        if (selectedPayable) {
+            await handleUpdate(selectedPayable.id, data);
+        } else {
+            await handleCreate(data);
+        }
+        toggleModal();
+    };
 
     const openPaymentModal = (payable) => {
         setSelectedPayableForPayment(payable);
@@ -73,243 +89,49 @@ const PayablesPage = () => {
         setPaymentModal(false);
     };
 
-    // Pegar categorias únicas das contas para o filtro
-    const categories = React.useMemo(() => Array.from(new Set(filteredPayables.map(p => p.category || 'Geral'))), [filteredPayables])
+    const handleOpenDelete = (id) => {
+        setPayableToDeleteId(id);
+    };
 
-    // Definição de Colunas para BasicTable
-    const columns = React.useMemo(() => [
-        {
-            label: "Fornecedor",
-            key: "supplier",
-            render: (payable) => (
-                <div>
-                    <h5 className="font-size-14 mb-1">{payable.supplier || "Sem fornecedor"}</h5>
-                    {payable.expenseNumber && (
-                        <span className="badge bg-soft-secondary text-secondary font-size-11">
-                            #{payable.expenseNumber}
-                        </span>
-                    )}
-                </div>
-            )
-        },
-        {
-            label: "Descrição",
-            key: "description",
-            render: (payable) => (
-                <div className="text-muted font-size-13">
-                    {payable.description || payable.title || '-'}
-                </div>
-            )
-        },
-        {
-            label: "Vencimento",
-            key: "dueDate",
-            render: (payable) => (
-                <div className="fw-medium">
-                    {formatDate(payable.dueDate)}
-                </div>
-            )
-        },
-        {
-            label: "Categoria",
-            key: "category",
-            render: (payable) => (
-                <Badge color="light" className="text-muted border">
-                    {payable.category || "Geral"}
-                </Badge>
-            )
-        },
-        {
-            label: "Valor",
-            key: "amount",
-            render: (payable) => (
-                <div className="fw-bold text-danger">
-                    {formatCurrency(payable.amount)}
-                </div>
-            )
-        },
-        {
-            label: "Status",
-            key: "status",
-            render: (payable) => (
-                <div className="text-center">
-                    <Badge color={PAYABLE_STATUS_COLORS[payable.status]} className="font-size-11">
-                        {PAYABLE_STATUS_LABELS[payable.status]}
-                    </Badge>
-                </div>
-            )
-        },
-        {
-            label: "Ações",
-            key: "actions",
-            render: (payable) => (
-                <div className="text-end">
-                    <UncontrolledDropdown onClick={(e) => e.stopPropagation()}>
-                        <DropdownToggle className="card-drop" tag="span" role="button">
-                            <i className="mdi mdi-dots-horizontal font-size-18"></i>
-                        </DropdownToggle>
-                        <DropdownMenu className="dropdown-menu-end">
-                            <DropdownItem onClick={() => handleEdit(payable)}>
-                                <i className="mdi mdi-pencil font-size-16 text-primary me-1"></i> Editar
-                            </DropdownItem>
-
-                            {payable.status === 'open' && (
-                                <DropdownItem onClick={() => openPaymentModal(payable)}>
-                                    <i className="mdi mdi-check-circle-outline font-size-16 text-success me-1"></i> Baixar Pagamento
-                                </DropdownItem>
-                            )}
-
-                            <DropdownItem divider />
-                            <DropdownItem className="text-danger" onClick={() => {
-                                if (window.confirm('Deseja realmente cancelar esta despesa?')) {
-                                    // handleCancel(payable.id); // TODO: Implementar delete no hook se necessário
-                                }
-                            }}>
-                                <i className="mdi mdi-trash-can-outline font-size-16 me-1"></i> Excluir
-                            </DropdownItem>
-                        </DropdownMenu>
-                    </UncontrolledDropdown>
-                </div>
-            )
+    const handleConfirmDelete = async () => {
+        if (payableToDeleteId) {
+            await handleDelete(payableToDeleteId);
+            setPayableToDeleteId(null);
         }
-    ], [handleEdit]);
-
+    };
 
     return (
         <React.Fragment>
-            {/* HEADER */}
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <h4 className="font-size-18 text-uppercase fw-bold">Contas a Pagar</h4>
-                <Button color="primary" className="waves-effect waves-light shadow-sm" onClick={toggleModal}>
-                    Nova Despesa
-                </Button>
-            </div>
+            {/* Header */}
+            <PayablesHeader onNewClick={toggleModal} />
 
-            {/* KPI CARDS */}
-            <Miniwidget
-                colSize={4}
-                reports={[
-                    { title: "A Vencer", iconClass: "clock-outline", total: formatCurrency(totals.pending), average: `${totals.countPending} contas`, badgecolor: "warning" },
-                    { title: "Em Atraso", iconClass: "alert-circle-outline", total: formatCurrency(totals.overdue), average: `${totals.countOverdue} contas`, badgecolor: "danger" },
-                    { title: "Pago no Mês", iconClass: "check-circle-outline", total: formatCurrency(totals.paid), average: "Fluxo", badgecolor: "success" },
-                ]} />
+            {/* KPIs */}
+            <PayablesKPIs totals={totals} />
 
-            {/* FILTROS E TABELA */}
-            <Card className="shadow-sm border-0">
-                <CardBody>
-                    <div className="d-flex flex-wrap gap-3 mb-4 bg-light p-3 rounded align-items-end">
-                        <div className="flex-grow-1">
-                            <Label className="form-label font-size-13 text-muted fw-bold">BUSCAR</Label>
-                            <div className="position-relative">
-                                <Input
-                                    type="text"
-                                    placeholder="Buscar por descrição, fornecedor..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    style={{ paddingLeft: '35px' }}
-                                />
-                                <i className="mdi mdi-magnify position-absolute text-muted" style={{ left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '18px' }}></i>
-                            </div>
-                        </div>
+            {/* Filter */}
+            <PayablesFilter
+                statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+                searchTerm={searchTerm} setSearchTerm={setSearchTerm}
+                categoryFilter={categoryFilter} setCategoryFilter={setCategoryFilter}
+                dateRange={dateRange} setDateRange={setDateRange}
+                categories={categories}
+                isLoading={isLoading}
+            />
 
-                        <div style={{ minWidth: '150px' }}>
-                            <Label className="form-label font-size-13 text-muted fw-bold">STATUS</Label>
-                            <Input type="select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-                                <option value="all">Todos</option>
-                                <option value={PAYABLE_STATUS.OPEN}>{PAYABLE_STATUS_LABELS[PAYABLE_STATUS.OPEN]}</option>
-                                <option value={PAYABLE_STATUS.PAID}>{PAYABLE_STATUS_LABELS[PAYABLE_STATUS.PAID]}</option>
-                                <option value={PAYABLE_STATUS.OVERDUE}>{PAYABLE_STATUS_LABELS[PAYABLE_STATUS.OVERDUE]}</option>
-                            </Input>
-                        </div>
+            {/* Table */}
+            <PayablesTable
+                data={filteredPayables}
+                loading={isLoading}
+                hasMore={hasMore}
+                lastElementRef={lastElementRef}
+                onEdit={handleEdit}
+                onPay={openPaymentModal}
+                onDelete={handleOpenDelete}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+            />
 
-                        <div>
-                            <Label className="d-block">&nbsp;</Label>
-                            <Button
-                                color="secondary"
-                                outline
-                                onClick={() => setMoreFiltersOpen(!moreFiltersOpen)}
-                                active={moreFiltersOpen}
-                            >
-                                <i className="mdi mdi-filter-variant me-1"></i> {moreFiltersOpen ? 'Ocultar Filtros' : 'Mais Filtros'}
-                            </Button>
-                        </div>
-                    </div>
-
-                    <Collapse isOpen={moreFiltersOpen} className="mb-4">
-                        <div className="bg-light p-3 rounded border border-light border-dashed">
-                            <Row className="g-3">
-                                <Col md={3}>
-                                    <Label className="font-size-11 fw-bold text-uppercase">Categoria</Label>
-                                    <Input type="select" bsSize="sm" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
-                                        <option value="all">Todas as Categorias</option>
-                                        {categories.map(cat => (
-                                            <option key={cat} value={cat}>{cat}</option>
-                                        ))}
-                                    </Input>
-                                </Col>
-                                <Col md={3}>
-                                    <Label className="font-size-11 fw-bold text-uppercase">Início (Vencimento)</Label>
-                                    <Flatpickr
-                                        className="form-control form-control-sm"
-                                        value={filterStartDate}
-                                        options={{ dateFormat: "d/m/Y", locale: Portuguese }}
-                                        onChange={(dates) => {
-                                            if (dates.length > 0) setFilterStartDate(dates[0])
-                                        }}
-                                    />
-                                </Col>
-                                <Col md={3}>
-                                    <Label className="font-size-11 fw-bold text-uppercase">Fim (Vencimento)</Label>
-                                    <Flatpickr
-                                        className="form-control form-control-sm"
-                                        value={filterEndDate}
-                                        options={{ dateFormat: "d/m/Y", locale: Portuguese }}
-                                        onChange={(dates) => {
-                                            if (dates.length > 0) setFilterEndDate(dates[0])
-                                        }}
-                                    />
-                                </Col>
-                                <Col md={3} className="d-flex align-items-end">
-                                    <Button color="link" size="sm" className="text-danger p-0 fw-bold" onClick={() => {
-                                        setFilterCategory('all');
-                                        setFilterStartDate('');
-                                        setFilterEndDate('');
-                                        setSearchTerm('');
-                                        setFilterStatus('all');
-                                    }}>
-                                        Limpar Tudo
-                                    </Button>
-                                </Col>
-                            </Row>
-                        </div>
-                    </Collapse>
-
-                    <BasicTable
-                        columns={columns}
-                        data={filteredPayables}
-                        loading={loading}
-                        searchKeys={["supplier", "description", "category"]}
-                        searchPlaceholder="Buscar por fornecedor, descrição ou categoria..."
-                        hideNew={true}
-                        externalSearch={searchTerm}
-                        onExternalSearchChange={setSearchTerm}
-                    />
-
-                    {/* Infinite Scroll Sentinel */}
-                    {hasMore && (
-                        <div ref={lastElementRef} className="text-center p-3">
-                            {loading && (
-                                <div>
-                                    <div className="spinner-border spinner-border-sm text-primary me-2"></div>
-                                    <small className="text-muted">Carregando mais...</small>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </CardBody>
-            </Card>
-
-            {/* MODAL DE CADASTRO/EDIÇÃO */}
+            {/* Modals */}
             <GenericModal
                 isOpen={modal}
                 toggle={toggleModal}
@@ -324,15 +146,26 @@ const PayablesPage = () => {
                 />
             </GenericModal>
 
-            {/* MODAL DE BAIXA DE PAGAMENTO */}
             <PayablePaymentModal
                 isOpen={paymentModal}
                 toggle={() => setPaymentModal(false)}
                 payable={selectedPayableForPayment}
                 onPay={handlePaymentConfirm}
             />
-        </React.Fragment>
-    )
-}
 
-export default PayablesPage
+            {/* Confirm Dialog - Delete */}
+            <ConfirmDialog
+                isOpen={!!payableToDeleteId}
+                toggle={() => setPayableToDeleteId(null)}
+                title="Excluir Despesa"
+                description="Deseja realmente excluir esta despesa? Esta ação não pode ser desfeita."
+                onConfirm={handleConfirmDelete}
+                confirmColor="danger"
+                confirmText="Sim, Excluir"
+                cancelText="Cancelar"
+            />
+        </React.Fragment>
+    );
+};
+
+export default PayablesPage;

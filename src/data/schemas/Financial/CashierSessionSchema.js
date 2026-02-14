@@ -11,3 +11,16 @@ export const CashierSessionSchema = Yup.object().shape({
     totalExpenses: Yup.number().default(0),
     expectedBalance: Yup.number().default(0)
 })
+
+export const CashierOpenSchema = Yup.object({
+    openingBalance: Yup.number().min(0, 'Valor inválido').required('Obrigatório'),
+});
+
+export const CashierCloseSchema = Yup.object({
+    actualBalance: Yup.number().min(0).required('Informe o valor em caixa'),
+});
+
+export const CashierMovementSchema = Yup.object({
+    amount: Yup.number().positive('Valor deve ser maior que zero').required('Obrigatório'),
+    description: Yup.string().required('Descrição é obrigatória'),
+});

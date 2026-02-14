@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, ModalHeader, ModalBody, Button, Row, Col, Label, Input, FormFeedback } from 'reactstrap';
-import ButtonLoader from '../../../components/Common/ButtonLoader';
-import CurrencyInput from '../../../components/Common/CurrencyInput';
+import ButtonLoader from '../../../../components/Common/ButtonLoader';
+import CurrencyInput from '../../../../components/Common/CurrencyInput';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { formatCurrency } from '../../../utils/format';
-import { formatDate } from '../../../utils/date';
-import { bankAccountRepository } from '../../../data/repositories/BankAccountRepository';
-import { useTenant } from '../../../hooks/useTenant';
+import { formatCurrency } from '../../../../utils/format';
+import { formatDate } from '../../../../utils/date';
+import { bankAccountRepository } from '../../../../data/repositories/BankAccountRepository';
+import { useTenant } from '../../../../hooks/useTenant';
 
 const PayablePaymentModal = ({ isOpen, toggle, payable, onPay }) => {
     const { idTenant, idBranch } = useTenant();
@@ -43,13 +43,12 @@ const PayablePaymentModal = ({ isOpen, toggle, payable, onPay }) => {
             paymentMethod: Yup.string().required('Selecione a forma de pagamento'),
             idBankAccount: Yup.string().required('Selecione a conta de destino')
         }),
-        onSubmit: (values) => {
-            onPay({
+        onSubmit: async (values) => {
+            await onPay({
                 ...values,
                 id: payable.id,
                 amount: parseFloat(values.amountPaid)
             });
-            toggle();
         }
     });
 

@@ -1,7 +1,7 @@
 import React from "react"
 import { Badge } from "reactstrap"
 
-export const AcquirerListItem = ({ acquirer, active, onClick }) => {
+export const AcquirerItem = ({ acquirer, active, onClick }) => {
     return (
         <div
             className={`d-flex align-items-center p-3 border-bottom cursor-pointer ${active ? 'bg-light' : ''}`}
