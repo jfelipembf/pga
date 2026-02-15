@@ -10,8 +10,21 @@ export const CreateGradeSchema = Yup.object().shape({
     weekdays: Yup.array().of(Yup.number()).min(1, 'Selecione ao menos um dia da semana'),
     startTime: Yup.string().required('Horário de início é obrigatório'),
     endTime: Yup.string().required('Horário de término é obrigatório'),
-    startDate: Yup.string().required('Data de início é obrigatória'),
-    endDate: Yup.string().nullable().notRequired(), // Opcional: se não informado, gera para 6 meses
+    startDate: Yup.string()
+        .required('Data de início é obrigatória')
+        .test('max-year', 'O ano não pode ser maior que 2100', value => {
+            if (!value) return true;
+            const year = parseInt(value.split('-')[0]);
+            return year <= 2100;
+        }),
+    endDate: Yup.string()
+        .nullable()
+        .notRequired()
+        .test('max-year', 'O ano não pode ser maior que 2100', value => {
+            if (!value) return true;
+            const year = parseInt(value.split('-')[0]);
+            return year <= 2100;
+        }),
     maxCapacity: Yup.number().positive('A capacidade deve ser positiva').required('Capacidade é obrigatória'),
     isActive: Yup.boolean().default(true),
 })
@@ -28,8 +41,21 @@ export const ClassSchema = Yup.object().shape({
     endTime: Yup.string().required(),
     durationMinutes: Yup.number().required(),
     maxCapacity: Yup.number().required(),
-    startDate: Yup.string().required(),
-    endDate: Yup.string().nullable().notRequired(),
+    startDate: Yup.string()
+        .required()
+        .test('max-year', value => {
+            if (!value) return true;
+            const year = parseInt(value.split('-')[0]);
+            return year <= 2100;
+        }),
+    endDate: Yup.string()
+        .nullable()
+        .notRequired()
+        .test('max-year', value => {
+            if (!value) return true;
+            const year = parseInt(value.split('-')[0]);
+            return year <= 2100;
+        }),
     isActive: Yup.boolean().default(true),
     status: Yup.string().default('active'),
 })

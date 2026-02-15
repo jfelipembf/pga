@@ -1,6 +1,6 @@
 .grade-grid {
   border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 8px;
+  border-radius: 0;
   background: #fff;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
@@ -85,7 +85,7 @@
 
 // Grade Event Card Styles
 .grade-event {
-  border-radius: 8px;
+  border-radius: 0;
   padding: 10px 12px;
   font-size: 0.75rem;
   cursor: pointer;
@@ -160,7 +160,7 @@
   font-weight: 500;
   background: rgba(0, 0, 0, 0.03);
   padding: 1px 6px;
-  border-radius: 10px;
+  border-radius: 0;
 }
 
 .grade-event__title {

@@ -86,6 +86,12 @@ export const ClassService = {
     _generateSessionsBatch: (batch, idTenant, idBranch, userId, classData, start, end, enrolledCount = 0) => {
         let current = moment(start).startOf('day')
         const endLimit = end ? moment(end).endOf('day') : moment(start).add(6, 'months').endOf('day')
+
+        // Blindagem extra: impedir anos absurdos
+        if (endLimit.year() > 2100) {
+            endLimit.year(2100);
+        }
+
         let count = 0
 
         while (current.day() !== classData.weekday && current.isBefore(endLimit)) {

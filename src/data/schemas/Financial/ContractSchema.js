@@ -9,6 +9,9 @@ export const ContractSchema = Yup.object().shape({
     isActive: Yup.boolean()
         .default(true),
 
+    isScholarship: Yup.boolean()
+        .default(false),
+
     // DURAÇÃO
     duration: Yup.number()
         .required('Duração é obrigatória')
@@ -58,7 +61,12 @@ export const ContractSchema = Yup.object().shape({
     // VALORES
     price: Yup.number()
         .required('Valor padrão é obrigatório')
-        .min(0.01, 'O valor deve ser maior que zero'),
+        .min(0, 'O valor não pode ser negativo')
+        .test('is-scholarship-price', 'O valor deve ser maior que zero para contratos não bolsistas', function (value) {
+            const { isScholarship } = this.parent;
+            if (isScholarship) return true;
+            return value >= 0.01;
+        }),
 
     maxInstallments: Yup.number()
         .required('Número máximo de parcelas é obrigatório')
@@ -89,6 +97,7 @@ export const ContractSchema = Yup.object().shape({
 export const contractInitialValues = {
     title: '',
     isActive: true,
+    isScholarship: false,
     duration: 12,
     durationType: 'months',
     minPermanence: 0,

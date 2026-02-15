@@ -21,8 +21,13 @@ export const useSalesSelection = ({
 
     // Atualizar valor sugerido quando o saldo muda
     useEffect(() => {
-        if (suggestedValue > 0) {
+        if (typeof suggestedValue === 'number') {
             setPaymentData(prev => ({ ...prev, value: suggestedValue.toFixed(2) }));
+
+            // Se o valor for zero (bolsista), já muda para Dinheiro para facilitar
+            if (suggestedValue === 0) {
+                setPaymentMethod(PAYMENT_METHODS.CASH);
+            }
         }
     }, [suggestedValue]);
 

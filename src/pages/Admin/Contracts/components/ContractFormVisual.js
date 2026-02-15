@@ -68,13 +68,26 @@ export const ContractFormVisual = ({ initialData, onSave, onCancel, branches = [
                             />
                             {formik.errors.title && <FormFeedback>{formik.errors.title}</FormFeedback>}
                         </Col>
-                        <Col md={4} className="mb-3">
+                        <Col md={3} className="mb-3">
                             <Label>Status (Ativo)</Label>
                             <div className="mt-1">
                                 <FormSwitch
                                     id="contractStatus"
                                     checked={!!formik.values.isActive}
                                     onChange={(val) => formik.setFieldValue("isActive", val)}
+                                />
+                            </div>
+                        </Col>
+                        <Col md={3} className="mb-3">
+                            <Label>Bolsista (Isento)</Label>
+                            <div className="mt-1">
+                                <FormSwitch
+                                    id="isScholarship"
+                                    checked={!!formik.values.isScholarship}
+                                    onChange={(val) => {
+                                        formik.setFieldValue("isScholarship", val)
+                                        if (val) formik.setFieldValue("price", 0)
+                                    }}
                                 />
                             </div>
                         </Col>
@@ -88,8 +101,10 @@ export const ContractFormVisual = ({ initialData, onSave, onCancel, branches = [
                                 type="number"
                                 step="0.01"
                                 {...formik.getFieldProps('price')}
+                                disabled={formik.values.isScholarship}
                                 invalid={!!(formik.touched.price && formik.errors.price)}
                             />
+                            {formik.values.isScholarship && <small className="text-success fw-bold">Isenção total de valores (Bolsista)</small>}
                         </Col>
                         <Col md={4} className="mb-3">
                             <Label>Parcelamento Máximo</Label>

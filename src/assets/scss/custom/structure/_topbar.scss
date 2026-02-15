@@ -44,7 +44,8 @@
 .dropdown-topbar {
   .btn-light {
     background-color: var(--#{$prefix}dropdown-topbar) !important;
-    border:  var(--#{$prefix}dropdown-topbar)!important;
+    border: var(--#{$prefix}dropdown-topbar) !important;
+
     &:focus {
       box-shadow: 0 0 0 0.15rem rgba(216, 217, 219, 0.5) !important;
     }
@@ -70,10 +71,11 @@
     height: 38px;
     padding-left: 20px;
     padding-right: 40px;
-    background-color: hsla(0,0%,100%,.1);
+    background-color: hsla(0, 0%, 100%, .1);
     box-shadow: none;
     border-radius: 30px;
   }
+
   span {
     position: absolute;
     z-index: 10;
@@ -91,6 +93,7 @@
   li {
     position: relative;
     padding: 5px 0px;
+
     a {
       color: $dropdown-color;
     }
@@ -114,9 +117,7 @@
 }
 
 .page-content {
-  padding: calc(#{$header-height} + #{$grid-gutter-width})
-    calc(#{$grid-gutter-width} / 2) $footer-height
-    calc(#{$grid-gutter-width} / 2);
+  padding: calc(#{$header-height} + #{$grid-gutter-width}) calc(#{$grid-gutter-width} / 2) $footer-height calc(#{$grid-gutter-width} / 2);
 }
 
 .header-item {
@@ -152,11 +153,11 @@
 
 .notification-item {
   .d-flex {
-      padding: 0.75rem 1rem;
+    padding: 0.75rem 1rem;
 
-      &:hover {
-          background-color: var(--#{$prefix}tertiary-bg);
-      }
+    &:hover {
+      background-color: var(--#{$prefix}tertiary-bg);
+    }
   }
 }
 
@@ -191,6 +192,7 @@ body[data-topbar="dark"] {
   #page-topbar {
     background-color: var(--#{$prefix}header-dark-bg);
   }
+
   .navbar-header {
     .dropdown.show {
       .header-item {
@@ -201,15 +203,43 @@ body[data-topbar="dark"] {
     .waves-effect .waves-ripple {
       background: rgba($white, 0.4);
     }
+
+    /* Adjusted Search Input for Dark Topbar */
+    .input-group {
+      .input-group-text {
+        background-color: lighten(#2b3a4a, 8%) !important;
+        border-color: lighten(#2b3a4a, 12%) !important;
+        color: rgba(255, 255, 255, 0.6) !important;
+      }
+
+      .form-control {
+        background-color: lighten(#2b3a4a, 8%) !important;
+        border-color: lighten(#2b3a4a, 12%) !important;
+        color: #fff !important;
+
+        &::placeholder {
+          color: rgba(255, 255, 255, 0.5) !important;
+        }
+      }
+    }
   }
 
   .header-item {
     color: var(--#{$prefix}header-dark-item-color);
 
     &:hover {
-        color:  var(--#{$prefix}header-dark-item-color);
+      color: var(--#{$prefix}header-dark-item-color);
     }
-}
+  }
+
+  /* User Profile Text Color */
+  #page-header-user-dropdown {
+    .text-start {
+      span {
+        color: #fff !important;
+      }
+    }
+  }
 
   .header-profile-user {
     background-color: rgba($white, 0.25);
@@ -217,7 +247,7 @@ body[data-topbar="dark"] {
 
   .noti-icon {
     i {
-      color:  var(--#{$prefix}header-dark-item-color);
+      color: var(--#{$prefix}header-dark-item-color);
     }
   }
 
@@ -231,9 +261,10 @@ body[data-topbar="dark"] {
 
   .app-search {
     .form-control {
-      background-color: hsla(0,0%,100%,.1) !important;
+      background-color: hsla(0, 0%, 100%, .1) !important;
       color: $white;
     }
+
     span,
     input.form-control::-webkit-input-placeholder {
       color: rgba($white, 0.5);
@@ -285,23 +316,22 @@ body[data-layout="horizontal"] {
   .navbar-header {
     padding: 0;
   }
+
   .navbar-brand-box {
     width: auto;
     display: inline-block;
   }
+
   .page-content {
     margin-top: $header-height;
-    padding: calc(180px + #{$grid-gutter-width}) calc(#{$grid-gutter-width} / 2)
-      $footer-height calc(#{$grid-gutter-width} / 2);
+    padding: calc(180px + #{$grid-gutter-width}) calc(#{$grid-gutter-width} / 2) $footer-height calc(#{$grid-gutter-width} / 2);
   }
 }
 
 @media (max-width: 992px) {
   body[data-layout="horizontal"] {
     .page-content {
-      padding: calc(98px + #{$grid-gutter-width})
-        calc(#{$grid-gutter-width} / 2) $footer-height
-        calc(#{$grid-gutter-width} / 2);
+      padding: calc(98px + #{$grid-gutter-width}) calc(#{$grid-gutter-width} / 2) $footer-height calc(#{$grid-gutter-width} / 2);
     }
   }
 }
@@ -311,6 +341,7 @@ body[data-layout="horizontal"] {
     .navbar-header {
       padding: 0 calc(#{$grid-gutter-width} / 2);
     }
+
     .navbar-brand-box {
       padding-left: 0;
     }

@@ -185,6 +185,7 @@ export const useActivities = () => {
 
                     const topicData = {
                         description: topic.description,
+                        isFundamental: !!topic.isFundamental,
                         order: topic.order || 0
                     }
 

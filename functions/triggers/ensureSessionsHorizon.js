@@ -68,90 +68,102 @@ module.exports = onSchedule({
                 logger.info(`[ensureSessionsHorizon] Processando ${classesSnap.size} turmas para o branch ${idBranch}`);
 
                 for (const classDoc of classesSnap.docs) {
-                    const idClass = classDoc.id;
-                    const classData = classDoc.data();
+                    try {
+                        const idClass = classDoc.id;
+                        const classData = classDoc.data();
 
-                    // Buscar a última sessão (não deletada) desta turma
-                    const sessionsRef = db.collection("tenants")
-                        .doc(idTenant)
-                        .collection("branches")
-                        .doc(idBranch)
-                        .collection("sessions");
+                        // Buscar a última sessão (não deletada) desta turma
+                        const sessionsRef = db.collection("tenants")
+                            .doc(idTenant)
+                            .collection("branches")
+                            .doc(idBranch)
+                            .collection("sessions");
 
-                    const lastSessionSnap = await sessionsRef
-                        .where("idClass", "==", idClass)
-                        .orderBy("sessionDate", "desc")
-                        .limit(1)
-                        .get();
+                        const lastSessionSnap = await sessionsRef
+                            .where("idClass", "==", idClass)
+                            .orderBy("sessionDate", "desc")
+                            .limit(1)
+                            .get();
 
-                    let nextSessionDate;
-                    if (lastSessionSnap.empty) {
-                        // Se não houver sessões, começa do dia da semana correto a partir de hoje
-                        let startSearch = new Date();
-                        // Ajustar para o dia da semana da turma
-                        while (startSearch.getDay() !== classData.weekday) {
-                            startSearch = addDays(startSearch, 1);
+                        let nextSessionDate;
+                        if (lastSessionSnap.empty) {
+                            // Se não houver sessões, começa do dia da semana correto a partir de hoje
+                            let startSearch = new Date();
+                            // Ajustar para o dia da semana da turma
+                            if (classData.weekday === undefined) {
+                                logger.warn(`[ensureSessionsHorizon] Turma ${idClass} sem weekday definido. Pulando.`);
+                                continue;
+                            }
+                            while (startSearch.getDay() !== classData.weekday) {
+                                startSearch = addDays(startSearch, 1);
+                            }
+                            nextSessionDate = startSearch;
+                        } else {
+                            const lastDateStr = lastSessionSnap.docs[0].data().sessionDate;
+
+                            // Blindagem: Validar se a data no banco é válida
+                            const lastDateObj = new Date(lastDateStr + "T12:00:00");
+                            if (isNaN(lastDateObj.getTime()) || lastDateObj.getFullYear() > 2100) {
+                                logger.error(`[ensureSessionsHorizon] Turma ${idClass} tem data inválida no banco: "${lastDateStr}". Pulando.`);
+                                continue;
+                            }
+
+                            // Soma 7 dias à última sessão encontrada
+                            nextSessionDate = addDays(lastDateObj, 7);
                         }
-                        nextSessionDate = startSearch;
-                    } else {
-                        const lastDateStr = lastSessionSnap.docs[0].data().sessionDate;
-                        // Soma 7 dias à última sessão encontrada
-                        nextSessionDate = addDays(new Date(lastDateStr + "T12:00:00"), 7);
-                    }
 
-                    // Gerar sessões até atingir o horizonte
-                    const batch = db.batch();
-                    let sessionsCreated = 0;
-                    let current = nextSessionDate;
+                        // Gerar sessões até atingir o horizonte
+                        const batch = db.batch();
+                        let sessionsCreated = 0;
+                        let current = nextSessionDate;
 
-                    // Limitar a 52 sessões (1 ano) por rodada para uma mesma turma para evitar loops infinitos
-                    let safetyCounter = 0;
+                        // Limitar a 52 sessões (1 ano) por rodada para uma mesma turma para evitar loops infinitos
+                        let safetyCounter = 0;
 
-                    while (toISODate(current) <= horizonIso && safetyCounter < 52) {
-                        const dateStr = toISODate(current);
-                        const sessionId = `${idClass}-${dateStr}`;
+                        // Blindagem extra no loop
+                        while (current && !isNaN(current.getTime()) && toISODate(current) <= horizonIso && safetyCounter < 52) {
+                            const dateStr = toISODate(current);
+                            const sessionId = `${idClass}-${dateStr}`;
 
-                        const sessionData = {
-                            id: sessionId,
-                            idSession: sessionId,
-                            idClass: idClass,
-                            idActivity: classData.idActivity,
-                            idArea: classData.idArea,
-                            idStaff: classData.idStaff,
-                            sessionDate: dateStr,
-                            startTime: classData.startTime,
-                            endTime: classData.endTime,
-                            durationMinutes: classData.durationMinutes,
-                            weekday: classData.weekday,
-                            maxCapacity: classData.maxCapacity,
-                            enrolledCount: 0,
-                            trialCount: 0,
-                            presentCount: 0,
-                            absentCount: 0,
-                            attendanceRecorded: false,
-                            status: 'scheduled',
-                            isActive: true,
-                            autoGenerated: true,
-                            createdAt: FieldValue.serverTimestamp(),
-                            updatedAt: FieldValue.serverTimestamp()
-                        };
+                            const sessionData = {
+                                id: sessionId,
+                                idSession: sessionId,
+                                idClass: idClass,
+                                idActivity: classData.idActivity,
+                                idArea: classData.idArea,
+                                idStaff: classData.idStaff,
+                                sessionDate: dateStr,
+                                startTime: classData.startTime,
+                                endTime: classData.endTime,
+                                durationMinutes: classData.durationMinutes,
+                                weekday: classData.weekday,
+                                maxCapacity: classData.maxCapacity,
+                                enrolledCount: 0,
+                                trialCount: 0,
+                                presentCount: 0,
+                                absentCount: 0,
+                                attendanceRecorded: false,
+                                status: 'scheduled',
+                                isActive: true,
+                                autoGenerated: true,
+                                createdAt: FieldValue.serverTimestamp(),
+                                updatedAt: FieldValue.serverTimestamp()
+                            };
 
-                        batch.set(sessionsRef.doc(sessionId), sessionData);
+                            batch.set(sessionsRef.doc(sessionId), sessionData);
 
-                        current = addDays(current, 7);
-                        sessionsCreated++;
-                        safetyCounter++;
-
-                        // Commit parcial se o batch ficar muito grande (Firestore limit: 500)
-                        if (sessionsCreated % 450 === 0) {
-                            // Nota: Se fosse usar batch aqui, precisaria criar um novo. 
-                            // Para simplificar, assumimos que por turma não passará de 500 num dia.
+                            current = addDays(current, 7);
+                            sessionsCreated++;
+                            safetyCounter++;
                         }
-                    }
 
-                    if (sessionsCreated > 0) {
-                        await batch.commit();
-                        logger.info(`[ensureSessionsHorizon] Turma ${idClass}: ${sessionsCreated} novas sessões criadas.`);
+                        if (sessionsCreated > 0) {
+                            await batch.commit();
+                            logger.info(`[ensureSessionsHorizon] Turma ${idClass}: ${sessionsCreated} novas sessões criadas.`);
+                        }
+                    } catch (classErr) {
+                        logger.error(`[ensureSessionsHorizon] Erro ao processar turma ${classDoc.id}:`, classErr);
+                        // Continua para a próxima turma
                     }
                 }
             }

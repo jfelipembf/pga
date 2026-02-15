@@ -15,11 +15,7 @@ import { Navigate } from "react-router-dom"
 
 // ============== LAZY IMPORTS ==============
 // DASHBOARDS
-const OperationalDashboard = React.lazy(() => import("../pages/Dashboard/Operational/index"))
-const ManagementDashboard = React.lazy(() => import("../pages/Dashboard/Management/index"))
-const TeacherDashboard = React.lazy(() => import("../pages/Dashboard/Teacher/index"))
-const FinancialDashboardView = React.lazy(() => import("../pages/Dashboard/Financial/index"))
-const FinancialDashboard = React.lazy(() => import("../pages/Financial/Dashboard/index"))
+const Dashboard = React.lazy(() => import("../pages/Dashboard/index"))
 
 // FINANCIAL MODULE
 const CashierPage = React.lazy(() => import("../pages/Financial/Cashier/index"))
@@ -71,6 +67,7 @@ const ForgetPwd = React.lazy(() => import("../pages/Authentication/ForgetPasswor
 const Pages404 = React.lazy(() => import("../pages/Extra Pages/pages-404"))
 const Pages500 = React.lazy(() => import("../pages/Extra Pages/pages-500"))
 const Pages403 = React.lazy(() => import("../pages/Extra Pages/pages-403"))
+const Kiosk = React.lazy(() => import("../pages/Kiosk/index"))
 
 // ============== ROUTE DEFINITIONS ==============
 
@@ -80,10 +77,7 @@ const Pages403 = React.lazy(() => import("../pages/Extra Pages/pages-403"))
  */
 export const MENU_ROUTES = {
     // Dashboards
-    "/dashboard-operational": { component: OperationalDashboard, permission: "dashboards_operational_view" },
-    "/dashboard-management": { component: ManagementDashboard, permission: "dashboards_management_view" },
-    "/dashboard-financial": { component: FinancialDashboardView, permission: "dashboards_financial_view" },
-    "/dashboard-teacher": { component: TeacherDashboard, permission: "dashboards_teacher_view" },
+    "/dashboard": { component: Dashboard },
 
     // Operacional
     "/grade": { component: Grade, permission: "grade_manage" },
@@ -93,7 +87,7 @@ export const MENU_ROUTES = {
     "/training": { component: TrainingPlanning, permission: "management_training_manage" },
 
     // Financeiro
-    "/financial/dashboard": { component: FinancialDashboard, permission: "dashboards_financial_view" },
+    // "/financial/dashboard": { component: FinancialDashboard, permission: "dashboards_financial_view" }, // Removido pois agora é tab
     "/financial/cashier": { component: CashierPage, permission: "financial_cashier" },
     "/financial/receivables": { component: ReceivablesPage, permission: "financial_cashflow" },
     "/financial/payables": { component: PayablesList, permission: "financial_cashflow" },
@@ -118,6 +112,9 @@ export const MENU_ROUTES = {
     "/financial/contracts": { component: ContractsList, permission: "admin_contracts" },
     "/financial/bank-accounts": { component: BankAccountsList, permission: "financial_cashflow" },
     "/financial/acquirers": { component: AcquirersList, permission: "financial_acquirers" },
+
+    // Kiosk Mode
+    "/kiosk": { component: Kiosk, permission: "members_manage" },
 }
 
 /**
@@ -130,6 +127,7 @@ export const HIDDEN_ROUTES = {
     "/admin/staff/:id": { component: StaffProfile, permission: "staff_manage" },
     "/sales/new": { component: SalesPoint, permission: "sales_purchase" },
     "/profile": { component: UserProfile },
+    "/dashboard-teste": { component: React.lazy(() => import("../pages/TestDashboard/index")) },
 }
 
 
@@ -167,7 +165,7 @@ export const getProtectedRoutes = () => {
     // Default redirect
     routes.push({
         path: "/",
-        component: <Navigate to="/dashboard-operational" replace />,
+        component: <Navigate to="/dashboard" replace />,
     })
 
     return routes

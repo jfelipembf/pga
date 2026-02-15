@@ -127,24 +127,26 @@ export const CashierService = {
         const newMovement = await transactionRepository.create(idTenant, idBranch, fullMovement);
 
         let updates = {};
-        if (fullMovement.type === 'income' || fullMovement.category === 'supply') { // Entrada ou Suprimento
-            updates.totalIncome = (cashierSession.totalIncome || 0) + (parseFloat(fullMovement.netAmount || fullMovement.amount) || 0);
+        if (cashierSession) {
+            if (fullMovement.type === 'income' || fullMovement.category === 'supply') { // Entrada ou Suprimento
+                updates.totalIncome = (cashierSession.totalIncome || 0) + (parseFloat(fullMovement.netAmount || fullMovement.amount) || 0);
 
-            // Apenas Dinheiro Físico soma na Gaveta
-            if (fullMovement.method === 'money') {
-                updates.expectedBalance = (cashierSession.expectedBalance || 0) + (parseFloat(fullMovement.amount) || 0);
-            }
-        } else {
-            // Expenses/Withdrawals (Saída ou Sangria)
-            updates.totalExpenses = (cashierSession.totalExpenses || 0) + (parseFloat(fullMovement.amount) || 0);
+                // Apenas Dinheiro Físico soma na Gaveta
+                if (fullMovement.method === 'money') {
+                    updates.expectedBalance = (cashierSession.expectedBalance || 0) + (parseFloat(fullMovement.amount) || 0);
+                }
+            } else {
+                // Expenses/Withdrawals (Saída ou Sangria)
+                updates.totalExpenses = (cashierSession.totalExpenses || 0) + (parseFloat(fullMovement.amount) || 0);
 
-            // Apenas Dinheiro Físico sai da Gaveta
-            if (fullMovement.method === 'money') {
-                updates.expectedBalance = (cashierSession.expectedBalance || 0) - (parseFloat(fullMovement.amount) || 0);
+                // Apenas Dinheiro Físico sai da Gaveta
+                if (fullMovement.method === 'money') {
+                    updates.expectedBalance = (cashierSession.expectedBalance || 0) - (parseFloat(fullMovement.amount) || 0);
+                }
             }
+
+            await cashierRepository.update(idTenant, idBranch, cashierSession.id, updates);
         }
-
-        await cashierRepository.update(idTenant, idBranch, cashierSession.id, updates);
 
         // ✅ LANÇAMENTO CONTÁBIL
         // skipLedger: quando o chamador já faz seu próprio lançamento contábil

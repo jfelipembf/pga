@@ -145,7 +145,7 @@ const SalesCartPanel = ({ cartItems, payments, totals, onRemoveItem, onRemovePay
                         block
                         className="w-100 fw-bold mt-4 py-2 shadow-sm text-uppercase"
                         onClick={handleFinalize}
-                        disabled={subtotal === 0 || (balance > 0 && !dueDate)}
+                        disabled={cartItems.length === 0 || (balance > 0 && !dueDate) || (subtotal === 0 && payments.length === 0)}
                     >
                         <i className="mdi mdi-check-circle-outline me-2"></i>
                         FINALIZAR VENDA

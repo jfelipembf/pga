@@ -1,7 +1,7 @@
 const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
 const { createScheduledTrigger } = require("./utils");
-const { toISODate} = require("../shared");
+const { toISODate } = require("../shared");
 const { saveAuditLog } = require("../shared/audit");
 
 /**
@@ -17,7 +17,7 @@ module.exports = createScheduledTrigger("25 0 * * *", "processExpiredContracts",
     const db = admin.firestore();
     const todayIso = toISODate(new Date());
     const expiredSnapshot = await db
-        .collectionGroup("clientsContracts")
+        .collectionGroup("clientContracts")
         .where("status", "==", "active")
         .where("endDate", "<", todayIso)
         .get();

@@ -75,7 +75,11 @@ const SalesSelectionPanel = ({
                                     defaultValue=""
                                 >
                                     <option value="" disabled>Selecionar...</option>
-                                    {contracts.map(c => <option key={c.id} value={c.id}>{c.title} - R$ {c.price}</option>)}
+                                    {contracts.map(c => (
+                                        <option key={c.id} value={c.id}>
+                                            {c.title} - {c.isScholarship ? 'BOLSISTA' : `R$ ${c.price}`}
+                                        </option>
+                                    ))}
                                 </Input>
                             </Col>
                         </Row>
@@ -250,7 +254,7 @@ const SalesSelectionPanel = ({
                                             </small>
                                         )}
                                     </div>
-                                    <Button color="primary" className="fw-bold px-4" onClick={handleAddPaymentClick} disabled={!paymentData.value}>
+                                    <Button color="primary" className="fw-bold px-4" onClick={handleAddPaymentClick} disabled={!paymentData.value && paymentData.value !== 0 && paymentData.value !== "0"}>
                                         ADICIONAR
                                     </Button>
                                 </div>

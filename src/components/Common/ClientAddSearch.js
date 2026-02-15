@@ -32,7 +32,7 @@ const ClientAddSearch = ({
     return (
         <div className="position-relative">
             <div className="input-group">
-                <span className="input-group-text border-end-0 bg-white text-muted">
+                <span className="input-group-text border-end-0">
                     <i className="mdi mdi-account-search-outline"></i>
                 </span>
                 <Input

@@ -14,13 +14,13 @@ import {
 } from "./actionTypes"
 
 const INIT_STATE = {
-  layoutColor:"default",
-  layoutMode:"light",
+  layoutColor: "default",
+  layoutMode: "light",
   layoutType: "vertical",
   layoutWidth: "fluid",
-  leftSideBarTheme: "dark",
+  leftSideBarTheme: "light",
   leftSideBarType: "default",
-  topbarTheme: "light",
+  topbarTheme: "dark",
   isPreloader: false,
   showRightSidebar: false,
   isMobile: false,
@@ -37,16 +37,16 @@ const Layout = (state = INIT_STATE, action) => {
       }
 
     case CHANGE_COLOR:
-    return {
-      ...state,
-      layoutColor: action.payload,
-    }
+      return {
+        ...state,
+        layoutColor: action.payload,
+      }
 
     case CHANGE_MODE:
-    return {
-      ...state,
-      layoutMode: action.payload,
-    }
+      return {
+        ...state,
+        layoutMode: action.payload,
+      }
 
     case CHANGE_PRELOADER:
       return {

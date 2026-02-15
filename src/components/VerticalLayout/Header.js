@@ -87,7 +87,7 @@ const Header = props => {
                   <img src={logoIcon} alt="" height="60" style={{ filter: "brightness(0) invert(1)", transform: "translateX(-15px)" }} />
                 </span>
                 <span className="logo-lg">
-                  <img src={logo} alt="" height="110" style={{ filter: "brightness(0) invert(1)" }} />
+                  <img src={logoIcon} alt="" height="120" style={{ filter: "brightness(0) invert(1)" }} />
                 </span>
               </Link>
 
@@ -96,7 +96,7 @@ const Header = props => {
                   <img src={logoIcon} alt="" height="60" style={{ filter: "brightness(0) invert(1)", transform: "translateX(-15px)" }} />
                 </span>
                 <span className="logo-lg">
-                  <img src={logo} alt="" height="110" style={{ filter: "brightness(0) invert(1)" }} />
+                  <img src={logoIcon} alt="" height="120" style={{ filter: "brightness(0) invert(1)" }} />
                 </span>
               </Link>
             </div>

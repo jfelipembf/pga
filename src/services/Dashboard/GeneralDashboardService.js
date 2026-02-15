@@ -338,9 +338,79 @@ export const GeneralDashboardService = {
             console.warn("Erro ao carregar dados complementares do dashboard:", err);
         }
 
+        // --- Novos: Últimos 5 Contratos Vendidos ---
+        let recentContracts = [];
+        try {
+            const { clientContractRepository } = await import('../../data/repositories/ClientContractRepository');
+            const { clientRepository } = await import('../../data/repositories/ClientRepository');
+
+            // Busca apenas os 5 últimos contratos de forma eficiente
+            const recentContractsRaw = await clientContractRepository.findWhere(
+                idTenant,
+                idBranch,
+                [],
+                { field: 'createdAt', direction: 'desc' },
+                5
+            );
+
+            // Busca os dados dos clientes em paralelo para pegar a foto e nome correto
+            recentContracts = await Promise.all(recentContractsRaw.map(async (c) => {
+                let photoUrl = null;
+                let clientName = c.clientName || "Cliente";
+
+                try {
+                    if (c.idClient) {
+                        const client = await clientRepository.findById(idTenant, idBranch, c.idClient);
+                        if (client) {
+                            photoUrl = client.photoUrl;
+                            clientName = client.name || client.firstName + " " + (client.lastName || "");
+                        }
+                    }
+                } catch (err) {
+                    console.warn(`Erro ao buscar dados do cliente ${c.idClient}:`, err);
+                }
+
+                // Resolução do Status Real (Cálculo de Expiração + Mapeamento)
+                const now = moment();
+                let realStatus = c.status || 'pending';
+                const endDate = c.endDate?.toDate ? moment(c.endDate.toDate()) : (c.endDate ? moment(c.endDate) : null);
+
+                // Se está como ativo mas o prazo venceu, o status real é expirado
+                if (realStatus === 'active' && endDate && endDate.isBefore(now, 'day')) {
+                    realStatus = 'expired';
+                }
+
+                const statusMap = {
+                    active: { label: 'Ativo', color: 'success' },
+                    canceled: { label: 'Cancelado', color: 'danger' },
+                    cancelled: { label: 'Cancelado', color: 'danger' },
+                    suspended: { label: 'Suspenso', color: 'secondary' },
+                    expired: { label: 'Expirado', color: 'dark' },
+                    pending: { label: 'Pendente', color: 'warning' },
+                    scheduled_cancellation: { label: 'Cancel. Agendado', color: 'info' }
+                };
+
+                const config = statusMap[realStatus] || { label: 'Pendente', color: 'warning' };
+
+                return {
+                    id: c.friendlyId || (c.id ? c.id.substring(0, 8) : "N/A"),
+                    idClient: c.idClient,
+                    name: clientName,
+                    imgUrl: photoUrl || null,
+                    status: config.label,
+                    amount: `R$ ${parseFloat(c.totalValue || c.value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+                    date: moment(c.createdAt?.toDate ? c.createdAt.toDate() : c.createdAt).format('DD/MM/YYYY'),
+                    color: config.color
+                };
+            }));
+        } catch (err) {
+            console.warn("Erro ao buscar contratos recentes:", err);
+        }
+
         return {
             students: studentsData,
             studentsGrowth,
+            recentContracts,
             sales: {
                 today: salesToday,
                 month: salesMonth,

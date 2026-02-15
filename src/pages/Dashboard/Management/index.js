@@ -2,110 +2,89 @@ import React from "react"
 import { Row, Col } from "reactstrap"
 import Miniwidget from "../Miniwidget"
 import YearlySales from "../yearly-sales"
-import TaskSummaryList from "../Tasks/TaskSummaryList"
+import WidgetUser from "../widget-user"
+import LatestTransactions from "../latest-transactions"
 import { useGeneralDashboard } from "../hooks/useGeneralDashboard"
 import PageLoader from "../../../components/Common/PageLoader"
+import { useTenant } from "../../../hooks/useTenant"
 
 const ManagementDashboard = () => {
     document.title = "Dashboard Gerencial | PGA Admin"
 
+    const { tenantSlug, branchSlug } = useTenant()
     const { loading, data } = useGeneralDashboard('manager')
 
     if (loading) {
         return <PageLoader />
     }
 
-    // reports useMemo removed as it's no longer used
-
-    // Incremental loading: structure appears first
-
-    // Filtramos para pegar os últimos 2 anos (Anterior e Atual) para o gráfico solicitado
-    const seriesStudents = data?.charts?.seriesStudents?.slice(-2) || []
+    // Filtramos para pegar os últimos 2 anos para outros componentes se necessário
+    // Mas aqui vamos focar no layout original solicitado
 
     return (
         <React.Fragment>
-            {/* Cards de Métricas */}
-            {/* Cards de Métricas - Linha 1 */}
-            <Row>
-                <Miniwidget reports={[
-                    {
-                        title: "Novos Alunos",
-                        iconClass: "account-plus",
-                        total: loading ? "..." : (data?.students?.new || 0),
-                        growth: data?.studentsGrowth?.new,
-                        desc: " no mês atual"
-                    },
-                    {
-                        title: "Alunos Ativos",
-                        iconClass: "account-group",
-                        total: loading ? "..." : (data?.students?.active || 0),
-                        growth: data?.studentsGrowth?.active,
-                        desc: " total atual"
-                    },
-                    {
-                        title: "Suspensos",
-                        iconClass: "account-off",
-                        total: loading ? "..." : (data?.students?.suspended || 0),
-                        growth: data?.studentsGrowth?.suspended,
-                        desc: " bloqueados temporariamente"
-                    }
-                ]} colSize={4} />
-            </Row>
+            {/* Cards de Métricas - Topo (4 por linha como solicitado antes) */}
+            <Miniwidget reports={[
+                {
+                    title: "Novos Alunos",
+                    iconClass: "account-plus",
+                    total: loading ? "..." : (data?.students?.new || 0),
+                    growth: data?.studentsGrowth?.new,
+                    desc: " no mês atual"
+                },
+                {
+                    title: "Alunos Ativos",
+                    iconClass: "account-group",
+                    total: loading ? "..." : (data?.students?.active || 0),
+                    growth: data?.studentsGrowth?.active,
+                    desc: " total atual"
+                },
+                {
+                    title: "Cancelamentos",
+                    iconClass: "account-remove",
+                    total: loading ? "..." : (data?.students?.canceled || 0),
+                    growth: data?.studentsGrowth?.canceled,
+                    desc: " perdidos no mês"
+                },
+                {
+                    title: "Churn Rate",
+                    iconClass: "chart-timeline-variant",
+                    total: loading ? "..." : (data?.students ? `${((data.students.canceled / (data.students.active + data.students.canceled || 1)) * 100).toFixed(1)}%` : "0%"),
+                    desc: " taxa de perda"
+                }
+            ]} colSize={3} />
 
-            {/* Cards de Métricas - Linha 2 */}
-            <Row className="mt-4">
-                <Miniwidget reports={[
-                    {
-                        title: "Cancelamentos",
-                        iconClass: "account-remove",
-                        total: loading ? "..." : (data?.students?.canceled || 0),
-                        growth: data?.studentsGrowth?.canceled,
-                        desc: " perdidos no mês"
-                    },
-                    {
-                        title: "Churn Rate",
-                        iconClass: "chart-timeline-variant",
-                        total: loading ? "..." : (data?.students ? `${((data.students.canceled / (data.students.active + data.students.canceled || 1)) * 100).toFixed(1)}%` : "0%"),
-                        desc: " taxa de perda"
-                    },
-                    {
-                        title: "Renovações",
-                        iconClass: "restore",
-                        total: loading ? "..." : (data?.students?.renewals || 0),
-                        growth: data?.studentsGrowth?.renewals,
-                        desc: " renovados no mês"
-                    }
-                ]} colSize={4} />
-            </Row>
-            <Row className="mt-4">
-                {/* Yearly Sales - Alunos Ativos */}
-                <Col xl={4}>
-                    <YearlySales
-                        title="Alunos Ativos - Comparativo"
-                        series={seriesStudents}
-                        colors={['#D1D5DB', '#34c38f']}
-                        height="300"
-                    >
-                        <Row className="text-center">
-                            <Col xs="6">
-                                <h5 className="font-size-20">{loading ? "..." : (data?.students?.active || 0)}</h5>
-                                <p className="text-muted mb-0">Total Ativos</p>
-                            </Col>
-                            <Col xs="6">
-                                <h5 className={`font-size-20 ${data?.studentsGrowth?.active >= 0 ? 'text-success' : 'text-danger'}`}>
-                                    {data?.studentsGrowth?.active > 0 ? '+' : ''}{data?.studentsGrowth?.active?.toFixed(1) || 0}%
-                                </h5>
-                                <p className="text-muted mb-0">Crescimento</p>
-                            </Col>
-                        </Row>
-                    </YearlySales>
+            <Row className="mt-4 align-items-stretch">
+                <Col xl={4} className="d-flex flex-column">
+                    {/* Eles dois um acima do outro como solicitado */}
+                    <div className="mb-0">
+                        <WidgetUser />
+                    </div>
+                    <div className="flex-grow-1 d-flex flex-column">
+                        <YearlySales
+                            activeCount={loading ? "..." : (data?.students?.active || 0)}
+                            data={
+                                data?.charts?.seriesStudents
+                                    ? [{
+                                        data: data.charts.seriesStudents.find(s => s.name === new Date().getFullYear().toString())?.data || []
+                                    }]
+                                    : null
+                            }
+                        />
+                    </div>
                 </Col>
 
-                <Col xl={8}>
-                    <TaskSummaryList title="Tarefas da Unidade - Hoje" />
+                <Col xl={8} className="d-flex flex-column">
+                    <LatestTransactions
+                        transactions={data?.recentContracts}
+                        title="Últimas Matrículas"
+                        tenantSlug={tenantSlug}
+                        branchSlug={branchSlug}
+                    />
                 </Col>
             </Row>
-        </React.Fragment >
+
+        </React.Fragment>
     )
 }
 

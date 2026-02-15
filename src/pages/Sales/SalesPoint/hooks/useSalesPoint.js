@@ -96,6 +96,7 @@ export const useSalesPoint = () => {
             unitPrice: parseFloat(item.price) || 0,
             quantity: 1,
             totalPrice: parseFloat(item.price) || 0,
+            isScholarship: !!item.isScholarship,
 
             // IDs: SEPARAR CLARAMENTE!
             cartId: Date.now(), // ID único no carrinho (para remoção)
@@ -152,68 +153,68 @@ export const useSalesPoint = () => {
         try {
             setIsProcessing(true);
 
-            // Preparação (Mesma lógica)
-            // Preparação (Mesma lógica)
-            // Copiar todo o objeto payload original aqui ou construir de novo
-
-            // Recriando o payload para garantir consistência (já que não tenho acesso fácil à variável local interna do bloco anterior sem reescrever tudo)
+            // Construct the complete payload
             const payload = {
-                saleDate: new Date(saleDate),
-                startDate: new Date(startDate),
-                isRenewal: isRenewal,
-                idClient: idClient,
-                clientName: clientName,
-                friendlyId: friendlyId,
+                idClient,
+                clientName, // Store for history
+                friendlyId, // Store for history
                 idSeller: user.uid,
                 sellerName: user.displayName || user.email || 'Vendedor',
+
+                saleDate: saleDate ? new Date(saleDate) : new Date(),
+                startDate: startDate ? new Date(startDate) : new Date(),
+                isRenewal: !!isRenewal,
+
+                // Items
                 items: cartItems.map(item => ({
                     type: item.type,
-                    idItem: item.idItem,
+                    idItem: item.idItem, // Original ID
                     name: item.name,
-                    quantity: item.quantity || 1,
-                    unitPrice: item.unitPrice || 0,
-                    totalPrice: item.totalPrice || 0,
-                    startDate: item.type === 'contract' ? new Date(startDate) : null
+                    quantity: 1,
+                    unitPrice: item.unitPrice,
+                    totalPrice: item.totalPrice,
+                    isScholarship: item.isScholarship || false
                 })),
+
+                // Payments
                 payments: payments.map(p => ({
                     methodId: p.methodId,
                     methodLabel: p.methodLabel,
-                    value: p.value || 0,
+                    value: p.value,
                     installments: parseInt(p.installments) || 1,
-                    provider: p.providerName || p.provider || null,
-                    idAcquirer: p.provider || null,
+                    idAcquirer: p.provider || null, // ID
+                    provider: p.providerName || null, // Name
                     brand: p.brand || null,
                     auth: p.auth || null,
-                    netValue: p.netValue || p.value
+                    netValue: p.netValue
                 })),
+
+                // Totals
                 subtotal: totals.subtotal,
                 discount: totals.discount,
                 total: totals.total,
                 totalPaid: totals.totalPaid,
                 balance: totals.balance,
                 surplus: totals.surplus,
-                dueDateBalance: null, // Simplificado, assumindo que handleFinalize recebe params mas o core é o payload
-                status: totals.balance > 0.01 ? 'partial' : 'paid'
-            };
 
-            // Validação de segurança
-            if (totals.balance < -0.01) {
-                toast.warning("Valores de pagamento excedem o total.");
-                return;
-            }
+                // From Finalize Step
+                dueDateBalance: finalizeData.dueDate ? new Date(finalizeData.dueDate) : null,
+                status: totals.balance > 0.01 ? 'partial' : 'paid',
+
+                // Metadata
+                createdAt: new Date(),
+                updatedAt: new Date()
+            };
 
             const result = await SalesService.processSale(idTenant, idBranch, user.uid, payload);
 
-            // SUCESSO
-            toast.success("Venda Finalizada!");
-
-            // PREPARAR RECIBO E ABRIR MODAL (Não navegar ainda)
-            setSaleSuccessData({ ...payload, saleNumber: result?.saleNumber || '---' });
+            setSaleSuccessData({ ...payload, saleNumber: result.saleNumber });
             setShowReceiptModal(true);
+            toast.success("Venda realizada com sucesso!");
 
         } catch (error) {
-            console.error(error);
-            toast.error("Erro ao processar venda: " + error.message);
+            console.error("Erro ao finalizar venda:", error);
+            toast.error(error.message || "Erro ao processar venda");
         } finally {
             setIsProcessing(false);
         }

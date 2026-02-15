@@ -19,14 +19,9 @@ export const MENU_STRUCTURE = [
 
     // DASHBOARDS
     {
-        label: "Dashboards",
+        label: "Dashboard",
         icon: "mdi mdi-view-dashboard-outline",
-        subItems: [
-            { label: "Operacional", path: "/dashboard-operational", permission: "dashboards_operational_view" },
-            { label: "Gerencial", path: "/dashboard-management", permission: "dashboards_management_view" },
-            { label: "Financeiro", path: "/dashboard-financial", permission: "dashboards_financial_view" },
-            { label: "Professor", path: "/dashboard-teacher", permission: "dashboards_teacher_view" },
-        ]
+        path: "/dashboard"
     },
 
     // OPERACIONAL
@@ -60,6 +55,7 @@ export const MENU_STRUCTURE = [
         path: "/training",
         permission: "management_training_manage"
     },
+
 
     // FINANCEIRO
     {
@@ -112,5 +108,11 @@ export const MENU_STRUCTURE = [
             { label: "Dados da Empresa", path: "/settings/company", permission: "settings_company_manage" },
             { label: "Integrações", path: "/settings/integrations", permission: "management_integrations" },
         ]
+    },
+    {
+        label: "Quiosque",
+        icon: "mdi mdi-monitor-dashboard",
+        path: "/kiosk",
+        permission: "members_manage"
     }
 ]

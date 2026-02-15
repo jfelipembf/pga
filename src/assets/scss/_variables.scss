@@ -629,9 +629,9 @@ $border-color-translucent: rgba($black, 0.175);
 // scss-docs-end border-variables
 
 // scss-docs-start border-radius-variables
-$border-radius: 0.25rem;
-$border-radius-sm: 0.25rem;
-$border-radius-lg: 0.5rem;
+$border-radius: 0;
+$border-radius-sm: 0;
+$border-radius-lg: 0;
 $border-radius-xl: 1rem;
 $border-radius-xxl: 2rem;
 $border-radius-pill: 50rem;
@@ -1431,7 +1431,7 @@ $card-title-color: null;
 $card-subtitle-color: null;
 $card-border-width: 0px;
 $card-border-color: var(--#{$prefix}border-color);
-$card-border-radius: var(--#{$prefix}border-radius);
+$card-border-radius: 0;
 $card-box-shadow: null;
 $card-inner-border-radius: subtract($card-border-radius, $card-border-width);
 $card-cap-padding-y: 0.75rem;

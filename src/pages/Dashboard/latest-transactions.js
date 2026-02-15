@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Table, Card, CardBody, Button } from "reactstrap";
+import { Link } from "react-router-dom";
 
 //Import Images
 import user2 from "../../assets/images/users/user-2.jpg";
@@ -23,33 +24,65 @@ class LatestTransactions extends Component {
     }
 
     render() {
+        const transactions = this.props.transactions || this.state.transactions;
+        const title = this.props.title || "Últimas Matrículas";
+        const { tenantSlug, branchSlug } = this.props;
+
         return (
             <React.Fragment>
-                <Card>
+                <Card className="h-100">
                     <CardBody>
-                        <h4 className="card-title mb-4">Latest Transactions</h4>
-
-                        <div className="table-responsive">
+                        <h4 className="card-title mb-4">{title}</h4>
+                        <div className="table-responsive" style={{ maxHeight: "380px", overflowY: "auto" }}>
                             <Table className="align-middle table-centered table-vertical table-nowrap">
-
+                                <thead>
+                                    <tr>
+                                        <th>Aluno</th>
+                                        <th>Status</th>
+                                        <th>Valor</th>
+                                        <th>Data</th>
+                                        <th>Ação</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
                                     {
-                                        this.state.transactions.map((transaction, key) =>
-                                            <tr key={key}>
-                                                <td>
-                                                    <img src={transaction.imgUrl} alt="user" className="avatar-xs rounded-circle me-2" /> {transaction.name}
-                                                </td>
-                                                <td><i className={"mdi mdi-checkbox-blank-circle  text-" + transaction.color}></i> {transaction.status}</td>
-                                                <td>
-                                                    ${transaction.amount}
-                                                    <p className="m-0 text-muted font-size-14">Amount</p>
-                                                </td>
-                                                <td>
-                                                    {transaction.date}
-                                                    <p className="m-0 text-muted font-size-14">Date</p>
-                                                </td>
-                                                <td>
-                                                    <Button color="secondary" size="sm" className="waves-effect waves-light">Edit</Button>
+                                        transactions && transactions.length > 0 ? (
+                                            transactions.map((transaction, key) =>
+                                                <tr key={key}>
+                                                    <td>
+                                                        {transaction.imgUrl ? (
+                                                            <img src={transaction.imgUrl} alt="user" className="avatar-xs rounded-circle me-2" />
+                                                        ) : (
+                                                            <div className="avatar-xs d-inline-block me-2">
+                                                                <span className="avatar-title rounded-circle bg-light text-primary">
+                                                                    {transaction.name ? transaction.name.charAt(0) : "C"}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        {transaction.name}
+                                                    </td>
+                                                    <td><i className={"mdi mdi-checkbox-blank-circle  text-" + (transaction.color || 'success')}></i> {transaction.status}</td>
+                                                    <td>
+                                                        {transaction.amount}
+                                                    </td>
+                                                    <td>
+                                                        {transaction.date}
+                                                    </td>
+                                                    <td>
+                                                        {transaction.idClient && tenantSlug && branchSlug ? (
+                                                            <Link to={`/${tenantSlug}/${branchSlug}/clients/${transaction.idClient}`} className="btn btn-secondary btn-sm waves-effect waves-light">
+                                                                Ver
+                                                            </Link>
+                                                        ) : (
+                                                            <Button color="secondary" size="sm" className="waves-effect waves-light" disabled>Ver</Button>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            )
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="5" className="text-center p-4 text-muted">
+                                                    Nenhuma matrícula encontrada recentemente.
                                                 </td>
                                             </tr>
                                         )

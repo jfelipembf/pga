@@ -51,7 +51,7 @@ const ProfileMenu = props => {
           />
           <div className="d-none d-xl-inline-block ms-2 text-start" style={{ lineHeight: '1.2', verticalAlign: 'middle' }}>
             <span className="d-block font-size-14">{user?.displayName || "Usuário"}</span>
-            <span className="d-block text-muted font-size-12">{user?.email}</span>
+            <span className="d-block font-size-12">{user?.email}</span>
           </div>
           <i className="mdi mdi-chevron-down d-none d-xl-inline-block"></i>
         </DropdownToggle>

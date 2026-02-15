@@ -101,9 +101,27 @@ const App = props => {
                 ))}
               </Route>
 
-              {/* Protected routes within tenant context */}
+              {/* Protected routes - Fullscreen (Kiosk) */}
+              {protectedRoutes.filter(r => r.path === "/kiosk").map((route, idx) => (
+                <Route
+                  key={'kiosk-' + idx}
+                  path={route.path.startsWith('/') ? route.path.substring(1) : route.path}
+                  element={
+                    <Authmiddleware
+                      permission={route.permission}
+                      permissions={route.permissions}
+                    >
+                      <Suspense fallback={<PageLoader />}>
+                        {React.isValidElement(route.component) ? route.component : <route.component />}
+                      </Suspense>
+                    </Authmiddleware>
+                  }
+                />
+              ))}
+
+              {/* Protected routes - Standard Layout */}
               <Route element={<Authmiddleware><Layout /></Authmiddleware>}>
-                {protectedRoutes.map((route, idx) => (
+                {protectedRoutes.filter(r => r.path !== "/kiosk").map((route, idx) => (
                   <Route
                     key={`protected-${idx}`}
                     path={route.path.startsWith('/') ? route.path.substring(1) : route.path}

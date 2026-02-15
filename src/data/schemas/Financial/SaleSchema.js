@@ -12,7 +12,7 @@ const SaleItemSchema = Yup.object().shape({
 const SalePaymentSchema = Yup.object().shape({
     methodId: Yup.string().oneOf(['money', 'pix', 'debit_card', 'credit_card']).required(),
     methodLabel: Yup.string().required(),
-    value: Yup.number().positive().required(),
+    value: Yup.number().min(0).required(),
     installments: Yup.number().min(1).default(1),
     idAcquirer: Yup.string().nullable(), // ID Adquirente
     provider: Yup.string().nullable(), // Nome Adquirente

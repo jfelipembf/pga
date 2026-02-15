@@ -188,6 +188,11 @@ const Login = props => {
 
               <div className="mt-5 text-center">
                 <p className="text-muted mb-0" style={{ fontSize: '10px' }}>© {new Date().getFullYear()} PGA System.</p>
+                <div className="mt-3">
+                  <Link to="/kiosk" className="text-muted opacity-50 hovered-opacity-100" title="Acessar Modo Quiosque">
+                    <i className="mdi mdi-tablet-dashboard fs-4"></i>
+                  </Link>
+                </div>
               </div>
             </div>
           </Col>

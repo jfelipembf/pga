@@ -156,6 +156,13 @@ const ClientContracts = ({ client }) => {
                                                     <h4 className="font-size-18 mb-1 fw-bold text-dark">{contract.planName}</h4>
                                                     <p className="text-muted mb-2 font-size-13">{contract.friendlyId}</p>
                                                     <StatusBadge status={contract.status} />
+                                                    {contract.isScholarship && (
+                                                        <div className="mt-2">
+                                                            <Badge color="soft-info" className="p-1">
+                                                                <i className="mdi mdi-school me-1"></i>Bolsista (Isenção)
+                                                            </Badge>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </Col>
@@ -337,8 +344,12 @@ const ClientContracts = ({ client }) => {
                                             <td>{formatDate(contract.startDate)}</td>
                                             <td>{formatDate(contract.endDate)}</td>
                                             <td>
-                                                <div className="fw-bold">{formatCurrency(contract.value)}</div>
-                                                {contract.discount > 0.01 && (
+                                                <div className="fw-bold">
+                                                    {contract.isScholarship ? (
+                                                        <span className="text-success"><i className="mdi mdi-school me-1"></i>Bolsista</span>
+                                                    ) : formatCurrency(contract.value)}
+                                                </div>
+                                                {contract.discount > 0.01 && !contract.isScholarship && (
                                                     <small className="text-danger font-size-10">Desc: {formatCurrency(contract.discount)}</small>
                                                 )}
                                             </td>

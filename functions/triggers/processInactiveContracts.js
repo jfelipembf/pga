@@ -1,8 +1,6 @@
 const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
 const { createScheduledTrigger } = require("./utils");
-const { toISODate, addDays } = require("../shared");
-const { saveAuditLog } = require("../shared/audit");
 
 /**
  * Gatilho diário para arquivar contratos cancelados antigos.
@@ -20,7 +18,7 @@ module.exports = createScheduledTrigger("40 0 * * *", "processInactiveContracts"
 
     try {
         // Busca em group collection é mais eficiente para varrer todos os branches
-        const oldCanceledSnapshot = await db.collectionGroup("clientsContracts")
+        const oldCanceledSnapshot = await db.collectionGroup("clientContracts")
             .where("status", "==", "canceled")
             .where("canceledAt", "<=", limitDate)
             .get();
