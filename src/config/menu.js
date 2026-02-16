@@ -113,6 +113,6 @@ export const MENU_STRUCTURE = [
         label: "Quiosque",
         icon: "mdi mdi-monitor-dashboard",
         path: "/kiosk",
-        permission: "members_manage"
+        permission: "kiosk_access"
     }
 ]

@@ -114,7 +114,7 @@ export const MENU_ROUTES = {
     "/financial/acquirers": { component: AcquirersList, permission: "financial_acquirers" },
 
     // Kiosk Mode
-    "/kiosk": { component: Kiosk, permission: "members_manage" },
+    "/kiosk": { component: Kiosk, permission: "kiosk_access" },
 }
 
 /**

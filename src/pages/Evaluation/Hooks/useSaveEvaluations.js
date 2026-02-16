@@ -77,6 +77,7 @@ export const useSaveEvaluations = ({
                         return {
                             id: topicId,
                             name: meta.title || "Tópico",
+                            isFundamental: !!meta.isFundamental,
                             idLevel: levelId,
                             levelName: levelDoc?.title || "Avaliado",
                             achieved: levelDoc?.isPassing !== false,
@@ -151,6 +152,7 @@ export const useSaveEvaluations = ({
             return {
                 id: topicId,
                 name: meta.title || meta.description || "Tópico",
+                isFundamental: !!meta.isFundamental,
                 idLevel: levelId,
                 levelName: levelDoc.title || "Avaliado",
                 achieved: levelDoc.isPassing !== false,
@@ -232,7 +234,8 @@ export const useSaveEvaluations = ({
 
         const resultsDetailed = Object.entries(groupedByObjective).map(([objective, items]) => {
             const itemsText = items.map(c => {
-                let topicLine = `🔹 *${c.name}*`
+                const fundTag = c.isFundamental ? ' ⚡ _Fundamental_' : ''
+                let topicLine = `🔹 *${c.name}*${fundTag}`
 
                 if (c.improved && c.prevLevelName) {
                     // Estilo de Evolução: Nível Anterior ➔ Nível Atual

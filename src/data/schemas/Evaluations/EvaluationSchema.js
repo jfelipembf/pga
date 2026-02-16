@@ -24,6 +24,7 @@ export const EvaluationSchema = Yup.object().shape({
         Yup.object().shape({
             id: Yup.string(),
             name: Yup.string().required(),
+            isFundamental: Yup.boolean().nullable(),
             idLevel: Yup.string().nullable(),
             levelName: Yup.string().nullable(),
             score: Yup.number().min(0).max(10).nullable(),

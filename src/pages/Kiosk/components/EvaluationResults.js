@@ -26,10 +26,13 @@ const getLevelColor = (levelValue, maxLevelValue) => {
  */
 const TopicItem = ({ topic }) => (
     <div className="d-flex align-items-center py-2 px-3 rounded mb-2 bg-light">
-        <div className="flex-grow-1">
+        <div className="flex-grow-1 d-flex align-items-center gap-2">
             <span className="text-dark">{topic.name}</span>
             {topic.isFundamental && (
-                <i className="mdi mdi-star text-warning ms-1" title="Fundamental"></i>
+                <Badge color="warning" className="px-2 py-1 d-flex align-items-center gap-1" style={{ fontSize: '0.7rem' }} pill>
+                    <i className="mdi mdi-star" style={{ fontSize: '0.7rem' }}></i>
+                    Fundamental
+                </Badge>
             )}
         </div>
         <Badge color={topic.levelColor} className="ms-2 flex-shrink-0 px-2 py-1" pill>
@@ -143,7 +146,7 @@ const EvaluationResults = ({ student, onBack }) => {
                         return {
                             id: topic.id,
                             name: criterion?.name || topic.description,
-                            isFundamental: topic.isFundamental || false,
+                            isFundamental: topic.isFundamental || criterion?.isFundamental || false,
                             levelTitle,
                             levelColor
                         };
@@ -269,10 +272,16 @@ const EvaluationResults = ({ student, onBack }) => {
             </Card>
 
             {/* Objetivos */}
-            <h6 className="text-muted text-uppercase small fw-bold mb-3">
+            <h6 className="text-muted text-uppercase small fw-bold mb-2">
                 <i className="mdi mdi-format-list-checks me-1"></i>
                 Objetivos ({objectives.length})
             </h6>
+            <div className="d-flex align-items-center gap-2 mb-3 px-2 py-2 rounded bg-warning bg-opacity-10 border border-warning border-opacity-25">
+                <i className="mdi mdi-star text-warning flex-shrink-0"></i>
+                <small className="text-muted">
+                    Tópicos marcados como <strong className="text-warning">Fundamental</strong> exigem nota máxima para que o aluno avance de nível.
+                </small>
+            </div>
 
             {objectives.map(obj => (
                 <ObjectiveCard key={obj.id} objective={obj} />

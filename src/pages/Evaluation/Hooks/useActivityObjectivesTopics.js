@@ -120,7 +120,8 @@ export const useActivityObjectivesTopics = ({ idActivity, withLoading }) => {
             meta[t.id] = {
                 title: t.description,
                 objectiveTitle: t.objectiveTitle,
-                maxScore: t.maxScore || 10
+                maxScore: t.maxScore || 10,
+                isFundamental: !!t.isFundamental
             }
         })
         return meta

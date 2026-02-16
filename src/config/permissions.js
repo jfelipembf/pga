@@ -154,6 +154,12 @@ export const PERMISSIONS = [
         description: "Criar, gerenciar e enviar planilhas de treinos.",
         category: "OPERACIONAL",
     },
+    {
+        id: "kiosk_access",
+        label: "Acesso ao Quiosque",
+        description: "Permite acessar o modo quiosque (Autoatendimento).",
+        category: "OPERACIONAL",
+    },
 
     // GERENCIAL
     {
@@ -247,7 +253,7 @@ export const getPermissionById = (id) => PERMISSIONS.find(p => p.id === id)
 
 // ============== DEFAULT ROLES (para seed/fallback) ==============
 
-export const BASE_ROLE_IDS = ["proprietario", "gestor", "coordenador", "professor", "estagiario", "recepcionista", "owner"]
+export const BASE_ROLE_IDS = ["proprietario", "gestor", "coordenador", "professor", "estagiario", "recepcionista", "owner", "totem"]
 
 export const DEFAULT_ROLES = [
     {
@@ -338,6 +344,27 @@ export const DEFAULT_ROLES = [
             sales_purchase: true,
             financial_cashier: true,
             admin_classes: true,
+        },
+    },
+    {
+        id: "totem",
+        label: "Totem (Quiosque)",
+        description: "Usuário restrito para autoatendimento (apenas Quiosque).",
+        permissions: {
+            // Nenhum acesso além do Quiosque
+            // Nota: ALL_PERMISSIONS_FALSE não pode ser usado aqui se PERMISSIONS ainda não tiver 'kiosk_access' quando ALL_PERMISSIONS_FALSE for criado?
+            // Não, o array PERMISSIONS é definido antes. Mas ALL_PERMISSIONS_FALSE é derivado de PERMISSIONS.
+            // Como estamos editando o arquivo todo, a ordem será mantida.
+            // Mas para garantir, vou setar manualmente kiosk_access: true e o resto false.
+            // Na verdade, o reduce cria o objeto dinamicamente.
+            // Vamos usar uma abordagem segura: espalhar ALL_PERMISSIONS_FALSE (se disponível no escopo) ou definir um objeto vazio.
+            // Como estou substituindo o bloco, ALL_PERMISSIONS_FALSE estará disponível NO MOMENTO DA EXECUÇÃO (pois é exportada).
+            // Porém, num array declarado abaixo, posso usar referências de cima.
+            // Vou usar ...ALL_PERMISSIONS_FALSE e sobrescrever kiosk_access.
+            // Espere, o arquivo é lido sequencialmente. const ALL_PERMISSIONS_FALSE é definido DEPOIS de PERMISSIONS e ANTES de DEFAULT_ROLES.
+            // Então é seguro usar.
+            ...ALL_PERMISSIONS_FALSE,
+            kiosk_access: true,
         },
     },
 ]
