@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { messagingService } from '../../../../services/Automation/MessagingService';
 import { aiService } from '../../../../services/Automation/AIService';
+import { DEFAULT_MODELS, AI_PROVIDERS } from '../../../../services/Automation/AIModels';
 import { toast } from 'react-toastify';
 
 export const useIntegrationForm = (initialValues, onSave) => {
@@ -11,9 +12,10 @@ export const useIntegrationForm = (initialValues, onSave) => {
         evolutionInstanceName: '',
         evolutionInstanceToken: '',
         openaiKey: '',
-        openaiModel: 'gpt-4o-mini',
+        openaiModel: DEFAULT_MODELS[AI_PROVIDERS.OPENAI],
         geminiKey: '',
-        geminiModel: 'gemini-1.5-flash'
+        geminiModel: DEFAULT_MODELS[AI_PROVIDERS.GEMINI],
+        trainingPrompt: ''
     });
 
     // Estados de Teste

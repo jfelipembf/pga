@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Card, CardBody, Button, Row, Col, Badge, Input } from "reactstrap";
 import WorkoutItem from "./WorkoutItem";
 
-const TrainingSection = ({ section, sectionIndex, onChange, onRemove, onAddItem }) => {
+const TrainingSection = ({ section, sectionIndex, onChange, onRemove, onAddItem, poolLength }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     const handleChangeSectionName = (newName) => {
@@ -22,11 +22,6 @@ const TrainingSection = ({ section, sectionIndex, onChange, onRemove, onAddItem 
         onChange(sectionIndex, 'items', newItems);
     };
 
-    const handleAddItemToSection = () => {
-        onAddItem(sectionIndex);
-    };
-
-    // Calculate section distance
     const sectionItems = section.items || [];
     const sectionDistance = sectionItems.reduce((acc, item) => {
         const reps = parseInt(item.reps) || 0;
@@ -35,67 +30,69 @@ const TrainingSection = ({ section, sectionIndex, onChange, onRemove, onAddItem 
     }, 0);
 
     return (
-        <Card className="mb-3 shadow-sm border-0">
-            <CardBody className="p-3">
-                {/* Section Header */}
-                <div className="d-flex flex-wrap justify-content-between align-items-center mb-3">
-                    <div className="d-flex align-items-center flex-grow-1 mb-2 mb-md-0">
-                        <Button
-                            color="link"
-                            size="sm"
-                            className="p-0 me-1 text-muted"
-                            onClick={() => setIsCollapsed(!isCollapsed)}
-                        >
-                            <i className={`mdi mdi-chevron-${isCollapsed ? 'right' : 'down'} font-size-18`}></i>
-                        </Button>
-                        <Input
-                            type="text"
-                            value={section.name}
-                            onChange={(e) => handleChangeSectionName(e.target.value)}
-                            className="form-control-sm border-0 bg-light fw-bold px-2"
-                            placeholder="Nome da seção"
-                            style={{ maxWidth: '200px', fontSize: '0.9rem' }}
-                        />
-                        <Badge color="primary" className="ms-2 px-2 py-2 section-badge">
+        <Card className="mb-4 border shadow-sm" style={{ borderRadius: '8px', overflow: 'hidden' }}>
+            <div className={`p-3 d-flex align-items-center justify-content-between ${isCollapsed ? '' : 'border-bottom bg-light bg-opacity-25'}`}>
+                <div className="d-flex align-items-center flex-grow-1">
+                    <Button
+                        color="link"
+                        size="sm"
+                        className="p-0 me-2 text-muted"
+                        onClick={() => setIsCollapsed(!isCollapsed)}
+                    >
+                        <i className={`mdi mdi-chevron-${isCollapsed ? 'right' : 'down'} fs-5`}></i>
+                    </Button>
+
+                    <Input
+                        type="text"
+                        value={section.name}
+                        onChange={(e) => handleChangeSectionName(e.target.value)}
+                        className="form-control-sm border-0 bg-transparent fw-bold text-dark p-0"
+                        placeholder="Nome da seção (Ex: Parte Principal)"
+                        style={{ maxWidth: '300px', fontSize: '1rem', boxShadow: 'none' }}
+                    />
+
+                    <div className="ms-3">
+                        <Badge color="light" className="text-primary border border-primary border-opacity-25 px-2 py-1">
                             {sectionDistance}m
                         </Badge>
                     </div>
+                </div>
+
+                <div className="d-flex gap-2">
                     <Button
-                        color="danger"
+                        color="link"
                         size="sm"
-                        outline
-                        className="p-1 px-2"
+                        className="p-1 text-danger opacity-75 hover-opacity-100"
                         onClick={() => onRemove(sectionIndex)}
                         title="Remover seção"
                     >
-                        <i className="mdi mdi-trash-can-outline"></i>
+                        <i className="mdi mdi-delete-outline fs-5"></i>
                     </Button>
                 </div>
+            </div>
 
-                {/* Section Content */}
-                {!isCollapsed && (
-                    <>
-                        {/* Header Row */}
+            {!isCollapsed && (
+                <CardBody className="p-0">
+                    <div className="bg-white">
+                        {/* Header das Séries - apenas para Desktop */}
                         {(section.items?.length || 0) > 0 && (
-                            <Row className="mb-2 text-muted small fw-bold text-uppercase d-none d-md-flex px-1">
-                                <Col md={1}>Reps</Col>
-                                <Col md={1}>Distância</Col>
-                                <Col md={2}>Exercício</Col>
-                                <Col md={2}>Estilo</Col>
-                                <Col md={2}>Material</Col>
+                            <Row className="mx-0 py-2 bg-light bg-opacity-50 text-muted small fw-bold text-uppercase border-bottom">
+                                <Col md={1} className="ps-4">Qtd</Col>
+                                <Col md={1}>Dist.</Col>
+                                <Col md={3}>Exercício / Estilo</Col>
                                 <Col md={2}>Intensidade</Col>
-                                <Col md={1}>Int. (s)</Col>
-                                <Col md={1}></Col>
+                                <Col md={2}>Material</Col>
+                                <Col md={1}>Int.</Col>
+                                <Col md={2}></Col>
                             </Row>
                         )}
 
-                        {/* Items */}
                         <div className="section-items">
                             {(section.items?.length || 0) === 0 ? (
-                                <div className="text-center py-3 bg-light rounded border border-dashed">
-                                    <p className="text-muted mb-2 small">Nenhuma série nesta seção</p>
-                                    <Button color="primary" size="sm" onClick={handleAddItemToSection}>
-                                        <i className="mdi mdi-plus me-1"></i> Adicionar Série
+                                <div className="text-center py-4 bg-light bg-opacity-10 border-bottom mx-3 my-3 rounded border border-dashed">
+                                    <p className="text-muted small mb-2">Sem séries nesta seção</p>
+                                    <Button color="primary" outline size="sm" onClick={() => onAddItem(sectionIndex)}>
+                                        + Adicionar Série
                                     </Button>
                                 </div>
                             ) : (
@@ -107,19 +104,27 @@ const TrainingSection = ({ section, sectionIndex, onChange, onRemove, onAddItem 
                                             item={item}
                                             onChange={handleChangeItem}
                                             onRemove={handleRemoveItem}
+                                            poolLength={poolLength}
                                         />
                                     ))}
-                                    <div className="text-center mt-2">
-                                        <Button color="success" outline size="sm" onClick={handleAddItemToSection}>
-                                            <i className="mdi mdi-plus me-1"></i> Adicionar Série
+                                    <div className="p-3 border-bottom-0 bg-light bg-opacity-10">
+                                        <Button
+                                            color="primary"
+                                            size="sm"
+                                            outline
+                                            className="border-0 fw-medium"
+                                            onClick={() => onAddItem(sectionIndex)}
+                                        >
+                                            <i className="mdi mdi-plus-circle-outline me-1"></i>
+                                            Adicionar Série
                                         </Button>
                                     </div>
                                 </>
                             )}
                         </div>
-                    </>
-                )}
-            </CardBody>
+                    </div>
+                </CardBody>
+            )}
         </Card>
     );
 };

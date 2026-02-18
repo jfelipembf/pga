@@ -43,11 +43,17 @@ export const MENU_STRUCTURE = [
         path: "/crm",
         permission: "members_manage"
     },
+
+    // METODOLOGIA
     {
-        label: "Avaliações e Testes",
-        icon: "mdi mdi-file-check-outline",
-        path: "/evaluation",
-        permission: "management_evaluation_run"
+        label: "Metodologia",
+        icon: "mdi mdi-flask-outline",
+        subItems: [
+            { label: "Avaliações e Testes", path: "/evaluation", permission: "management_evaluation_run" },
+            { label: "Atividades", path: "/admin/activities", permission: "admin_activities" },
+            { label: "Níveis", path: "/admin/evaluation-levels", permission: "management_evaluation_levels" },
+            { label: "Eventos", path: "/admin/events", permission: "management_event_plan" },
+        ]
     },
     {
         label: "Treinos",
@@ -79,10 +85,8 @@ export const MENU_STRUCTURE = [
         icon: "mdi mdi-cog-outline",
         subItems: [
             { label: "Colaboradores", path: "/admin/staff", permission: "staff_manage" },
-            { label: "Atividades", path: "/admin/activities", permission: "admin_activities" },
             { label: "Áreas", path: "/admin/areas", permission: "admin_areas" },
             { label: "Cargos", path: "/admin/roles", permission: "admin_roles" },
-            { label: "Níveis", path: "/admin/evaluation-levels", permission: "management_evaluation_levels" },
             { label: "Catálogo", path: "/admin/catalog", permission: "admin_catalog" },
             { label: "Contratos", path: "/financial/contracts", permission: "admin_contracts" },
         ]
@@ -94,7 +98,6 @@ export const MENU_STRUCTURE = [
         icon: "mdi mdi-chart-areaspline",
         subItems: [
             { label: "Turmas", path: "/admin/classes", permission: "admin_classes" },
-            { label: "Eventos", path: "/admin/events", permission: "management_event_plan" },
             { label: "Automação", path: "/automation", permission: "management_automations" },
             { label: "Auditoria", path: "/admin/audit-logs", permission: "management_audit_log" },
         ]

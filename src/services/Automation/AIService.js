@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { DEFAULT_MODELS, AI_PROVIDERS } from './AIModels';
 
 /**
  * Service to generate AI content using OpenAI or Google Gemini
@@ -16,9 +17,12 @@ class AIService {
      * @param {object} options - Opções extras { apiKey, provider, model }
      */
     async generateText(prompt, context = {}, options = {}) {
-        const apiKey = options.apiKey || this.apiKey;
+        let apiKey = options.apiKey || this.apiKey;
         const provider = options.provider || this.provider;
-        const model = options.model || (provider === 'openai' ? 'gpt-4o-mini' : 'gemini-1.5-flash');
+        const model = options.model || DEFAULT_MODELS[provider] || DEFAULT_MODELS[AI_PROVIDERS.OPENAI];
+
+        // Remover espaços acidentais da chave
+        if (apiKey) apiKey = apiKey.toString().trim();
 
         if (!apiKey) {
             console.error('[AIService] API Key not configured');
@@ -66,22 +70,49 @@ class AIService {
     }
 
     async _callGemini(prompt, model, apiKey) {
-        // Implementação básica do Gemini REST API
-        // Se o model vier vazio, garantir um default válido
-        const finalModel = model || 'gemini-1.5-flash';
+        // v1beta é necessário para modelos recentes via Google AI Studio
+        let finalModel = model || DEFAULT_MODELS[AI_PROVIDERS.GEMINI];
+
+        // Validar modelo — fallback para gemini-2.5-flash se o modelo salvo for inválido
+        const VALID = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-3-flash-preview', 'gemini-3-pro-preview', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'];
+        if (!VALID.includes(finalModel)) {
+            console.warn(`[AIService] Modelo '${finalModel}' não reconhecido.Usando gemini-2.5-flash.`);
+            finalModel = 'gemini-2.5-flash';
+        }
+
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${finalModel}:generateContent?key=${apiKey}`;
 
-        const response = await axios.post(url, {
-            contents: [{
-                parts: [{ text: prompt }]
-            }]
-        }, {
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+        console.log(`[AIService] Chamando Gemini: ${finalModel}`);
 
-        return response.data.candidates[0].content.parts[0].text;
+        try {
+            const response = await axios.post(url, {
+                contents: [{
+                    parts: [{ text: prompt }]
+                }],
+                generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 4096, // Aumento para modelos v3
+                }
+            }, {
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!response.data || !response.data.candidates || !response.data.candidates[0]) {
+                throw new Error("A IA retornou uma resposta vazia.");
+            }
+
+            return response.data.candidates[0].content.parts[0].text;
+        } catch (error) {
+            const errorData = error.response?.data;
+            console.error(`[AIService] Erro Gemini:`, errorData || error.message);
+
+            if (error.response?.status === 404) {
+                throw new Error(`Erro 404: O modelo '${finalModel}' não foi encontrado. Em 2026, modelos Pro/Flash antigos podem ter sido desativados. Verifique se o modelo selecionado é o Gemini 3.0 Flash.`);
+            }
+
+            const msg = errorData?.error?.message || error.message;
+            throw new Error(`Erro na IA: ${msg}`);
+        }
     }
 }
 

@@ -1,4 +1,7 @@
 
+import { MODALITIES, TRAINING_PHASES, TRAINING_OBJECTIVES, TARGET_DISTANCES } from '../constants/trainingConstants';
+import { calculateEstimatedDuration } from './trainingValidation';
+
 /**
  * Formata um plano de treino para ser enviado via WhatsApp
  */
@@ -6,7 +9,50 @@ export const formatTrainingForWhatsApp = (workout) => {
     if (!workout) return "";
 
     let content = `*${workout.description || "Treino"}* (${workout.totalDistance || 0}m)\n`;
-    content += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+    content += `━━━━━━━━━━━━━━━━━━━━━━\n`;
+
+    // Piscina e duração
+    if (workout.poolName) {
+        content += `🏊 Piscina: ${workout.poolName}`;
+        if (workout.poolLength) content += ` (${workout.poolLength}m)`;
+        content += `\n`;
+    }
+    if (workout.sessionDuration) {
+        content += `⏱ Duração da aula: ${workout.sessionDuration} min\n`;
+    }
+
+    // Contexto do treino
+    const contextParts = [];
+    if (workout.modality) {
+        const mod = MODALITIES.find(m => m.value === workout.modality);
+        if (mod) contextParts.push(`📋 ${mod.label}`);
+    }
+    if (workout.phase) {
+        const ph = TRAINING_PHASES.find(p => p.value === workout.phase);
+        if (ph) contextParts.push(`📅 ${ph.label}`);
+    }
+    if (workout.objective) {
+        const obj = TRAINING_OBJECTIVES.find(o => o.value === workout.objective);
+        if (obj) contextParts.push(`🎯 ${obj.label}`);
+    }
+    if (workout.targetDistance) {
+        const td = TARGET_DISTANCES.find(d => d.value === workout.targetDistance);
+        if (td) contextParts.push(`🏊 ${td.label}`);
+    }
+
+    if (contextParts.length > 0) {
+        content += contextParts.join(' • ') + '\n';
+    }
+
+    // Duração estimada
+    if (workout.sections && workout.sections.length > 0) {
+        const duration = calculateEstimatedDuration(workout.sections);
+        if (duration > 0) {
+            content += `⏱ Duração estimada: ~${duration} min\n`;
+        }
+    }
+
+    content += `\n`;
 
     if (workout.sections && workout.sections.length > 0) {
         workout.sections.forEach(section => {
@@ -36,11 +82,14 @@ export const formatTrainingForWhatsApp = (workout) => {
             content += `\n`;
         });
     } else if (workout.items && workout.items.length > 0) {
-        // Fallback para legado se necessário
+        // Fallback para legado
         workout.items.forEach((item, idx) => {
             content += `${idx + 1}. *${item.reps}x${item.distance}m* ${item.exercise || ""}\n`;
         });
     }
+
+    content += `━━━━━━━━━━━━━━━━━━━━━━\n`;
+    content += `🏅 _Bom Treino!_`;
 
     return content.trim();
 };

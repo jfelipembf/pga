@@ -15,7 +15,6 @@ export const RoleService = {
 
         const newRole = await roleRepository.create(idTenant, idBranch, {
             ...roleData,
-            isActive: roleData.isActive !== false,
             status: roleData.status || 'active',
             permissions: roleData.permissions || {},
             createdBy: userId,

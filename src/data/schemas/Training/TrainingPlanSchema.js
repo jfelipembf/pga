@@ -4,6 +4,19 @@ export const TrainingPlanSchema = Yup.object().shape({
     description: Yup.string().optional(),
     dateString: Yup.string().required('A data é obrigatória'),
     totalDistance: Yup.number().transform((val) => (isNaN(val) ? 0 : val)).min(0).default(0),
+
+    // Contexto do treino
+    modality: Yup.string().nullable(),
+    phase: Yup.string().nullable(),
+    objective: Yup.string().nullable(),
+    targetDistance: Yup.string().nullable(),
+
+    // Configuração da sessão
+    poolId: Yup.string().nullable(),
+    poolName: Yup.string().nullable(),
+    poolLength: Yup.number().nullable(),
+    sessionDuration: Yup.number().nullable(),
+
     sections: Yup.array().of(
         Yup.object().shape({
             id: Yup.mixed().required(),

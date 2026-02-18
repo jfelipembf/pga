@@ -6,7 +6,6 @@ const baseValue = {
     name: "",
     description: "",
     permissions: {},
-    isActive: true,
 }
 
 /**
@@ -117,20 +116,6 @@ export const RoleForm = ({ value = {}, onChange, readOnly = false }) => {
                 </Col>
             </Row>
 
-            <FormGroup check className="mt-2 mb-4 d-flex align-items-center">
-                <input
-                    id="roleActive"
-                    type="checkbox"
-                    className="form-check-input mt-0"
-                    checked={form.isActive !== false}
-                    onChange={e => update("isActive", e.target.checked)}
-                    disabled={readOnly}
-                    style={{ cursor: 'pointer', width: '1.2rem', height: '1.2rem' }}
-                />
-                <Label check for="roleActive" className="ms-2 mb-0" style={{ cursor: 'pointer' }}>
-                    Esta função está ativa e pode ser atribuída a colaboradores.
-                </Label>
-            </FormGroup>
 
             <hr className="my-4" />
 

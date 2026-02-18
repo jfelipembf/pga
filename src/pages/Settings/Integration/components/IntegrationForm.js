@@ -2,6 +2,7 @@
 import React, { memo } from 'react';
 import { Card, CardBody, CardHeader, Label, Input, Button, Row, Col, Spinner } from 'reactstrap';
 import { useIntegrationForm } from '../hooks/useIntegrationForm';
+import { OPENAI_MODELS, GEMINI_MODELS } from '../../../../services/Automation/AIModels';
 
 const IntegrationForm = memo(({ initialValues, onSave, loading }) => {
     const {
@@ -123,9 +124,9 @@ const IntegrationForm = memo(({ initialValues, onSave, loading }) => {
                                         value={data.openaiModel || 'gpt-4o-mini'}
                                         onChange={handleChange}
                                     >
-                                        <option value="gpt-4o">GPT-4o (Mais Inteligente)</option>
-                                        <option value="gpt-4o-mini">GPT-4o Mini (Rápido/Econômico)</option>
-                                        <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                                        {OPENAI_MODELS.map(model => (
+                                            <option key={model.value} value={model.value}>{model.label}</option>
+                                        ))}
                                     </Input>
                                 </Col>
                             </Row>
@@ -153,13 +154,43 @@ const IntegrationForm = memo(({ initialValues, onSave, loading }) => {
                                         value={data.geminiModel || 'gemini-1.5-flash'}
                                         onChange={handleChange}
                                     >
-                                        <option value="gemini-1.5-flash">Gemini 1.5 Flash (Rápido)</option>
-                                        <option value="gemini-1.5-pro">Gemini 1.5 Pro (Robusto)</option>
-                                        <option value="gemini-pro">Gemini 1.0 Pro</option>
+                                        {GEMINI_MODELS.map(model => (
+                                            <option key={model.value} value={model.value}>{model.label}</option>
+                                        ))}
                                     </Input>
                                 </Col>
                             </Row>
                             <small className="text-muted mt-1 d-block">Gere sua chave no Google AI Studio.</small>
+                        </Col>
+                    </Row>
+                </CardBody>
+            </Card>
+
+            {/* CONFIGURAÇÃO DE PROMPTS PERSONALIZADOS */}
+            <Card className="mb-4 border shadow-sm">
+                <CardHeader className="bg-transparent border-bottom">
+                    <div className="d-flex align-items-center">
+                        <i className="mdi mdi-message-cog text-dark font-size-20 me-2"></i>
+                        <h5 className="my-0 text-dark">Personalização da Inteligência (Prompts)</h5>
+                    </div>
+                </CardHeader>
+                <CardBody>
+                    <Row>
+                        <Col md={12}>
+                            <Label className="fw-bold">Instruções de Treinamento (Metodologia)</Label>
+                            <Input
+                                type="textarea"
+                                name="trainingPrompt"
+                                rows="5"
+                                value={data.trainingPrompt || ''}
+                                onChange={handleChange}
+                                placeholder="Descreva aqui sua filosofia de treino. Ex: 'Sempre inclua séries de braço', 'Dê ênfase em perna no aquecimento', 'Use a nomenclatura X para exercícios'."
+                            />
+                            <small className="text-muted mt-2 d-block">
+                                <i className="mdi mdi-information-outline me-1"></i>
+                                Estas instruções "ensinam" a IA como você gosta de planejar seus treinos.
+                                Elas serão aplicadas automaticamente em todas as gerações de treino.
+                            </small>
                         </Col>
                     </Row>
                 </CardBody>

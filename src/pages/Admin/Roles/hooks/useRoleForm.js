@@ -16,8 +16,7 @@ export const useRoleForm = (roles = []) => {
             setFormData({
                 name: '',
                 description: '',
-                permissions: {},
-                isActive: true
+                permissions: {}
             })
         } else {
             setFormData(null)
