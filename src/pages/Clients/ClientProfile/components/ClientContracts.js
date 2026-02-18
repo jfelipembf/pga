@@ -9,6 +9,7 @@ import { useTenant } from '../../../../hooks/useTenant'
 import { toast } from 'react-toastify'
 import SalesReceiptModal from '../../../../components/Common/SalesReceiptModal'
 import { SalesService } from '../../../../services/Sales/SalesService'
+import { StaffService } from '../../../../services/Admin/StaffService'
 
 // Modals
 import ContractAdjustDaysModal from './ContractModals/ContractAdjustDaysModal'
@@ -99,6 +100,17 @@ const ClientContracts = ({ client }) => {
             setLoadingReceipt(true);
             const sale = await SalesService.getById(idTenant, idBranch, contract.idSale);
             if (sale) {
+                // Se não tiver o nome do vendedor salvo (vendas antigas), busca no StaffService
+                if (!sale.sellerName && sale.createdBy) {
+                    try {
+                        const staff = await StaffService.findById(idTenant, idBranch, sale.createdBy);
+                        if (staff) {
+                            sale.sellerName = staff.name || staff.email;
+                        }
+                    } catch (err) {
+                        console.warn("Não foi possível buscar o nome do vendedor", err);
+                    }
+                }
                 setReceiptSale(sale);
             } else {
                 toast.error("Venda original não encontrada.");

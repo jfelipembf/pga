@@ -90,6 +90,7 @@ const SalesReceiptModal = ({ isOpen, toggle, saleData, clientName }) => {
                     <div className="mb-3 text-start">
                         <p className="mb-1"><strong>Data:</strong> {formatDate(saleData.saleDate || new Date(), 'DD/MM/YYYY HH:mm')}</p>
                         <p className="mb-1"><strong>Venda Nº:</strong> {saleData.saleNumber || '---'}</p>
+                        <p className="mb-1"><strong>Consultor:</strong> {saleData.sellerName || '---'}</p>
                         <p className="mb-1"><strong>Cliente:</strong> {clientName}</p>
                     </div>
 
