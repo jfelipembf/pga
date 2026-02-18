@@ -17,6 +17,7 @@ export const useClientForm = ({ onClientAdded, toggle }) => {
         selectedFile,
         preview: photoPreview,
         handlePhotoChange,
+        setPhotoDirectly,
         uploadPhoto,
         resetPhoto
     } = usePhotoUpload()
@@ -109,6 +110,7 @@ export const useClientForm = ({ onClientAdded, toggle }) => {
         formik,
         photoPreview,
         handlePhotoChange,
+        setPhotoDirectly,
         isLoadingCep,
         handleCepBlur
     }

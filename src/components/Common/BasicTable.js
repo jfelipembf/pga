@@ -36,20 +36,32 @@ const BasicTable = ({
     const [pageSize, setPageSize] = useState(defaultPageSize)
     const [currentPage, setCurrentPage] = useState(1)
     const [internalSearch, setInternalSearch] = useState("")
+    const [debouncedSearch, setDebouncedSearch] = useState("")
 
     const search = externalSearch !== null ? externalSearch : internalSearch
     const setSearch = onExternalSearchChange !== null ? onExternalSearchChange : setInternalSearch
 
+    // Efeito para debounce do termo de busca
+    React.useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearch(search)
+            setCurrentPage(1) // Volta para a primeira página ao filtrar
+        }, 300)
+
+        return () => clearTimeout(handler)
+    }, [search])
+
     const filteredData = useMemo(() => {
-        if (!search) return data
-        const query = search.toLowerCase()
+        const queryTerm = debouncedSearch || ""
+        if (!queryTerm) return data
+        const query = queryTerm.toLowerCase()
         return data.filter(item => {
             if (Array.isArray(searchKeys) && searchKeys.length) {
                 return searchKeys.some(key => String(item[key] ?? "").toLowerCase().includes(query))
             }
             return JSON.stringify(item).toLowerCase().includes(query)
         })
-    }, [data, search, searchKeys])
+    }, [data, debouncedSearch, searchKeys])
 
     const totalPages = Math.max(1, Math.ceil(filteredData.length / pageSize))
 

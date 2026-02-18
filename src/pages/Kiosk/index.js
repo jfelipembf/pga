@@ -1,23 +1,31 @@
 
 import React from 'react';
 import { Container } from 'reactstrap';
-import StudentSearch from './components/StudentSearch';
+import ClientsSearch from './components/ClientsSearch';
 import VirtualKeyboard from './components/VirtualKeyboard';
 import EvaluationResults from './components/EvaluationResults';
+import FaceScanner from './components/FaceScanner';
 
 import { useKioskController } from './hooks/useKioskController';
 import logoIcon from "../../assets/images/logoIcon.png"
 
 /**
  * Kiosk Main Page
- * Optimized for touch devices, vertical layout, dark theme by default or high contrast.
+ * Optimized for touch devices, vertical layout.
+ * A câmera fica sempre ativa escaneando rostos automaticamente.
  */
 const Kiosk = () => {
+    // Feature Flag para Identificação Facial (Desativado por hora)
+    const SHOW_FACE_ID_SCANNER = false;
+
     const {
         searchTerm,
         results,
         selectedStudent,
         loading,
+        faceScanning,
+        faceMatching,
+        handleFaceDetected,
         handleKeyPress,
         handleSelectStudent,
         handleBackToSearch
@@ -25,14 +33,20 @@ const Kiosk = () => {
 
     return (
         <div className="layout-wrapper vh-100 d-flex flex-column overflow-hidden bg-light font-size-16">
-            {/* Header / Top Bar - Styled like Main App Header */}
+            {/* Header / Top Bar */}
             <div className="d-flex justify-content-between align-items-center bg-white shadow-sm" style={{ zIndex: 10, padding: '0px 15px', height: '80px' }}>
                 <div className="d-flex align-items-center h-100">
                     <div className="d-flex align-items-center justify-content-center me-3 h-100">
                         <img src={logoIcon} alt="" style={{ maxHeight: '120px', width: 'auto' }} />
                     </div>
                 </div>
-                <div className="text-end">
+                <div className="text-end d-flex align-items-center gap-3">
+                    {SHOW_FACE_ID_SCANNER && faceMatching && (
+                        <span className="badge bg-soft-warning text-warning font-size-13 p-2 rounded-pill">
+                            <i className="mdi mdi-face-recognition me-1" />
+                            Identificando...
+                        </span>
+                    )}
                     <span className="badge bg-soft-primary text-primary font-size-14 p-2 rounded-pill">
                         {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                     </span>
@@ -54,21 +68,42 @@ const Kiosk = () => {
                         <div className="d-flex flex-column h-100">
                             {/* Input & Results Area - Scrollable */}
                             <div className="flex-grow-1 overflow-auto p-4" style={{ paddingBottom: '320px' }}>
-                                <div className="d-flex flex-column align-items-center pt-5">
+                                <div className="d-flex flex-column align-items-center pt-3">
 
-                                    {!results.length && !searchTerm && (
-                                        <div className="mb-4 text-center opacity-50">
-                                            <i className="mdi mdi-account-search display-2 text-primary"></i>
-                                            <h4 className="mt-2 text-muted fw-normal">Bem-vindo</h4>
-                                        </div>
+                                    {SHOW_FACE_ID_SCANNER && (
+                                        <>
+                                            {/* Face Scanner */}
+                                            <div className="mb-4">
+                                                <FaceScanner
+                                                    onFaceDetected={handleFaceDetected}
+                                                    enabled={faceScanning && !loading}
+                                                    scanInterval={2500}
+                                                />
+                                            </div>
+
+                                            {/* Separador */}
+                                            <div className="d-flex align-items-center w-100 mb-3" style={{ maxWidth: '600px' }}>
+                                                <hr className="flex-grow-1 m-0" />
+                                                <span className="text-muted px-3 font-size-13">ou busque pelo nome</span>
+                                                <hr className="flex-grow-1 m-0" />
+                                            </div>
+                                        </>
                                     )}
 
-                                    <StudentSearch
-                                        searchTerm={searchTerm}
-                                        onSelect={handleSelectStudent}
-                                        results={results}
-                                        loading={loading}
-                                    />
+                                    {/* Busca por nome */}
+                                    <div className="position-relative w-100 mt-4" style={{ maxWidth: '600px' }}>
+                                        {!SHOW_FACE_ID_SCANNER && (
+                                            <div className="text-center mb-4">
+                                                <h4 className="text-muted fw-normal">Toque no teclado abaixo para começar</h4>
+                                            </div>
+                                        )}
+                                        <ClientsSearch
+                                            searchTerm={searchTerm}
+                                            onSelect={handleSelectStudent}
+                                            results={results}
+                                            loading={loading}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
@@ -93,7 +128,8 @@ const Kiosk = () => {
                     background: rgba(0,0,0,0.1);
                     border-radius: 3px;
                 }
-            `}</style>
+            `}
+            </style>
         </div>
     );
 };

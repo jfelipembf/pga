@@ -2,7 +2,7 @@
 import React from 'react';
 import { Input } from 'reactstrap';
 
-const StudentSearch = ({ searchTerm, onSelect, results = [], loading = false }) => {
+const ClientsSearch = ({ searchTerm, onSelect, results = [], loading = false }) => {
     // Array simulado de resultados, depois será substituído por hook real
     // const { results, searching } = useStudentSearch(searchTerm); 
     // const results = []; // Placeholder
@@ -82,4 +82,4 @@ const StudentSearch = ({ searchTerm, onSelect, results = [], loading = false }) 
     );
 };
 
-export default StudentSearch;
+export default ClientsSearch;

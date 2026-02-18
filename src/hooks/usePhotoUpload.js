@@ -63,6 +63,20 @@ export const usePhotoUpload = (initialPreview = null) => {
     }, [initialPreview]);
 
     /**
+     * Define a foto diretamente (útil para captura via câmera)
+     */
+    const setPhotoDirectly = useCallback((file) => {
+        if (file) {
+            setSelectedFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    }, []);
+
+    /**
      * Atualiza o preview manualmente (ex: ao editar um registro existente)
      */
     const updatePreview = useCallback((url) => {
@@ -75,6 +89,7 @@ export const usePhotoUpload = (initialPreview = null) => {
         uploading,
         error,
         handlePhotoChange,
+        setPhotoDirectly,
         uploadPhoto,
         resetPhoto,
         updatePreview

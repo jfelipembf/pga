@@ -7,6 +7,7 @@ import { ClientService } from "../../../../services/Clients"
 import { ClientSchema } from "../../../../data/schemas/Clients/ClientSchema"
 import { toast } from "react-toastify"
 import { PROFILE_TABS } from "../constants/profileConstants"
+import { usePhotoUpload } from "../../../../hooks/usePhotoUpload"
 
 /**
  * Hook para gerenciar a lógica da página de Perfil do Cliente.
@@ -23,6 +24,15 @@ export const useClientProfile = () => {
     const [loading, setLoading] = useState(true)
     const [activeTab, setActiveTab] = useState(PROFILE_TABS.SUMMARY)
     const [isDeleting, setIsDeleting] = useState(false)
+
+    // Hook de Upload de Foto
+    const {
+        selectedFile,
+        preview: photoPreview,
+        setPhotoDirectly,
+        uploadPhoto,
+        updatePreview
+    } = usePhotoUpload()
 
     // 3. Formik para edição do perfil
     const formik = useFormik({
@@ -57,11 +67,25 @@ export const useClientProfile = () => {
                 const userName = user?.displayName || user?.email || 'Usuário Sistema';
                 const userId = user?.uid || 'system';
 
+                let photoUrl = client?.photoUrl || null;
+
+                // 1. Se houver novo arquivo selecionado, faz upload
+                if (selectedFile) {
+                    photoUrl = await uploadPhoto({
+                        idTenant,
+                        idBranch,
+                        entityType: "clients",
+                        entityId: id,
+                        currentPhotoUrl: client?.photoUrl
+                    });
+                }
+
                 const finalValues = {
                     ...values,
                     firstName: values.firstName?.trim().toUpperCase(),
                     lastName: values.lastName?.trim().toUpperCase(),
-                    email: values.email?.trim().toLowerCase()
+                    email: values.email?.trim().toLowerCase(),
+                    photoUrl: photoUrl
                 };
 
                 await ClientService.updateClient(idTenant, idBranch, userId, id, {
@@ -94,13 +118,12 @@ export const useClientProfile = () => {
             if (!data) {
                 console.error(`[useClientProfile] Cliente ${id} não encontrado.`);
                 toast.error("Cliente não encontrado.")
-                // Opcional: Redirecionar, mas cuidado com loops
-                // navigate(-1) 
                 setLoading(false);
                 return;
             }
 
             setClient(data)
+            updatePreview(data.photoUrl)
 
             // Atualiza valores do formulário
             formik.setValues({
@@ -161,6 +184,59 @@ export const useClientProfile = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [idTenant, idBranch, id, loadClient])
 
+
+    // 7. Atualizar foto individualmente (Header)
+    const handleUpdatePhoto = async (file) => {
+        if (!file || !idTenant || !idBranch || !id) return;
+
+        try {
+            // Faz upload direto usando StorageService
+            const { StorageService } = await import("../../../../services/Core/StorageService");
+            const url = await StorageService.uploadProfileImage(file, {
+                idTenant,
+                idBranch,
+                entityType: "clients",
+                entityId: id,
+                currentPhotoUrl: client?.photoUrl
+            });
+
+            if (url) {
+                // Extrai o descriptor facial para reconhecimento no Kiosk
+                let faceDescriptor = null;
+                try {
+                    const { FaceRecognitionService } = await import("../../../../services/FaceRecognition/FaceRecognitionService");
+                    await FaceRecognitionService.loadModels();
+                    faceDescriptor = await FaceRecognitionService.getDescriptorFromFile(file);
+
+                    if (!faceDescriptor) {
+                        toast.warning("Nenhum rosto detectado na foto. A identificação facial pode não funcionar no Quiosque.");
+                    } else {
+                        console.log(`[ClientProfile] Descriptor facial extraído com sucesso (${faceDescriptor.length}D)`);
+                    }
+                } catch (faceErr) {
+                    console.warn("[ClientProfile] Erro ao extrair descriptor facial:", faceErr);
+                    // Não impede o salvamento - a foto é salva sem descriptor
+                }
+
+                // Atualiza APENAS os campos de foto/face no Firestore (via repository)
+                // Evita passar por ClientSchema.validate que exige firstName, lastName, etc.
+                const { clientRepository } = await import("../../../../data/repositories/ClientRepository");
+                const updatePayload = {
+                    photoUrl: url,
+                    ...(faceDescriptor ? { faceDescriptor: faceDescriptor } : {})
+                };
+                await clientRepository.update(idTenant, idBranch, id, updatePayload);
+
+                setClient(prev => ({ ...prev, photoUrl: url, faceDescriptor }));
+                updatePreview(url);
+                toast.success("Foto de perfil atualizada!");
+            }
+        } catch (error) {
+            console.error("Erro ao atualizar foto:", error);
+            toast.error("Erro ao atualizar foto.");
+        }
+    };
+
     return {
         client,
         loading,
@@ -171,6 +247,9 @@ export const useClientProfile = () => {
         isDeleting,
         idTenant,
         idBranch,
-        formik
+        formik,
+        photoPreview,
+        setPhotoDirectly,
+        handleUpdatePhoto // Exporting the new handler
     }
 }

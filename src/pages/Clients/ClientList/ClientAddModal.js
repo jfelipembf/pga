@@ -17,7 +17,7 @@ import InputMask from "react-input-mask"
 import { toast } from "react-toastify"
 
 // Components & Utils
-import PhotoPreview from "../../../components/Common/PhotoPreview"
+import ProfileImageSection from "../ClientProfile/components/ProfileImageSection"
 import OverlayLoader from "../../../components/Common/OverlayLoader"
 import ButtonLoader from "../../../components/Common/ButtonLoader"
 import { GENDER_OPTIONS } from "../../../utils/constants"
@@ -28,7 +28,7 @@ const ClientAddModal = ({ isOpen, toggle, onClientAdded }) => {
     const {
         formik,
         photoPreview,
-        handlePhotoChange,
+        setPhotoDirectly,
         isLoadingCep,
         handleCepBlur
     } = useClientForm({ onClientAdded, toggle })
@@ -90,14 +90,10 @@ const ClientAddModal = ({ isOpen, toggle, onClientAdded }) => {
                 <Row className="mb-4 g-4">
                     {/* Coluna da Foto */}
                     <Col lg="3" className="d-flex flex-column align-items-center border-end">
-                        <PhotoPreview
-                            inputId="client-photo"
-                            preview={photoPreview}
-                            onChange={handlePhotoChange}
-                            size={160}
-                            rounded
+                        <ProfileImageSection
+                            photoUrl={photoPreview}
+                            onPhotoCaptured={setPhotoDirectly}
                         />
-                        <span className="text-muted small mt-2">Foto do aluno</span>
                     </Col>
 
                     {/* Dados Principais */}

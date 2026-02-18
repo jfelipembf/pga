@@ -4,6 +4,7 @@ import InputMask from "react-input-mask"
 import { GENDER_OPTIONS } from "../../../../utils/constants"
 import { getAddressByCep } from "../../../../services/External/AddressService"
 
+
 const ClientProfileForm = ({ formik }) => {
     const [isLoadingCep, setIsLoadingCep] = useState(false)
 
@@ -26,6 +27,7 @@ const ClientProfileForm = ({ formik }) => {
     return (
         <div className="profile-section animate__animated animate__fadeIn">
             <Form onSubmit={formik.handleSubmit}>
+
                 {/* INFORMAÇÕES PESSOAIS */}
                 <div className="mb-4">
                     <div className="profile-section__title d-flex align-items-center mb-3">

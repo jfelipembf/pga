@@ -9,9 +9,9 @@ import { useClientFinancial } from "./hooks/useClientFinancial"
 import { TAB_LIST, PROFILE_TABS } from "./constants/profileConstants"
 import { ClientService } from "../../../services/Clients/ClientService"
 
-// Componentes Comuns   
 // PageLoader removed
 import ButtonLoader from "../../../components/Common/ButtonLoader"
+import CameraCapture from "../../../components/Common/CameraCapture"
 import StatusBadge from "../../../components/Common/StatusBadge"
 import ConfirmDialog from "../../../components/Common/ConfirmDialog"
 import { formatCurrency } from "../../../utils/format"
@@ -61,7 +61,8 @@ const ClientProfile = () => {
         setActiveTab,
         handleDelete,
         isDeleting,
-        formik
+        formik,
+        handleUpdatePhoto
     } = useClientProfile()
 
     // Resumo financeiro e contratos para a Header
@@ -76,6 +77,12 @@ const ClientProfile = () => {
 
     const [menuOpen, setMenuOpen] = React.useState(false)
     const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false)
+    const [cameraOpen, setCameraOpen] = React.useState(false)
+
+    const handlePhotoCapture = (file) => {
+        handleUpdatePhoto(file);
+        setCameraOpen(false);
+    };
 
     // Incremental loading
 
@@ -111,9 +118,12 @@ const ClientProfile = () => {
                                         <i className="mdi mdi-account text-secondary display-4"></i>
                                     </div>
                                 )}
-                                <label htmlFor="clientAvatar" className="client-profile__camera">
+                                <div
+                                    className="client-profile__camera cursor-pointer"
+                                    onClick={() => setCameraOpen(true)}
+                                >
                                     <i className="mdi mdi-camera" />
-                                </label>
+                                </div>
                             </div>
                             <div className="text-white">
                                 <h3 className="mb-1 text-white">{profileDisplay.name}</h3>
@@ -200,7 +210,9 @@ const ClientProfile = () => {
                             <ClientSummary client={client} />
                         )}
                         {activeTab === PROFILE_TABS.PROFILE && (
-                            <ClientProfileForm formik={formik} />
+                            <ClientProfileForm
+                                formik={formik}
+                            />
                         )}
                         {activeTab === PROFILE_TABS.FINANCIAL && (
                             <ClientFinancial client={client} />
@@ -228,6 +240,12 @@ const ClientProfile = () => {
                 confirmColor="danger"
                 onConfirm={handleDelete}
                 loading={isDeleting}
+            />
+
+            <CameraCapture
+                isOpen={cameraOpen}
+                toggle={() => setCameraOpen(!cameraOpen)}
+                onCapture={handlePhotoCapture}
             />
         </React.Fragment>
     )
