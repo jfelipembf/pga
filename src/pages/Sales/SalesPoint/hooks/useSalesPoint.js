@@ -6,7 +6,7 @@ import { AcquirerService } from '../../../../services/Financial/AcquirerService'
 import { ContractService } from '../../../../services/Financial/ContractService';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../../../hooks/useAuth';
-import { normalizeDate } from '../../../../utils/date';
+import { normalizeDate, parseDateInput } from '../../../../utils/date';
 
 /**
  * Hook customizado para gerenciar a lógica da página de Ponto de Venda.
@@ -207,7 +207,7 @@ export const useSalesPoint = () => {
                 surplus: totals.surplus,
 
                 // From Finalize Step
-                dueDateBalance: finalizeData.dueDate ? new Date(finalizeData.dueDate) : null,
+                dueDateBalance: parseDateInput(finalizeData.dueDate), // parseDateInput evita bug de fuso
                 status: totals.balance > 0.01 ? 'partial' : 'paid',
 
                 // Metadata

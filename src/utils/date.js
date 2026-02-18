@@ -23,6 +23,7 @@ export const formatDate = (date, format = 'date') => {
     if (format === 'time') return m.format('HH:mm');
     if (format === 'datetime' || format === 'full') return m.format('DD/MM/YYYY HH:mm');
     if (format === 'date') return m.format('DD/MM/YYYY');
+    if (format === 'short') return m.format('DD/MM HH:mm'); // ex: "18/02 18:26"
 
     // Se o formato não for uma keyword conhecida, usa como string de formatação do Moment
     return m.format(format);
@@ -98,6 +99,71 @@ export const normalizeDate = (date) => {
     const m = moment(date);
     return m.isValid() ? m.toDate() : null;
 };
+
+/**
+ * ============================================================
+ * parseDateInput — BLINDAGEM CONTRA BUG DE FUSO HORÁRIO
+ * ============================================================
+ *
+ * PROBLEMA:
+ *   `new Date("2025-01-15")` interpreta a string como UTC midnight.
+ *   Em fusos negativos (ex: UTC-3 no Brasil), isso resulta em
+ *   "2025-01-14T21:00:00-03:00" — ou seja, o dia ANTERIOR ao digitado.
+ *   Isso corrompe datas salvas no Firestore e filtros de período.
+ *
+ * SOLUÇÃO:
+ *   Ancoramos a string ao meio-dia local (T12:00:00), eliminando
+ *   qualquer risco de deslocamento de dia independente do fuso.
+ *
+ * USO OBRIGATÓRIO:
+ *   Sempre que uma data vier de um input HTML (type="date"),
+ *   use esta função em vez de `new Date(valor)`.
+ *
+ * @param {string|Date|null} value - Valor do input (ex: "2025-01-15")
+ * @param {'start'|'end'|'noon'} [anchor='noon'] - Ancora o horário:
+ *   - 'start': 00:00:00.000 local (início do dia, para filtros >=)
+ *   - 'end':   23:59:59.999 local (fim do dia, para filtros <=)
+ *   - 'noon':  12:00:00 local (padrão — salvar no banco sem risco)
+ * @returns {Date|null}
+ */
+export const parseDateInput = (value, anchor = 'noon') => {
+    if (!value) return null;
+
+    // Se já for um Date JS válido, apenas ajusta o horário se necessário
+    if (value instanceof Date) {
+        if (anchor === 'start') { const d = new Date(value); d.setHours(0, 0, 0, 0); return d; }
+        if (anchor === 'end') { const d = new Date(value); d.setHours(23, 59, 59, 999); return d; }
+        return value;
+    }
+
+    // Se for Timestamp do Firestore
+    if (value && typeof value.seconds === 'number') {
+        return new Date(value.seconds * 1000);
+    }
+
+    // String YYYY-MM-DD (vinda de input HTML type="date")
+    if (typeof value === 'string' && value.length === 10) {
+        if (anchor === 'start') return moment(value + 'T00:00:00').toDate();
+        if (anchor === 'end') return moment(value + 'T23:59:59.999').toDate();
+        return moment(value + 'T12:00:00').toDate(); // noon — padrão seguro
+    }
+
+    // Outros formatos (ISO completo, etc.) — delega para normalizeDate
+    return normalizeDate(value);
+};
+
+/**
+ * Converte um par de strings de filtro (startDate, endDate) para objetos Date
+ * com horários corretos para queries de intervalo no Firestore.
+ *
+ * @param {string|null} start - Data inicial (YYYY-MM-DD)
+ * @param {string|null} end   - Data final (YYYY-MM-DD)
+ * @returns {{ startDate: Date|null, endDate: Date|null }}
+ */
+export const parseDateRange = (start, end) => ({
+    startDate: parseDateInput(start, 'start'),
+    endDate: parseDateInput(end, 'end'),
+});
 
 /**
  * Formata uma data usando Intl.DateTimeFormat para exibição com opções flexíveis.

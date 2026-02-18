@@ -2,6 +2,7 @@ import { taskRepository } from "../../data/repositories/Admin/TaskRepository"
 import { AuditService } from "../Core/AuditService"
 import { StorageService } from "../Core/StorageService"
 import moment from "moment"
+import { parseDateInput } from "../../utils/date"
 
 /**
  * Serviço de Gestão de Tarefas (Tasks).
@@ -17,7 +18,7 @@ export const TaskService = {
             const data = {
                 ...taskData,
                 status: 'pending',
-                dueDate: taskData.dueDate ? new Date(taskData.dueDate) : null,
+                dueDate: parseDateInput(taskData.dueDate), // parseDateInput evita bug de fuso com strings YYYY-MM-DD
                 createdBy: currentUser.uid,
                 createdByName: currentUser.firstName || currentUser.fullName || currentUser.email,
                 createdAt: new Date(),
@@ -59,7 +60,7 @@ export const TaskService = {
             };
 
             if (updates.dueDate) {
-                dataToUpdate.dueDate = new Date(updates.dueDate);
+                dataToUpdate.dueDate = parseDateInput(updates.dueDate);
             }
 
             await taskRepository.update(idTenant, idBranch, taskId, dataToUpdate);

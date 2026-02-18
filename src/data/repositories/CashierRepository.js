@@ -1,5 +1,6 @@
 import { query, where, limit, getDocs } from 'firebase/firestore'
 import { BaseRepository } from './BaseRepository'
+import { parseDateInput } from '../../utils/date'
 
 /**
  * Repositório para Sessões de Caixa (CashierSessions).
@@ -43,17 +44,10 @@ class CashierRepository extends BaseRepository {
      * Encontra sessões de caixa por data de abertura.
      */
     async findByDate(idTenant, idBranch, date) {
-        // Importar normalizeDate dentro do método ou no topo se possível (mas create-react-app pode reclamar de imports fora)
-        // Assumindo que o date passado já é um objeto Date válido ou string
-        // Precisamos criar startOfDay e endOfDay
-        const start = new Date(date);
-        start.setHours(0, 0, 0, 0);
-
-        const end = new Date(date);
-        end.setHours(23, 59, 59, 999);
-
-        // ATENÇÃO: Queries com range na mesma data requerem indice composto se houver orderBy.
-        // Aqui faremos simples.
+        // parseDateInput garante que strings YYYY-MM-DD de inputs HTML
+        // não sofram deslocamento de fuso horário (bug UTC midnight)
+        const start = parseDateInput(date, 'start'); // 00:00:00 local
+        const end = parseDateInput(date, 'end');   // 23:59:59 local
 
         return await this.findWhere(idTenant, idBranch, [
             ['openedAt', '>=', start],

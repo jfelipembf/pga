@@ -1,5 +1,6 @@
 import { BaseRepository } from './BaseRepository'
 import { Timestamp } from 'firebase/firestore'
+import { parseDateRange } from '../../utils/date'
 
 /**
  * Repositório para Lançamentos Contábeis (Ledger Entries)
@@ -53,9 +54,10 @@ export class LedgerRepository extends BaseRepository {
      * Busca lançamentos por período
      */
     async findByPeriod(idTenant, idBranch, startDate, endDate) {
+        const { startDate: start, endDate: end } = parseDateRange(startDate, endDate);
         const results = await this.findWhere(idTenant, idBranch, [
-            ['date', '>=', Timestamp.fromDate(new Date(startDate))],
-            ['date', '<=', Timestamp.fromDate(new Date(endDate))]
+            ['date', '>=', Timestamp.fromDate(start)],
+            ['date', '<=', Timestamp.fromDate(end)]
         ])
 
         return results.map(entry => ({

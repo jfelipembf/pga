@@ -5,7 +5,7 @@ import { AuditService } from '../Core/AuditService'
 import { PayableSchema } from '../../data/schemas/Financial/PayableSchema'
 import { generatePayableId } from '../../utils/sequence'
 import { LedgerService, safeLedgerCall } from '../Ledger/LedgerService'
-import { normalizeDate } from '../../utils/date'
+import { normalizeDate, parseDateInput } from '../../utils/date'
 
 /**
  * Serviço para Gestão de Contas a Pagar (Payables)
@@ -157,27 +157,14 @@ export const PayableService = {
         }
 
         // Datas (espera string YYYY-MM-DD ou Date object)
+        // parseDateInput garante que strings de input HTML não sofram deslocamento de fuso
         if (filters.startDate) {
-            const start = new Date(filters.startDate);
-            // Ajustar para início do dia se for string simples, ou garantir Date
-            if (typeof filters.startDate === 'string') {
-                // Ajuste simples para evitar fuso? melhor usar split se for YYYY-MM-DD puro
-                // Mas assumindo input type="date", vem YYYY-MM-DD.
-                // Criando com T00:00:00 local
-                const parts = filters.startDate.split('-');
-                start.setFullYear(parts[0], parts[1] - 1, parts[2]);
-                start.setHours(0, 0, 0, 0);
-            }
+            const start = parseDateInput(filters.startDate, 'start');
             whereClauses.push(['dueDate', '>=', start]);
         }
 
         if (filters.endDate) {
-            const end = new Date(filters.endDate);
-            if (typeof filters.endDate === 'string') {
-                const parts = filters.endDate.split('-');
-                end.setFullYear(parts[0], parts[1] - 1, parts[2]);
-                end.setHours(23, 59, 59, 999);
-            }
+            const end = parseDateInput(filters.endDate, 'end');
             whereClauses.push(['dueDate', '<=', end]);
         }
 

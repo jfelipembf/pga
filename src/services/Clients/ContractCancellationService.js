@@ -4,7 +4,7 @@ import { clientContractRepository } from '../../data/repositories/ClientContract
 import { AuditService } from '../Core/AuditService'
 import { DashboardSummaryService } from '../Dashboard/DashboardSummaryService'
 import { LedgerService } from '../Ledger/LedgerService'
-import { normalizeDate } from '../../utils/date'
+import { normalizeDate, parseDateInput } from '../../utils/date'
 import moment from 'moment'
 
 /**
@@ -212,7 +212,7 @@ export const ContractCancellationService = {
         transaction.update(contractRef, {
             status: 'cancelled',
             'cancellation.canceledAt': normalizeDate(new Date()),
-            'cancellation.effectiveDate': normalizeDate(new Date(effectiveDate)),
+            'cancellation.effectiveDate': parseDateInput(effectiveDate),
             'cancellation.canceledBy': userId,
             'cancellation.reason': reason,
             'cancellation.notes': notes,
