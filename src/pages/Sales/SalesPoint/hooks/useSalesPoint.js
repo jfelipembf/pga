@@ -6,6 +6,7 @@ import { AcquirerService } from '../../../../services/Financial/AcquirerService'
 import { ContractService } from '../../../../services/Financial/ContractService';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../../../hooks/useAuth';
+import { normalizeDate } from '../../../../utils/date';
 
 /**
  * Hook customizado para gerenciar a lógica da página de Ponto de Venda.
@@ -154,6 +155,12 @@ export const useSalesPoint = () => {
             setIsProcessing(true);
 
             // Construct the complete payload
+            // IMPORTANTE: usar normalizeDate para strings YYYY-MM-DD vindas de inputs HTML.
+            // new Date("2025-01-15") interpreta como UTC midnight, causando deslocamento de 1 dia
+            // em fusos negativos (ex: UTC-3 → salva como 14/01 às 21h).
+            const normalizedSaleDate = saleDate ? normalizeDate(saleDate) : new Date();
+            const normalizedStartDate = startDate ? normalizeDate(startDate) : new Date();
+
             const payload = {
                 idClient,
                 clientName, // Store for history
@@ -161,11 +168,12 @@ export const useSalesPoint = () => {
                 idSeller: user.uid,
                 sellerName: user.displayName || user.email || 'Vendedor',
 
-                saleDate: saleDate ? new Date(saleDate) : new Date(),
-                startDate: startDate ? new Date(startDate) : new Date(),
+                saleDate: normalizedSaleDate,
+                startDate: normalizedStartDate,
                 isRenewal: !!isRenewal,
 
-                // Items
+                // Items — startDate é passado por item para que o SalesService
+                // possa calcular a vigência do contrato corretamente.
                 items: cartItems.map(item => ({
                     type: item.type,
                     idItem: item.idItem, // Original ID
@@ -173,7 +181,8 @@ export const useSalesPoint = () => {
                     quantity: 1,
                     unitPrice: item.unitPrice,
                     totalPrice: item.totalPrice,
-                    isScholarship: item.isScholarship || false
+                    isScholarship: item.isScholarship || false,
+                    startDate: normalizedStartDate // ✅ Necessário para calcular endDate do contrato
                 })),
 
                 // Payments
