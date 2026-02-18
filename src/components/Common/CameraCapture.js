@@ -56,7 +56,7 @@ const CameraCapture = ({ isOpen, toggle, onCapture }) => {
                         />
                         {!isCapturing && (
                             <div className="position-absolute top-50 start-50 translate-middle text-white text-center">
-                                <Spinner size="lg" color="light" />
+                                <Spinner color="light" />
                                 <p className="mt-2 text-white">Solicitando permissão da câmera...</p>
                             </div>
                         )}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useTenant } from '../../../hooks/useTenant';
 import CompanyService from '../../../services/Company/CompanyService';
 import { SWIMMING_STYLES, INTENSITIES, EQUIPMENT } from '../constants/trainingConstants';

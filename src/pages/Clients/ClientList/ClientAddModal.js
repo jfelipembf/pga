@@ -13,7 +13,6 @@ import {
     FormGroup,
     Spinner
 } from "reactstrap"
-import InputMask from "react-input-mask"
 import { toast } from "react-toastify"
 
 // Components & Utils
@@ -21,6 +20,7 @@ import ProfileImageSection from "../ClientProfile/components/ProfileImageSection
 import OverlayLoader from "../../../components/Common/OverlayLoader"
 import ButtonLoader from "../../../components/Common/ButtonLoader"
 import { GENDER_OPTIONS } from "../../../utils/constants"
+import { maskCPF, maskPhone, maskCEP } from "../../../utils/maskUtils"
 import { useClientForm } from "../hooks/useClientForm"
 import logoIcon from "../../../assets/images/logoIcon.png"
 
@@ -167,17 +167,19 @@ const ClientAddModal = ({ isOpen, toggle, onClientAdded }) => {
                             <Col md="4">
                                 <FormGroup>
                                     <Label>CPF</Label>
-                                    <InputMask
-                                        mask="999.999.999-99"
+                                    <Input
                                         id="cpf"
                                         name="cpf"
-                                        value={formik.values.cpf}
-                                        onChange={formik.handleChange}
+                                        value={maskCPF(formik.values.cpf)}
+                                        onChange={(e) => {
+                                            const maskedValue = maskCPF(e.target.value)
+                                            formik.setFieldValue("cpf", maskedValue)
+                                        }}
                                         onBlur={formik.handleBlur}
-                                        className={`form-control ${formik.touched.cpf && formik.errors.cpf ? 'is-invalid' : ''}`}
+                                        invalid={formik.touched.cpf && !!formik.errors.cpf}
                                         placeholder="000.000.000-00"
                                     />
-                                    {formik.touched.cpf && formik.errors.cpf && <FormFeedback className="d-block">{formik.errors.cpf}</FormFeedback>}
+                                    {formik.touched.cpf && formik.errors.cpf && <FormFeedback>{formik.errors.cpf}</FormFeedback>}
                                 </FormGroup>
                             </Col>
                             <Col md="8">
@@ -199,17 +201,19 @@ const ClientAddModal = ({ isOpen, toggle, onClientAdded }) => {
                             <Col md="4">
                                 <FormGroup>
                                     <Label>Telefone <span className="text-danger">*</span></Label>
-                                    <InputMask
-                                        mask="(99) 99999-9999"
+                                    <Input
                                         id="phone"
                                         name="phone"
-                                        value={formik.values.phone}
-                                        onChange={formik.handleChange}
+                                        value={maskPhone(formik.values.phone)}
+                                        onChange={(e) => {
+                                            const maskedValue = maskPhone(e.target.value)
+                                            formik.setFieldValue("phone", maskedValue)
+                                        }}
                                         onBlur={formik.handleBlur}
-                                        className={`form-control ${formik.touched.phone && formik.errors.phone ? 'is-invalid' : ''}`}
+                                        invalid={formik.touched.phone && !!formik.errors.phone}
                                         placeholder="(00) 00000-0000"
                                     />
-                                    {formik.touched.phone && formik.errors.phone && <FormFeedback className="d-block">{formik.errors.phone}</FormFeedback>}
+                                    {formik.touched.phone && formik.errors.phone && <FormFeedback>{formik.errors.phone}</FormFeedback>}
                                 </FormGroup>
                             </Col>
                         </Row>
@@ -228,20 +232,22 @@ const ClientAddModal = ({ isOpen, toggle, onClientAdded }) => {
                                 CEP
                                 {isLoadingCep && <Spinner size="sm" className="ms-1" />}
                             </Label>
-                            <InputMask
-                                mask="99999-999"
+                            <Input
                                 id="zipCode"
                                 name="zipCode"
-                                value={formik.values.zipCode}
-                                onChange={formik.handleChange}
+                                value={maskCEP(formik.values.zipCode)}
+                                onChange={(e) => {
+                                    const maskedValue = maskCEP(e.target.value)
+                                    formik.setFieldValue("zipCode", maskedValue)
+                                }}
                                 onBlur={(e) => {
                                     formik.handleBlur(e)
                                     handleCepBlur(e)
                                 }}
-                                className={`form-control ${formik.touched.zipCode && formik.errors.zipCode ? 'is-invalid' : ''}`}
+                                invalid={formik.touched.zipCode && !!formik.errors.zipCode}
                                 placeholder="00000-000"
                             />
-                            {formik.touched.zipCode && formik.errors.zipCode && <FormFeedback className="d-block">{formik.errors.zipCode}</FormFeedback>}
+                            {formik.touched.zipCode && formik.errors.zipCode && <FormFeedback>{formik.errors.zipCode}</FormFeedback>}
                         </FormGroup>
                     </Col>
                     <Col md="7">
@@ -347,12 +353,14 @@ const ClientAddModal = ({ isOpen, toggle, onClientAdded }) => {
                     <Col md="4">
                         <FormGroup>
                             <Label>Telefone de Emergência</Label>
-                            <InputMask
-                                mask="(99) 99999-9999"
+                            <Input
                                 id="emergencyPhone"
                                 name="emergencyPhone"
-                                value={formik.values.emergencyPhone}
-                                onChange={formik.handleChange}
+                                value={maskPhone(formik.values.emergencyPhone)}
+                                onChange={(e) => {
+                                    const maskedValue = maskPhone(e.target.value)
+                                    formik.setFieldValue("emergencyPhone", maskedValue)
+                                }}
                                 onBlur={formik.handleBlur}
                                 className="form-control"
                                 placeholder="(00) 00000-0000"

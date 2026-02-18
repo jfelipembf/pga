@@ -15,7 +15,7 @@ import withRouter from "../Common/withRouter"
 import { ClientService } from "../../services/Clients/ClientService"
 
 // Images
-import logo from "../../assets/images/pgaLogo.png"
+
 import logoIcon from "../../assets/images/logoIcon.png"
 
 // Actions

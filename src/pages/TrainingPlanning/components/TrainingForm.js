@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Card, CardBody, Button, Row, Col, Spinner, Badge, Alert, Collapse } from "reactstrap";
+import { Card, CardBody, Button, Row, Col, Spinner, Collapse } from "reactstrap";
 import Select from "react-select";
 import TrainingSection from "./TrainingSection";
 import { formatDateDisplay, toISODate } from "../../../utils/date";
@@ -15,15 +15,13 @@ import {
     MODALITIES,
     TRAINING_PHASES,
     TRAINING_OBJECTIVES,
-    TARGET_DISTANCES,
     TRAINING_TEMPLATES,
     SESSION_DURATIONS,
-    generateDistanceOptions,
     INTENSITIES
 } from "../constants/trainingConstants";
 
 const TrainingForm = ({ date, initialData, onSave, onBack }) => {
-    const { pools, loading: loadingPools } = usePoolAreas();
+    const { pools } = usePoolAreas();
     const { generateWorkout, loading: loadingAI } = useTrainingAI();
     const { printWorkout } = useTrainingPrint();
 
@@ -41,11 +39,10 @@ const TrainingForm = ({ date, initialData, onSave, onBack }) => {
     const [modality, setModality] = useState(initialData?.modality || null);
     const [phase, setPhase] = useState(initialData?.phase || null);
     const [objective, setObjective] = useState(initialData?.objective || null);
-    const [targetDistance, setTargetDistance] = useState(initialData?.targetDistance || null);
+    const [targetDistance] = useState(initialData?.targetDistance || null);
 
     // UI state
     const [showTemplates, setShowTemplates] = useState(false);
-    const [showAlerts, setShowAlerts] = useState(true);
 
     const selectedPool = useMemo(() => pools.find(p => p.id === selectedPoolId) || null, [pools, selectedPoolId]);
 

@@ -140,6 +140,13 @@ export const useKioskController = () => {
         }
     }, [idTenant, idBranch, isReady]);
 
+    const handleSelectStudent = useCallback((student) => {
+        setSelectedStudent(student);
+        setSearchTerm('');
+        setResults([]);
+        setFaceScanning(false);
+    }, []);
+
     /**
      * Callback chamado pelo FaceScanner quando um rosto é detectado.
      * Recebe o descriptor facial e tenta fazer o match.
@@ -191,7 +198,7 @@ export const useKioskController = () => {
         } finally {
             setFaceMatching(false);
         }
-    }, [faceMatching, selectedStudent, getClientsWithFace]);
+    }, [faceMatching, selectedStudent, getClientsWithFace, handleSelectStudent]);
 
     const handleKeyPress = useCallback((key) => {
         if (key === '⌫') {
@@ -203,12 +210,6 @@ export const useKioskController = () => {
         }
     }, []);
 
-    const handleSelectStudent = useCallback((student) => {
-        setSelectedStudent(student);
-        setSearchTerm('');
-        setResults([]);
-        setFaceScanning(false);
-    }, []);
 
     const handleBackToSearch = useCallback(() => {
         setSelectedStudent(null);

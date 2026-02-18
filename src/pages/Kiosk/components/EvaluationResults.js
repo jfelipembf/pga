@@ -224,7 +224,7 @@ const EvaluationResults = ({ student, onBack }) => {
         );
     }
 
-    const { evaluation, activity, objectives, advancePercentage, globalLevelTitle, totalTopics } = data;
+    const { evaluation, activity, objectives, advancePercentage } = data;
 
     return (
         <div className="animate__animated animate__fadeIn">

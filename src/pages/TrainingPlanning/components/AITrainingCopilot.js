@@ -4,7 +4,7 @@ import {
     Button, Row, Col, Label, Input,
     FormGroup, Spinner, Alert
 } from 'reactstrap';
-import { MODALITIES, TRAINING_PHASES, TRAINING_OBJECTIVES, SWIMMING_STYLES, INTENSITIES } from '../constants/trainingConstants';
+import { MODALITIES, TRAINING_PHASES, TRAINING_OBJECTIVES, SWIMMING_STYLES } from '../constants/trainingConstants';
 
 /**
  * AI Training Copilot - Formulário profissional para geração de treino via IA.

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Row, Col, Form, FormGroup, Label, Input, Button, FormFeedback, Spinner } from 'reactstrap'
-import InputMask from "react-input-mask"
+import { maskCPF, maskPhone, maskCEP } from "../../../../utils/maskUtils"
 import { GENDER_OPTIONS } from "../../../../utils/constants"
 import { getAddressByCep } from "../../../../services/External/AddressService"
 
@@ -97,16 +97,18 @@ const ClientProfileForm = ({ formik }) => {
                         <Col md={3}>
                             <FormGroup>
                                 <Label>CPF</Label>
-                                <InputMask
-                                    mask="999.999.999-99"
+                                <Input
                                     name="cpf"
-                                    value={formik.values.cpf}
-                                    onChange={formik.handleChange}
+                                    value={maskCPF(formik.values.cpf)}
+                                    onChange={(e) => {
+                                        const maskedValue = maskCPF(e.target.value)
+                                        formik.setFieldValue("cpf", maskedValue)
+                                    }}
                                     onBlur={formik.handleBlur}
-                                    className={`form-control ${formik.touched.cpf && formik.errors.cpf ? 'is-invalid' : ''}`}
+                                    invalid={formik.touched.cpf && !!formik.errors.cpf}
                                     placeholder="000.000.000-00"
                                 />
-                                {formik.touched.cpf && formik.errors.cpf && <FormFeedback className="d-block">{formik.errors.cpf}</FormFeedback>}
+                                {formik.touched.cpf && formik.errors.cpf && <FormFeedback>{formik.errors.cpf}</FormFeedback>}
                             </FormGroup>
                         </Col>
                         <Col md={3}>
@@ -126,16 +128,18 @@ const ClientProfileForm = ({ formik }) => {
                         <Col md={3}>
                             <FormGroup>
                                 <Label>Telefone <span className="text-danger">*</span></Label>
-                                <InputMask
-                                    mask="(99) 99999-9999"
+                                <Input
                                     name="phone"
-                                    value={formik.values.phone}
-                                    onChange={formik.handleChange}
+                                    value={maskPhone(formik.values.phone)}
+                                    onChange={(e) => {
+                                        const maskedValue = maskPhone(e.target.value)
+                                        formik.setFieldValue("phone", maskedValue)
+                                    }}
                                     onBlur={formik.handleBlur}
-                                    className={`form-control ${formik.touched.phone && formik.errors.phone ? 'is-invalid' : ''}`}
+                                    invalid={formik.touched.phone && !!formik.errors.phone}
                                     placeholder="(00) 00000-0000"
                                 />
-                                {formik.touched.phone && formik.errors.phone && <FormFeedback className="d-block">{formik.errors.phone}</FormFeedback>}
+                                {formik.touched.phone && formik.errors.phone && <FormFeedback>{formik.errors.phone}</FormFeedback>}
                             </FormGroup>
                         </Col>
                     </Row>
@@ -159,16 +163,18 @@ const ClientProfileForm = ({ formik }) => {
                                     CEP
                                     {isLoadingCep && <Spinner size="sm" color="primary" />}
                                 </Label>
-                                <InputMask
-                                    mask="99999-999"
+                                <Input
                                     name="zipCode"
-                                    value={formik.values.zipCode}
-                                    onChange={formik.handleChange}
+                                    value={maskCEP(formik.values.zipCode)}
+                                    onChange={(e) => {
+                                        const maskedValue = maskCEP(e.target.value)
+                                        formik.setFieldValue("zipCode", maskedValue)
+                                    }}
                                     onBlur={handleCepBlur}
-                                    className={`form-control ${formik.touched.zipCode && formik.errors.zipCode ? 'is-invalid' : ''}`}
+                                    invalid={formik.touched.zipCode && !!formik.errors.zipCode}
                                     placeholder="00000-000"
                                 />
-                                {formik.touched.zipCode && formik.errors.zipCode && <FormFeedback className="d-block">{formik.errors.zipCode}</FormFeedback>}
+                                {formik.touched.zipCode && formik.errors.zipCode && <FormFeedback>{formik.errors.zipCode}</FormFeedback>}
                             </FormGroup>
                         </Col>
                         <Col md={5}>
@@ -259,11 +265,13 @@ const ClientProfileForm = ({ formik }) => {
                             <Col md={12}>
                                 <FormGroup>
                                     <Label>Telefone de Emergência</Label>
-                                    <InputMask
-                                        mask="(99) 99999-9999"
+                                    <Input
                                         name="emergencyPhone"
-                                        value={formik.values.emergencyPhone}
-                                        onChange={formik.handleChange}
+                                        value={maskPhone(formik.values.emergencyPhone)}
+                                        onChange={(e) => {
+                                            const maskedValue = maskPhone(e.target.value)
+                                            formik.setFieldValue("emergencyPhone", maskedValue)
+                                        }}
                                         className="form-control"
                                         placeholder="(00) 00000-0000"
                                     />

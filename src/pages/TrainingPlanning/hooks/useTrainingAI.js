@@ -3,7 +3,7 @@ import { aiService } from '../../../services/Automation/AIService';
 import { integrationRepository } from '../../../data/repositories/Automation/IntegrationRepository';
 import { useTenant } from '../../../hooks/useTenant';
 import { toast } from 'react-toastify';
-import { SWIMMING_STYLES, INTENSITIES, EQUIPMENT } from '../constants/trainingConstants';
+import { SWIMMING_STYLES, EQUIPMENT } from '../constants/trainingConstants';
 
 /**
  * Helper para limpar e parsear JSON da IA de forma robusta
@@ -84,7 +84,6 @@ export const useTrainingAI = () => {
      */
     const buildPrompt = (config, customInstructions) => {
         const stylesRef = SWIMMING_STYLES.map(s => s.value).join(', ');
-        const zonesRef = INTENSITIES.map(z => `${z.value} (${z.description})`).join(', ');
         const equipRef = EQUIPMENT.map(e => `"${e.value}" (${e.label})`).join(', ');
 
         return `Você é um Head Coach de natação profissional.

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Button, Row, Col } from 'reactstrap';
+import { Container, Button } from 'reactstrap';
 
 const VirtualKeyboard = ({ onKeyPress }) => {
     const [isOpen, setIsOpen] = useState(true);

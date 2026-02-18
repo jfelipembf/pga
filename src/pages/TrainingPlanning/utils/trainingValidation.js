@@ -1,4 +1,4 @@
-import { INTENSITIES, MODALITIES, ESTIMATED_PACE } from '../constants/trainingConstants';
+import { MODALITIES, ESTIMATED_PACE } from '../constants/trainingConstants';
 
 /**
  * Validação inteligente de treinos - Alertas profissionais
@@ -11,7 +11,7 @@ import { INTENSITIES, MODALITIES, ESTIMATED_PACE } from '../constants/trainingCo
  */
 export const validateTraining = (sections, context = {}) => {
     const alerts = [];
-    const { modality, phase, objective, targetDistance } = context;
+    const { modality } = context;
 
     // Cálculos globais
     const allItems = sections.flatMap(s => s.items || []);
