@@ -195,6 +195,23 @@ export const CashierService = {
     },
 
     /**
+     * Verifica o status do caixa sem lançar exceção.
+     * Retorna { isOpen, session }
+     */
+    checkStatus: async (idTenant, idBranch, userId) => {
+        try {
+            const session = await cashierRepository.findOpenSession(idTenant, idBranch, userId);
+            return {
+                isOpen: !!session,
+                session
+            };
+        } catch (error) {
+            console.error("Erro ao verificar status do caixa:", error);
+            return { isOpen: false, session: null };
+        }
+    },
+
+    /**
      * Verifica se existe um caixa aberto para o usuário, lançando erro se não houver.
      * Útil para transações que dependem do caixa.
      */

@@ -23,6 +23,7 @@ import { createSelector } from 'reselect';
 import Header from "./Header"
 import Sidebar from "./Sidebar"
 import Rightbar from "../CommonForBoth/Rightbar"
+import CashierMonitor from "../Common/CashierMonitor"
 
 // actions
 import {
@@ -159,6 +160,8 @@ const Layout = (props) => {
           </div>
         </div>
       </div> */}
+
+      <CashierMonitor />
 
       <div id="layout-wrapper">
         <Header toggleMenuCallback={toggleMenuCallback} />
