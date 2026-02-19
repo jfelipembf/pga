@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Card, CardBody, Button, Badge } from "reactstrap";
 import { formatDateDisplay } from "../../../utils/date";
-import StudentSelectorModal from "./StudentSelectorModal";
+import ClientSelectorModal from "./ClientSelectorModal";
 import { toast } from "react-toastify";
 import { TrainingPlanService } from "../../../services/TrainingPlanning/trainingPlanning.service";
 import { useTenant } from "../../../hooks/useTenant";
@@ -25,19 +25,19 @@ const WorkoutList = ({ date, workouts, onNewClick, onEditClick, onDeleteClick })
         setIsModalOpen(true);
     };
 
-    const handleSendToStudents = async (students) => {
+    const handleSendToclients = async (clients) => {
         if (!idTenant || !selectedWorkout) return;
 
         try {
-            await TrainingPlanService.sendToStudents(
+            await TrainingPlanService.sendToclients(
                 idTenant,
                 idBranch,
                 user.uid,
                 user.displayName || user.email,
-                students,
+                clients,
                 selectedWorkout
             );
-            toast.success(`Treino enviado com sucesso para ${students.length} alunos!`);
+            toast.success(`Treino enviado com sucesso para ${clients.length} alunos!`);
         } catch (error) {
             toast.error("Erro ao enviar treinos. Verifique a configuração da Evolution API.");
             console.error(error);
@@ -160,10 +160,10 @@ const WorkoutList = ({ date, workouts, onNewClick, onEditClick, onDeleteClick })
                     </div>
                 )}
 
-                <StudentSelectorModal
+                <ClientSelectorModal
                     isOpen={isModalOpen}
                     toggle={() => setIsModalOpen(!isModalOpen)}
-                    onSend={handleSendToStudents}
+                    onSend={handleSendToclients}
                     workout={selectedWorkout}
                 />
             </CardBody>

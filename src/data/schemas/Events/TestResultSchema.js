@@ -4,7 +4,7 @@ import * as yup from 'yup'
  * Schema para Resultados de Testes (Provas de tempo/distância)
  */
 export const TestResultSchema = yup.object().shape({
-    idStudent: yup.string().required('O aluno é obrigatório'),
+    idClient: yup.string().required('O aluno é obrigatório'),
     idActivity: yup.string().required('A atividade é obrigatória'),
     idEvent: yup.string().required('O evento (ciclo) é obrigatório'),
     idInstructor: yup.string().required('O instrutor é obrigatório'),

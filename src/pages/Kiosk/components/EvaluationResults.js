@@ -66,7 +66,7 @@ const ObjectiveCard = ({ objective }) => (
  * 
  * Exibe: Aluno > Atividade > Objetivos > Tópicos com Nível
  */
-const EvaluationResults = ({ student, onBack }) => {
+const EvaluationResults = ({ client, onBack }) => {
     const { idTenant, idBranch } = useTenant();
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState(null);
@@ -74,11 +74,11 @@ const EvaluationResults = ({ student, onBack }) => {
 
     useEffect(() => {
         const loadData = async () => {
-            if (!student || !idTenant || !idBranch) return;
+            if (!client || !idTenant || !idBranch) return;
             setLoading(true);
             try {
                 // 1. Buscar última avaliação do aluno
-                const evaluations = await evaluationRepository.findByStudent(idTenant, idBranch, student.id);
+                const evaluations = await evaluationRepository.findByClient(idTenant, idBranch, client.id);
                 if (!evaluations || evaluations.length === 0) {
                     setData(null);
                     return;
@@ -102,7 +102,7 @@ const EvaluationResults = ({ student, onBack }) => {
             }
         };
         loadData();
-    }, [student, idTenant, idBranch]);
+    }, [client, idTenant, idBranch]);
 
     /**
      * Cruza criteria da avaliação com objectives/topics da atividade.
@@ -239,10 +239,10 @@ const EvaluationResults = ({ student, onBack }) => {
                 <CardBody className="p-3">
                     <div className="d-flex align-items-center mb-3">
                         {/* Foto */}
-                        {student.photo ? (
+                        {client.photo ? (
                             <img
-                                src={student.photo}
-                                alt={student.name}
+                                src={client.photo}
+                                alt={client.name}
                                 className="rounded-circle me-3 object-fit-cover"
                                 style={{ width: '56px', height: '56px' }}
                             />
@@ -251,11 +251,11 @@ const EvaluationResults = ({ student, onBack }) => {
                                 className="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold me-3"
                                 style={{ width: '56px', height: '56px', fontSize: '1.5rem' }}
                             >
-                                {student.name.charAt(0)}
+                                {client.name.charAt(0)}
                             </div>
                         )}
                         <div className="flex-grow-1">
-                            <h5 className="mb-0 fw-bold text-dark">{student.name}</h5>
+                            <h5 className="mb-0 fw-bold text-dark">{client.name}</h5>
                             <small className="text-muted">{activity.name}</small>
                             <br />
                             <small className="text-muted">

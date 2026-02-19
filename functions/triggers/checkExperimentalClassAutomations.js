@@ -116,7 +116,7 @@ async function processTrials(db, idTenant, idBranch, targetDate, settings, trigg
             const displayName = clientName || 'Aluno(a)';
 
             message = message
-                .replace(/{(name|student|studentName)}/g, displayName)
+                .replace(/{(name|client|clientName)}/g, displayName)
                 .replace(/{time}/g, startTime || '--:--')
                 .replace(/{date}/g, displayDate);
 

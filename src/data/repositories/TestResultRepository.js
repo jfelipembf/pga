@@ -12,9 +12,9 @@ class TestResultRepository extends BaseRepository {
     /**
      * Busca um resultado específico de um aluno em um ciclo (evento) para uma atividade
      */
-    async findByStudentActivityEvent(idTenant, idBranch, idStudent, idActivity, idEvent) {
+    async findByClientActivityEvent(idTenant, idBranch, idClient, idActivity, idEvent) {
         const results = await this.findWhere(idTenant, idBranch, [
-            ['idStudent', '==', idStudent],
+            ['idClient', '==', idClient],
             ['idActivity', '==', idActivity],
             ['idEvent', '==', idEvent],
             ['deletedAt', '==', null]

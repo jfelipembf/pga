@@ -142,7 +142,7 @@ export const AttendanceService = {
                     const phone = fullClient?.mobile || fullClient?.phone || fullClient?.cellPhone || fullClient?.responsavelPhone
                     if (phone) {
                         automationService.emit(idTenant, 'EXPERIMENTAL_ABSENCE', {
-                            student: fullClient.name,
+                            client: fullClient.name,
                             name: fullClient.name,
                             phone: phone,
                             date: formatDate(new Date())
@@ -239,7 +239,7 @@ export const AttendanceService = {
      * @param {string|Date} referenceDate - Data de referência da sessão (opcional)
      * @returns {array} Lista de alunos com dados para chamada
      */
-    getStudentsForAttendance: async (idTenant, idBranch, idClass, referenceDate = null) => {
+    getclientsForAttendance: async (idTenant, idBranch, idClass, referenceDate = null) => {
         // Buscar matrículas ativas na turma
         const enrollments = await enrollmentRepository.findByClass(idTenant, idBranch, idClass)
 
@@ -268,17 +268,21 @@ export const AttendanceService = {
 
         // Mapear para formato do modal de presença
         return validEnrollments.map(enrollment => ({
+            ...enrollment, // Herda todos os campos originais
             id: enrollment.idClient,
             idClient: enrollment.idClient,
             enrollmentId: enrollment.id, // CRÍTICO: ID da matrícula para atualização
-            name: enrollment.clientName || enrollment.studentName,
-            status: 'present', // Default para presença
+            name: enrollment.clientName || enrollment.clientName,
+            status: 'present', // Default para presença na chamada (status de execução)
             justification: '',
             tag: 'Matriculado',
             enrollmentType: enrollment.enrollmentType || 'regular',
             // Dados extras para exibição
             attendedSessions: enrollment.attendedSessions || 0,
-            missedSessions: enrollment.missedSessions || 0
+            missedSessions: enrollment.missedSessions || 0,
+            clientStatus: enrollment.status || 'active', // Status do contrato/matrícula
+            friendlyId: enrollment.friendlyId || enrollment.idGym || null,
+            idGym: enrollment.idGym || enrollment.friendlyId || null
         }))
     },
 

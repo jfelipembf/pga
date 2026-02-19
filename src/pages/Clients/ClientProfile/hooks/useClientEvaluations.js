@@ -21,7 +21,7 @@ export const useClientEvaluations = () => {
             setLoading(true)
             try {
                 // 1. Buscar as últimas avaliações do aluno (ordenadas por data desc)
-                const evals = await EvaluationService.getStudentEvaluations(idTenant, idBranch, id)
+                const evals = await EvaluationService.getClientEvaluations(idTenant, idBranch, id)
                 // Não limitamos aqui, deixamos para limitar por atividade no useMemo
                 setEvaluations(evals || [])
 

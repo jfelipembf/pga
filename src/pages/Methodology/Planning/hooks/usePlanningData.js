@@ -6,17 +6,17 @@ import { toast } from 'react-toastify';
 
 export const usePlanningData = () => {
     const { idTenant, idBranch, isReady } = useTenant();
-    const [students, setStudents] = useState([]);
-    const [loadingStudents, setLoadingStudents] = useState(false);
+    const [clients, setclients] = useState([]);
+    const [loadingclients, setLoadingclients] = useState(false);
 
-    const loadSessionStudents = useCallback(async (session) => {
+    const loadSessionclients = useCallback(async (session) => {
         if (!session?.id || !isReady) return;
 
-        setLoadingStudents(true);
+        setLoadingclients(true);
         try {
             // Reutiliza a lógica robusta de buscar alunos da turma + alunos da sessão (experimentais)
             const [classEnrollments, sessionEnrollments] = await Promise.all([
-                session.idClass ? AttendanceService.getStudentsForAttendance(idTenant, idBranch, session.idClass, session.sessionDate) : [],
+                session.idClass ? AttendanceService.getclientsForAttendance(idTenant, idBranch, session.idClass, session.sessionDate) : [],
                 enrollmentRepository.listSessionEnrolledClients(idTenant, idBranch, session.id)
             ]);
 
@@ -41,18 +41,18 @@ export const usePlanningData = () => {
                 });
             });
 
-            setStudents(Array.from(enrolledMap.values()));
+            setclients(Array.from(enrolledMap.values()));
         } catch (error) {
             console.error("Erro ao carregar alunos para planejamento:", error);
             toast.error("Erro ao carregar lista de alunos.");
         } finally {
-            setLoadingStudents(false);
+            setLoadingclients(false);
         }
     }, [idTenant, idBranch, isReady]);
 
     return {
-        students,
-        loadingStudents,
-        loadSessionStudents
+        clients,
+        loadingclients,
+        loadSessionclients
     };
 };

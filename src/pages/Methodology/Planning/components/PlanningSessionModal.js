@@ -9,10 +9,10 @@ import { useTenant } from '../../../../hooks/useTenant';
  * Modal de Planejamento da Sessão
  * Exibe lista de alunos com status de prontidão para troca de nível.
  */
-const PlanningSessionModal = ({ isOpen, toggle, session, students = [] }) => {
+const PlanningSessionModal = ({ isOpen, toggle, session, clients = [] }) => {
     const { idTenant, idBranch } = useTenant();
-    const { analysis, objectivesData, evaluationConfig, analyzeStudents, loading, analyzedAt } = useEvaluationAnalysis();
-    const [selectedStudent, setSelectedStudent] = useState(null);
+    const { analysis, objectivesData, evaluationConfig, analyzeclients, loading, analyzedAt } = useEvaluationAnalysis();
+    const [selectedClient, setSelectedClient] = useState(null);
     const [editModalOpen, setEditModalOpen] = useState(false);
 
     const { planning, loadingPlanning, weekStatus, updatePlanning } = useSessionPlanning({
@@ -25,17 +25,17 @@ const PlanningSessionModal = ({ isOpen, toggle, session, students = [] }) => {
         loadingAnalysis: loading,
         analyzedAt,
         refreshAnalysis: () => {
-            if (session?.idActivity && students.length > 0) {
-                analyzeStudents(students, session.idActivity);
+            if (session?.idActivity && clients.length > 0) {
+                analyzeclients(clients, session.idActivity);
             }
         }
     });
 
     useEffect(() => {
-        if (isOpen && session?.idActivity && students.length > 0) {
-            analyzeStudents(students, session.idActivity);
+        if (isOpen && session?.idActivity && clients.length > 0) {
+            analyzeclients(clients, session.idActivity);
         }
-    }, [isOpen, session, students, analyzeStudents]);
+    }, [isOpen, session, clients, analyzeclients]);
 
 
 
@@ -49,7 +49,7 @@ const PlanningSessionModal = ({ isOpen, toggle, session, students = [] }) => {
     };
 
     const getTopicData = (topic) => {
-        if (!selectedStudent) {
+        if (!selectedClient) {
             // Média da turma
             return {
                 valueLabel: topic.averageValue,
@@ -59,12 +59,12 @@ const PlanningSessionModal = ({ isOpen, toggle, session, students = [] }) => {
         }
 
         // Dados do aluno selecionado
-        const studentData = analysis[selectedStudent.id];
-        if (!studentData || !studentData.criteriaMap) {
+        const clientData = analysis[selectedClient.id];
+        if (!clientData || !clientData.criteriaMap) {
             return { valueLabel: '-', percentage: 0, color: 'secondary' };
         }
 
-        const criteria = studentData.criteriaMap[topic.id];
+        const criteria = clientData.criteriaMap[topic.id];
         if (!criteria) {
             return { valueLabel: 'Não avaliado', percentage: 0, color: 'secondary' };
         }
@@ -98,7 +98,7 @@ const PlanningSessionModal = ({ isOpen, toggle, session, students = [] }) => {
             <ModalHeader toggle={toggle}>
                 Planejamento de Aula - {session?.activityName}
                 <div className="font-size-14 text-muted font-weight-normal mt-1">
-                    {students.length} alunos matriculados nesta turma
+                    {clients.length} alunos matriculados nesta turma
                 </div>
             </ModalHeader>
             <ModalBody className="bg-light">
@@ -196,28 +196,28 @@ const PlanningSessionModal = ({ isOpen, toggle, session, students = [] }) => {
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {students.map(student => {
-                                                        const data = analysis[student.id] || { progress: 0, status: 'no_data' };
+                                                    {clients.map(client => {
+                                                        const data = analysis[client.id] || { progress: 0, status: 'no_data' };
                                                         const pendencies = data.fundamentalPendencies || [];
                                                         const hasPendencies = pendencies.length > 0;
-                                                        const tooltipId = `tooltip-${student.id}`;
-                                                        const isSelected = selectedStudent?.id === student.id;
+                                                        const tooltipId = `tooltip-${client.id}`;
+                                                        const isSelected = selectedClient?.id === client.id;
 
                                                         return (
-                                                            <tr key={student.id} className={isSelected ? 'table-active' : ''}>
+                                                            <tr key={client.id} className={isSelected ? 'table-active' : ''}>
                                                                 <td>
                                                                     <div className="d-flex align-items-center">
-                                                                        {student.profilePicture ? (
-                                                                            <img src={student.profilePicture} alt="" className="avatar-xs rounded-circle me-2" />
+                                                                        {client.profilePicture ? (
+                                                                            <img src={client.profilePicture} alt="" className="avatar-xs rounded-circle me-2" />
                                                                         ) : (
                                                                             <div className="avatar-xs me-2">
                                                                                 <span className="avatar-title rounded-circle bg-light text-primary font-size-12">
-                                                                                    {student.name?.charAt(0)}
+                                                                                    {client.name?.charAt(0)}
                                                                                 </span>
                                                                             </div>
                                                                         )}
                                                                         <div>
-                                                                            <h5 className="font-size-14 mb-0 text-truncate" style={{ maxWidth: '140px' }}>{student.name}</h5>
+                                                                            <h5 className="font-size-14 mb-0 text-truncate" style={{ maxWidth: '140px' }}>{client.name}</h5>
                                                                         </div>
                                                                     </div>
                                                                 </td>
@@ -239,7 +239,7 @@ const PlanningSessionModal = ({ isOpen, toggle, session, students = [] }) => {
                                                                         color={isSelected ? "primary" : "light"}
                                                                         size="sm"
                                                                         className="btn-rounded"
-                                                                        onClick={() => setSelectedStudent(isSelected ? null : student)}
+                                                                        onClick={() => setSelectedClient(isSelected ? null : client)}
                                                                         title="Ver Detalhes"
                                                                     >
                                                                         <i className={`mdi ${isSelected ? 'mdi-eye-off' : 'mdi-eye'}`}></i>
@@ -248,7 +248,7 @@ const PlanningSessionModal = ({ isOpen, toggle, session, students = [] }) => {
                                                             </tr>
                                                         );
                                                     })}
-                                                    {students.length === 0 && (
+                                                    {clients.length === 0 && (
                                                         <tr>
                                                             <td colSpan="3" className="text-center text-muted py-4">
                                                                 Nenhum aluno matriculado nesta sessão.
@@ -269,14 +269,14 @@ const PlanningSessionModal = ({ isOpen, toggle, session, students = [] }) => {
                                         <div className="d-flex justify-content-between align-items-center mb-3">
                                             <h5 className="card-title text-primary mb-0">
                                                 <i className="mdi mdi-chart-bar me-2"></i>
-                                                {selectedStudent ? `${selectedStudent.name}` : 'Média da Turma'}
+                                                {selectedClient ? `${selectedClient.name}` : 'Média da Turma'}
                                             </h5>
-                                            {selectedStudent && (
+                                            {selectedClient && (
                                                 <Button
                                                     color="link"
                                                     size="sm"
                                                     className="text-muted p-0"
-                                                    onClick={() => setSelectedStudent(null)}
+                                                    onClick={() => setSelectedClient(null)}
                                                     title="Voltar para Média Geral"
                                                 >
                                                     <i className="mdi mdi-close font-size-18"></i>

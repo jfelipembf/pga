@@ -160,6 +160,12 @@ export const PERMISSIONS = [
         description: "Permite acessar o modo quiosque (Autoatendimento).",
         category: "OPERACIONAL",
     },
+    {
+        id: "methodology_planning",
+        label: "Planejamento",
+        description: "Acesso à tela de planejamento metodológico.",
+        category: "OPERACIONAL",
+    },
 
     // GERENCIAL
     {
@@ -295,7 +301,9 @@ export const DEFAULT_ROLES = [
             management_audit_log: true,
             settings_company_manage: true,
             sales_purchase: true,
+
             dashboards_financial_view: true,
+            methodology_planning: true,
         },
     },
     {
@@ -313,6 +321,7 @@ export const DEFAULT_ROLES = [
             management_tests: true,
             management_evaluation_levels: true,
             management_evaluation_run: true,
+            methodology_planning: true,
         },
     },
     {
@@ -330,6 +339,7 @@ export const DEFAULT_ROLES = [
             management_tests: true,
             management_evaluation_levels: true,
             management_evaluation_run: true,
+            methodology_planning: true,
         },
     },
     {
@@ -344,6 +354,7 @@ export const DEFAULT_ROLES = [
             sales_purchase: true,
             financial_cashier: true,
             admin_classes: true,
+            methodology_planning: true,
         },
     },
     {

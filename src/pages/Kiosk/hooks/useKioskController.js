@@ -7,7 +7,7 @@ export const useKioskController = () => {
     const { idTenant, idBranch, isReady } = useTenant();
     const [searchTerm, setSearchTerm] = useState('');
     const [results, setResults] = useState([]);
-    const [selectedStudent, setSelectedStudent] = useState(null);
+    const [selectedClient, setSelectedClient] = useState(null);
     const [loading, setLoading] = useState(false);
 
     // Estado do reconhecimento facial contínuo
@@ -71,9 +71,9 @@ export const useKioskController = () => {
         const resetTimer = () => {
             if (timer) clearTimeout(timer);
             timer = setTimeout(() => {
-                if (searchTerm || selectedStudent) {
+                if (searchTerm || selectedClient) {
                     setSearchTerm('');
-                    setSelectedStudent(null);
+                    setSelectedClient(null);
                     setResults([]);
                     setFaceScanning(true);
                     matchCooldownRef.current = false;
@@ -95,7 +95,7 @@ export const useKioskController = () => {
             window.removeEventListener('keydown', resetTimer);
             window.removeEventListener('mousemove', resetTimer);
         };
-    }, [searchTerm, selectedStudent]);
+    }, [searchTerm, selectedClient]);
 
     // Preload: carrega clientes com face 1x ao abrir o Kiosk (popula cache)
     useEffect(() => {
@@ -140,8 +140,8 @@ export const useKioskController = () => {
         }
     }, [idTenant, idBranch, isReady]);
 
-    const handleSelectStudent = useCallback((student) => {
-        setSelectedStudent(student);
+    const handleSelectClient = useCallback((client) => {
+        setSelectedClient(client);
         setSearchTerm('');
         setResults([]);
         setFaceScanning(false);
@@ -153,7 +153,7 @@ export const useKioskController = () => {
      */
     const handleFaceDetected = useCallback(async (queryDescriptor) => {
         // Evita processar se já está fazendo match, se tem aluno selecionado, ou está em cooldown
-        if (faceMatching || selectedStudent || matchCooldownRef.current) return;
+        if (faceMatching || selectedClient || matchCooldownRef.current) return;
 
         setFaceMatching(true);
 
@@ -186,7 +186,7 @@ export const useKioskController = () => {
                     autoClose: 3000
                 });
 
-                handleSelectStudent({
+                handleSelectClient({
                     id: match.id,
                     name: match.name,
                     photo: match.photo
@@ -198,7 +198,7 @@ export const useKioskController = () => {
         } finally {
             setFaceMatching(false);
         }
-    }, [faceMatching, selectedStudent, getClientsWithFace, handleSelectStudent]);
+    }, [faceMatching, selectedClient, getClientsWithFace, handleSelectClient]);
 
     const handleKeyPress = useCallback((key) => {
         if (key === '⌫') {
@@ -212,7 +212,7 @@ export const useKioskController = () => {
 
 
     const handleBackToSearch = useCallback(() => {
-        setSelectedStudent(null);
+        setSelectedClient(null);
         setSearchTerm('');
         setResults([]);
         setFaceScanning(true);
@@ -225,7 +225,7 @@ export const useKioskController = () => {
     return {
         searchTerm,
         results,
-        selectedStudent,
+        selectedClient,
         loading,
         isReady,
         // Face scanning
@@ -234,7 +234,7 @@ export const useKioskController = () => {
         handleFaceDetected,
         // Actions
         handleKeyPress,
-        handleSelectStudent,
+        handleSelectClient,
         handleBackToSearch
     };
 };

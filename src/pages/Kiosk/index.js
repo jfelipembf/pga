@@ -21,13 +21,13 @@ const Kiosk = () => {
     const {
         searchTerm,
         results,
-        selectedStudent,
+        selectedClient,
         loading,
         faceScanning,
         faceMatching,
         handleFaceDetected,
         handleKeyPress,
-        handleSelectStudent,
+        handleSelectClient,
         handleBackToSearch
     } = useKioskController();
 
@@ -57,10 +57,10 @@ const Kiosk = () => {
             <div className="flex-grow-1 d-flex flex-column position-relative overflow-hidden">
                 <Container fluid className="h-100 p-0 d-flex flex-column">
 
-                    {selectedStudent ? (
+                    {selectedClient ? (
                         <div className="p-4 flex-grow-1 overflow-auto">
                             <EvaluationResults
-                                student={selectedStudent}
+                                client={selectedClient}
                                 onBack={handleBackToSearch}
                             />
                         </div>
@@ -99,7 +99,7 @@ const Kiosk = () => {
                                         )}
                                         <ClientsSearch
                                             searchTerm={searchTerm}
-                                            onSelect={handleSelectStudent}
+                                            onSelect={handleSelectClient}
                                             results={results}
                                             loading={loading}
                                         />

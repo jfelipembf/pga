@@ -19,8 +19,8 @@ export const useEvaluationAnalysis = () => {
     const [loading, setLoading] = useState(false);
     const [analyzedAt, setAnalyzedAt] = useState(null);
 
-    const analyzeStudents = useCallback(async (students, idActivity) => {
-        if (!students || students.length === 0 || !idActivity) return;
+    const analyzeclients = useCallback(async (clients, idActivity) => {
+        if (!clients || clients.length === 0 || !idActivity) return;
 
         setLoading(true);
         try {
@@ -45,16 +45,16 @@ export const useEvaluationAnalysis = () => {
                 idTenant,
                 idBranch,
                 idActivity,
-                students.map(s => s.id)
+                clients.map(s => s.id)
             );
 
             // PROCESSAR ANÁLISE INDIVIDUAL
             const results = {};
-            students.forEach(student => {
-                const evalData = latestEvaluations[student.id];
+            clients.forEach(client => {
+                const evalData = latestEvaluations[client.id];
 
                 if (!evalData) {
-                    results[student.id] = {
+                    results[client.id] = {
                         status: 'no_data',
                         progress: 0,
                         fundamentalPendencies: [],
@@ -85,7 +85,7 @@ export const useEvaluationAnalysis = () => {
                     ? (isGeneralOk ? 'ready' : 'warning')
                     : 'attention';
 
-                results[student.id] = {
+                results[client.id] = {
                     status,
                     progress: Math.round(percentage),
                     fundamentalPendencies,
@@ -104,10 +104,10 @@ export const useEvaluationAnalysis = () => {
                 const topicsWithStats = objTopics.map(topic => {
                     let sumValues = 0;
 
-                    students.forEach(student => {
-                        const studentRes = results[student.id];
-                        if (studentRes && studentRes.criteriaMap && studentRes.criteriaMap[topic.id]) {
-                            const crit = studentRes.criteriaMap[topic.id];
+                    clients.forEach(client => {
+                        const clientRes = results[client.id];
+                        if (clientRes && clientRes.criteriaMap && clientRes.criteriaMap[topic.id]) {
+                            const crit = clientRes.criteriaMap[topic.id];
 
                             let val = 0;
                             if (crit.idLevel && levelValueMap[crit.idLevel] !== undefined) {
@@ -119,8 +119,8 @@ export const useEvaluationAnalysis = () => {
                         }
                     });
 
-                    const totalStudents = students.length;
-                    const average = totalStudents > 0 ? (sumValues / totalStudents) : 0;
+                    const totalclients = clients.length;
+                    const average = totalclients > 0 ? (sumValues / totalclients) : 0;
                     const percentage = maxLevelValue > 0 ? (average / maxLevelValue) * 100 : 0;
 
                     return {
@@ -157,7 +157,7 @@ export const useEvaluationAnalysis = () => {
         analysis,
         objectivesData,
         evaluationConfig,
-        analyzeStudents,
+        analyzeclients,
         loading,
         analyzedAt
     };

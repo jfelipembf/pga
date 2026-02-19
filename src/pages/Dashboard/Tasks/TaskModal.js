@@ -70,7 +70,7 @@ const TaskModal = ({ isOpen, toggle, task, onSuccess }) => {
         estimatedTime: task?.estimatedTime || '',
         dueDate: task?.dueDate ? (task.dueDate.toDate ? task.dueDate.toDate() : new Date(task.dueDate)) : new Date(),
         assignedTo: task?.assignedTo || [],
-        relatedStudents: task?.relatedStudents || [],
+        relatedclients: task?.relatedclients || [],
         isRecurring: task?.isRecurring || false,
         recurrence: task?.recurrence || {
             frequency: 'daily',
@@ -231,8 +231,8 @@ const TaskModal = ({ isOpen, toggle, task, onSuccess }) => {
                                     isMulti
                                     options={clientOptions}
                                     classNamePrefix="select2-selection"
-                                    value={clientOptions.filter(o => formik.values.relatedStudents.includes(o.value))}
-                                    onChange={(options) => formik.setFieldValue('relatedStudents', options.map(o => o.value))}
+                                    value={clientOptions.filter(o => formik.values.relatedclients.includes(o.value))}
+                                    onChange={(options) => formik.setFieldValue('relatedclients', options.map(o => o.value))}
                                     placeholder="Selecione um ou mais alunos..."
                                     isLoading={loadingData}
                                 />

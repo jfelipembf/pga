@@ -25,7 +25,7 @@ export const TaskSchema = Yup.object().shape({
 
     assignedTo: Yup.array().of(Yup.string()).min(1, 'Selecione pelo menos um responsável'),
 
-    relatedStudents: Yup.array().of(Yup.string()).default([]),
+    relatedclients: Yup.array().of(Yup.string()).default([]),
 
     isRecurring: Yup.boolean()
         .default(false),

@@ -87,7 +87,7 @@ export const MENU_ROUTES = {
     "/crm": { component: CRMPage, permission: "members_manage" },
     "/evaluation": { component: Evaluation, permission: "management_evaluation_run" },
     "/training": { component: TrainingPlanning, permission: "management_training_manage" },
-    "/methodology/planning": { component: MethodologyPlanning, permission: "management_training_manage" },
+    "/methodology/planning": { component: MethodologyPlanning, permission: "methodology_planning" },
 
     // Financeiro
     // "/financial/dashboard": { component: FinancialDashboard, permission: "dashboards_financial_view" }, // Removido pois agora é tab

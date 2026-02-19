@@ -40,7 +40,7 @@ export const SessionService = {
     /**
      * Lista os alunos matriculados na turma dessa sessão
      */
-    getStudentsForClass: async (idTenant, idBranch, idClass) => {
+    getclientsForClass: async (idTenant, idBranch, idClass) => {
         return await enrollmentRepository.findByClass(idTenant, idBranch, idClass)
     },
 

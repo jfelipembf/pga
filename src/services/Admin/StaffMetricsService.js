@@ -44,7 +44,7 @@ export const StaffMetricsService = {
             comparatives: {
                 occupancyChange: current.metrics.occupancyRate - previous.metrics.occupancyRate,
                 attendanceChange: current.metrics.attendanceRate - previous.metrics.attendanceRate,
-                studentsChange: current.summary.activeRegularStudents - previous.summary.activeRegularStudents,
+                clientsChange: current.summary.activeRegularclients - previous.summary.activeRegularclients,
                 retentionChange: current.metrics.retentionRate - previous.metrics.retentionRate,
                 trialConversionChange: current.metrics.trialConversionRate - previous.metrics.trialConversionRate
             }
@@ -138,10 +138,10 @@ export const StaffMetricsService = {
         const occupancyRate = totalCapacity > 0 ? (totalEnrolledCount / totalCapacity) * 100 : 0
         const attendanceRate = totalEnrolledCount > 0 ? (totalAttended / totalEnrolledCount) * 100 : 0
 
-        const studentsEnd = regularAtEnd.length
-        const studentsNew = newEnrollments.length
-        const studentsStart = studentsEnd - studentsNew + cancellations.length
-        const retentionRate = studentsStart > 0 ? ((studentsEnd - studentsNew) / studentsStart) * 100 : 100
+        const clientsEnd = regularAtEnd.length
+        const clientsNew = newEnrollments.length
+        const clientsStart = clientsEnd - clientsNew + cancellations.length
+        const retentionRate = clientsStart > 0 ? ((clientsEnd - clientsNew) / clientsStart) * 100 : 100
 
         return {
             summary: {
@@ -149,10 +149,10 @@ export const StaffMetricsService = {
                 sessionsWithAttendance,
                 totalEnrolled: totalEnrolledCount,
                 totalCapacity,
-                activeRegularStudents: regularAtEnd.length,
-                activeTrialStudents: trialAtEnd.length,
-                newStudents: newEnrollments.length,
-                cancelledStudents: cancellations.length
+                activeRegularclients: regularAtEnd.length,
+                activeTrialclients: trialAtEnd.length,
+                newclients: newEnrollments.length,
+                cancelledclients: cancellations.length
             },
             metrics: {
                 occupancyRate: Math.round(occupancyRate),

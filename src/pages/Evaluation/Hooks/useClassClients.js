@@ -18,7 +18,7 @@ export const useClassClients = ({ classId, withLoading }) => {
             try {
                 // 1. Buscar matriculados e lista de clientes em paralelo
                 const [enrollments, clientsList] = await Promise.all([
-                    ClassService.getStudentsForClass(idTenant, idBranch, classId),
+                    ClassService.getclientsForClass(idTenant, idBranch, classId),
                     ClientService.listClients(idTenant, idBranch)
                 ])
 

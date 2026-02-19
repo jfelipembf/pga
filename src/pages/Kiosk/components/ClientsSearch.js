@@ -4,11 +4,11 @@ import { Input } from 'reactstrap';
 
 const ClientsSearch = ({ searchTerm, onSelect, results = [], loading = false }) => {
     // Array simulado de resultados, depois será substituído por hook real
-    // const { results, searching } = useStudentSearch(searchTerm); 
+    // const { results, searching } = useClientSearch(searchTerm); 
     // const results = []; // Placeholder
 
     return (
-        <div className="student-search-container w-100 flex-grow-1 d-flex flex-column align-items-center">
+        <div className="client-search-container w-100 flex-grow-1 d-flex flex-column align-items-center">
             {/* Input Display Only - ReadOnly but visualized as input */}
             <div className="search-display mb-4 w-100 position-relative" style={{ maxWidth: '600px' }}>
                 <Input
@@ -30,16 +30,16 @@ const ClientsSearch = ({ searchTerm, onSelect, results = [], loading = false }) 
             <div className="search-results w-100 flex-grow-1 overflow-auto" style={{ maxWidth: '600px' }}>
                 {results.length > 0 ? (
                     <div className="bg-white rounded shadow-sm">
-                        {results.map((student, index) => (
+                        {results.map((client, index) => (
                             <div
-                                key={student.id}
-                                onClick={() => onSelect(student)}
-                                className="d-flex align-items-center px-3 py-3 cursor-pointer student-item"
+                                key={client.id}
+                                onClick={() => onSelect(client)}
+                                className="d-flex align-items-center px-3 py-3 cursor-pointer client-item"
                                 style={{ borderBottom: index < results.length - 1 ? '1px solid #f0f0f0' : 'none' }}
                             >
-                                {student.photo ? (
+                                {client.photo ? (
                                     <img
-                                        src={student.photo}
+                                        src={client.photo}
                                         alt=""
                                         className="rounded-circle me-3 flex-shrink-0"
                                         style={{ width: '44px', height: '44px', objectFit: 'cover' }}
@@ -49,10 +49,10 @@ const ClientsSearch = ({ searchTerm, onSelect, results = [], loading = false }) 
                                         className="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold me-3 flex-shrink-0"
                                         style={{ width: '44px', height: '44px', fontSize: '1.1rem' }}
                                     >
-                                        {student.name.charAt(0)}
+                                        {client.name.charAt(0)}
                                     </div>
                                 )}
-                                <span className="fw-semibold text-dark">{student.name}</span>
+                                <span className="fw-semibold text-dark">{client.name}</span>
                             </div>
                         ))}
                     </div>
@@ -74,7 +74,7 @@ const ClientsSearch = ({ searchTerm, onSelect, results = [], loading = false }) 
             </div>
 
             <style>{`
-                .student-item:active {
+                .client-item:active {
                     background-color: #f8f9fa !important;
                 }
             `}</style>

@@ -37,3 +37,4 @@ exports.processContractDefaultCancellation = require("./triggers/processContract
 exports.checkExperimentalClassAutomations = require("./triggers/checkExperimentalClassAutomations");
 exports.checkBirthdayAutomations = require("./triggers/checkBirthdayAutomations");
 exports.autoSettleReceivables = require("./triggers/autoSettleReceivables");
+exports.sendTeacherDailyPlanning = require("./triggers/sendTeacherDailyPlanning");

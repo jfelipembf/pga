@@ -4,7 +4,7 @@ import * as Yup from 'yup'
  * Esquema para criação/atualização de apenas uma avaliação
  */
 export const EvaluationSchema = Yup.object().shape({
-    idStudent: Yup.string().required('O aluno é obrigatório'),
+    idClient: Yup.string().required('O aluno é obrigatório'),
     idActivity: Yup.string().required('A atividade é obrigatória'),
     idLevel: Yup.string().required('O nível de avaliação é obrigatório'),
 

@@ -12,16 +12,7 @@ import { useEvaluationData } from "./hooks/useEvaluationData"
 import { toISODate, normalizeDate } from "../../utils/date"
 import { useGrade } from "../../contexts/GradeContext"
 
-// Local Helpers
-const isWithinTurn = (turn, startTime) => {
-  if (!startTime) return false
-  if (!turn || turn === 'all') return true
-  const hour = parseInt(startTime.split(':')[0])
-  if (turn === 'morning') return hour < 12
-  if (turn === 'afternoon') return hour >= 12 && hour < 18
-  if (turn === 'night') return hour >= 18
-  return true
-}
+
 
 const occursOnDate = (schedule, isoDate, dayIndex) => {
   const sessionDate = schedule?.sessionDate || null

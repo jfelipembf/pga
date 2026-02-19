@@ -94,13 +94,13 @@ export const DashboardSummaryService = {
             converted: 0,
 
             // Base Atual
-            activeStudents: 0,
-            suspendedStudents: 0,
-            canceledStudents: 0,
+            activeclients: 0,
+            suspendedclients: 0,
+            canceledclients: 0,
 
             // Novos (Mês Atual)
             newLeads: 0,
-            newStudents: 0,
+            newclients: 0,
             renewals: 0,
             winbacks: 0,
 
@@ -120,7 +120,7 @@ export const DashboardSummaryService = {
 
     /**
      * Incrementa/Decrementa campos do summary.
-     * Uso: increment({ activeStudents: 1, suspendedStudents: -1 })
+     * Uso: increment({ activeclients: 1, suspendedclients: -1 })
      */
     async update(idTenant, idBranch, updates) {
         const summaryRef = this.getSummaryRef(idTenant, idBranch)
@@ -184,7 +184,7 @@ export const DashboardSummaryService = {
         // Novos do mês
         const startMonth = normalizeDate(moment().startOf('month'));
         const newLeads = allClients.filter(c => normalizeDate(c.createdAt) >= startMonth).length
-        const newStudents = allClients.filter(c =>
+        const newclients = allClients.filter(c =>
             c.lifecycle?.convertedAt && normalizeDate(c.lifecycle.convertedAt) >= startMonth
         ).length
 
@@ -198,10 +198,10 @@ export const DashboardSummaryService = {
             trialsScheduled,
             trialsAttended,
             converted: activeContracts.length,
-            activeStudents: activeContracts.length,
-            suspendedStudents: suspendedContracts.length,
+            activeclients: activeContracts.length,
+            suspendedclients: suspendedContracts.length,
             newLeads,
-            newStudents,
+            newclients,
             renewals: 0, // TODO: Implementar lógica de recálculo histórico
             winbacks: 0, // TODO: Implementar lógica de recálculo histórico
             conversionRate,

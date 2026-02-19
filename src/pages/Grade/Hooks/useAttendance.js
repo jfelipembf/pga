@@ -33,7 +33,7 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
                 await withLoading('load', async () => {
                     // 1. Carregar alunos que estavam ativos na data da sessão (Reduzindo leituras)
                     const [classEnrollments, sessionEnrollments] = await Promise.all([
-                        schedule.idClass ? AttendanceService.getStudentsForAttendance(idTenant, idBranch, schedule.idClass, schedule.sessionDate) : [],
+                        schedule.idClass ? AttendanceService.getclientsForAttendance(idTenant, idBranch, schedule.idClass, schedule.sessionDate) : [],
                         import('../../../data/repositories/EnrollmentRepository').then(m =>
                             m.enrollmentRepository.listSessionEnrolledClients(idTenant, idBranch, schedule.id)
                         )
@@ -41,6 +41,7 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
 
                     // Mapear experimentais para o formato de attendance
                     const mappedSessionEnrollments = (sessionEnrollments || []).map(e => ({
+                        ...e,
                         id: e.idClient,
                         idClient: e.idClient,
                         enrollmentId: e.enrollmentId || e.id,
@@ -51,14 +52,17 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
                         tag: e.enrollmentType === 'trial' ? 'EX' : (e.tag || 'Sessão'),
                         enrollmentType: e.enrollmentType || 'single-session',
                         attendedSessions: 0,
-                        missedSessions: 0
+                        missedSessions: 0,
+                        clientStatus: e.clientStatus || e.status || (e.enrollmentType === 'trial' ? 'active' : 'active'),
+                        friendlyId: e.friendlyId || e.idGym || null,
+                        idGym: e.idGym || e.friendlyId || null
                     }))
 
-                    // Criar mapa de matrículas ativas da TURMA: enrollmentId -> student
+                    // Criar mapa de matrículas ativas da TURMA: enrollmentId -> client
                     const activeEnrollmentsMap = new Map()
-                    classEnrollments.forEach(student => {
-                        if (student.enrollmentId) {
-                            activeEnrollmentsMap.set(student.enrollmentId, student)
+                    classEnrollments.forEach(client => {
+                        if (client.enrollmentId) {
+                            activeEnrollmentsMap.set(client.enrollmentId, client)
                         }
                     })
 

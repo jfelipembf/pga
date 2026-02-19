@@ -129,8 +129,8 @@ export const TaskService = {
                 }).filter(Boolean);
 
                 // Enriquecimento de Alunos (Múltiplos)
-                const students = Array.isArray(task.relatedStudents) ? task.relatedStudents : [];
-                task.relatedStudentsDetails = students.map(id => {
+                const clients = Array.isArray(task.relatedclients) ? task.relatedclients : [];
+                task.relatedclientsDetails = clients.map(id => {
                     const c = clientMap[id];
                     return c ? { id: c.id, name: c.name, photo: c.photoUrl } : null;
                 }).filter(Boolean);

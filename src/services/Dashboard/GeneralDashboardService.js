@@ -277,19 +277,19 @@ export const GeneralDashboardService = {
 
         // ✅ NOVO: Busca dados de alunos do DashboardSummary (UMA ÚNICA VEZ)
         const { DashboardSummaryService } = await import('./DashboardSummaryService');
-        let studentsData = { active: 0, new: 0, canceled: 0, suspended: 0, renewals: 0, winbacks: 0 };
+        let clientsData = { active: 0, new: 0, canceled: 0, suspended: 0, renewals: 0, winbacks: 0 };
         let currentSummary = null;
 
         try {
             currentSummary = await DashboardSummaryService.getCurrent(idTenant, idBranch);
             if (currentSummary) {
-                studentsData = {
-                    active: currentSummary.activeStudents || 0,
-                    new: currentSummary.newStudents || 0,
+                clientsData = {
+                    active: currentSummary.activeclients || 0,
+                    new: currentSummary.newclients || 0,
                     renewals: currentSummary.renewals || 0,
                     winbacks: currentSummary.winbacks || 0,
-                    canceled: currentSummary.canceledStudents || 0,
-                    suspended: currentSummary.suspendedStudents || 0
+                    canceled: currentSummary.canceledclients || 0,
+                    suspended: currentSummary.suspendedclients || 0
                 };
             }
         } catch (err) {
@@ -297,20 +297,20 @@ export const GeneralDashboardService = {
         }
 
         // --- Comparativo: Alunos Mês Anterior ---
-        let studentsGrowth = { active: 0, new: 0, renewals: 0, winbacks: 0, canceled: 0, suspended: 0 }
+        let clientsGrowth = { active: 0, new: 0, renewals: 0, winbacks: 0, canceled: 0, suspended: 0 }
 
         try {
-            const lastMonthKey = moment().subtract(1, 'months').format('YYYY-MM')
-            const lastSummaryDoc = await DashboardSummaryService.getMonthSummary(idTenant, idBranch, lastMonthKey)
+            const lastMonthKey = moment().subtract(1, 'month').format('YYYY-MM');
+            const lastSummaryDoc = await DashboardSummaryService.getMonthSummary(idTenant, idBranch, lastMonthKey);
 
             if (lastSummaryDoc) {
-                studentsGrowth = {
-                    active: GeneralDashboardService.calculateGrowth(studentsData.active, lastSummaryDoc.activeStudents),
-                    new: GeneralDashboardService.calculateGrowth(studentsData.new, lastSummaryDoc.newStudents),
-                    renewals: GeneralDashboardService.calculateGrowth(studentsData.renewals, lastSummaryDoc.renewals),
-                    winbacks: GeneralDashboardService.calculateGrowth(studentsData.winbacks, lastSummaryDoc.winbacks),
-                    canceled: GeneralDashboardService.calculateGrowth(studentsData.canceled, lastSummaryDoc.canceledStudents),
-                    suspended: GeneralDashboardService.calculateGrowth(studentsData.suspended, lastSummaryDoc.suspendedStudents)
+                clientsGrowth = {
+                    active: GeneralDashboardService.calculateGrowth(clientsData.active, lastSummaryDoc.activeclients),
+                    new: GeneralDashboardService.calculateGrowth(clientsData.new, lastSummaryDoc.newclients),
+                    renewals: GeneralDashboardService.calculateGrowth(clientsData.renewals, lastSummaryDoc.renewals),
+                    winbacks: GeneralDashboardService.calculateGrowth(clientsData.winbacks, lastSummaryDoc.winbacks),
+                    canceled: GeneralDashboardService.calculateGrowth(clientsData.canceled, lastSummaryDoc.canceledclients),
+                    suspended: GeneralDashboardService.calculateGrowth(clientsData.suspended, lastSummaryDoc.suspendedclients)
                 }
             }
         } catch (err) {
@@ -320,19 +320,19 @@ export const GeneralDashboardService = {
         // --- Gráficos: Agregados em Paralelo (Otimizado) ---
         let growthHistory = [];
         let mostSold = { labels: [], series: [], totalCount: 0 };
-        let studentsHistory = [];
-        let last3YearsMonthly = { salesSeries: [], studentsSeries: [], years: [] };
+        let clientsHistory = [];
+        let last3YearsMonthly = { salesSeries: [], clientsSeries: [], years: [] };
 
         try {
             const [growth, sold, history, yearly] = await Promise.all([
                 GeneralDashboardService.getFinancialGrowthData(idTenant, idBranch),
                 GeneralDashboardService.getMostSoldData(idTenant, idBranch),
-                GeneralDashboardService.getLast12MonthsStudents(idTenant, idBranch, currentSummary),
+                GeneralDashboardService.getLast12Monthsclients(idTenant, idBranch, currentSummary),
                 GeneralDashboardService.getLast3YearsMonthlyData(idTenant, idBranch, currentSummary)
             ]);
             growthHistory = growth;
             mostSold = sold;
-            studentsHistory = history;
+            clientsHistory = history;
             last3YearsMonthly = yearly;
         } catch (err) {
             console.warn("Erro ao carregar dados complementares do dashboard:", err);
@@ -408,8 +408,8 @@ export const GeneralDashboardService = {
         }
 
         return {
-            students: studentsData,
-            studentsGrowth,
+            clients: clientsData,
+            clientsGrowth,
             recentContracts,
             sales: {
                 today: salesToday,
@@ -430,9 +430,9 @@ export const GeneralDashboardService = {
             charts: {
                 growthHistory: growthHistory || [],
                 mostSold: mostSold || { labels: [], series: [], totalCount: 0 },
-                studentsHistory: studentsHistory || [],
+                clientsHistory: clientsHistory || [],
                 seriesSales: last3YearsMonthly?.salesSeries || [],
-                seriesStudents: last3YearsMonthly?.studentsSeries || [],
+                seriesclients: last3YearsMonthly?.clientsSeries || [],
                 years: last3YearsMonthly?.years || []
             }
         };
@@ -535,34 +535,32 @@ export const GeneralDashboardService = {
     /**
      * Busca histórico de alunos ativos dos últimos 12 meses.
      */
-    getLast12MonthsStudents: async (idTenant, idBranch, cachedSummary = null) => {
+    getLast12Monthsclients: async (idTenant, idBranch, cachedSummary = null) => {
         const { DashboardSummaryService } = await import('./DashboardSummaryService');
 
         const promises = [];
-        for (let i = 11; i >= 0; i--) {
-            const date = moment().subtract(i, 'months');
-            const monthKey = date.format('YYYY-MM');
-            const monthLabel = date.format('MMM');
+        for (let i = 0; i < 12; i++) {
+            promises.push((async () => {
+                const targetMonth = moment().subtract(i, 'months');
+                const monthKey = targetMonth.format('YYYY-MM');
+                const monthLabel = targetMonth.format('MMM/YY').toUpperCase(); // JUL/24
 
-            promises.push(
-                (async () => {
-                    let active = 0;
-                    try {
-                        if (i === 0) {
-                            if (cachedSummary) {
-                                active = cachedSummary.activeStudents || 0;
-                            } else {
-                                const summary = await DashboardSummaryService.getCurrent(idTenant, idBranch);
-                                active = summary?.activeStudents || 0;
-                            }
+                let active = 0;
+                try {
+                    if (i === 0) {
+                        if (cachedSummary) {
+                            active = cachedSummary.activeclients || 0;
                         } else {
-                            const summary = await DashboardSummaryService.getMonthSummary(idTenant, idBranch, monthKey);
-                            active = summary?.activeStudents || 0;
+                            const summary = await DashboardSummaryService.getCurrent(idTenant, idBranch);
+                            active = summary?.activeclients || 0;
                         }
-                    } catch (e) { }
-                    return { x: monthLabel, y: active };
-                })()
-            );
+                    } else {
+                        const summary = await DashboardSummaryService.getMonthSummary(idTenant, idBranch, monthKey);
+                        active = summary?.activeclients || 0;
+                    }
+                } catch (e) { }
+                return { x: monthLabel, y: active };
+            })());
         }
         return await Promise.all(promises);
     },
@@ -610,36 +608,36 @@ export const GeneralDashboardService = {
 
         // 2. Buscar Alunos Ativos mês a mês (Parallel Requests)
         const { DashboardSummaryService } = await import('./DashboardSummaryService');
-        const studentsMap = {};
-        years.forEach(y => studentsMap[y] = new Array(12).fill(0));
+        const clientsMap = {};
+        years.forEach(y => clientsMap[y] = new Array(12).fill(0));
 
-        const studentPromises = [];
+        const clientPromises = [];
 
         years.forEach(year => {
             for (let month = 0; month < 12; month++) {
-                studentPromises.push((async () => {
+                clientPromises.push((async () => {
                     const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
                     let val = 0;
                     try {
                         // Se for o mês ATUAL, usa o cachedSummary se fornecido
                         if (moment().year() === year && moment().month() === month) {
                             if (cachedSummary) {
-                                val = cachedSummary.activeStudents || 0;
+                                val = cachedSummary.activeclients || 0;
                             } else {
                                 const current = await DashboardSummaryService.getCurrent(idTenant, idBranch);
-                                if (current) val = current.activeStudents || 0;
+                                if (current) val = current.activeclients || 0;
                             }
                         } else {
                             const summary = await DashboardSummaryService.getMonthSummary(idTenant, idBranch, monthKey);
-                            if (summary) val = summary.activeStudents || 0;
+                            if (summary) val = summary.activeclients || 0;
                         }
                     } catch (e) { }
-                    studentsMap[year][month] = val;
+                    clientsMap[year][month] = val;
                 })());
             }
         });
 
-        await Promise.all(studentPromises);
+        await Promise.all(clientPromises);
 
         // Formatar Séries
         const salesSeries = years.map(year => ({
@@ -647,11 +645,11 @@ export const GeneralDashboardService = {
             data: salesMap[year]
         }));
 
-        const studentsSeries = years.map(year => ({
+        const clientsSeries = years.map(year => ({
             name: `${year}`,
-            data: studentsMap[year]
+            data: clientsMap[year]
         }));
 
-        return { years, salesSeries, studentsSeries };
+        return { years, salesSeries, clientsSeries };
     }
 }

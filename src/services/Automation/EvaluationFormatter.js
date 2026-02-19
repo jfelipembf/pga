@@ -57,13 +57,13 @@ export const formatEvaluationResults = (evaluationData) => {
 /**
  * Substitui variáveis no template
  */
-export const buildEvaluationMessage = (template, evaluation, student) => {
+export const buildEvaluationMessage = (template, evaluation, client) => {
     const resultsBlock = formatEvaluationResults(evaluation);
     const dateStr = evaluation.date ? new Date(evaluation.date).toLocaleDateString('pt-BR') : '';
 
     return template
-        .replace(/{student}|{name}/g, student.name.split(' ')[0]) // Primeiro nome
+        .replace(/{client}|{name}/g, client.name.split(' ')[0]) // Primeiro nome
         .replace(/{results}/g, resultsBlock)
         .replace(/{date}/g, dateStr)
-        .replace(/{phone}/g, student.phone || '');
+        .replace(/{phone}/g, client.phone || '');
 };

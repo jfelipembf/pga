@@ -350,7 +350,7 @@ export const ClassService = {
     /**
      * Retorna os alunos matriculados em uma turma
      */
-    getStudentsForClass: async (idTenant, idBranch, idClass) => {
+    getclientsForClass: async (idTenant, idBranch, idClass) => {
         return await enrollmentRepository.findByClass(idTenant, idBranch, idClass)
     }
 }

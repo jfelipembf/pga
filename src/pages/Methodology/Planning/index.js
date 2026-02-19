@@ -29,13 +29,13 @@ const Planning = () => {
     // 2. Estados Locais do Planejamento
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedSession, setSelectedSession] = useState(null);
-    const { students, loadingStudents, loadSessionStudents } = usePlanningData();
+    const { clients, loadingclients, loadSessionclients } = usePlanningData();
 
     // Interaction
     const handleSelectSchedule = (schedule) => {
         setSelectedSession(schedule);
         setModalOpen(true);
-        loadSessionStudents(schedule); // Fetch students for this session
+        loadSessionclients(schedule); // Fetch clients for this session
     };
 
     return (
@@ -79,8 +79,8 @@ const Planning = () => {
                 isOpen={modalOpen}
                 toggle={() => setModalOpen(!modalOpen)}
                 session={selectedSession}
-                students={students}
-                loading={loadingStudents}
+                clients={clients}
+                loading={loadingclients}
             />
         </React.Fragment>
     );

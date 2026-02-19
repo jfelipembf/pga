@@ -26,7 +26,7 @@ export const useAutomation = () => {
                     name: 'Parabéns pela Aprovação',
                     trigger: 'EVALUATION_APPROVED',
                     isActive: true,
-                    channelConfig: { channel: 'whatsapp', template: "Parabéns {studentName}..." },
+                    channelConfig: { channel: 'whatsapp', template: "Parabéns {clientName}..." },
                     aiConfig: { enabled: true, provider: 'openai', promptTemplate: "Crie..." },
                 },
                 {

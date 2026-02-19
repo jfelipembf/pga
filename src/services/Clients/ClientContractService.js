@@ -117,8 +117,8 @@ export const ClientContractService = {
 
             // Atualiza Dashboard: Incrementa conforme classificação
             DashboardSummaryService.applyInTransaction(transaction, idTenant, idBranch, {
-                activeStudents: 1, // Novo contrato vigente sempre incrementa ativo
-                newStudents: salesClassification === 'new' ? 1 : 0,
+                activeclients: 1, // Novo contrato vigente sempre incrementa ativo
+                newclients: salesClassification === 'new' ? 1 : 0,
                 converted: salesClassification === 'new' ? 1 : 0,
                 renewals: salesClassification === 'renewal' ? 1 : 0,
                 winbacks: salesClassification === 'winback' ? 1 : 0
@@ -227,8 +227,8 @@ export const ClientContractService = {
                 })
 
                 DashboardSummaryService.applyInTransaction(transaction, idTenant, idBranch, {
-                    activeStudents: -1,
-                    suspendedStudents: 1
+                    activeclients: -1,
+                    suspendedclients: 1
                 })
             }
         })
@@ -309,8 +309,8 @@ export const ClientContractService = {
             })
 
             DashboardSummaryService.applyInTransaction(transaction, idTenant, idBranch, {
-                activeStudents: 1,
-                suspendedStudents: -1
+                activeclients: 1,
+                suspendedclients: -1
             })
         })
 

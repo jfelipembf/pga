@@ -28,7 +28,7 @@ export const useTestFormLogic = ({
                         const isDistanceMetric = ['fixed-time', 'distance'].includes(measureType)
                         const resultVal = isDistanceMetric ? String(r.resultDistance || '') : String(r.resultTime || '')
 
-                        drafts[String(r.idStudent)] = {
+                        drafts[String(r.idClient)] = {
                             result: resultVal,
                             notes: r.notes || ''
                         }
@@ -96,7 +96,7 @@ export const useTestFormLogic = ({
                     if (!draft || !draft.result) return
 
                     const payload = {
-                        idStudent: clientId,
+                        idClient: clientId,
                         idActivity: idActivity,
                         idEvent: activeEvent.id,
                         idInstructor: user.uid,

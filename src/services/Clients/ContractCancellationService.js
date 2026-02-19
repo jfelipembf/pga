@@ -268,12 +268,12 @@ export const ContractCancellationService = {
      * Atualiza contadores do dashboard
      */
     _updateDashboardInTransaction: (transaction, idTenant, idBranch, wasActive, wasSuspended) => {
-        const dashboardUpdates = { canceledStudents: 1 }
+        const dashboardUpdates = { canceledclients: 1 }
 
         if (wasActive) {
-            dashboardUpdates.activeStudents = -1
+            dashboardUpdates.activeclients = -1
         } else if (wasSuspended) {
-            dashboardUpdates.suspendedStudents = -1
+            dashboardUpdates.suspendedclients = -1
         }
 
         DashboardSummaryService.applyInTransaction(transaction, idTenant, idBranch, dashboardUpdates)

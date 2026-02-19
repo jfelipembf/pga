@@ -18,7 +18,7 @@ export const TeacherDashboardService = {
         let totalCapacity = 0;
         let totalEnrolled = 0;
         let myClasses = [];
-        let myStudents = [];
+        let myclients = [];
 
         // 1. KPIs de Turmas (Classes do Professor)
         try {
@@ -35,9 +35,9 @@ export const TeacherDashboardService = {
 
             // Filtrar matriculas que pertencem às turmas do professor
             const myClassIds = myClasses.map(c => c.id);
-            myStudents = allActiveEnrollments.filter(e => myClassIds.includes(e.idClass));
+            myclients = allActiveEnrollments.filter(e => myClassIds.includes(e.idClass));
 
-            totalEnrolled = myStudents.length;
+            totalEnrolled = myclients.length;
 
         } catch (err) {
             console.warn("Erro ao buscar KPIs de turmas:", err);
@@ -60,7 +60,7 @@ export const TeacherDashboardService = {
                 ['attendanceRecorded', '==', true]
             ]);
 
-            let experimentalStudentsIds = new Set();
+            let experimentalclientsIds = new Set();
             const dateStr = startCheck.toISOString().split('T')[0];
 
             sessionsDocs.forEach(session => {
@@ -72,12 +72,12 @@ export const TeacherDashboardService = {
                 snapshot.forEach(att => {
                     const isExperimental = att.enrollmentType === 'experimental' || att.type === 'experimental' || (att.tag && att.tag.includes('Exp'));
                     if (isExperimental && att.status === 'present') {
-                        experimentalStudentsIds.add(att.idClient || att.id);
+                        experimentalclientsIds.add(att.idClient || att.id);
                     }
                 });
             });
 
-            experimentalTotal = experimentalStudentsIds.size;
+            experimentalTotal = experimentalclientsIds.size;
 
             if (experimentalTotal > 0) {
                 // Verificar quantos desses alunos possuem matrícula ativa HOJE (independente da data de criação, pois se está ativa é pq converteu)
@@ -85,8 +85,8 @@ export const TeacherDashboardService = {
                 const allEnrollments = await enrollmentRepository.findWhere(idTenant, idBranch, [['status', '==', 'active']]);
 
                 let convertedCount = 0;
-                experimentalStudentsIds.forEach(studentId => {
-                    const hasActive = allEnrollments.some(e => e.idClient === studentId && e.enrollmentType !== 'experimental');
+                experimentalclientsIds.forEach(clientId => {
+                    const hasActive = allEnrollments.some(e => e.idClient === clientId && e.enrollmentType !== 'experimental');
                     if (hasActive) convertedCount++;
                 });
 
@@ -137,7 +137,7 @@ export const TeacherDashboardService = {
                             sessionDate: session.sessionDate,
                             startTime: session.startTime,
                             className: session.className || 'Aula', // Precisaria buscar nome da atividade
-                            studentName: exp.clientName,
+                            clientName: exp.clientName,
                             status: 'Agendado'
                         });
                     });
@@ -207,11 +207,11 @@ export const TeacherDashboardService = {
             await Promise.all(myClasses.map(async (cls) => {
                 const wd = parseInt(cls.weekday);
                 if (wd >= 0 && wd <= 6) {
-                    const studentsInClass = await enrollmentRepository.findByClass(idTenant, idBranch, cls.id);
-                    const activeStudents = studentsInClass.filter(s => s.status === 'active').length;
+                    const clientsInClass = await enrollmentRepository.findByClass(idTenant, idBranch, cls.id);
+                    const activeclients = clientsInClass.filter(s => s.status === 'active').length;
 
                     occupancyByDay[wd].capacity += (parseInt(cls.maxCapacity) || 0);
-                    occupancyByDay[wd].enrolled += activeStudents;
+                    occupancyByDay[wd].enrolled += activeclients;
                 }
             }));
 
@@ -236,9 +236,9 @@ export const TeacherDashboardService = {
         try {
             // ----- PARTE 6: Renovações Próximas  -----
             // Identificar IDs dos meus alunos a partir dos enrollments ativos
-            const myActiveStudentIds = [...new Set(myStudents.map(s => s.idClient))];
+            const myActiveclientIds = [...new Set(myclients.map(s => s.idClient))];
 
-            if (myActiveStudentIds.length > 0) {
+            if (myActiveclientIds.length > 0) {
                 const allActiveContracts = await clientContractRepository.findStrictlyActive(idTenant, idBranch);
 
                 const today = moment();
@@ -246,16 +246,16 @@ export const TeacherDashboardService = {
 
                 const myExpiringContracts = allActiveContracts.filter(c => {
                     const endDate = c.endDate?.toDate ? moment(c.endDate.toDate()) : moment(c.endDate);
-                    const isMyStudent = myActiveStudentIds.includes(c.idClient);
+                    const isMyclient = myActiveclientIds.includes(c.idClient);
                     const isExpiringSoon = endDate.isSameOrAfter(today, 'day') && endDate.isSameOrBefore(next30Days, 'day');
 
-                    return isMyStudent && isExpiringSoon;
+                    return isMyclient && isExpiringSoon;
                 });
 
                 renewalsCount = myExpiringContracts.length;
                 renewalsList = myExpiringContracts.map(c => ({
                     id: c.id,
-                    studentName: c.clientName || 'Aluno',
+                    clientName: c.clientName || 'Aluno',
                     planName: c.planName || 'Plano',
                     endDate: formatDate(c.endDate),
                     daysRemaining: c.endDate?.toDate ? moment(c.endDate.toDate()).diff(today, 'days') : moment(c.endDate).diff(today, 'days')
@@ -268,10 +268,10 @@ export const TeacherDashboardService = {
             const allMyEnrollments = await enrollmentRepository.findWhere(idTenant, idBranch, []); // Traz tudo e filtra em memória p/ evitar muitas reads se possível, ou filtrar por turmas se der
             // Melhor filtrar em memória pois findWhere [] traz tudo
             const myClassIds = myClasses.map(c => c.id);
-            const historicalStudents = allMyEnrollments.filter(e => myClassIds.includes(e.idClass));
-            const historicalStudentIds = [...new Set(historicalStudents.map(s => s.idClient))];
+            const historicalclients = allMyEnrollments.filter(e => myClassIds.includes(e.idClass));
+            const historicalclientIds = [...new Set(historicalclients.map(s => s.idClient))];
 
-            if (historicalStudentIds.length > 0) {
+            if (historicalclientIds.length > 0) {
                 const sixMonthsAgo = moment().subtract(5, 'months').startOf('month'); // 5 meses atrás + atual = 6
                 const endOfCurrentMonth = moment().endOf('month');
 
@@ -298,20 +298,20 @@ export const TeacherDashboardService = {
                 // Para verificar renovação, precisamos saber se o aluno tem OUTRO contrato começando DEPOIS
                 // Simplificação: Vamos buscar TODOS os contratos dos alunos que tiveram vencimento na janela.
                 // Se eles têm um contrato 'active' ou 'future' com startDate >= expiredDate, é renovação.
-                const affectedStudentIds = [...new Set(expiredContracts.filter(c => historicalStudentIds.includes(c.idClient)).map(c => c.idClient))];
-                let allStudentContracts = [];
+                const affectedclientIds = [...new Set(expiredContracts.filter(c => historicalclientIds.includes(c.idClient)).map(c => c.idClient))];
+                let allclientContracts = [];
 
-                if (affectedStudentIds.length > 0) {
+                if (affectedclientIds.length > 0) {
                     // Busca contracts de todos esses alunos. Como "in" tem limite de 10, e pode ser muitos, melhor buscar active e cruzar?
                     // Ou buscar tudo da unidade (já temos allActiveContracts da Parte 6, mas precisamos de inativos tb para histórico completo... mas renovação geralmente vira Ativo).
                     // Vamos usar allActiveContracts para check de "Renovou?"
                     // E contratos futuros?
                     const allContractsRef = await clientContractRepository.findAll(idTenant, idBranch); // Pesado? Se tiver muitos contratos...
-                    allStudentContracts = allContractsRef.filter(c => affectedStudentIds.includes(c.idClient));
+                    allclientContracts = allContractsRef.filter(c => affectedclientIds.includes(c.idClient));
                 }
 
                 expiredContracts.forEach(contract => {
-                    if (!historicalStudentIds.includes(contract.idClient)) return;
+                    if (!historicalclientIds.includes(contract.idClient)) return;
 
                     const endD = contract.endDate?.toDate ? moment(contract.endDate.toDate()) : moment(contract.endDate);
                     const monthKey = formatDate(endD, 'MM/YYYY');
@@ -320,7 +320,7 @@ export const TeacherDashboardService = {
                         monthBuckets[monthKey].expired++;
 
                         // Check de renovação: Existe contrato (diferente deste) para o mesmo aluno começando >= data fim?
-                        const hasRenewal = allStudentContracts.some(other => {
+                        const hasRenewal = allclientContracts.some(other => {
                             if (other.id === contract.id) return false;
                             const startD = other.startDate?.toDate ? moment(other.startDate.toDate()) : moment(other.startDate);
                             // Tolerância de -30 dias (renovou antes de acabar) até +30 dias (renovou depois)
@@ -353,7 +353,7 @@ export const TeacherDashboardService = {
             kpi: {
                 activeClasses: activeClassesCount,
                 maxCapacity: totalCapacity,
-                activeStudents: totalEnrolled,
+                activeclients: totalEnrolled,
                 occupancyRate,
                 conversionRate,
                 conversionTotal,

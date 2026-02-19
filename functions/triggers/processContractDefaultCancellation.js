@@ -118,8 +118,8 @@ module.exports = onSchedule({
                             // 2. Sincronizar Dashboard (Centralizado)
                             const dashboardRef = db.doc(`tenants/${idTenant}/branches/${idBranch}/dashboardSummary/current`);
                             tx.set(dashboardRef, {
-                                activeStudents: FieldValue.increment(-canceledInThisTx),
-                                canceledStudents: FieldValue.increment(canceledInThisTx),
+                                activeclients: FieldValue.increment(-canceledInThisTx),
+                                canceledclients: FieldValue.increment(canceledInThisTx),
                                 lastUpdated: FieldValue.serverTimestamp()
                             }, { merge: true });
 

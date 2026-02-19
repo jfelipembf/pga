@@ -102,15 +102,15 @@ export const TrainingPlanService = {
     /**
      * Envia o treino para uma lista de alunos via WhatsApp
      */
-    sendToStudents: async (idTenant, idBranch, userId, userName, students, workout) => {
+    sendToclients: async (idTenant, idBranch, userId, userName, clients, workout) => {
         try {
             const workoutContent = formatTrainingForWhatsApp(workout);
             const date = formatDate(new Date());
 
-            const promises = students.map(student =>
+            const promises = clients.map(client =>
                 automationService.emit(idTenant, 'TRAINING_PLAN', {
-                    studentName: student.name,
-                    phone: student.phone || student.cellPhone || student.responsavelPhone,
+                    clientName: client.name,
+                    phone: client.phone || client.cellPhone || client.responsavelPhone,
                     workoutContent,
                     date
                 })
@@ -126,7 +126,7 @@ export const TrainingPlanService = {
                 action: 'TRAINING_PLAN_SHARED',
                 entityType: 'training_plan',
                 entityId: workout.id,
-                description: `Compartilhado treino "${workout.description}" com ${students.length} alunos`
+                description: `Compartilhado treino "${workout.description}" com ${clients.length} alunos`
             });
 
             return true;

@@ -8,6 +8,7 @@ import { EnrollmentSchema, ENROLLMENT_TYPE } from '../../data/schemas/Clients/En
 import { AuditService } from '../Core/AuditService'
 import { normalizeDate } from '../../utils/date'
 import { query, where, getDocs, orderBy, writeBatch, doc } from 'firebase/firestore'
+import { ClientService } from './ClientService'
 
 /**
  * Serviço para Gestão de Matrículas
@@ -16,7 +17,7 @@ export const EnrollmentService = {
     /**
      * Matricula um aluno em uma ou mais turmas (sessões futuras)
      */
-    enrollStudent: async (idTenant, idBranch, user, enrollmentData) => {
+    enrollClient: async (idTenant, idBranch, user, enrollmentData) => {
         const { idClient, idContract, classIds, clientName } = enrollmentData
         const userId = user.uid
         const userName = user.displayName || user.email || 'Sistema'
@@ -65,7 +66,8 @@ export const EnrollmentService = {
             const firstSession = futureSessions[0]
 
             // B. Enriquecer dados
-            const [classData, activityData, staffData] = await Promise.all([
+            const [clientData, classData, activityData, staffData] = await Promise.all([
+                ClientService.getClientById(idTenant, idBranch, idClient),
                 classRepository.findById(idTenant, idBranch, idClass),
                 firstSession.idActivity ? activityRepository.findById(idTenant, idBranch, firstSession.idActivity) : Promise.resolve(null),
                 firstSession.idStaff ? staffRepository.findById(idTenant, idBranch, firstSession.idStaff) : Promise.resolve(null)
@@ -75,7 +77,9 @@ export const EnrollmentService = {
                 idClient,
                 idContract,
                 idClass,
-                clientName,
+                clientName: clientData?.name || clientName || "Cliente",
+                friendlyId: clientData?.friendlyId || null,
+                idGym: clientData?.friendlyId || null,
                 className: classData?.name || firstSession.className || null,
                 activityName: activityData?.name || firstSession.activityName || null,
                 startTime: firstSession.startTime || null,
@@ -179,7 +183,8 @@ export const EnrollmentService = {
             throw new Error('Cliente já possui uma aula experimental agendada para esta atividade')
         }
 
-        const [classData, activityData, staffData] = await Promise.all([
+        const [clientData, classData, activityData, staffData] = await Promise.all([
+            ClientService.getClientById(idTenant, idBranch, idClient),
             classRepository.findById(idTenant, idBranch, session.idClass),
             session.idActivity ? activityRepository.findById(idTenant, idBranch, session.idActivity) : Promise.resolve(null),
             session.idStaff ? staffRepository.findById(idTenant, idBranch, session.idStaff) : Promise.resolve(null)
@@ -189,7 +194,9 @@ export const EnrollmentService = {
             idClient,
             idContract: null,
             idClass: session.idClass,
-            clientName,
+            clientName: clientData?.name || clientName || 'Cliente',
+            friendlyId: clientData?.friendlyId || null,
+            idGym: clientData?.friendlyId || null,
             className: classData?.name || session.className || null,
             activityName: activityData?.name || session.activityName || null,
             startTime: session.startTime || null,

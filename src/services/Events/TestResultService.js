@@ -17,19 +17,19 @@ export const TestResultService = {
         const validData = await TestResultSchema.validate(data, { abortEarly: false, stripUnknown: true })
 
         // 2. Buscar Dados do Aluno para Desnormalização (EFICIÊNCIA)
-        const student = await clientRepository.findById(idTenant, idBranch, validData.idStudent)
-        if (!student) throw new Error("Estudante não encontrado para registro do teste.")
+        const client = await clientRepository.findById(idTenant, idBranch, validData.idClient)
+        if (!client) throw new Error("Estudante não encontrado para registro do teste.")
 
-        const studentMeta = {
-            studentName: student.name,
-            studentGender: student.gender || 'unspecified',
-            studentBirthDate: student.birthDate || null,
+        const clientMeta = {
+            clientName: client.name,
+            clientGender: client.gender || 'unspecified',
+            clientBirthDate: client.birthDate || null,
         }
 
         // 3. Verificar se já existe resultado para este par aluno+atividade no ciclo atual
-        const existing = await testResultRepository.findByStudentActivityEvent(
+        const existing = await testResultRepository.findByClientActivityEvent(
             idTenant, idBranch,
-            validData.idStudent,
+            validData.idClient,
             validData.idActivity,
             validData.idEvent
         )
@@ -38,7 +38,7 @@ export const TestResultService = {
             // Edição
             const updatePayload = {
                 ...validData,
-                ...studentMeta,
+                ...clientMeta,
                 updatedBy: user.uid,
                 updatedAt: normalizeDate(new Date())
             }
@@ -51,7 +51,7 @@ export const TestResultService = {
                 action: 'TEST_RESULT_UPDATED',
                 entityType: 'test_result',
                 entityId: existing.id,
-                description: `Teste atualizado: ${student.name} no ciclo ${validData.idEvent}`,
+                description: `Teste atualizado: ${client.name} no ciclo ${validData.idEvent}`,
                 details: { result: validData.resultTime || validData.resultDistance }
             })
 
@@ -61,7 +61,7 @@ export const TestResultService = {
         // Criação
         const payload = {
             ...validData,
-            ...studentMeta,
+            ...clientMeta,
             createdBy: user.uid,
             createdAt: normalizeDate(new Date()),
             updatedAt: normalizeDate(new Date())
@@ -76,7 +76,7 @@ export const TestResultService = {
             action: 'TEST_RESULT_CREATED',
             entityType: 'test_result',
             entityId: result.id,
-            description: `Novo teste registrado: ${student.name} no ciclo ${payload.idEvent}`,
+            description: `Novo teste registrado: ${client.name} no ciclo ${payload.idEvent}`,
             details: { result: payload.resultTime || payload.resultDistance }
         })
 
@@ -113,7 +113,7 @@ export const TestResultService = {
         }
 
         const ranking = results.map(r => {
-            const birthDate = normalizeDate(r.studentBirthDate)
+            const birthDate = normalizeDate(r.clientBirthDate)
             const age = birthDate ? moment().diff(birthDate, 'years') : 0
 
             // Categoria (Pode ser estendido no futuro)
@@ -123,8 +123,8 @@ export const TestResultService = {
 
             return {
                 id: r.id,
-                clientName: r.studentName,
-                gender: r.studentGender,
+                clientName: r.clientName,
+                gender: r.clientGender,
                 age: age,
                 category: category,
                 result: isDistanceMetric ? r.resultDistance : r.resultTime,

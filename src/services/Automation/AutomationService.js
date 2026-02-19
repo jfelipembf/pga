@@ -12,7 +12,7 @@ class AutomationService {
      * Dispara um gatilho de automação
      * @param {string} tenantId - Tenant ID
      * @param {string} trigger - Nome do gatilho (ex: 'EVALUATION_APPROVED')
-     * @param {object} contextData - Dados do evento (ex: { studentName: 'João', level: 'Nível 1', phone: '55...' })
+     * @param {object} contextData - Dados do evento (ex: { clientName: 'João', level: 'Nível 1', phone: '55...' })
      */
     async emit(tenantId, trigger, contextData) {
 
@@ -80,7 +80,7 @@ class AutomationService {
             }
         }
 
-        // 4. Substituir variáveis do template (ex: {studentName})
+        // 4. Substituir variáveis do template (ex: {clientName})
         messageContent = this._replaceVariables(messageContent, contextData);
 
         // 5. Enviar mensagem

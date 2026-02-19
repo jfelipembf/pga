@@ -138,23 +138,23 @@ const StaffMetrics = ({ metrics, loading, refresh }) => {
                                         <tr>
                                             <td className="ps-0 py-3">
                                                 <div className="text-muted font-size-13 mb-1">Alunos Regulares</div>
-                                                <h5 className="mb-0 fw-bold text-dark">{current.summary.activeRegularStudents}</h5>
+                                                <h5 className="mb-0 fw-bold text-dark">{current.summary.activeRegularclients}</h5>
                                             </td>
                                             <td className="text-end py-3">
-                                                <TrendBadge change={comparatives.studentsChange} />
+                                                <TrendBadge change={comparatives.clientsChange} />
                                             </td>
                                         </tr>
                                         <tr>
                                             <td className="ps-0 py-3">
                                                 <div className="text-muted font-size-13 mb-1">Crescimento (Novos)</div>
-                                                <h5 className="mb-0 fw-bold text-success">+{current.summary.newStudents}</h5>
+                                                <h5 className="mb-0 fw-bold text-success">+{current.summary.newclients}</h5>
                                             </td>
                                             <td className="text-end py-3 text-muted font-size-11">Este mês</td>
                                         </tr>
                                         <tr>
                                             <td className="ps-0 py-3">
                                                 <div className="text-muted font-size-13 mb-1">Evasão (Churn)</div>
-                                                <h5 className="mb-0 fw-bold text-danger">-{current.summary.cancelledStudents}</h5>
+                                                <h5 className="mb-0 fw-bold text-danger">-{current.summary.cancelledclients}</h5>
                                             </td>
                                             <td className="text-end py-3 text-muted font-size-11">Este mês</td>
                                         </tr>

@@ -33,7 +33,7 @@ const TeacherDashboard = () => {
                 iconClass: "percent",
                 total: loading ? "..." : `${(data?.kpi?.occupancyRate || 0).toFixed(1)}%`,
                 growth: loading ? 0 : (data?.kpi?.occupancyRate >= 70 ? 1 : (data?.kpi?.occupancyRate < 30 ? -1 : 0)),
-                desc: loading ? "Calculando..." : `${data?.kpi?.activeStudents || 0} alunos matriculados`
+                desc: loading ? "Calculando..." : `${data?.kpi?.activeclients || 0} alunos matriculados`
             },
             {
                 title: "Conversão (Exp -> Mat)",
@@ -122,7 +122,7 @@ const TeacherDashboard = () => {
                                                         <h6 className="mb-0">{moment(item.sessionDate).format("DD/MM")}</h6>
                                                         <small className="text-muted">{item.startTime}</small>
                                                     </td>
-                                                    <td>{item.studentName}</td>
+                                                    <td>{item.clientName}</td>
                                                     <td>{item.className}</td>
                                                     <td>
                                                         <Badge color="warning" pill>

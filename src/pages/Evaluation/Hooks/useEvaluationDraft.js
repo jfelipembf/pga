@@ -35,7 +35,7 @@ export const useEvaluationDraft = ({
                 }
 
                 // 2. Fallback: Buscar últimos níveis (Histórico) para quem não tem avaliação no ciclo atual
-                const clientsInCurrentCycle = new Set(currentCycleEvaluations.map(e => String(e.idStudent)))
+                const clientsInCurrentCycle = new Set(currentCycleEvaluations.map(e => String(e.idClient)))
                 const clientsNeedingHistory = missingClientIds.filter(id => !clientsInCurrentCycle.has(id))
 
                 let historyEvaluations = {}
@@ -48,7 +48,7 @@ export const useEvaluationDraft = ({
 
                     // 1. Processar dados do Ciclo Atual (mapeando critérios por tópico) - PRIORITÁRIO
                     currentCycleEvaluations.forEach(evalDoc => {
-                        const clientId = String(evalDoc.idStudent)
+                        const clientId = String(evalDoc.idClient)
                         if (evalDoc.criteria && Array.isArray(evalDoc.criteria)) {
                             evalDoc.criteria.forEach(crit => {
                                 const tId = String(crit.id)

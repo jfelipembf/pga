@@ -7,11 +7,12 @@ import {
 import { useActiveClientsPool } from '../../../hooks/useActiveClientsPool';
 import OverlayLoader from '../../../components/Common/OverlayLoader';
 
-const StudentSelectorModal = ({ isOpen, toggle, onSend, workout }) => {
+const ClientSelectorModal = ({ isOpen, toggle, onSend, workout }) => {
     const { clients: allClients } = useActiveClientsPool({ enabled: isOpen });
     const [searchText, setSearchText] = useState("");
     const [selectedIds, setSelectedIds] = useState(new Set());
     const [isSending, setIsSending] = useState(false);
+
 
     const filteredClients = useMemo(() => {
         const query = searchText.toLowerCase().trim();
@@ -22,7 +23,7 @@ const StudentSelectorModal = ({ isOpen, toggle, onSend, workout }) => {
         ).slice(0, 50);
     }, [allClients, searchText]);
 
-    const toggleStudent = (id) => {
+    const toggleClient = (id) => {
         const idStr = String(id);
         const next = new Set(selectedIds);
         if (next.has(idStr)) next.delete(idStr);
@@ -34,10 +35,10 @@ const StudentSelectorModal = ({ isOpen, toggle, onSend, workout }) => {
         if (selectedIds.size === 0) return;
 
         setIsSending(true);
-        const selectedStudents = allClients.filter(c => selectedIds.has(String(c.id)));
+        const selectedClients = allClients.filter(c => selectedIds.has(String(c.id)));
 
         try {
-            await onSend(selectedStudents);
+            await onSend(selectedClients);
             setSelectedIds(new Set());
             toggle();
         } catch (error) {
@@ -89,7 +90,7 @@ const StudentSelectorModal = ({ isOpen, toggle, onSend, workout }) => {
                     </div>
                 )}
 
-                {/* Students List */}
+                {/* Clients List */}
                 <div style={{ maxHeight: '450px', overflowY: 'auto' }}>
                     <ListGroup flush>
                         {allClients.length === 0 ? (
@@ -103,20 +104,20 @@ const StudentSelectorModal = ({ isOpen, toggle, onSend, workout }) => {
                                 <p className="text-muted">Nenhum aluno encontrado.</p>
                             </div>
                         ) : (
-                            filteredClients.map(student => {
-                                const isSelected = selectedIds.has(String(student.id));
+                            filteredClients.map(client => {
+                                const isSelected = selectedIds.has(String(client.id));
                                 return (
                                     <ListGroupItem
-                                        key={student.id}
+                                        key={client.id}
                                         className={`border-0 border-bottom py-3 px-4 d-flex align-items-center cursor-pointer transition-all ${isSelected ? 'bg-light' : ''}`}
-                                        onClick={() => toggleStudent(student.id)}
+                                        onClick={() => toggleClient(client.id)}
                                         style={{ cursor: 'pointer' }}
                                     >
                                         <div className="me-3 position-relative">
-                                            {student.photoUrl || student.photo ? (
+                                            {client.photoUrl || client.photo ? (
                                                 <img
-                                                    src={student.photoUrl || student.photo}
-                                                    alt={student.name}
+                                                    src={client.photoUrl || client.photo}
+                                                    alt={client.name}
                                                     className="rounded-circle border shadow-sm"
                                                     style={{ width: '45px', height: '45px', objectFit: 'cover' }}
                                                 />
@@ -136,17 +137,17 @@ const StudentSelectorModal = ({ isOpen, toggle, onSend, workout }) => {
                                         </div>
                                         <div className="flex-grow-1">
                                             <h6 className={`mb-1 ${isSelected ? 'text-primary fw-bold' : 'text-dark fw-semibold'}`}>
-                                                {student.name}
+                                                {client.name}
                                             </h6>
                                             <div className="d-flex align-items-center gap-2">
-                                                {student.idGym && (
+                                                {client.idGym && (
                                                     <span className="text-muted small fw-medium">
-                                                        #{student.idGym}
+                                                        #{client.idGym}
                                                     </span>
                                                 )}
                                                 <span className="text-muted small">
                                                     <i className="mdi mdi-phone-outline me-1"></i>
-                                                    {student.phone || student.cellPhone || student.responsavelPhone || 'Sem telefone'}
+                                                    {client.phone || client.cellPhone || client.responsavelPhone || 'Sem telefone'}
                                                 </span>
                                             </div>
                                         </div>
@@ -184,4 +185,4 @@ const StudentSelectorModal = ({ isOpen, toggle, onSend, workout }) => {
     );
 };
 
-export default StudentSelectorModal;
+export default ClientSelectorModal;

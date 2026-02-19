@@ -28,28 +28,28 @@ const ManagementDashboard = () => {
                 {
                     title: "Novos Alunos",
                     iconClass: "account-plus",
-                    total: loading ? "..." : (data?.students?.new || 0),
-                    growth: data?.studentsGrowth?.new,
+                    total: loading ? "..." : (data?.clients?.new || 0),
+                    growth: data?.clientsGrowth?.new,
                     desc: " no mês atual"
                 },
                 {
                     title: "Alunos Ativos",
                     iconClass: "account-group",
-                    total: loading ? "..." : (data?.students?.active || 0),
-                    growth: data?.studentsGrowth?.active,
+                    total: loading ? "..." : (data?.clients?.active || 0),
+                    growth: data?.clientsGrowth?.active,
                     desc: " total atual"
                 },
                 {
                     title: "Cancelamentos",
                     iconClass: "account-remove",
-                    total: loading ? "..." : (data?.students?.canceled || 0),
-                    growth: data?.studentsGrowth?.canceled,
+                    total: loading ? "..." : (data?.clients?.canceled || 0),
+                    growth: data?.clientsGrowth?.canceled,
                     desc: " perdidos no mês"
                 },
                 {
                     title: "Churn Rate",
                     iconClass: "chart-timeline-variant",
-                    total: loading ? "..." : (data?.students ? `${((data.students.canceled / (data.students.active + data.students.canceled || 1)) * 100).toFixed(1)}%` : "0%"),
+                    total: loading ? "..." : (data?.clients ? `${((data.clients.canceled / (data.clients.active + data.clients.canceled || 1)) * 100).toFixed(1)}%` : "0%"),
                     desc: " taxa de perda"
                 }
             ]} colSize={3} />
@@ -62,13 +62,14 @@ const ManagementDashboard = () => {
                     </div>
                     <div className="flex-grow-1 d-flex flex-column">
                         <YearlySales
-                            activeCount={loading ? "..." : (data?.students?.active || 0)}
+                            activeCount={loading ? "..." : (data?.clients?.active || 0)}
                             data={
-                                data?.charts?.seriesStudents
+                                data?.charts?.seriesclients
                                     ? [{
-                                        data: data.charts.seriesStudents.find(s => s.name === new Date().getFullYear().toString())?.data || []
+                                        name: 'Alunos',
+                                        data: data.charts.seriesclients.find(s => s.name === new Date().getFullYear().toString())?.data || []
                                     }]
-                                    : null
+                                    : []
                             }
                         />
                     </div>

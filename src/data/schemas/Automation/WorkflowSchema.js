@@ -30,7 +30,7 @@ export const WorkflowSchema = yup.object().shape({
             is: true,
             then: yup.string().required("O template do prompt é obrigatório quando a IA está ativada")
         }),
-        contextFields: yup.array().of(yup.string()) // Campos do sistema para injetar (ex: ['studentName', 'levelName'])
+        contextFields: yup.array().of(yup.string()) // Campos do sistema para injetar (ex: ['clientName', 'levelName'])
     }),
 
     // Configuração do Canal de Envio

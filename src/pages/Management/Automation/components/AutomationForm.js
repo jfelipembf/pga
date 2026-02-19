@@ -92,10 +92,10 @@ export const AutomationForm = ({ value, onChange, onCancel, onSave, onDelete, sa
                             rows={4}
                             value={formData.channelConfig.template}
                             onChange={e => handleNestedChange('channelConfig', 'template', e.target.value)}
-                            placeholder="Olá {studentName}, ..."
+                            placeholder="Olá {clientName}, ..."
                         />
                         <small className="text-muted d-block mt-1">
-                            Use variáveis como <code>{`{studentName}`}</code>, <code>{`{levelName}`}</code>.
+                            Use variáveis como <code>{`{clientName}`}</code>, <code>{`{levelName}`}</code>.
                             Se usar IA, inclua <code>{`{ai_output}`}</code> onde o texto gerado deve aparecer.
                         </small>
                     </div>
@@ -138,7 +138,7 @@ export const AutomationForm = ({ value, onChange, onCancel, onSave, onDelete, sa
                                     rows={3}
                                     value={formData.aiConfig.promptTemplate}
                                     onChange={e => handleNestedChange('aiConfig', 'promptTemplate', e.target.value)}
-                                    placeholder="Ex: Escreva uma mensagem parabenizando {studentName} pela aprovação..."
+                                    placeholder="Ex: Escreva uma mensagem parabenizando {clientName} pela aprovação..."
                                 />
                                 <small className="text-muted">Descreva como a IA deve agir e o que deve escrever.</small>
                             </div>

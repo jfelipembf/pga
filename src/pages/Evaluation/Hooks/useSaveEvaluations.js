@@ -89,7 +89,7 @@ export const useSaveEvaluations = ({
 
                     // Registramos a avaliação "mestre" para o aluno neste ciclo
                     await EvaluationService.registerEvaluation(idTenant, idBranch, user, {
-                        idStudent: clientId,
+                        idClient: clientId,
                         idActivity: idActivity,
                         idEvent: activeEventId,
                         idClass: classId || null,
@@ -122,10 +122,10 @@ export const useSaveEvaluations = ({
         const clientId = String(client.id)
 
         // 1. Buscar histórico real do aluno
-        const allStudentEvals = await EvaluationService.getStudentEvaluations(idTenant, idBranch, clientId)
+        const allClientEvals = await EvaluationService.getClientEvaluations(idTenant, idBranch, clientId)
 
         // Filtrar apenas avaliações desta atividade e ordenar (mais novas primeiro)
-        const activityEvals = (allStudentEvals || [])
+        const activityEvals = (allClientEvals || [])
             .filter(ev => String(ev.idActivity) === String(idActivity))
             .sort((a, b) => moment(b.date).diff(moment(a.date)))
 
@@ -254,7 +254,7 @@ export const useSaveEvaluations = ({
 
         // 7. Enviar via Automação
         await automationService.emit(idTenant, 'EVALUATION_RESULT', {
-            studentName: client.name,
+            clientName: client.name,
             name: client.name,
             phone: client.phone || client.cellPhone || client.responsavelPhone,
             results: finalResultsText,

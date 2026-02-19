@@ -13,9 +13,9 @@ class EvaluationRepository extends BaseRepository {
     /**
      * Busca avaliações de um aluno específico
      */
-    async findByStudent(idTenant, idBranch, idStudent) {
+    async findByClient(idTenant, idBranch, idClient) {
         return this.findWhere(idTenant, idBranch, [
-            ['idStudent', '==', idStudent],
+            ['idClient', '==', idClient],
             ['deletedAt', '==', null]
         ], { field: 'date', direction: 'desc' })
     }
@@ -33,9 +33,9 @@ class EvaluationRepository extends BaseRepository {
     /**
      * Busca uma avaliação específica de um aluno em um ciclo (evento) para uma atividade
      */
-    async findByStudentActivityEvent(idTenant, idBranch, idStudent, idActivity, idEvent) {
+    async findByClientActivityEvent(idTenant, idBranch, idClient, idActivity, idEvent) {
         const results = await this.findWhere(idTenant, idBranch, [
-            ['idStudent', '==', idStudent],
+            ['idClient', '==', idClient],
             ['idActivity', '==', idActivity],
             ['idEvent', '==', idEvent],
             ['deletedAt', '==', null]

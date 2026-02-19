@@ -136,7 +136,7 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
 
                         // Disparar para o ALUNO
                         await automationService.emit(idTenant, 'EXPERIMENTAL_SCHEDULED', {
-                            student: clientData.name,
+                            client: clientData.name,
                             name: clientData.name,
                             date: dateFormatted,
                             time: timeFormatted,
@@ -148,7 +148,7 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
                         // Disparar para o PROFESSOR
                         if (sessionData.instructorPhone) {
                             await automationService.emit(idTenant, 'EXPERIMENTAL_SCHEDULED_TEACHER', {
-                                student: clientData.name,
+                                client: clientData.name,
                                 date: dateFormatted,
                                 time: timeFormatted,
                                 phone: sessionData.instructorPhone
@@ -162,7 +162,7 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
                 toast.success('Aula experimental agendada com sucesso!')
             } else {
                 // Matrícula regular
-                await EnrollmentService.enrollStudent(idTenant, idBranch, user, {
+                await EnrollmentService.enrollClient(idTenant, idBranch, user, {
                     idClient,
                     idContract,
                     classIds: selectedClasses,

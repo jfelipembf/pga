@@ -50,32 +50,32 @@ async function checkEnrollmentsLimit() {
                 .where('idClass', '==', classId)
                 .get();
 
-            const allStudents = enrollmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const allclients = enrollmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
             // Verificar Roger
-            const targetStudent = allStudents.find(s => s.clientName && s.clientName.toLowerCase().includes(TARGET_STUDENT_NAME.toLowerCase()));
-            if (!targetStudent) continue;
+            const targetClient = allclients.find(s => s.clientName && s.clientName.toLowerCase().includes(TARGET_STUDENT_NAME.toLowerCase()));
+            if (!targetClient) continue;
 
             console.log(`\n--------------------------------------------------`);
             // const className = classData.name || classData.activityName || 'Nome Indefinido';
             console.log(`🎯 TURMA ENCONTRADA COM ROGER: ${className} (ID: ${classId})`);
             console.log(`   Dia: ${classData.weekday} | Hora: ${classData.startTime}`);
-            console.log(`   Roger Status: ${targetStudent.status} | ID Enrollment: ${targetStudent.id}`);
+            console.log(`   Roger Status: ${targetClient.status} | ID Enrollment: ${targetClient.id}`);
 
-            const activeStudents = allStudents.filter(s => s.status === 'active');
-            console.log(`   Alunos Ativos na Turma: ${activeStudents.length}`);
-            // activeStudents.forEach(s => console.log(` - ${s.clientName}`));
+            const activeclients = allclients.filter(s => s.status === 'active');
+            console.log(`   Alunos Ativos na Turma: ${activeclients.length}`);
+            // activeclients.forEach(s => console.log(` - ${s.clientName}`));
 
             // Comparar enrolledCount da Turma com real
             const currentBadge = classData.enrolledCount || 0;
-            console.log(`   [Badge Turma] Banco: ${currentBadge} | Real (Active Enrollments): ${activeStudents.length}`);
+            console.log(`   [Badge Turma] Banco: ${currentBadge} | Real (Active Enrollments): ${activeclients.length}`);
 
-            if (currentBadge !== activeStudents.length) {
+            if (currentBadge !== activeclients.length) {
                 console.warn(`   ⚠️ DIVERGÊNCIA DE BADGE!`);
 
                 // Usando a mesma flag para correção se desejado
                 if (FIX_SESSION_COUNTS) {
-                    await classDoc.ref.update({ enrolledCount: activeStudents.length });
+                    await classDoc.ref.update({ enrolledCount: activeclients.length });
                     console.log(`   🛠️ Contador da turma corrigido.`);
                 }
             }
@@ -104,12 +104,12 @@ async function checkEnrollmentsLimit() {
                 const enrolledClientsRef = sessionDoc.ref.collection('enrolledClients');
                 const enrolledClientsSnap = await enrolledClientsRef.where('deleted', '==', false).get();
 
-                const sessionStudents = enrolledClientsSnap.docs.map(d => d.data());
-                const sessionStudentIds = sessionStudents.map(s => s.idClient);
-                const realSessionCount = sessionStudents.length;
+                const sessionclients = enrolledClientsSnap.docs.map(d => d.data());
+                const sessionClientIds = sessionclients.map(s => s.idClient);
+                const realSessionCount = sessionclients.length;
 
                 // Analisar Discrepâncias
-                const missingInSession = activeStudents.filter(s => !sessionStudentIds.includes(s.idClient));
+                const missingInSession = activeclients.filter(s => !sessionClientIds.includes(s.idClient));
                 const countMismatch = (sessionData.enrolledCount || 0) !== realSessionCount;
 
                 if (countMismatch || missingInSession.length > 0) {
@@ -132,13 +132,13 @@ async function checkEnrollmentsLimit() {
                         let added = 0;
 
                         // 1. Adicionar alunos faltantes
-                        for (const student of missingInSession) {
-                            const newDocRef = enrolledClientsRef.doc(student.id); // Usamos o ID do enrollment
+                        for (const client of missingInSession) {
+                            const newDocRef = enrolledClientsRef.doc(client.id); // Usamos o ID do enrollment
                             batch.set(newDocRef, {
-                                enrollmentId: student.id,
-                                idClient: student.idClient,
-                                clientName: student.clientName,
-                                enrollmentType: student.enrollmentType || 'regular',
+                                enrollmentId: client.id,
+                                idClient: client.idClient,
+                                clientName: client.clientName,
+                                enrollmentType: client.enrollmentType || 'regular',
                                 attended: null,
                                 createdBy: 'script_fix',
                                 enrolledAt: admin.firestore.FieldValue.serverTimestamp(),

@@ -24,9 +24,9 @@ export const EvaluationService = {
         const validData = await EvaluationSchema.validate(data, { abortEarly: false, stripUnknown: true })
 
         // 3. Verificar se o aluno já foi avaliado nesta atividade dentro DESTE ciclo (idEvent)
-        const existingEvaluation = await evaluationRepository.findByStudentActivityEvent(
+        const existingEvaluation = await evaluationRepository.findByClientActivityEvent(
             idTenant, idBranch,
-            validData.idStudent,
+            validData.idClient,
             validData.idActivity,
             validData.idEvent
         )
@@ -48,8 +48,8 @@ export const EvaluationService = {
                 action: 'EVALUATION_UPDATED',
                 entityType: 'evaluation',
                 entityId: existingEvaluation.id,
-                description: `Avaliação do aluno ID ${validData.idStudent} atualizada dentro do ciclo ${validData.idEvent}`,
-                details: { studentId: validData.idStudent, activityId: validData.idActivity }
+                description: `Avaliação do aluno ID ${validData.idClient} atualizada dentro do ciclo ${validData.idEvent}`,
+                details: { clientId: validData.idClient, activityId: validData.idActivity }
             })
 
             return { id: existingEvaluation.id, ...updatePayload, isUpdate: true }
@@ -71,8 +71,8 @@ export const EvaluationService = {
             action: 'EVALUATION_CREATED',
             entityType: 'evaluation',
             entityId: result.id,
-            description: `Nova avaliação registrada para o aluno ID ${payload.idStudent} no ciclo ${payload.idEvent}`,
-            details: { studentId: payload.idStudent, activityId: payload.idActivity }
+            description: `Nova avaliação registrada para o aluno ID ${payload.idClient} no ciclo ${payload.idEvent}`,
+            details: { clientId: payload.idClient, activityId: payload.idActivity }
         })
 
         // AUTOMATION TRIGGER (Fire and forget)
@@ -82,15 +82,15 @@ export const EvaluationService = {
             const { automationService } = await import('../Automation/AutomationService');
 
             // Buscar dados do aluno para contato
-            const student = await clientRepository.findById(idTenant, idBranch, payload.idStudent);
+            const client = await clientRepository.findById(idTenant, idBranch, payload.idClient);
 
-            if (student) {
+            if (client) {
                 // Dispara o evento
                 automationService.emit(idTenant, 'EVALUATION_APPROVED', {
-                    studentName: student.name,
-                    studentId: student.id,
-                    phone: student.mobile || student.whatsapp || student.phone, // Tenta várias fontes
-                    responsavel: student.responsibleName || student.name,
+                    clientName: client.name,
+                    clientId: client.id,
+                    phone: client.mobile || client.whatsapp || client.phone, // Tenta várias fontes
+                    responsavel: client.responsibleName || client.name,
                     levelId: payload.idLevel,
                     activityId: payload.idActivity,
                     evaluationId: result.id
@@ -130,7 +130,7 @@ export const EvaluationService = {
             entityId: idEvaluation,
             oldData,
             newData: payload,
-            description: `Atualizou a avaliação do aluno ID ${oldData.idStudent}`
+            description: `Atualizou a avaliação do aluno ID ${oldData.idClient}`
         })
 
         return true
@@ -139,8 +139,8 @@ export const EvaluationService = {
     /**
      * Lista avaliações de um aluno
      */
-    getStudentEvaluations: async (idTenant, idBranch, idStudent) => {
-        return await evaluationRepository.findByStudent(idTenant, idBranch, idStudent)
+    getClientEvaluations: async (idTenant, idBranch, idClient) => {
+        return await evaluationRepository.findByClient(idTenant, idBranch, idClient)
     },
 
     /**
@@ -160,7 +160,7 @@ export const EvaluationService = {
             entityType: 'evaluation',
             entityId: idEvaluation,
             description: oldData
-                ? `Excluiu a avaliação do aluno ID ${oldData.idStudent} na atividade ${oldData.idActivity}`
+                ? `Excluiu a avaliação do aluno ID ${oldData.idClient} na atividade ${oldData.idActivity}`
                 : `Avaliação ${idEvaluation} removida`,
             details: {
                 snapshot: oldData || "Dados não encontrados antes da exclusão"
@@ -185,9 +185,9 @@ export const EvaluationService = {
 
         const latestEvaluations = {}
         clientIds.forEach(clientId => {
-            const studentEval = evaluations.find(e => e.idStudent === clientId)
-            if (studentEval) {
-                latestEvaluations[clientId] = studentEval
+            const clientEval = evaluations.find(e => e.idClient === clientId)
+            if (clientEval) {
+                latestEvaluations[clientId] = clientEval
             }
         })
 
