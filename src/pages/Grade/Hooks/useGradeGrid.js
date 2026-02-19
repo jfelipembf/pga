@@ -16,8 +16,6 @@ export const useGradeGrid = ({
     schedules
 }) => {
     const weekStart = useMemo(() => {
-        // Se já recebemos o início da semana calculado, usamos ele diretamente
-        // para evitar o erro de disparar getStartOfWeek em um domingo e retroceder 7 dias.
         if (weekStartProp) {
             return weekStartProp
         }
@@ -35,26 +33,6 @@ export const useGradeGrid = ({
         const mins = buildVisibleMinutes(turn, schedules)
         return mins.map(m => ({ mins: m, label: minutesToTime(m) }))
     }, [schedules, turn])
-
-    const schedulesByCell = useMemo(() => {
-        const map = new Map()
-        const safeSchedules = Array.isArray(schedules) ? schedules : []
-
-        safeSchedules.forEach(s => {
-            const startTime = s?.startTime
-            if (!startTime || !isWithinTurn(turn, startTime)) return
-
-            days.forEach(d => {
-                const iso = toISODate(d)
-                const dayIndex = d.getDay()
-                if (occursOnDate(s, iso, dayIndex)) {
-                    const key = `${iso}|${startTime}`
-                    map.set(key, [...(map.get(key) || []), s])
-                }
-            })
-        })
-        return map
-    }, [days, schedules, turn])
 
     const sortSchedules = (a, b) => {
         const aa = String(a?.idActivity || "")
@@ -74,11 +52,36 @@ export const useGradeGrid = ({
         return aid.localeCompare(bid)
     }
 
+    const schedulesByCell = useMemo(() => {
+        const map = new Map()
+        const safeSchedules = Array.isArray(schedules) ? schedules : []
+
+        safeSchedules.forEach(s => {
+            const startTime = s?.startTime
+            if (!startTime || !isWithinTurn(turn, startTime)) return
+
+            days.forEach(d => {
+                const iso = toISODate(d)
+                const dayIndex = d.getDay()
+                if (occursOnDate(s, iso, dayIndex)) {
+                    const key = `${iso}|${startTime}`
+                    const existing = map.get(key) || []
+                    map.set(key, [...existing, s])
+                }
+            })
+        })
+
+        // Optimized: Sort once per cell
+        map.forEach((list, key) => {
+            map.set(key, list.sort(sortSchedules))
+        })
+
+        return map
+    }, [days, schedules, turn])
+
     const getCellSchedules = (iso, time) => {
         const key = `${iso}|${time}`
-        return (schedulesByCell.get(key) || [])
-            .slice()
-            .sort(sortSchedules)
+        return schedulesByCell.get(key) || []
     }
 
     return {

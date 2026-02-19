@@ -5,52 +5,52 @@ import { useLoading } from "../../../../hooks/useLoading"
 import { toast } from "react-toastify"
 import { ClassService } from "../../../../services/Classes/ClassService"
 import { SessionService } from "../../../../services/Classes/SessionService"
-import { StaffService } from "../../../../services/Admin/StaffService"
-import { ActivityService } from "../../../../services/Admin/ActivityService"
-import { AreaService } from "../../../../services/Admin/AreaService"
 import { useClassFormLogic } from "./useClassFormLogic"
 import { useClassGridLogic } from "./useClassGridLogic"
+import { useStaticData } from "../../../../contexts/StaticDataContext"
 import moment from "moment"
 
+/**
+ * Hook para gerenciar os dados da página de Gestão de Turmas.
+ * Agora consome o StaticDataContext para evitar buscas redundantes de Atividades, Áreas e Staff.
+ * Mantém sua própria lógica de busca de Sessões e Turmas para permitir navegação independente da Grade Operacional.
+ */
 export const useClassesPage = ({ setBreadcrumbItems, referenceDate }) => {
     const { idTenant, idBranch, isReady } = useTenant()
     const { isLoading, withLoading } = useLoading()
     const cache = useWeekCache()
     const isInitialLoadRef = useRef(true)
 
+    // 1. Obtém dados estáticos do Contexto
+    const {
+        activities: staticActivities,
+        areas: staticAreas,
+        staff: staticStaff,
+        isLoaded: staticLoaded
+    } = useStaticData()
+
     const [data, setData] = useState({ classes: [], sessions: [] })
-    const [activities, setActivities] = useState([])
-    const [areas, setAreas] = useState([])
-    const [instructors, setInstructors] = useState([])
     const [isInitialLoading, setIsInitialLoading] = useState(true)
     const [isNavigationLoading, setIsNavigationLoading] = useState(false)
 
-
-
-    // Load data
+    // Load data (Sessions and Classes only)
     const loadData = useCallback(async (forceRefresh = false) => {
-        if (!isReady) return
+        if (!isReady || !staticLoaded) return
 
         try {
-            // Se não é carregamento inicial, mostra loading de navegação
             if (!isInitialLoadRef.current) {
                 setIsNavigationLoading(true)
             }
 
-            // Verificar cache primeiro (se não for refresh forçado)
+            // Verificar cache primeiro
             if (!forceRefresh) {
                 const cached = cache.get(referenceDate)
                 if (cached) {
-                    // Delay mínimo para feedback visual (300ms)
                     await new Promise(resolve => setTimeout(resolve, 300))
-
                     setData({
                         classes: cached.data.classes || [],
                         sessions: cached.data.sessions || []
                     })
-                    setActivities(cached.data.activities || [])
-                    setAreas(cached.data.areas || [])
-                    setInstructors(cached.data.instructors || [])
                     setIsInitialLoading(false)
                     isInitialLoadRef.current = false
                     setIsNavigationLoading(false)
@@ -61,32 +61,21 @@ export const useClassesPage = ({ setBreadcrumbItems, referenceDate }) => {
             const startDate = moment(referenceDate).startOf('week').format('YYYY-MM-DD')
             const endDate = moment(referenceDate).endOf('week').format('YYYY-MM-DD')
 
-            const [classesData, sessionsData, activitiesData, areasData, staffData] = await Promise.all([
+            const [classesData, sessionsData] = await Promise.all([
                 ClassService.listClasses(idTenant, idBranch),
-                SessionService.listByDateRange(idTenant, idBranch, startDate, endDate),
-                ActivityService.listAll(idTenant, idBranch),
-                AreaService.listAreas(idTenant, idBranch),
-                StaffService.listAll(idTenant, idBranch)
+                SessionService.listByDateRange(idTenant, idBranch, startDate, endDate)
             ])
 
             const loadedData = {
                 classes: classesData || [],
-                sessions: sessionsData || [],
-                activities: activitiesData || [],
-                areas: areasData || [],
-                instructors: staffData || []
+                sessions: sessionsData || []
+                // Nota: não salvamos staticData aqui pois já vem do StaticDataContext
             }
 
-            // Salvar no cache
+            // Salvar no cache (apenas o que é dinâmico por semana)
             cache.set(referenceDate, loadedData)
 
-            setData({
-                classes: classesData || [],
-                sessions: sessionsData || []
-            })
-            setActivities(activitiesData || [])
-            setAreas(areasData || [])
-            setInstructors(staffData || [])
+            setData(loadedData)
 
         } catch (error) {
             console.error("Error loading classes data:", error)
@@ -96,7 +85,7 @@ export const useClassesPage = ({ setBreadcrumbItems, referenceDate }) => {
             isInitialLoadRef.current = false
             setIsNavigationLoading(false)
         }
-    }, [idTenant, idBranch, isReady, referenceDate, cache])
+    }, [idTenant, idBranch, isReady, referenceDate, cache, staticLoaded])
 
     useEffect(() => {
         loadData()
@@ -107,23 +96,22 @@ export const useClassesPage = ({ setBreadcrumbItems, referenceDate }) => {
         const interval = setInterval(() => {
             cache.cleanup()
         }, 5 * 60 * 1000)
-
         return () => clearInterval(interval)
     }, [cache])
 
     const formLogic = useClassFormLogic({
         toast,
         withLoading,
-        reloadData: () => loadData(true) // Force refresh após salvar/deletar
+        reloadData: () => loadData(true)
     })
 
     const gridLogic = useClassGridLogic({
         data: {
             classes: data.classes,
             sessions: data.sessions,
-            activities,
-            areas,
-            instructors
+            activities: staticActivities,
+            areas: staticAreas,
+            instructors: staticStaff
         },
         formState: formLogic.formState,
         setFormState: formLogic.setFormState,
@@ -136,9 +124,9 @@ export const useClassesPage = ({ setBreadcrumbItems, referenceDate }) => {
         isLoading,
         isInitialLoading,
         isNavigationLoading,
-        activities,
-        areas,
-        instructors,
+        activities: staticActivities,
+        areas: staticAreas,
+        instructors: staticStaff,
         cacheStats: cache.cacheStats
     }
 }

@@ -1,21 +1,23 @@
 import { useState, useMemo, useEffect } from "react"
 import { useTenant } from "../../../hooks/useTenant"
 import { useLoading } from "../../../hooks/useLoading"
-import { EvaluationLevelService } from "../../../services/Admin/EvaluationLevelService"
+import { useStaticData } from "../../../contexts/StaticDataContext"
 import { useActiveClientsPool } from "../../../hooks/useActiveClientsPool"
 import { useClassClients } from "./useClassClients"
 import { EventService } from "../../../services/Events/EventService"
 
 export const useEvaluationFormLogic = ({ classId }) => {
     const { idTenant, idBranch, isReady } = useTenant()
+    const { evaluationLevels } = useStaticData()
     const { isLoading, withLoading } = useLoading()
     const anyLoading = isLoading()
     const [extraClients, setExtraClients] = useState([])
     const [searchText, setSearchText] = useState("")
     const [excludedClientIds, setExcludedClientIds] = useState(() => new Set())
-    const [levels, setLevels] = useState([])
     const [activeEvent, setActiveEvent] = useState(null) // Cliclo de Avaliação Técnica
     const [activeTestEvent, setActiveTestEvent] = useState(null) // Ciclo de Testes
+
+    const levels = evaluationLevels || []
 
     const { clients: classClients } = useClassClients({ classId, withLoading })
     const { clients: activeClientsPool } = useActiveClientsPool({ enabled: true })
@@ -62,27 +64,6 @@ export const useEvaluationFormLogic = ({ classId }) => {
         if (!q) return false
         return addCandidates.length === 0
     }, [searchText, addCandidates.length])
-
-    useEffect(() => {
-        if (!isReady) return
-
-        let cancelled = false
-        const load = async () => {
-            try {
-                await withLoading("levels", async () => {
-                    const data = await EvaluationLevelService.listAll(idTenant, idBranch)
-                    if (!cancelled) setLevels(Array.isArray(data) ? data : [])
-                })
-            } catch (e) {
-                console.error("Erro ao carregar níveis", e)
-                if (!cancelled) setLevels([])
-            }
-        }
-        load()
-        return () => {
-            cancelled = true
-        }
-    }, [isReady, idTenant, idBranch, withLoading])
 
     const defaultLevelId = useMemo(() => {
         const first = Array.isArray(levels) && levels.length > 0 ? levels[0] : null

@@ -1,35 +1,17 @@
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useMemo, useState } from "react"
 import PropTypes from "prop-types"
 import { Badge, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from "reactstrap"
-import { useTenant } from "../../../hooks/useTenant"
-import { EvaluationLevelService } from "../../../services/Admin/EvaluationLevelService"
+import { useStaticData } from "../../../contexts/StaticDataContext"
 
 const LevelDropdown = ({ clientId, currentLevel, onLevelChange, disabled = false, levels: levelsProp, className, toggleClassName, fullWidth = false }) => {
-  const { tenantSlug: idTenant, branchSlug: idBranch } = useTenant()
-  const [levelsState, setLevelsState] = useState([])
+  const { evaluationLevels, isLoading: staticLoading } = useStaticData()
   const [isOpen, setIsOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
 
   const levels = useMemo(() => {
-    return Array.isArray(levelsProp) && levelsProp.length ? levelsProp : levelsState
-  }, [levelsProp, levelsState])
+    return Array.isArray(levelsProp) && levelsProp.length ? levelsProp : (evaluationLevels || [])
+  }, [levelsProp, evaluationLevels])
 
-  useEffect(() => {
-    const loadLevels = async () => {
-      if (Array.isArray(levelsProp) && levelsProp.length) return
-
-      setLoading(true)
-      try {
-        const levelsData = await EvaluationLevelService.listAll(idTenant, idBranch)
-        setLevelsState(levelsData)
-      } catch (error) {
-        console.error("Erro ao carregar níveis:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    loadLevels()
-  }, [levelsProp, idTenant, idBranch])
+  const loading = staticLoading && !levels.length
 
   const currentLevelData = levels.find(level => level.id === currentLevel) || levels[0]
 

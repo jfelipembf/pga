@@ -3,12 +3,13 @@ import { useTenant } from '../../../../hooks/useTenant'
 import { EvaluationLevelService } from '../../../../services/Admin/EvaluationLevelService'
 import { toast } from 'react-toastify'
 import { useAuth } from '../../../../hooks/useAuth'
+import { useStaticData } from '../../../../contexts/StaticDataContext'
 
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
 
 export const useEvaluationLevels = () => {
     const { idTenant, idBranch, isReady } = useTenant()
-
+    const { refresh } = useStaticData()
     const { user } = useAuth()
 
     const [levels, setLevels] = useState([])
@@ -74,6 +75,7 @@ export const useEvaluationLevels = () => {
             }
 
             await loadLevels(true)
+            refresh?.()
             return true
         } catch (error) {
             console.error("Erro ao salvar nível de avaliação:", error)
@@ -98,6 +100,7 @@ export const useEvaluationLevels = () => {
             )
             toast.success("Nível de avaliação excluído com sucesso")
             await loadLevels(true)
+            refresh?.()
             return true
         } catch (error) {
             console.error("Erro ao excluir nível de avaliação:", error)

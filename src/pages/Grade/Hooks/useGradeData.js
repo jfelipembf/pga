@@ -1,26 +1,27 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import moment from "moment"
 import { useTenant } from "../../../hooks/useTenant"
 import { useWeekCache } from "../../../hooks/useWeekCache"
-import { ClassService } from "../../../services/Classes/ClassService"
 import { SessionService } from "../../../services/Classes/SessionService"
 import { SessionMapper } from "../../../services/Classes/SessionMapper"
-import { ActivityService } from "../../../services/Admin/ActivityService"
-import { AreaService } from "../../../services/Admin/AreaService"
-import { StaffService } from "../../../services/Admin/StaffService"
 import { getStartOfWeek, addDays } from "../../../utils/date"
 import { toast } from "react-toastify"
+import { useStaticData } from "../../../contexts/StaticDataContext"
 
+/**
+ * Hook para buscar e gerenciar dados da grade.
+ * Separa a busca (fetch) do enriquecimento (join com dados estáticos).
+ * Isso garante que, se os dados estáticos carregarem depois, a grade se auto-atualiza.
+ */
 export const useGradeData = (referenceDate) => {
     const { idTenant, idBranch, isReady } = useTenant()
+    const { activities, areas, staff, refresh: refreshStatic, isLoaded: staticLoaded } = useStaticData()
     const { get: getFromCache, set: saveToCache, cleanup, cacheStats } = useWeekCache()
 
-    const [sessions, setSessions] = useState([])
-    const [activities, setActivities] = useState([])
-    const [areas, setAreas] = useState([])
-    const [staff, setStaff] = useState([])
+    const [rawSessions, setRawSessions] = useState([])
     const [loading, setLoading] = useState(true)
 
+    // 1. Busca de Dados Brutos (Raw)
     const loadData = useCallback(async (forceRefresh = false) => {
         if (!isReady) return
 
@@ -30,61 +31,30 @@ export const useGradeData = (referenceDate) => {
             // Verificar cache primeiro (se não for refresh forçado)
             if (!forceRefresh) {
                 const cached = getFromCache(referenceDate)
-                if (cached) {
-
-
-                    // Delay mínimo para feedback visual (300ms)
-                    await new Promise(resolve => setTimeout(resolve, 300))
-
-                    setSessions(cached.data.sessions || [])
-                    setActivities(cached.data.activities || [])
-                    setAreas(cached.data.areas || [])
-                    setStaff(cached.data.staff || [])
+                if (cached && cached.data?.sessions) {
+                    setRawSessions(cached.data.sessions)
                     setLoading(false)
                     return
                 }
             }
 
-
-
-            // Get date range for the current week based on referenceDate
             const startDate = getStartOfWeek(referenceDate)
             const endDate = addDays(startDate, 6)
 
-            const [
-                sessionsData,
-                activitiesData,
-                areasData,
-                staffData,
-                classesData
-            ] = await Promise.all([
-                SessionService.listByDateRange(idTenant, idBranch, moment(startDate).format('YYYY-MM-DD'), moment(endDate).format('YYYY-MM-DD')),
-                ActivityService.listAll(idTenant, idBranch),
-                AreaService.listAreas(idTenant, idBranch),
-                StaffService.listAll(idTenant, idBranch),
-                ClassService.listClasses(idTenant, idBranch)
+            const [sessionsData] = await Promise.all([
+                SessionService.listByDateRange(
+                    idTenant,
+                    idBranch,
+                    moment(startDate).format('YYYY-MM-DD'),
+                    moment(endDate).format('YYYY-MM-DD')
+                )
             ])
 
-            const activeClassIds = new Set((classesData || []).map(c => c.id))
+            const normalizedSessions = SessionMapper.toUIList(sessionsData)
 
-            // Usar o Mapper centralizado para normalizar e filtrar os dados
-            const normalizedSessions = SessionMapper.toUIList(sessionsData, activeClassIds)
-
-            const loadedData = {
-                sessions: normalizedSessions,
-                activities: activitiesData || [],
-                areas: areasData || [],
-                staff: staffData || []
-            }
-
-            // Salvar no cache
-            saveToCache(referenceDate, loadedData)
-
-            setSessions(normalizedSessions)
-            setActivities(activitiesData || [])
-            setAreas(areasData || [])
-            setStaff(staffData || [])
-
+            // Salvamos no cache os dados normalizados, mas sem enriquecimento (o join é feito na UI)
+            saveToCache(referenceDate, { sessions: normalizedSessions })
+            setRawSessions(normalizedSessions)
 
         } catch (error) {
             console.error("Error loading grade data:", error)
@@ -103,18 +73,51 @@ export const useGradeData = (referenceDate) => {
         const interval = setInterval(() => {
             cleanup()
         }, 5 * 60 * 1000)
-
         return () => clearInterval(interval)
     }, [cleanup])
 
+    // 2. Enriquecimento Dinâmico (Memoizado)
+    // Isso garante que se 'activities' ou 'staff' mudarem, a grade atualiza instantaneamente
+    const enrichedSessions = useMemo(() => {
+        if (!Array.isArray(rawSessions)) return []
+
+        const activityMap = new Map((activities || []).map(a => [String(a.id), a]))
+        const areaMap = new Map((areas || []).map(a => [String(a.id), a]))
+        const staffMap = new Map((staff || []).map(s => [String(s.id), s]))
+
+        return rawSessions.map(session => {
+            const activity = activityMap.get(String(session.idActivity)) || {}
+            const area = areaMap.get(String(session.idArea)) || {}
+            const instructor = staffMap.get(String(session.idStaff)) || {}
+
+            return {
+                ...session,
+                activityName: activity.name || 'Atividade',
+                activityColor: activity.color || activity.colorHex || '#4CAF50',
+                color: activity.color || activity.colorHex || '#4CAF50', // For backward compatibility
+                areaName: area.name || '',
+                areaColor: area.color || area.colorHex || '#2196F3',
+                instructorName: instructor.name || '',
+                instructorPhone: instructor.mobile || instructor.phone || instructor.cellPhone || '',
+                employeeName: instructor.name || '',
+                capacity: session.capacity || session.maxCapacity || 20,
+                isActive: session.isActive !== false,
+                weekDays: session.weekday !== undefined && session.weekday !== null ? [Number(session.weekday)] : (session.weekDays || []),
+            }
+        })
+    }, [rawSessions, activities, areas, staff])
+
     return {
-        sessions,
-        setSessions,
+        sessions: enrichedSessions,
+        setSessions: setRawSessions, // Para atualizações otimistas no state bruto
         activities,
         areas,
         staff,
-        loading,
-        refresh: () => loadData(true), // Force refresh
-        cacheStats: cacheStats
+        loading: loading || !staticLoaded, // Só para de carregar quando dados estáticos estão prontos
+        refresh: () => {
+            refreshStatic()
+            loadData(true)
+        },
+        cacheStats
     }
 }

@@ -1,69 +1,34 @@
-import { useState, useEffect, useRef } from "react"
-import moment from "moment"
-import { ClassService, SessionService } from "../../../services/Classes"
-import { listActivities, listAreas, listStaff } from "../../../services/Admin"
-import { useLoading } from "../../../hooks/useLoading"
-import { useTenant } from "../../../hooks/useTenant"
-import { getStartOfWeek, addDays } from "../../../utils/date"
-import { SessionMapper } from "../../../services/Classes/SessionMapper"
+import { useGrade } from "../../../contexts/GradeContext";
+import { useStaticData } from "../../../contexts/StaticDataContext";
 
+/**
+ * Hook para centralizar os dados da página de Avaliação.
+ * Agora consome o GradeContext para aproveitar o cache de sessões e o StaticDataContext para dados fixos.
+ */
 export const useEvaluationData = (referenceDate) => {
-    const { idTenant, idBranch, isReady } = useTenant()
-    const [sessions, setSessions] = useState([])
+    // 1. Obtém dados da Grade (Sessões enriquecidas e status de carregamento)
+    // Nota: O GradeContext já faz o fetch das sessões baseado na referenceDate global.
+    const {
+        sessions,
+        loading: isLoadingGrade,
+        refresh
+    } = useGrade();
 
-    const [activities, setActivities] = useState([])
-    const [areas, setAreas] = useState([])
-    const [staff, setStaff] = useState([])
-    const [classes, setClasses] = useState([])
-    const { isLoading, withLoading } = useLoading()
-    const firstLoadRef = useRef(true)
-
-    useEffect(() => {
-        if (!isReady) return
-
-        const load = async () => {
-            try {
-                const key = firstLoadRef.current ? "page" : "refresh"
-
-                // Calculamos o intervalo da semana para buscar as sessões
-                const startDate = getStartOfWeek(referenceDate || new Date())
-                const endDate = addDays(startDate, 6)
-                const startStr = moment(startDate).format('YYYY-MM-DD')
-                const endStr = moment(endDate).format('YYYY-MM-DD')
-
-                await withLoading(key, async () => {
-                    const [sess, acts, ars, stf, cls] = await Promise.all([
-                        SessionService.listByDateRange(idTenant, idBranch, startStr, endStr),
-                        listActivities(idTenant, idBranch),
-                        listAreas(idTenant, idBranch),
-                        listStaff(idTenant, idBranch),
-                        ClassService.listClasses(idTenant, idBranch),
-                    ])
-
-                    // Usar o Mapper centralizado para normalização
-                    const normalized = SessionMapper.toUIList(sess)
-
-                    setSessions(normalized)
-                    setActivities(acts || [])
-                    setAreas(ars || [])
-                    setStaff(stf || [])
-                    setClasses(cls || [])
-                })
-            } catch (e) {
-                console.error("Erro ao carregar dados de avaliação", e)
-            } finally {
-                firstLoadRef.current = false
-            }
-        }
-        load()
-    }, [withLoading, idTenant, idBranch, isReady, referenceDate])
+    // 2. Obtém dados estáticos (Atividades, Áreas, Staff)
+    const {
+        activities,
+        areas,
+        staff,
+        isLoading: isLoadingStatic
+    } = useStaticData();
 
     return {
         sessions,
         activities,
         areas,
         staff,
-        classes,
-        isLoading
-    }
-}
+        // Mantemos a interface para não quebrar o index.js
+        isLoading: isLoadingGrade || isLoadingStatic,
+        refresh
+    };
+};

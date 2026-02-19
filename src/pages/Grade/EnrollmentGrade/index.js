@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Card, CardBody, Button } from "reactstrap"
 import { useNavigate, useLocation } from "react-router-dom"
 import { connect } from "react-redux"
@@ -6,45 +6,56 @@ import { toast } from "react-toastify"
 
 import GradeHeader from "../Components/GradeHeader"
 import GradeGrid from "../Components/GradeGrid"
-import { getStartOfWeek, formatDate } from "../../../utils/date"
+import { formatDate } from "../../../utils/date"
 import { setBreadcrumbItems } from "../../../store/actions"
-import { useGradeData } from "../Hooks/useGradeData"
-// PageLoader removed
+import { useGrade } from "../../../contexts/GradeContext"
+
 import { EnrollmentService } from "../../../services/Clients/EnrollmentService"
 import { ClientService } from "../../../services/Clients/ClientService"
 import { automationService } from "../../../services/Automation/AutomationService"
 import { useTenant } from "../../../hooks/useTenant"
 
-
 import "./EnrollmentGrade.scss"
 
+/**
+ * Página de Seleção de Turma/Sessão para Matrícula ou Aula Experimental.
+ * Consome o GradeContext para manter a data e filtros sincronizados com a Grade Principal.
+ */
 const EnrollmentGrade = ({ setBreadcrumbItems }) => {
     const navigate = useNavigate()
     const location = useLocation()
     const { idTenant, idBranch, tenantSlug, branchSlug, user } = useTenant()
 
-    // Parâmetros da URL
+    // 1. Estados Compartilhados via GradeContext
+    const {
+        sessions,
+        loading: loadingData,
+        refresh,
+        referenceDate,
+        setReferenceDate,
+        view,
+        setView,
+        turn,
+        setTurn,
+        showOccupancy,
+        setShowOccupancy,
+        weekStart
+    } = useGrade()
+
+    // 2. Parâmetros da URL
     const searchParams = new URLSearchParams(location.search)
     const idClient = searchParams.get('idClient')
     const clientName = searchParams.get('clientName')
     const mode = searchParams.get('mode') // 'regular' ou 'trial'
     const idContract = searchParams.get('idContract')
 
-
-
-    // Estados
-    const [turn, setTurn] = useState("all")
-    const [view, setView] = useState("week")
-    const [referenceDate, setReferenceDate] = useState(new Date())
-    const [showOccupancy, setShowOccupancy] = useState(true)
+    // 3. Estados Locais de Seleção
     const [selectedClasses, setSelectedClasses] = useState([]) // Para mode=regular
     const [selectedSession, setSelectedSession] = useState(null) // Para mode=trial
     const [enrolling, setEnrolling] = useState(false)
     const [existingEnrollments, setExistingEnrollments] = useState([]) // Matrículas já existentes
 
-    const { sessions, activities, areas, staff, loading: loadingData, refresh } = useGradeData(referenceDate)
-
-    // Buscar matrículas existentes do cliente
+    // Buscar matrículas existentes do cliente para marcar na grade
     useEffect(() => {
         const fetchExistingEnrollments = async () => {
             if (!idClient || !idTenant || !idBranch) return
@@ -70,34 +81,8 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
         setBreadcrumbItems(mode === 'trial' ? "Agendar Experimental" : "Matricular Aluno", breadcrumbItems)
     }, [setBreadcrumbItems, mode])
 
-    const weekStart = useMemo(() => getStartOfWeek(referenceDate), [referenceDate])
-
-    // Enriquecer dados das sessões
-    const schedules = useMemo(() => {
-        return sessions.map(session => {
-            const activity = (activities || []).find(a => String(a.id) === String(session.idActivity)) || {}
-            const area = (areas || []).find(a => String(a.id) === String(session.idArea)) || {}
-            const instructor = (staff || []).find(i => String(i.id) === String(session.idStaff)) || {}
-
-            return {
-                ...session,
-                activityName: activity.name || 'Atividade',
-                activityColor: activity.color || activity.colorHex || '#4CAF50',
-                areaName: area.name || '',
-                areaColor: area.color || area.colorHex || '#2196F3',
-                instructorName: instructor.name || '',
-                employeeName: instructor.name || '',
-                capacity: session.capacity || session.maxCapacity || 20,
-                enrolledCount: session.enrolledCount || 0,
-                isActive: session.isActive !== false,
-            }
-        })
-    }, [sessions, activities, areas, staff])
-
     // Handler de seleção
-    const handleSelectSchedule = (schedule, iso) => {
-
-
+    const handleSelectSchedule = (schedule) => {
         if (mode === 'trial') {
             // Modo experimental: seleciona apenas UMA sessão
             setSelectedSession(schedule.id === selectedSession ? null : schedule.id)
@@ -132,14 +117,7 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
         try {
             setEnrolling(true)
 
-
             if (mode === 'trial') {
-                const targetSession = sessions.find(s => s.id === selectedSession)
-                console.log("👉 [EnrollmentGrade] CONFIRM TRIAL | Before:", {
-                    sessionId: selectedSession,
-                    currentEnrolled: targetSession?.enrolledCount
-                })
-
                 // Agendar experimental
                 await EnrollmentService.scheduleTrialClass(idTenant, idBranch, user, {
                     idClient,
@@ -147,16 +125,10 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
                     clientName: clientName || 'Cliente'
                 })
 
-                console.log("👉 [EnrollmentGrade] CONFIRM TRIAL | After API Call (Success)")
-
                 // --- AUTOMAÇÃO: Enviar msg para Aluno e Professor ---
                 try {
-                    // 1. Buscar dados completos do cliente (precisamos do telefone)
                     const clientData = await ClientService.getClientById(idTenant, idBranch, idClient)
-
-                    // 2. Buscar dados da sessão (precisamos do horário e do professor)
-                    const sessionData = schedules.find(s => s.id === selectedSession) || {}
-                    const instructor = staff.find(s => String(s.id) === String(sessionData.idStaff)) || {}
+                    const sessionData = (sessions || []).find(s => s.id === selectedSession) || {}
 
                     if (sessionData && clientData) {
                         const dateFormatted = formatDate(sessionData.sessionDate)
@@ -164,53 +136,42 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
 
                         // Disparar para o ALUNO
                         await automationService.emit(idTenant, 'EXPERIMENTAL_SCHEDULED', {
-                            student: clientData.name, // Nome no template
-                            name: clientData.name,    // Alias
+                            student: clientData.name,
+                            name: clientData.name,
                             date: dateFormatted,
                             time: timeFormatted,
                             phone: clientData.phone || clientData.mobile || clientData.cellPhone || clientData.responsavelPhone
                         })
 
-                        // Pequeno delay para não sobrecarregar a API do WhatsApp
                         await new Promise(resolve => setTimeout(resolve, 2000));
 
-                        // Disparar para o PROFESSOR (se houver e tiver telefone)
-                        if (instructor && (instructor.mobile || instructor.phone || instructor.cellPhone)) {
+                        // Disparar para o PROFESSOR
+                        if (sessionData.instructorPhone) {
                             await automationService.emit(idTenant, 'EXPERIMENTAL_SCHEDULED_TEACHER', {
                                 student: clientData.name,
                                 date: dateFormatted,
                                 time: timeFormatted,
-                                phone: instructor.mobile || instructor.phone || instructor.cellPhone
+                                phone: sessionData.instructorPhone
                             })
                         }
                     }
                 } catch (autoError) {
                     console.error("Erro ao disparar automações de agendamento:", autoError)
                 }
-                // ----------------------------------------------------
 
                 toast.success('Aula experimental agendada com sucesso!')
             } else {
                 // Matrícula regular
-                console.log("👉 [EnrollmentGrade] CONFIRM REGULAR | Before:", {
-                    selectedClasses: selectedClasses,
-                    affectedSessionsCount: sessions.filter(s => selectedClasses.includes(s.idClass)).length
-                })
-
-
                 await EnrollmentService.enrollStudent(idTenant, idBranch, user, {
                     idClient,
-                    idContract, // Usando a variável já capturada
+                    idContract,
                     classIds: selectedClasses,
                     clientName: clientName || 'Cliente'
                 })
-
-                console.log("👉 [EnrollmentGrade] CONFIRM REGULAR | After API Call (Success)")
                 toast.success(`${clientName || 'Cliente'} matriculado(a) com sucesso!`)
             }
 
             // Atualizar cache da grade antes de sair
-            console.log("👉 [EnrollmentGrade] Refreshing data...")
             await refresh()
 
             // Voltar para o perfil
@@ -226,18 +187,12 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
         }
     }
 
-    const handleCancel = () => {
-        navigate(-1)
-    }
+    const handleCancel = () => navigate(-1)
 
-    // Incremental loading
-
-    // Verificar se uma turma já tem matrícula ativa
     const isClassEnrolled = (schedule) => {
         return existingEnrollments.some(e => e.idClass === schedule.idClass)
     }
 
-    // Verificar quais turmas estão selecionadas
     const isClassSelected = (schedule) => {
         if (mode === 'trial') {
             return schedule.id === selectedSession
@@ -264,11 +219,7 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
                         />
                     </div>
                     <div className="d-flex gap-2 ms-4">
-                        <Button
-                            color="secondary"
-                            onClick={handleCancel}
-                            disabled={enrolling}
-                        >
+                        <Button color="secondary" onClick={handleCancel} disabled={enrolling}>
                             <i className="mdi mdi-close me-1"></i> Cancelar
                         </Button>
                         <Button
@@ -277,15 +228,10 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
                             disabled={enrolling || (mode === 'trial' ? !selectedSession : selectedClasses.length === 0)}
                         >
                             {enrolling ? (
-                                <>
-                                    <span className="spinner-border spinner-border-sm me-2"></span>
-                                    Processando...
-                                </>
+                                <><span className="spinner-border spinner-border-sm me-2"></span> Processando...</>
                             ) : (
-                                <>
-                                    <i className={`mdi mdi-${mode === 'trial' ? 'star' : 'check'} me-1`}></i>
-                                    {mode === 'trial' ? 'Agendar Experimental' : 'Confirmar Matrícula'}
-                                </>
+                                <><i className={`mdi mdi-${mode === 'trial' ? 'star' : 'check'} me-1`}></i>
+                                    {mode === 'trial' ? 'Agendar Experimental' : 'Confirmar Matrícula'}</>
                             )}
                         </Button>
                     </div>
@@ -299,9 +245,7 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
                         <div className="alert alert-warning mb-3">
                             <i className="mdi mdi-alert me-2"></i>
                             <strong>Nenhuma sessão encontrada.</strong>
-                            <p className="mb-0 mt-2">
-                                Não há sessões disponíveis para seleção neste período.
-                            </p>
+                            <p className="mb-0 mt-2">Não há sessões disponíveis para seleção neste período.</p>
                         </div>
                     )}
                     <GradeGrid
@@ -309,7 +253,7 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
                         view={view}
                         referenceDate={referenceDate}
                         weekStart={weekStart}
-                        schedules={schedules}
+                        schedules={sessions}
                         showOccupancy={showOccupancy}
                         loading={loadingData}
                         onSelectSchedule={handleSelectSchedule}
@@ -323,9 +267,6 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
                     />
                 </CardBody>
             </Card>
-
-            {/* Botões de Ação Fixos */}
-            {/* Botões removidos do rodapé */}
         </React.Fragment>
     )
 }

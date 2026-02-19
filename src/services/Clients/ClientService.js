@@ -29,14 +29,20 @@ export const ClientService = {
      */
     searchClients: async (idTenant, idBranch, term) => {
         if (!term || term.length < 3) return []
+        // Se a lista for muito grande, o findActive vai pesar. 
+        // Idealmente usaríamos um campo de busca indexado.
         const all = await clientRepository.findActive(idTenant, idBranch)
         const lowerTerm = term.toLowerCase()
-        return all.filter(c =>
+        const results = all.filter(c =>
             (c.name && c.name.toLowerCase().includes(lowerTerm)) ||
             (c.email && c.email.toLowerCase().includes(lowerTerm)) ||
             (c.cpf && c.cpf.includes(term)) ||
-            (c.phone && c.phone.includes(term))
-        ).slice(0, 10) // Limit to 10 results
+            (c.phone && c.phone.includes(term)) ||
+            (c.friendlyId && String(c.friendlyId).toLowerCase().includes(lowerTerm))
+        ).slice(0, 10)
+
+        console.log(`🔍 [ClientService] Busca por "${term}" retornou ${results.length} resultados de ${all.length} alunos.`);
+        return results
     },
 
     createClient: async (idTenant, idBranch, userId, rawData) => {

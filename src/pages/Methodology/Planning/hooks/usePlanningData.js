@@ -16,7 +16,7 @@ export const usePlanningData = () => {
         try {
             // Reutiliza a lógica robusta de buscar alunos da turma + alunos da sessão (experimentais)
             const [classEnrollments, sessionEnrollments] = await Promise.all([
-                session.idClass ? AttendanceService.getStudentsForAttendance(idTenant, idBranch, session.idClass) : [],
+                session.idClass ? AttendanceService.getStudentsForAttendance(idTenant, idBranch, session.idClass, session.sessionDate) : [],
                 enrollmentRepository.listSessionEnrolledClients(idTenant, idBranch, session.id)
             ]);
 

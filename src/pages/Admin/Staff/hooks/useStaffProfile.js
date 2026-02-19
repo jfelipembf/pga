@@ -5,22 +5,29 @@ import { useTenant } from '../../../../hooks/useTenant'
 import { useAddressLookup } from '../../../../hooks/useAddressLookup'
 import { StaffService } from '../../../../services/Admin/StaffService'
 import { RoleService } from '../../../../services/Admin/RoleService'
-import { SessionService } from '../../../../services/Classes/SessionService'
-import { ActivityService } from '../../../../services/Admin/ActivityService'
-import { AreaService } from '../../../../services/Admin/AreaService'
 import { StorageService } from '../../../../services/Core/StorageService'
 import { toast } from 'react-toastify'
 import { useFormik } from 'formik'
 import { StaffUpdateSchema } from '../../../../data/schemas/Admin/StaffSchema'
 import { StaffMetricsService } from '../../../../services/Admin/StaffMetricsService'
-import moment from 'moment'
+import { useGrade } from '../../../../contexts/GradeContext'
+import { useStaticData } from '../../../../contexts/StaticDataContext'
 
+/**
+ * Hook para gerenciar o perfil do colaborador.
+ * Agora integrado com GradeContext e StaticDataContext para evitar buscas redundantes e manter sincronia.
+ */
 export const useStaffProfile = () => {
     const { id } = useParams()
     const navigate = useNavigate()
     const { idTenant, idBranch, tenantSlug, branchSlug } = useTenant()
     const auth = getAuth()
 
+    // 1. Dados Globais (Contextos)
+    const { sessions, loading: scheduleLoading } = useGrade()
+    const { activities, areas, isLoading: staticLoading } = useStaticData()
+
+    // 2. Estados Principais
     const [staff, setStaff] = useState(null)
     const [loading, setLoading] = useState(true)
     const [activeTab, setActiveTab] = useState("Perfil")
@@ -31,14 +38,10 @@ export const useStaffProfile = () => {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
 
+    // 3. Agenda Filtrada do Professor
+    const teacherSchedule = (Array.isArray(sessions) ? sessions : []).filter(s => String(s.idStaff) === String(id))
 
-    // Agenda
-    const [schedule, setSchedule] = useState([])
-    const [scheduleLoading, setScheduleLoading] = useState(false)
-    const [activities, setActivities] = useState([])
-    const [areas, setAreas] = useState([])
-
-    // Métricas
+    // 4. Métricas
     const [metrics, setMetrics] = useState(null)
     const [metricsLoading, setMetricsLoading] = useState(false)
 
@@ -72,41 +75,6 @@ export const useStaffProfile = () => {
         loadStaffData()
     }, [loadStaffData])
 
-    const loadSchedule = useCallback(async () => {
-        if (!id || !idTenant || !idBranch) return
-        try {
-            setScheduleLoading(true)
-
-            // Definir o intervalo da semana atual (Segunda a Domingo)
-            const today = moment()
-            const startOfWeek = today.clone().startOf('isoWeek').format('YYYY-MM-DD')
-            const endOfWeek = today.clone().endOf('isoWeek').format('YYYY-MM-DD')
-
-            const [sessionsData, activitiesData, areasData] = await Promise.all([
-                SessionService.listByDateRange(idTenant, idBranch, startOfWeek, endOfWeek),
-                ActivityService.listAll(idTenant, idBranch),
-                AreaService.listAreas(idTenant, idBranch)
-            ])
-
-            // Filtrar sessões do professor específico
-            const teacherSessions = sessionsData.filter(s => s.idStaff === id)
-
-            setSchedule(teacherSessions)
-            setActivities(activitiesData)
-            setAreas(areasData)
-        } catch (error) {
-            console.error("Erro ao carregar agenda:", error)
-        } finally {
-            setScheduleLoading(false)
-        }
-    }, [id, idTenant, idBranch])
-
-    useEffect(() => {
-        if (activeTab === "Agenda") {
-            loadSchedule()
-        }
-    }, [activeTab, loadSchedule])
-
     const loadMetrics = useCallback(async () => {
         if (!id || !idTenant || !idBranch) return
         try {
@@ -138,7 +106,6 @@ export const useStaffProfile = () => {
             birthDate: staff?.birthDate || '',
             hireDate: staff?.hireDate || '',
             photo: staff?.photo || '',
-
             professionalId: staff?.professionalId || '',
             salary: staff?.salary || '',
             zipCode: staff?.zipCode || '',
@@ -159,7 +126,6 @@ export const useStaffProfile = () => {
 
                 let finalPhotoUrl = values.photo
 
-                // 1. Upload de Foto se houver nova selecionada
                 if (selectedPhoto) {
                     finalPhotoUrl = await StorageService.uploadProfileImage(selectedPhoto, {
                         idTenant,
@@ -204,9 +170,7 @@ export const useStaffProfile = () => {
         }
     }
 
-    const handleDelete = () => {
-        setShowDeleteDialog(true)
-    }
+    const handleDelete = () => setShowDeleteDialog(true)
 
     const handleConfirmDelete = async () => {
         try {
@@ -253,8 +217,8 @@ export const useStaffProfile = () => {
         isChangingPassword,
         handleCepBlur,
         isLoadingCep,
-        schedule,
-        scheduleLoading,
+        schedule: teacherSchedule,
+        scheduleLoading: scheduleLoading || staticLoading,
         activities,
         areas,
         metrics,

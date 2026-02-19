@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { EvaluationService } from '../../../../services/Evaluations/EvaluationService';
-import { EvaluationLevelService } from '../../../../services/Admin/EvaluationLevelService';
-import { ActivityService } from '../../../../services/Admin/ActivityService';
+import { useStaticData } from '../../../../contexts/StaticDataContext';
 import { useTenant } from '../../../../hooks/useTenant';
 import { toast } from 'react-toastify';
 
@@ -13,18 +12,20 @@ import { toast } from 'react-toastify';
  */
 export const useEvaluationAnalysis = () => {
     const { idTenant, idBranch } = useTenant();
+    const { evaluationLevels, activities } = useStaticData();
     const [analysis, setAnalysis] = useState({}); // Mapa de alunoId -> dados de prontidão
     const [objectivesData, setObjectivesData] = useState([]); // Array de Objetivos com seus Tópicos e estatísticas
     const [evaluationConfig, setEvaluationConfig] = useState({ maxLevelValue: 0, levelValueMap: {} });
     const [loading, setLoading] = useState(false);
+    const [analyzedAt, setAnalyzedAt] = useState(null);
 
     const analyzeStudents = useCallback(async (students, idActivity) => {
         if (!students || students.length === 0 || !idActivity) return;
 
         setLoading(true);
         try {
-            // 1. Buscar níveis de avaliação (valores)
-            const levels = await EvaluationLevelService.listAll(idTenant, idBranch);
+            // 1. Usar níveis de avaliação do context (CACHE)
+            const levels = evaluationLevels;
             const activeLevels = levels.filter(l => l.isActive !== false && !l.deletedAt);
 
             const levelValueMap = {};
@@ -35,11 +36,11 @@ export const useEvaluationAnalysis = () => {
 
             setEvaluationConfig({ maxLevelValue, levelValueMap });
 
-            // 2. Buscar Dados da Atividade
-            const activityData = await ActivityService.findById(idTenant, idBranch, idActivity);
+            // 2. Buscar Dados da Atividade no Context (CACHE)
+            const activityData = activities.find(a => a.id === idActivity);
             const objectivesList = Object.values(activityData?.objectives || {}).sort((a, b) => (a.order || 0) - (b.order || 0));
 
-            // 3. Buscar Avaliações
+            // 3. Buscar Avaliações (Esta busca é dinâmica por aluno, mantemos a leitura necessária)
             const latestEvaluations = await EvaluationService.getLatestEvaluationsForClients(
                 idTenant,
                 idBranch,
@@ -141,6 +142,8 @@ export const useEvaluationAnalysis = () => {
             });
 
             setObjectivesData(processedObjectives);
+            setAnalyzedAt(new Date()); // Marca o momento da análise para controle de cache
+
 
         } catch (error) {
             console.error("Erro ao analisar progresso:", error);
@@ -148,13 +151,14 @@ export const useEvaluationAnalysis = () => {
         } finally {
             setLoading(false);
         }
-    }, [idTenant, idBranch]);
+    }, [evaluationLevels, activities, idTenant, idBranch]);
 
     return {
         analysis,
         objectivesData,
         evaluationConfig,
         analyzeStudents,
-        loading
+        loading,
+        analyzedAt
     };
 };

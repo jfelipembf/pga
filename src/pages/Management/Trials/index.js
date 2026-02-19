@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useEffect } from "react"
 import { Card, CardBody } from "reactstrap"
 import { connect } from "react-redux"
 import { setBreadcrumbItems } from "../../../store/actions"
@@ -6,16 +6,18 @@ import { useTrialsData } from "./hooks/useTrialsData"
 import TrialsKPIs from "./components/TrialsKPIs"
 import TrialsFilters from "./components/TrialsFilters"
 import TrialsTable from "./components/TrialsTable"
-import { ActivityService } from "../../../services/Admin/ActivityService"
-import { StaffService } from "../../../services/Admin/StaffService"
-import { useTenant } from "../../../hooks/useTenant"
 
 const TrialsPage = ({ setBreadcrumbItems }) => {
-    const { idTenant, idBranch, isReady } = useTenant()
-    const { trials, kpis, filters, updateFilter, applyFilters, loading } = useTrialsData()
-
-    const [activities, setActivities] = useState([])
-    const [staff, setStaff] = useState([])
+    const {
+        trials,
+        kpis,
+        filters,
+        updateFilter,
+        applyFilters,
+        loading,
+        activities,
+        staff
+    } = useTrialsData()
 
     useEffect(() => {
         const breadcrumbItems = [
@@ -24,23 +26,6 @@ const TrialsPage = ({ setBreadcrumbItems }) => {
         ]
         setBreadcrumbItems("Aulas Experimentais", breadcrumbItems)
     }, [setBreadcrumbItems])
-
-    useEffect(() => {
-        const loadOptions = async () => {
-            if (!isReady) return
-            try {
-                const [acts, stf] = await Promise.all([
-                    ActivityService.listAll(idTenant, idBranch),
-                    StaffService.listAll(idTenant, idBranch)
-                ])
-                setActivities(acts)
-                setStaff(stf)
-            } catch (e) {
-                console.error("Erro ao carregar opções de filtro:", e)
-            }
-        }
-        loadOptions()
-    }, [idTenant, idBranch, isReady])
 
     return (
         <React.Fragment>

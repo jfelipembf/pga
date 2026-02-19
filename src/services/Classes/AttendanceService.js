@@ -236,18 +236,42 @@ export const AttendanceService = {
      * @param {string} idTenant - ID do tenant
      * @param {string} idBranch - ID da filial
      * @param {string} idClass - ID da turma
+     * @param {string|Date} referenceDate - Data de referência da sessão (opcional)
      * @returns {array} Lista de alunos com dados para chamada
      */
-    getStudentsForAttendance: async (idTenant, idBranch, idClass) => {
+    getStudentsForAttendance: async (idTenant, idBranch, idClass, referenceDate = null) => {
         // Buscar matrículas ativas na turma
         const enrollments = await enrollmentRepository.findByClass(idTenant, idBranch, idClass)
 
+        // Se houver data de referência, filtrar matrículas que não estavam ativas na época
+        const validEnrollments = referenceDate
+            ? enrollments.filter(e => {
+                if (!e.startDate) return true;
+
+                // Resolve Data Inicio (Timestamp/Date/String)
+                let startVal = e.startDate;
+                if (startVal && typeof startVal.toDate === 'function') startVal = startVal.toDate(); // Firestore Timestamp
+                const startStr = startVal instanceof Date
+                    ? startVal.toISOString().split('T')[0]
+                    : String(startVal).split('T')[0];
+
+                // Resolve Data Referencia
+                let refVal = referenceDate;
+                if (refVal && typeof refVal.toDate === 'function') refVal = refVal.toDate();
+                const refStr = refVal instanceof Date
+                    ? refVal.toISOString().split('T')[0]
+                    : String(refVal).split('T')[0];
+
+                return startStr <= refStr;
+            })
+            : enrollments;
+
         // Mapear para formato do modal de presença
-        return enrollments.map(enrollment => ({
+        return validEnrollments.map(enrollment => ({
             id: enrollment.idClient,
             idClient: enrollment.idClient,
             enrollmentId: enrollment.id, // CRÍTICO: ID da matrícula para atualização
-            name: enrollment.clientName,
+            name: enrollment.clientName || enrollment.studentName,
             status: 'present', // Default para presença
             justification: '',
             tag: 'Matriculado',

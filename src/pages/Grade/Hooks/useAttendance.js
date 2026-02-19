@@ -18,10 +18,11 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
     const { idTenant, idBranch, user, isReady } = useTenant()
     const [clients, setClients] = useState([])
     const [searchText, setSearchText] = useState("")
-    const [allClients, setAllClients] = useState([])
+    const [searchResults, setSearchResults] = useState([])
     const { isLoading, withLoading } = useLoading()
     const [justAddedId, setJustAddedId] = useState(null)
     const [isDirty, setIsDirty] = useState(false)
+    const [isSearching, setIsSearching] = useState(false)
 
     // Carregar dados ao abrir o modal
     useEffect(() => {
@@ -30,14 +31,9 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
 
             try {
                 await withLoading('load', async () => {
-                    // 1. Carregar lista de clientes para busca
-                    const clientsList = await ClientService.listClients(idTenant, idBranch)
-                    setAllClients(clientsList)
-
-                    // 2. Carregar alunos ATUALMENTE matriculados na turma E na sessão (Experimentais)
-                    // Buscar matrículas da TURMA (Recorrentes) e da SESSÃO (Experimentais/Reposições)
+                    // 1. Carregar alunos que estavam ativos na data da sessão (Reduzindo leituras)
                     const [classEnrollments, sessionEnrollments] = await Promise.all([
-                        schedule.idClass ? AttendanceService.getStudentsForAttendance(idTenant, idBranch, schedule.idClass) : [],
+                        schedule.idClass ? AttendanceService.getStudentsForAttendance(idTenant, idBranch, schedule.idClass, schedule.sessionDate) : [],
                         import('../../../data/repositories/EnrollmentRepository').then(m =>
                             m.enrollmentRepository.listSessionEnrolledClients(idTenant, idBranch, schedule.id)
                         )
@@ -86,63 +82,17 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
                         const existingClientIds = new Set(validatedClients.map(c => c.idClient || String(c.id)))
                         const newSessionEnrollments = mappedSessionEnrollments.filter(se => !existingClientIds.has(se.idClient))
 
-                        // Enriquecer com dados atuais e Adicionar novos experimentais
-                        const enrichedClients = validatedClients.map(client => {
-                            const clientInfo = clientsList.find(c => c.id === client.idClient) || {}
-                            return {
-                                ...client,
-                                name: clientInfo.name || client.name,
-                                photo: clientInfo.photoUrl || client.photo,
-                                clientStatus: clientInfo.lifecycleStatus || 'active',
-                                friendlyId: clientInfo.friendlyId || client.friendlyId
-                            }
-                        })
-
-                        // Enriquecer novos alunos de sessão também
-                        const enrichedNewSessionEnrollments = newSessionEnrollments.map(student => {
-                            const clientInfo = clientsList.find(c => c.id === student.idClient) || {}
-                            return {
-                                ...student,
-                                name: clientInfo.name || student.name,
-                                photo: clientInfo.photoUrl || student.photo, // Prioritize client list photo
-                                clientStatus: clientInfo.lifecycleStatus || 'active',
-                                friendlyId: clientInfo.friendlyId
-                            }
-                        })
-
-                        // Adicionar novos alunos de sessão (ex: agendou experimental depois de salvar chamada)
-                        const finalClients = [...enrichedClients, ...enrichedNewSessionEnrollments]
-
+                        // Simplificando: Não buscamos fotos/status de todos para economizar leituras
+                        const finalClients = [...validatedClients, ...newSessionEnrollments]
                         setClients(finalClients)
 
                     } else {
                         // NOVA CHAMADA
-                        // Merge unificando por idClient
                         const enrolledMap = new Map()
-
-                        // 1. Matrículas da turma
                         classEnrollments.forEach(c => enrolledMap.set(String(c.idClient), c))
+                        mappedSessionEnrollments.forEach(c => enrolledMap.set(String(c.idClient), c))
 
-                        // 2. Matrículas da sessão (sobrescreve/adiciona)
-                        mappedSessionEnrollments.forEach(c => {
-                            enrolledMap.set(String(c.idClient), c)
-                        })
-
-                        const mergedList = Array.from(enrolledMap.values())
-
-                        const enrichedClients = mergedList.map(student => {
-                            const clientInfo = clientsList.find(c => c.id === student.idClient) || {}
-                            return {
-                                ...student,
-                                name: clientInfo.name || student.name,
-                                photo: clientInfo.photoUrl || null,
-                                clientStatus: clientInfo.lifecycleStatus || 'active',
-                                friendlyId: clientInfo.friendlyId
-                            }
-                        })
-
-                        setClients(enrichedClients)
-
+                        setClients(Array.from(enrolledMap.values()))
                     }
                 })
             } catch (error) {
@@ -154,16 +104,26 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
         loadData()
     }, [isOpen, schedule, idTenant, idBranch, isReady, withLoading])
 
-    // Busca de clientes (filtro em memória)
-    const searchResults = useMemo(() => {
-        if (!searchText.trim()) return []
-        const search = searchText.toLowerCase()
-        return allClients.filter(c =>
-            c.name?.toLowerCase().includes(search) ||
-            c.friendlyId?.toLowerCase().includes(search) ||
-            c.cpf?.includes(search)
-        ).slice(0, 5)
-    }, [searchText, allClients])
+    // Busca de clientes assíncrona
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(async () => {
+            if (searchText.length >= 3) {
+                setIsSearching(true)
+                try {
+                    const results = await ClientService.searchClients(idTenant, idBranch, searchText)
+                    setSearchResults(results)
+                } catch (error) {
+                    console.error("Erro na busca:", error)
+                } finally {
+                    setIsSearching(false)
+                }
+            } else {
+                setSearchResults([])
+            }
+        }, 500)
+
+        return () => clearTimeout(delayDebounceFn)
+    }, [searchText, idTenant, idBranch])
 
     // Limpar animação de destaque
     useEffect(() => {

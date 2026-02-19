@@ -7,7 +7,7 @@ import { staffRepository } from '../../data/repositories/StaffRepository'
 import { EnrollmentSchema, ENROLLMENT_TYPE } from '../../data/schemas/Clients/EnrollmentSchema'
 import { AuditService } from '../Core/AuditService'
 import { normalizeDate } from '../../utils/date'
-import { query, where, getDocs, orderBy } from 'firebase/firestore'
+import { query, where, getDocs, orderBy, writeBatch, doc } from 'firebase/firestore'
 
 /**
  * Serviço para Gestão de Matrículas
@@ -34,12 +34,14 @@ export const EnrollmentService = {
         // 1. Otimização: Buscar todas as matrículas ativas do cliente UMA única vez
         const allActiveEnrollments = await enrollmentRepository.findActiveByClient(idTenant, idBranch, idClient)
 
-        // 2. PARALELIZAÇÃO TOTAL: Processar todas as turmas ao mesmo tempo
-        const enrollmentPromises = classIds.map(async (idClass) => {
+        // 2. Processamento Sequencial por Turma para evitar complexidade excessiva no batch global
+        const results = []
+
+        for (const idClass of classIds) {
             // Verificar duplicidade localmente
             if (allActiveEnrollments.find(e => e.idClass === idClass)) {
                 console.warn(`[EnrollmentService] Cliente já possui matrícula ativa na turma ${idClass}. Pulando...`)
-                return null
+                continue
             }
 
             // A. Buscar todas as sessões FUTURAS desta turma
@@ -57,12 +59,12 @@ export const EnrollmentService = {
 
             if (futureSessions.length === 0) {
                 console.warn(`[EnrollmentService] Nenhuma sessão futura encontrada para a turma ${idClass} `)
-                return null
+                continue
             }
 
             const firstSession = futureSessions[0]
 
-            // B. Enriquecer dados (Em paralelo)
+            // B. Enriquecer dados
             const [classData, activityData, staffData] = await Promise.all([
                 classRepository.findById(idTenant, idBranch, idClass),
                 firstSession.idActivity ? activityRepository.findById(idTenant, idBranch, firstSession.idActivity) : Promise.resolve(null),
@@ -96,31 +98,51 @@ export const EnrollmentService = {
             }
 
             await EnrollmentSchema.validate(enrollmentDoc)
+
+            // Criação da Matrícula Principal (Fora do Batch, para garantir ID)
             const newEnrollment = await enrollmentRepository.create(idTenant, idBranch, enrollmentDoc)
+            results.push(newEnrollment)
 
-            // C. Atualizar TODAS as sessões em paralelo
-            const sessionPromises = futureSessions.map(async (session) => {
-                if (session.enrolledCount >= (session.maxCapacity || 999)) return null
+            // C. Atualizar Sessões em Batches (Lote)
+            // Cada sessão consome 2 operações (addClient + incrementCounter)
+            // Limite seguro: 200 sessões por batch (400 operações)
+            const db = enrollmentRepository.db;
 
-                return Promise.all([
-                    enrollmentRepository.addClientToSession(idTenant, idBranch, session.id, {
-                        enrollmentId: newEnrollment.id,
-                        idClient,
-                        clientName,
-                        enrollmentType: ENROLLMENT_TYPE.REGULAR,
-                        attended: null,
-                        createdBy: userId
-                    }),
-                    enrollmentRepository.incrementSessionCounters(idTenant, idBranch, session.id, false)
-                ])
-            })
+            let batch = writeBatch(db);
+            let operationCount = 0;
 
-            await Promise.all([
-                ...sessionPromises,
-                enrollmentRepository.incrementClassCounters(idTenant, idBranch, idClass)
-            ])
+            // Adiciona contador da turma ao primeiro batch
+            enrollmentRepository.incrementClassCounters(idTenant, idBranch, idClass, batch);
+            operationCount++;
 
-            // D. Auditoria e Log
+            for (const session of futureSessions) {
+                if (session.enrolledCount >= (session.maxCapacity || 999)) continue;
+
+                enrollmentRepository.addClientToSession(idTenant, idBranch, session.id, {
+                    enrollmentId: newEnrollment.id,
+                    idClient,
+                    clientName,
+                    enrollmentType: ENROLLMENT_TYPE.REGULAR,
+                    attended: null,
+                    createdBy: userId
+                }, batch);
+
+                enrollmentRepository.incrementSessionCounters(idTenant, idBranch, session.id, false, batch);
+
+                operationCount += 2;
+
+                if (operationCount >= 450) { // Safety margin
+                    await batch.commit();
+                    batch = writeBatch(db);
+                    operationCount = 0;
+                }
+            }
+
+            if (operationCount > 0) {
+                await batch.commit();
+            }
+
+            // D. Auditoria
             AuditService.log({
                 idTenant, idBranch, userId, userName,
                 action: 'ENROLLMENT_CREATED',
@@ -128,14 +150,9 @@ export const EnrollmentService = {
                 entityId: newEnrollment.id,
                 description: `${clientName} matriculado(a) na turma ${classData?.name || idClass} `
             })
+        }
 
-
-
-            return newEnrollment
-        })
-
-        const results = await Promise.all(enrollmentPromises)
-        return results.filter(r => r !== null)
+        return results;
     },
 
     /**
@@ -197,18 +214,22 @@ export const EnrollmentService = {
         await EnrollmentSchema.validate(enrollmentDoc)
         const newEnrollment = await enrollmentRepository.create(idTenant, idBranch, enrollmentDoc)
 
-        await Promise.all([
-            enrollmentRepository.addClientToSession(idTenant, idBranch, sessionId, {
-                enrollmentId: newEnrollment.id,
-                idClient,
-                clientName,
-                enrollmentType: ENROLLMENT_TYPE.TRIAL,
-                attended: null,
-                createdBy: userId
-            }),
-            enrollmentRepository.incrementSessionCounters(idTenant, idBranch, sessionId, true),
-            enrollmentRepository.incrementClassCounters(idTenant, idBranch, session.idClass)
-        ])
+        // Batch Update para Trial Class (Simples, mas robusto)
+        const batch = writeBatch(enrollmentRepository.db);
+
+        enrollmentRepository.addClientToSession(idTenant, idBranch, sessionId, {
+            enrollmentId: newEnrollment.id,
+            idClient,
+            clientName,
+            enrollmentType: ENROLLMENT_TYPE.TRIAL,
+            attended: null,
+            createdBy: userId
+        }, batch);
+
+        enrollmentRepository.incrementSessionCounters(idTenant, idBranch, sessionId, true, batch);
+        enrollmentRepository.incrementClassCounters(idTenant, idBranch, session.idClass, batch);
+
+        await batch.commit();
 
         AuditService.log({
             idTenant, idBranch, userId, userName,
@@ -217,8 +238,6 @@ export const EnrollmentService = {
             entityId: newEnrollment.id,
             description: `Aula experimental agendada para ${clientName} na sessão ${sessionId} `
         })
-
-
 
         return newEnrollment
     },
@@ -237,10 +256,9 @@ export const EnrollmentService = {
         const today = moment().format('YYYY-MM-DD')
         const sessionsCollectionRef = sessionRepository.getCollectionRef(idTenant, idBranch)
 
-        // 2. Buscar sessões (Filtro corrigido para deletedAt)
+        // 2. Buscar sessões
         let q;
         if (enrollment.enrollmentType === ENROLLMENT_TYPE.TRIAL) {
-            // Para aula experimental, buscamos apenas a sessão da data agendada
             q = query(
                 sessionsCollectionRef,
                 where('idClass', '==', enrollment.idClass),
@@ -248,7 +266,6 @@ export const EnrollmentService = {
                 where('deletedAt', '==', null)
             )
         } else {
-            // Para matriculas regulares, buscamos todas as sessões futuras
             q = query(
                 sessionsCollectionRef,
                 where('idClass', '==', enrollment.idClass),
@@ -260,26 +277,40 @@ export const EnrollmentService = {
         const sessionsSnapshot = await getDocs(q)
         const allFutureSessions = sessionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
 
-        // 3. Criar lista plana de tarefas
-        const writeTasks = []
+        // 3. Processar em Batch
+        // Operações: Remove Client, Decr Session, Decr Class
+        const db = enrollmentRepository.db;
+        let batch = writeBatch(db);
+        let operationCount = 0;
 
-        allFutureSessions.forEach(session => {
-            writeTasks.push(enrollmentRepository.removeClientFromSession(idTenant, idBranch, session.id, enrollmentId))
-            writeTasks.push(enrollmentRepository.decrementSessionCounters(
-                idTenant, idBranch, session.id, enrollment.enrollmentType === ENROLLMENT_TYPE.TRIAL
-            ))
-        })
-
-        writeTasks.push(enrollmentRepository.decrementClassCounters(idTenant, idBranch, enrollment.idClass))
-        writeTasks.push(enrollmentRepository.update(idTenant, idBranch, enrollmentId, {
+        // Atualizar matrícula (Cancelada) e Contador de Turma
+        const enrollmentRef = doc(db, 'tenants', idTenant, 'branches', idBranch, 'enrollments', enrollmentId);
+        batch.update(enrollmentRef, {
             status: 'cancelled',
             cancelReason: reason || '',
             cancelledAt: normalizeDate(new Date()),
             cancelledBy: userId
-        }))
+        });
+        operationCount++;
 
-        // 4. PARALELIZAÇÃO TOTAL
-        await Promise.all(writeTasks)
+        enrollmentRepository.decrementClassCounters(idTenant, idBranch, enrollment.idClass, batch);
+        operationCount++;
+
+        for (const session of allFutureSessions) {
+            enrollmentRepository.removeClientFromSession(idTenant, idBranch, session.id, enrollmentId, batch);
+            enrollmentRepository.decrementSessionCounters(idTenant, idBranch, session.id, enrollment.enrollmentType === ENROLLMENT_TYPE.TRIAL, batch);
+            operationCount += 2;
+
+            if (operationCount >= 450) {
+                await batch.commit();
+                batch = writeBatch(db);
+                operationCount = 0;
+            }
+        }
+
+        if (operationCount > 0) {
+            await batch.commit();
+        }
 
         AuditService.log({
             idTenant, idBranch, userId, userName,
@@ -288,8 +319,6 @@ export const EnrollmentService = {
             entityId: enrollmentId,
             description: `Matrícula de ${enrollment.clientName} cancelada em ${allFutureSessions.length} sessões.`
         })
-
-
 
         return { enrollmentId, affectedSessions: allFutureSessions.length }
     },

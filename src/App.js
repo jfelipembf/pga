@@ -25,13 +25,12 @@ import "./assets/scss/theme.scss"
 import { initFirebaseBackend } from "./helpers/firebase_helper"
 
 import GlobalErrorBoundary from "./components/Common/GlobalErrorBoundary"
-
 import { firebaseConfig } from "./helpers/firebase_config"
+import { StaticDataProvider } from "./contexts/StaticDataContext"
+import { GradeProvider } from "./contexts/GradeContext"
 
 // init firebase backend
 initFirebaseBackend(firebaseConfig)
-
-// Branded Loader is imported from Common
 
 const App = props => {
   // Sincronização de logout entre abas
@@ -120,7 +119,7 @@ const App = props => {
               ))}
 
               {/* Protected routes - Standard Layout */}
-              <Route element={<Authmiddleware><Layout /></Authmiddleware>}>
+              <Route element={<Authmiddleware><StaticDataProvider><GradeProvider><Layout /></GradeProvider></StaticDataProvider></Authmiddleware>}>
                 {protectedRoutes.filter(r => r.path !== "/kiosk").map((route, idx) => (
                   <Route
                     key={`protected-${idx}`}

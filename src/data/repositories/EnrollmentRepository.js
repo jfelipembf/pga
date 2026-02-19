@@ -89,33 +89,46 @@ class EnrollmentRepository extends BaseRepository {
 
     /**
      * Adiciona um cliente a uma sessão específica
+     * Suporta operação em Batch para atomicidade
      */
-    async addClientToSession(idTenant, idBranch, sessionId, enrollmentData) {
+    async addClientToSession(idTenant, idBranch, sessionId, enrollmentData, batch = null) {
         const subcollectionRef = this.getSessionEnrolledClientsRef(idTenant, idBranch, sessionId)
 
         // Usar enrollmentId como document ID para facilitar remoção
         const docRef = doc(subcollectionRef, enrollmentData.enrollmentId)
 
-        await setDoc(docRef, {
+        const data = {
             ...enrollmentData,
             enrolledAt: enrollmentData.enrolledAt || serverTimestamp(),
             deleted: false
-        })
+        }
+
+        if (batch) {
+            batch.set(docRef, data);
+        } else {
+            await setDoc(docRef, data);
+        }
 
         return { id: enrollmentData.enrollmentId, ...enrollmentData }
     }
 
     /**
      * Remove um cliente de uma sessão específica
+     * Suporta operação em Batch
      */
-    async removeClientFromSession(idTenant, idBranch, sessionId, enrollmentId) {
+    async removeClientFromSession(idTenant, idBranch, sessionId, enrollmentId, batch = null) {
         const docRef = doc(this.db, 'tenants', idTenant, 'branches', idBranch, 'sessions', sessionId, 'enrolledClients', enrollmentId)
 
-        // Soft delete na subcoleção
-        await updateDoc(docRef, {
+        const data = {
             deleted: true,
             deletedAt: serverTimestamp()
-        })
+        }
+
+        if (batch) {
+            batch.update(docRef, data);
+        } else {
+            await updateDoc(docRef, data);
+        }
     }
 
     /**
@@ -142,8 +155,9 @@ class EnrollmentRepository extends BaseRepository {
 
     /**
      * Incrementa contadores de uma sessão (enrolledCount, trialCount)
+     * Suporta operação em Batch
      */
-    async incrementSessionCounters(idTenant, idBranch, sessionId, isTrialClass = false) {
+    async incrementSessionCounters(idTenant, idBranch, sessionId, isTrialClass = false, batch = null) {
         const sessionRef = doc(this.db, 'tenants', idTenant, 'branches', idBranch, 'sessions', sessionId)
 
         const updateData = {
@@ -155,35 +169,54 @@ class EnrollmentRepository extends BaseRepository {
             updateData.trialCount = increment(1)
         }
 
-        await updateDoc(sessionRef, updateData)
+        if (batch) {
+            batch.update(sessionRef, updateData);
+        } else {
+            await updateDoc(sessionRef, updateData)
+        }
     }
 
     /**
      * Incrementa contadores de uma turma (class)
+     * Suporta operação em Batch
      */
-    async incrementClassCounters(idTenant, idBranch, classId) {
+    async incrementClassCounters(idTenant, idBranch, classId, batch = null) {
         const classRef = doc(this.db, 'tenants', idTenant, 'branches', idBranch, 'classes', classId)
-        await updateDoc(classRef, {
+        const data = {
             enrolledCount: increment(1),
             updatedAt: serverTimestamp()
-        })
+        }
+
+        if (batch) {
+            batch.update(classRef, data);
+        } else {
+            await updateDoc(classRef, data);
+        }
     }
 
     /**
      * Decrementa contadores de uma turma (class)
+     * Suporta operação em Batch
      */
-    async decrementClassCounters(idTenant, idBranch, classId) {
+    async decrementClassCounters(idTenant, idBranch, classId, batch = null) {
         const classRef = doc(this.db, 'tenants', idTenant, 'branches', idBranch, 'classes', classId)
-        await updateDoc(classRef, {
+        const data = {
             enrolledCount: increment(-1),
             updatedAt: serverTimestamp()
-        })
+        }
+
+        if (batch) {
+            batch.update(classRef, data);
+        } else {
+            await updateDoc(classRef, data);
+        }
     }
 
     /**
      * Decrementa contadores de uma sessão
+     * Suporta operação em Batch
      */
-    async decrementSessionCounters(idTenant, idBranch, sessionId, isTrialClass = false) {
+    async decrementSessionCounters(idTenant, idBranch, sessionId, isTrialClass = false, batch = null) {
         const sessionRef = doc(this.db, 'tenants', idTenant, 'branches', idBranch, 'sessions', sessionId)
 
         const updateData = {
@@ -195,7 +228,11 @@ class EnrollmentRepository extends BaseRepository {
             updateData.trialCount = increment(-1)
         }
 
-        await updateDoc(sessionRef, updateData)
+        if (batch) {
+            batch.update(sessionRef, updateData);
+        } else {
+            await updateDoc(sessionRef, updateData)
+        }
     }
 }
 

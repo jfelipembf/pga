@@ -203,5 +203,26 @@ export const EvaluationService = {
             ['idEvent', '==', idEvent],
             ['deletedAt', '==', null]
         ])
+    },
+
+    /**
+     * Retorna a data da última avaliação registrada para uma turma
+     */
+    getLastClassEvaluationDate: async (idTenant, idBranch, idClass) => {
+        try {
+            // Busca a última avaliação atualizada ou criada na turma
+            const result = await evaluationRepository.findWhere(idTenant, idBranch, [
+                ['idClass', '==', idClass]
+            ], { field: 'updatedAt', direction: 'desc' }, 1);
+
+            if (result.length > 0) {
+                const evalData = result[0];
+                return evalData.updatedAt || evalData.createdAt || new Date(evalData.date);
+            }
+            return null;
+        } catch (error) {
+            console.error("Erro ao buscar última avaliação da turma:", error);
+            return null;
+        }
     }
 }
