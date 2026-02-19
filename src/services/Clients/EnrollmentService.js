@@ -81,6 +81,8 @@ export const EnrollmentService = {
                 weekday: firstSession.weekday || null,
                 instructorName: staffData?.name || firstSession.instructorName || firstSession.employeeName || null,
                 areaName: firstSession.areaName || null,
+                idActivity: firstSession.idActivity || null,
+                idStaff: firstSession.idStaff || null,
                 enrollmentType: ENROLLMENT_TYPE.REGULAR,
                 status: 'active',
                 enrolledAt: normalizeDate(new Date()),
@@ -178,6 +180,8 @@ export const EnrollmentService = {
             weekday: session.weekday || null,
             instructorName: staffData?.name || session.instructorName || session.employeeName || null,
             areaName: session.areaName || null,
+            idActivity: session.idActivity || null,
+            idStaff: session.idStaff || null,
             enrollmentType: ENROLLMENT_TYPE.TRIAL,
             status: 'active',
             enrolledAt: normalizeDate(new Date()),
@@ -312,5 +316,13 @@ export const EnrollmentService = {
                 ? ((enrollment.attendedSessions / enrollment.totalSessions) * 100).toFixed(1)
                 : 0
         }
+    },
+
+    /**
+     * Conta matrículas ativas em uma turma
+     */
+    countActiveByClass: async (idTenant, idBranch, idClass) => {
+        const enrollments = await enrollmentRepository.findByClass(idTenant, idBranch, idClass)
+        return enrollments.length
     }
 }

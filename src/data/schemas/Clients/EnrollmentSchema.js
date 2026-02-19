@@ -18,6 +18,8 @@ export const EnrollmentSchema = Yup.object().shape({
     weekday: Yup.number().nullable(),
     instructorName: Yup.string().nullable(),
     areaName: Yup.string().nullable(),
+    idActivity: Yup.string().nullable(),
+    idStaff: Yup.string().nullable(),
 
     // === TIPO DE MATRÍCULA ===
     enrollmentType: Yup.string()

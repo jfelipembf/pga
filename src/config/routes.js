@@ -52,6 +52,7 @@ const ClassesPage = React.lazy(() => import("../pages/Management/Classes/index")
 const CatalogPage = React.lazy(() => import("../pages/Admin/Catalog/index"))
 const EventsPage = React.lazy(() => import("../pages/Management/Events/index"))
 const AuditLogsPage = React.lazy(() => import("../pages/Management/AuditLogs/index"))
+const TrialsPage = React.lazy(() => import("../pages/Management/Trials/index"))
 const CompanySettings = React.lazy(() => import("../pages/Settings/Company"))
 
 // UTILITY / UI PAGES
@@ -102,6 +103,8 @@ export const MENU_ROUTES = {
     "/settings/company": { component: CompanySettings, permission: "settings_company_manage" },
     "/settings/integrations": { component: IntegrationPage, permission: "management_integrations" },
     "/admin/audit-logs": { component: AuditLogsPage, permission: "management_audit_log" },
+    "/management/trials": { component: TrialsPage, permission: "members_manage" }, // Reutilizando members_manage para trial
+
 
     // Cadastros
     "/admin/activities": { component: ActivitiesPage, permission: "admin_activities" },

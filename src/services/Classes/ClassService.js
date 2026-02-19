@@ -125,6 +125,13 @@ export const ClassService = {
     },
 
     /**
+     * Busca uma turma por ID
+     */
+    getClassById: async (idTenant, idBranch, id) => {
+        return await classRepository.findById(idTenant, idBranch, id)
+    },
+
+    /**
      * @deprecated Use SessionService.listByDateRange directly
      * Mantido para compatibilidade com imports diretos do arquivo ClassService.js
      */
@@ -172,7 +179,8 @@ export const ClassService = {
                 startTime: 'startTime',
                 endTime: 'endTime',
                 maxCapacity: 'maxCapacity',
-                isActive: 'isActive'
+                isActive: 'isActive',
+                endDate: 'endDate' // Adicionado para garantir propagação da Data Fim nas sessões
             }
 
             const changedFields = {}
@@ -226,11 +234,26 @@ export const ClassService = {
                 } else {
                     futureSessions.forEach(session => {
                         const sRef = doc(sessionRepository.getCollectionRef(idTenant, idBranch), session.id)
-                        mainBatch.update(sRef, {
-                            ...changedFields,
-                            updatedBy: userId,
-                            updatedAt: serverTimestamp()
-                        })
+
+                        // Se a data da sessão for maior que a nova data fim da turma, deletar (soft delete)
+                        const newEndDate = data.endDate || oldData.endDate
+                        if (newEndDate && session.sessionDate > newEndDate) {
+                            mainBatch.update(sRef, {
+                                deletedAt: serverTimestamp(),
+                                deletedBy: userId,
+                                isActive: false,
+                                status: 'deleted',
+                                updatedBy: userId,
+                                updatedAt: serverTimestamp()
+                            })
+                        } else {
+                            // Caso contrário, atualizar campos
+                            mainBatch.update(sRef, {
+                                ...changedFields,
+                                updatedBy: userId,
+                                updatedAt: serverTimestamp()
+                            })
+                        }
                     })
                 }
             }

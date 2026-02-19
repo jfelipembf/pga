@@ -109,6 +109,7 @@ const Grade = ({ setBreadcrumbItems }) => {
   // Incremental loading: structure appears first
 
   const handleEnrollmentChange = (eventData) => {
+    console.log("👉 [OperationalGrade] handleEnrollmentChange triggered:", eventData)
     if (!eventData || (!eventData.idSession && !eventData.id)) return
 
     // O ID que vem do modal pode ser idSession ou id puro

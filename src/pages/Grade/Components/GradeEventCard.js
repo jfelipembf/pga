@@ -46,7 +46,19 @@ const GradeEventCard = ({
         "selectable": selectionMode
       })}
       style={{}}
-      onClick={onClick}
+      onClick={(e) => {
+        console.log("👉 [GradeEventCard] Clicked!", {
+          id: schedule.id,
+          idClass: schedule.idClass,
+          idSession: schedule.idSession,
+          sessionDate: schedule.sessionDate,
+          enrolledCount: schedule.enrolledCount,
+          maxCapacity: schedule.maxCapacity,
+          type: schedule.sessionDate ? 'SESSION' : 'CLASS (TEMPLATE)',
+          fullObject: schedule
+        });
+        if (onClick) onClick(e);
+      }}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
     >

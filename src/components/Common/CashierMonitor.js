@@ -7,12 +7,15 @@ import { toast } from 'react-toastify';
 
 const CashierMonitor = () => {
     const { idTenant, idBranch, isReady } = useTenant();
-    const { user } = useAuth();
+    const { user, hasAnyPermission } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [hasChecked, setHasChecked] = useState(false);
 
     useEffect(() => {
-        if (!isReady || !user || !idTenant || !idBranch || hasChecked) return;
+        // Verifica permissão antes de qualquer coisa (Caixa [financial_cashier] ou Vendas [sales_purchase])
+        const canAccessCashier = hasAnyPermission(['financial_cashier', 'sales_purchase']);
+
+        if (!isReady || !user || !idTenant || !idBranch || hasChecked || !canAccessCashier) return;
 
         const checkCashier = async () => {
             // Verifica se já ignorou nesta sessão (opcional, mas bom pra UX)
@@ -31,7 +34,7 @@ const CashierMonitor = () => {
         };
 
         checkCashier();
-    }, [isReady, user, idTenant, idBranch, hasChecked]);
+    }, [isReady, user, idTenant, idBranch, hasChecked, hasAnyPermission]);
 
     const toggle = () => setIsOpen(!isOpen);
 

@@ -132,14 +132,22 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
         try {
             setEnrolling(true)
 
+
             if (mode === 'trial') {
-                // Agendar experimental
+                const targetSession = sessions.find(s => s.id === selectedSession)
+                console.log("👉 [EnrollmentGrade] CONFIRM TRIAL | Before:", {
+                    sessionId: selectedSession,
+                    currentEnrolled: targetSession?.enrolledCount
+                })
+
                 // Agendar experimental
                 await EnrollmentService.scheduleTrialClass(idTenant, idBranch, user, {
                     idClient,
                     sessionId: selectedSession,
                     clientName: clientName || 'Cliente'
                 })
+
+                console.log("👉 [EnrollmentGrade] CONFIRM TRIAL | After API Call (Success)")
 
                 // --- AUTOMAÇÃO: Enviar msg para Aluno e Professor ---
                 try {
@@ -184,6 +192,10 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
                 toast.success('Aula experimental agendada com sucesso!')
             } else {
                 // Matrícula regular
+                console.log("👉 [EnrollmentGrade] CONFIRM REGULAR | Before:", {
+                    selectedClasses: selectedClasses,
+                    affectedSessionsCount: sessions.filter(s => selectedClasses.includes(s.idClass)).length
+                })
 
 
                 await EnrollmentService.enrollStudent(idTenant, idBranch, user, {
@@ -192,10 +204,13 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
                     classIds: selectedClasses,
                     clientName: clientName || 'Cliente'
                 })
+
+                console.log("👉 [EnrollmentGrade] CONFIRM REGULAR | After API Call (Success)")
                 toast.success(`${clientName || 'Cliente'} matriculado(a) com sucesso!`)
             }
 
             // Atualizar cache da grade antes de sair
+            console.log("👉 [EnrollmentGrade] Refreshing data...")
             await refresh()
 
             // Voltar para o perfil

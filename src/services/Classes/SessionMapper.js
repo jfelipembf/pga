@@ -26,7 +26,7 @@ export const SessionMapper = {
             isActive: s.isActive !== false,
             status: s.status === 'cancelled' ? 'canceled' : (s.status || 'scheduled'),
             // Garantir valores numéricos
-            enrolledCount: Number(s.enrolledCount || 0),
+            enrolledCount: Math.max(0, Number(s.enrolledCount || 0)),
             presentCount: Number(s.presentCount || 0),
             absentCount: Number(s.absentCount || 0)
         }

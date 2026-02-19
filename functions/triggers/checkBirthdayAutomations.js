@@ -40,8 +40,8 @@ module.exports = createScheduledTrigger("00 09 * * 1-6", "checkBirthdayAutomatio
             if (!settingsDoc.exists) continue;
             const settings = settingsDoc.data();
 
-            // Verificar se o gatilho está ativo (Key: BIRTHDAY_MESSAGE) e se tem Evolution API configurada
-            const isTriggerActive = settings?.activeTriggers?.BIRTHDAY_MESSAGE !== false;
+            // Verificar se o gatilho está ativo (Key: BIRTHDAY) e se tem Evolution API configurada
+            const isTriggerActive = settings?.activeTriggers?.BIRTHDAY !== false;
 
             // Log de depuração se necessário: console.log(`Config for ${idTenant}: active=${isTriggerActive}, url=${settings.evolutionUrl}`);
 
@@ -54,7 +54,6 @@ module.exports = createScheduledTrigger("00 09 * * 1-6", "checkBirthdayAutomatio
             for (const branchDoc of branchesSnap.docs) {
                 const idBranch = branchDoc.id;
 
-                // 2. Buscar clientes do branch
                 // 2. Buscar clientes do branch
                 // Nota: Filtrar birthDate via Firestore query é difícil para MM-DD sem campo extra.
                 // Buscamos TODOS os clientes e filtramos em memória.
@@ -100,8 +99,14 @@ module.exports = createScheduledTrigger("00 09 * * 1-6", "checkBirthdayAutomatio
 
                         const displayName = firstName || name?.split(' ')[0] || "cliente";
 
-                        // 4. Montar e enviar mensagem
-                        const message = `🎉 *Parabéns, ${displayName}!* 🎂\n\nToda a equipe da *A2 Aquática* deseja a você um dia incrível, repleto de alegria, saúde e muitas realizações!\n\nQue este novo ciclo seja como um mergulho em águas cristalinas: renovador e cheio de boas energias. 🌊✨\n\nFeliz aniversário! 🎈🎊`;
+                        // 4. Montar e enviar mensagem (Template ou Padrão)
+                        let message = settings?.messageTemplates?.BIRTHDAY ||
+                            `🎉 *Parabéns, {name}!* 🎂\n\nToda a equipe da *A2 Aquática* deseja a você um dia incrível, repleto de alegria, saúde e muitas realizações!\n\nQue este novo ciclo seja como um mergulho em águas cristalinas: renovador e cheio de boas energias. 🌊✨\n\nFeliz aniversário! 🎈🎊`;
+
+                        // Substituir Variáveis
+                        message = message.replace(/{name}/g, displayName);
+                        // Suporte a {firstName} caso o usuário tenha colocado no template
+                        message = message.replace(/{firstName}/g, displayName);
 
                         await sendWhatsApp(settings, phone, message);
                         console.log(`[checkBirthdayAutomations] Mensagem enviada para ${displayName} (${idTenant}/${idBranch})`);

@@ -1,6 +1,7 @@
-import React, { useState } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { Row, Col, Nav, NavItem, NavLink, TabContent, TabPane } from "reactstrap"
 import classnames from "classnames"
+import { useAuth } from "../../hooks/useAuth"
 
 // Import Dashboards
 import ManagementDashboard from "./Management"
@@ -11,10 +12,69 @@ import TeacherDashboard from "./Teacher"
 const Dashboard = () => {
   document.title = "Dashboard | PGA Admin"
 
-  const [activeTab, setActiveTab] = useState("1")
+  const { hasAnyPermission, isOwner } = useAuth()
+
+  // Definição das Tabs com suas permissões
+  const tabsConfig = useMemo(() => [
+    {
+      id: "1",
+      label: "Gerencial",
+      icon: "mdi mdi-home-variant",
+      component: ManagementDashboard,
+      permissions: ["dashboards_management_view"]
+    },
+    {
+      id: "2",
+      label: "Operacional",
+      icon: "mdi mdi-account-group",
+      component: OperationalDashboard,
+      permissions: ["dashboards_operational_view"]
+    },
+    {
+      id: "3",
+      label: "Financeiro",
+      icon: "mdi mdi-cash-multiple",
+      component: FinancialDashboard,
+      permissions: ["dashboards_financial_view"]
+    },
+    {
+      id: "4",
+      label: "Professor",
+      icon: "mdi mdi-school",
+      component: TeacherDashboard,
+      permissions: ["dashboards_teacher_view"]
+    }
+  ], [])
+
+  // Filtrar tabs permitidas
+  const allowedTabs = useMemo(() => {
+    if (isOwner) return tabsConfig;
+
+    return tabsConfig.filter(tab => {
+      if (!tab.permissions) return true; // Se não tiver permissão definida, exibe (ou define comportamento padrão)
+      return hasAnyPermission(tab.permissions);
+    });
+  }, [tabsConfig, isOwner, hasAnyPermission]);
+
+  const [activeTab, setActiveTab] = useState(allowedTabs[0]?.id || "1")
+
+  // Garantir que a tab ativa é válida quando as permissões mudam (ou no load inicial)
+  useEffect(() => {
+    if (allowedTabs.length > 0 && !allowedTabs.find(t => t.id === activeTab)) {
+      setActiveTab(allowedTabs[0].id);
+    }
+  }, [allowedTabs, activeTab]);
 
   const toggle = tab => {
     if (activeTab !== tab) setActiveTab(tab)
+  }
+
+  if (allowedTabs.length === 0) {
+    return (
+      <div className="text-center mt-5">
+        <h4>Acesso não autorizado a nenhum dashboard.</h4>
+      </div>
+    )
   }
 
   return (
@@ -22,89 +82,33 @@ const Dashboard = () => {
       <Row>
         <Col lg={12}>
           <Nav className="mb-4">
-            <NavItem>
-              <NavLink
-                className={classnames({ active: activeTab === "1" })}
-                onClick={() => { toggle("1") }}
-                style={{
-                  cursor: "pointer",
-                  border: "none",
-                  borderBottom: activeTab === "1" ? "4px solid #466a8f" : "4px solid transparent",
-                  backgroundColor: "transparent",
-                  color: activeTab === "1" ? "#466a8f" : "#495057",
-                  fontWeight: activeTab === "1" ? "600" : "400"
-                }}
-              >
-                <i className="mdi mdi-home-variant d-sm-none"></i>
-                <span className="d-none d-sm-block">Gerencial</span>
-              </NavLink>
-            </NavItem>
-            <NavItem>
-              <NavLink
-                className={classnames({ active: activeTab === "2" })}
-                onClick={() => { toggle("2") }}
-                style={{
-                  cursor: "pointer",
-                  border: "none",
-                  borderBottom: activeTab === "2" ? "4px solid #466a8f" : "4px solid transparent",
-                  backgroundColor: "transparent",
-                  color: activeTab === "2" ? "#466a8f" : "#495057",
-                  fontWeight: activeTab === "2" ? "600" : "400"
-                }}
-              >
-                <i className="mdi mdi-account-group d-sm-none"></i>
-                <span className="d-none d-sm-block">Operacional</span>
-              </NavLink>
-            </NavItem>
-            <NavItem>
-              <NavLink
-                className={classnames({ active: activeTab === "3" })}
-                onClick={() => { toggle("3") }}
-                style={{
-                  cursor: "pointer",
-                  border: "none",
-                  borderBottom: activeTab === "3" ? "4px solid #466a8f" : "4px solid transparent",
-                  backgroundColor: "transparent",
-                  color: activeTab === "3" ? "#466a8f" : "#495057",
-                  fontWeight: activeTab === "3" ? "600" : "400"
-                }}
-              >
-                <i className="mdi mdi-cash-multiple d-sm-none"></i>
-                <span className="d-none d-sm-block">Financeiro</span>
-              </NavLink>
-            </NavItem>
-            <NavItem>
-              <NavLink
-                className={classnames({ active: activeTab === "4" })}
-                onClick={() => { toggle("4") }}
-                style={{
-                  cursor: "pointer",
-                  border: "none",
-                  borderBottom: activeTab === "4" ? "4px solid #466a8f" : "4px solid transparent",
-                  backgroundColor: "transparent",
-                  color: activeTab === "4" ? "#466a8f" : "#495057",
-                  fontWeight: activeTab === "4" ? "600" : "400"
-                }}
-              >
-                <i className="mdi mdi-school d-sm-none"></i>
-                <span className="d-none d-sm-block">Professor</span>
-              </NavLink>
-            </NavItem>
+            {allowedTabs.map(tab => (
+              <NavItem key={tab.id}>
+                <NavLink
+                  className={classnames({ active: activeTab === tab.id })}
+                  onClick={() => { toggle(tab.id) }}
+                  style={{
+                    cursor: "pointer",
+                    border: "none",
+                    borderBottom: activeTab === tab.id ? "4px solid #466a8f" : "4px solid transparent",
+                    backgroundColor: "transparent",
+                    color: activeTab === tab.id ? "#466a8f" : "#495057",
+                    fontWeight: activeTab === tab.id ? "600" : "400"
+                  }}
+                >
+                  <i className={`${tab.icon} d-sm-none`}></i>
+                  <span className="d-none d-sm-block">{tab.label}</span>
+                </NavLink>
+              </NavItem>
+            ))}
           </Nav>
 
           <TabContent activeTab={activeTab} className="text-muted">
-            <TabPane tabId="1">
-              <ManagementDashboard />
-            </TabPane>
-            <TabPane tabId="2">
-              <OperationalDashboard />
-            </TabPane>
-            <TabPane tabId="3">
-              <FinancialDashboard />
-            </TabPane>
-            <TabPane tabId="4">
-              <TeacherDashboard />
-            </TabPane>
+            {allowedTabs.map(tab => (
+              <TabPane key={tab.id} tabId={tab.id}>
+                <tab.component />
+              </TabPane>
+            ))}
           </TabContent>
         </Col>
       </Row>

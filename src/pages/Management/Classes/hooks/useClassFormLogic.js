@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useTenant } from "../../../../hooks/useTenant"
 import { ClassService } from "../../../../services/Classes/ClassService"
+import { EnrollmentService } from "../../../../services/Clients/EnrollmentService"
 import { createEmptyClassForm } from "../Constants/classesDefaults"
 
 export const useClassFormLogic = ({ toast, withLoading, reloadData }) => {
@@ -11,9 +12,22 @@ export const useClassFormLogic = ({ toast, withLoading, reloadData }) => {
 
     const { idTenant, idBranch, user, isReady } = useTenant()
 
-    const handleDeleteClick = () => {
+    const handleDeleteClick = async () => {
         if (!formState.id) return
-        setShowDeleteConfirm(true)
+
+        try {
+            // Verificar matrículas ativas antes de permitir exclusão
+            const count = await EnrollmentService.countActiveByClass(idTenant, idBranch, formState.id)
+            if (count > 0) {
+                toast.error(`Operação bloqueada: Existem ${count} aluno(s) com matrícula ativa nesta turma. Remova as matrículas antes de excluir.`)
+                return
+            }
+
+            setShowDeleteConfirm(true)
+        } catch (e) {
+            console.error("Erro ao verificar matrículas:", e)
+            toast.error("Erro ao verificar restrições da turma.")
+        }
     }
 
     const handleConfirmDelete = async () => {
@@ -62,6 +76,18 @@ export const useClassFormLogic = ({ toast, withLoading, reloadData }) => {
             await withLoading("save", async () => {
                 if (formState.id) {
                     // Update existing Class
+
+                    // Verificar se houve redução de prazo (EndDate)
+                    // Buscar a turma atual para comparar (poderia otimizar passando via props, mas aqui garante dado fresco)
+                    const currentClass = await ClassService.getClassById(idTenant, idBranch, formState.id)
+
+                    if (currentClass && formState.endDate && currentClass.endDate && formState.endDate < currentClass.endDate) {
+                        const count = await EnrollmentService.countActiveByClass(idTenant, idBranch, formState.id)
+                        if (count > 0) {
+                            throw new Error(`Não é possível antecipar o fim da turma pois existem ${count} aluno(s) matriculado(s). Remova/Ajuste as matrículas antes.`)
+                        }
+                    }
+
                     await ClassService.updateClass(idTenant, idBranch, user, formState.id, formState)
                     toast.success("Turma atualizada com sucesso!")
                 } else {
