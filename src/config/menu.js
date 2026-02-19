@@ -98,6 +98,7 @@ export const MENU_STRUCTURE = [
         icon: "mdi mdi-chart-areaspline",
         subItems: [
             { label: "Turmas", path: "/admin/classes", permission: "admin_classes" },
+            { label: "Aulas Experimentais", path: "/management/trials", permission: "members_manage" },
             { label: "Automação", path: "/automation", permission: "management_automations" },
             { label: "Auditoria", path: "/admin/audit-logs", permission: "management_audit_log" },
         ]

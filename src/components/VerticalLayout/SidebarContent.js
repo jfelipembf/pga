@@ -171,8 +171,13 @@ const SidebarContent = props => {
           <ul className="sub-menu">
             {item.subItems.map((subItem, subIndex) => (
               <li key={subIndex}>
-                <Link to={linkTo(subItem.path)} onClick={closeSidebar}>
-                  {props.t(subItem.label) || subItem.label}
+                <Link to={linkTo(subItem.path)} onClick={closeSidebar} className="d-flex align-items-center justify-content-between">
+                  <span>{props.t(subItem.label) || subItem.label}</span>
+                  {subItem.badge && (
+                    <span className={`badge rounded-pill bg-${subItem.badgeColor || "info"} ms-2`}>
+                      {subItem.badge}
+                    </span>
+                  )}
                 </Link>
               </li>
             ))}
@@ -184,9 +189,14 @@ const SidebarContent = props => {
     // Item Simples
     return (
       <li key={index}>
-        <Link to={linkTo(item.path)} className="waves-effect" onClick={closeSidebar}>
+        <Link to={linkTo(item.path)} className="waves-effect d-flex align-items-center" onClick={closeSidebar}>
           <i className={item.icon}></i>
-          <span>{props.t(item.label)}</span>
+          <span className="flex-grow-1">{props.t(item.label)}</span>
+          {item.badge && (
+            <span className={`badge rounded-pill bg-${item.badgeColor || "info"} ms-2`}>
+              {item.badge}
+            </span>
+          )}
         </Link>
       </li>
     )
