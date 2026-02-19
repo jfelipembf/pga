@@ -49,6 +49,7 @@ export const MENU_STRUCTURE = [
         label: "Metodologia",
         icon: "mdi mdi-flask-outline",
         subItems: [
+            { label: "Planejamento", path: "/methodology/planning", permission: "management_training_manage" },
             { label: "Avaliações e Testes", path: "/evaluation", permission: "management_evaluation_run" },
             { label: "Atividades", path: "/admin/activities", permission: "admin_activities" },
             { label: "Níveis", path: "/admin/evaluation-levels", permission: "management_evaluation_levels" },

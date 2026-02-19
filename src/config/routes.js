@@ -33,6 +33,7 @@ const Grade = React.lazy(() => import("../pages/Grade/index"))
 const EnrollmentGrade = React.lazy(() => import("../pages/Grade/EnrollmentGrade/index"))
 const Evaluation = React.lazy(() => import("../pages/Evaluation/index"))
 const TrainingPlanning = React.lazy(() => import("../pages/TrainingPlanning/index"))
+const MethodologyPlanning = React.lazy(() => import("../pages/Methodology/Planning/index"))
 const AutomationList = React.lazy(() => import("../pages/Management/Automation/index"))
 const IntegrationPage = React.lazy(() => import("../pages/Settings/Integration/index"))
 
@@ -86,6 +87,7 @@ export const MENU_ROUTES = {
     "/crm": { component: CRMPage, permission: "members_manage" },
     "/evaluation": { component: Evaluation, permission: "management_evaluation_run" },
     "/training": { component: TrainingPlanning, permission: "management_training_manage" },
+    "/methodology/planning": { component: MethodologyPlanning, permission: "management_training_manage" },
 
     // Financeiro
     // "/financial/dashboard": { component: FinancialDashboard, permission: "dashboards_financial_view" }, // Removido pois agora é tab
