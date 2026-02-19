@@ -158,8 +158,8 @@ export const useSalesPoint = () => {
             // IMPORTANTE: usar normalizeDate para strings YYYY-MM-DD vindas de inputs HTML.
             // new Date("2025-01-15") interpreta como UTC midnight, causando deslocamento de 1 dia
             // em fusos negativos (ex: UTC-3 → salva como 14/01 às 21h).
-            const normalizedSaleDate = saleDate ? normalizeDate(saleDate) : new Date();
-            const normalizedStartDate = startDate ? normalizeDate(startDate) : new Date();
+            const normalizedSaleDate = parseDateInput(saleDate);
+            const normalizedStartDate = parseDateInput(startDate);
 
             const payload = {
                 idClient,

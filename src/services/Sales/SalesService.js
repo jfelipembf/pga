@@ -37,6 +37,7 @@ export const SalesService = {
         const saleData = {
             ...rawSaleData,
             saleDate: normalizeDate(rawSaleData.saleDate) || normalizeDate(new Date()),
+            startDate: normalizeDate(rawSaleData.startDate) || normalizeDate(new Date()),
             subtotal: parseFloat(rawSaleData.subtotal) || 0,
             total: parseFloat(rawSaleData.total) || 0,
             totalPaid: parseFloat(rawSaleData.totalPaid) || 0,

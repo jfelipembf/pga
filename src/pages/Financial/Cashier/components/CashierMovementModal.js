@@ -26,8 +26,11 @@ export const CashierMovementModal = ({ isOpen, toggle, onSave, type }) => {
 
     // Reset form on open
     useEffect(() => {
-        if (isOpen) formik.resetForm()
-    }, [isOpen, formik]);
+        if (isOpen) {
+            formik.resetForm();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen]);
 
     return (
         <Modal isOpen={isOpen} toggle={toggle} centered>

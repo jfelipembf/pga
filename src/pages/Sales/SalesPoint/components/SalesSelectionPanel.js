@@ -62,6 +62,54 @@ const SalesSelectionPanel = ({
                     </NavItem>
                 </Nav>
 
+                {/* FIELDS MOVED OUTSIDE TABS TO BE ALWAYS VISIBLE */}
+                <div className="bg-light p-3 rounded mb-4 border border-light-subtle shadow-sm">
+                    <Row className="g-3">
+                        <Col md={3}>
+                            <Label className="form-label fw-bold text-dark font-size-12 mb-1">Data da Venda</Label>
+                            <Input
+                                type="date"
+                                className="form-control form-control-sm border-0"
+                                value={saleDate || ''}
+                                onChange={(e) => setSaleDate(e.target.value)}
+                            />
+                            <small className="text-muted d-block mt-1" style={{ fontSize: '9px' }}>Data retroativa para histórico</small>
+                        </Col>
+                        <Col md={3}>
+                            <Label className="form-label fw-bold text-dark font-size-12 mb-1">Data de Início *</Label>
+                            <Input
+                                type="date"
+                                className="form-control form-control-sm border-0"
+                                value={startDate || ''}
+                                onChange={(e) => setStartDate(e.target.value)}
+                            />
+                            <small className="text-muted d-block mt-1" style={{ fontSize: '9px' }}>Início da vigência</small>
+                        </Col>
+                        <Col md={3}>
+                            <Label className="form-label fw-bold text-dark font-size-12 mb-1">Desconto (R$)</Label>
+                            <Input
+                                type="number"
+                                className="form-control form-control-sm border-0"
+                                placeholder="0,00"
+                                value={discount || ''}
+                                onChange={(e) => setDiscount(e.target.value)}
+                            />
+                        </Col>
+                        <Col md={3}>
+                            <Label className="form-label fw-bold text-dark font-size-12 mb-1">Renovação?</Label>
+                            <Input
+                                type="select"
+                                className="form-select form-select-sm border-0"
+                                value={isRenewal ? "1" : "0"}
+                                onChange={(e) => setIsRenewal(e.target.value === "1")}
+                            >
+                                <option value="0">Não</option>
+                                <option value="1">Sim</option>
+                            </Input>
+                        </Col>
+                    </Row>
+                </div>
+
                 <TabContent activeTab={activeTab} className="flex-grow-1">
                     {/* ABA CONTRATO */}
                     <TabPane tabId="1">
@@ -83,51 +131,7 @@ const SalesSelectionPanel = ({
                                 </Input>
                             </Col>
                         </Row>
-                        <Row className="mb-3 g-3">
-                            <Col md={3}>
-                                <Label className="form-label fw-semibold text-dark">Data da Venda</Label>
-                                <Input
-                                    type="date"
-                                    className="form-control border-light shadow-sm bg-light"
-                                    value={saleDate || ''}
-                                    onChange={(e) => setSaleDate(e.target.value)}
-                                />
-                                <small className="text-muted" style={{ fontSize: '9px' }}>Mude para migrar dados históricos</small>
-                            </Col>
-                            <Col md={3}>
-                                <Label className="form-label fw-semibold text-dark">Data de Início *</Label>
-                                <Input
-                                    type="date"
-                                    className="form-control border-light shadow-sm"
-                                    value={startDate || ''}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                />
-                                <small className="text-muted" style={{ fontSize: '9px' }}>Início da vigência/acesso</small>
-                            </Col>
-                            <Col md={3}>
-                                <Label className="form-label fw-semibold text-dark">Desconto (R$)</Label>
-                                <Input
-                                    type="number"
-                                    className="form-control border-light shadow-sm"
-                                    placeholder="0,00"
-                                    value={discount || ''}
-                                    onChange={(e) => setDiscount(e.target.value)}
-                                />
-                            </Col>
-                            <Col md={3}>
-                                <Label className="form-label fw-semibold text-dark">Renovação?</Label>
-                                <Input
-                                    type="select"
-                                    className="form-select border-light shadow-sm"
-                                    value={isRenewal ? "1" : "0"}
-                                    onChange={(e) => setIsRenewal(e.target.value === "1")}
-                                >
-                                    <option value="0">Não</option>
-                                    <option value="1">Sim</option>
-                                </Input>
-                            </Col>
-                        </Row>
-                        <hr className="my-4 opacity-50" />
+                        <hr className="my-2 opacity-50" />
                     </TabPane>
 
                     {/* ABA PRODUTOS */}

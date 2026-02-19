@@ -6,6 +6,7 @@ import { useBankAccountSelection } from "./hooks/useBankAccountSelection"
 import { BankAccountList } from "./components/BankAccountList"
 import { BankAccountForm } from "./components/BankAccountForm"
 import { useTenant } from "../../../hooks/useTenant"
+import { useAuth } from "../../../hooks/useAuth"
 
 const BankAccountsPage = () => {
     document.title = "Contas Bancárias | PGA Admin"
@@ -24,7 +25,7 @@ const BankAccountsPage = () => {
         clearSelection
     } = useBankAccountSelection(accounts)
 
-    // 3. Operations Hook
+    const { user } = useAuth();
     const { createAccount, updateAccount, deleteAccount } = useBankAccountOperations({
         onSuccess: () => {
             refresh()
@@ -37,7 +38,8 @@ const BankAccountsPage = () => {
         if (selectedAccount) {
             await updateAccount(selectedAccount.id, data)
         } else {
-            await createAccount(data)
+            // Include user info for the snapshot if needed by the form, or let service handle it
+            await createAccount({ ...data, userName: user?.displayName || user?.email })
         }
     }
 

@@ -76,7 +76,7 @@ export const useCashier = () => {
             let finalSessions = [...sessionsFetched];
 
             if (sessionsFetched.length > 0) {
-                if (isPowerUser && sessionsFetched.length > 1) {
+                if (isAdmin && sessionsFetched.length > 1) {
                     // Create a virtual "All Sessions" object for Admins
                     const consolidated = {
                         id: 'all',
@@ -85,7 +85,10 @@ export const useCashier = () => {
                         openingBalance: sessionsFetched.reduce((acc, s) => acc + (parseFloat(s.openingBalance) || 0), 0)
                     };
                     finalSessions = [consolidated, ...sessionsFetched];
-                    initialSession = consolidated;
+
+                    // UX Improvement: If I have an OPEN session, show it first so I see my buttons.
+                    // Otherwise, show the consolidated view.
+                    initialSession = myOpenSession || consolidated;
                 } else {
                     // One session or regular user: default to most recent (myOpenSession preferred)
                     initialSession = myOpenSession || sessionsFetched[0];
@@ -109,6 +112,11 @@ export const useCashier = () => {
             setLoading(false)
         }
     }, [idTenant, idBranch, isReady, user, selectedDate])
+
+    // Detect if user is Admin/PowerUser for this branch
+    const isAdmin = useMemo(() => {
+        return userProfile?.role === 'admin' || userProfile?.role === 'owner' || user?.role === 'admin';
+    }, [userProfile, user]);
 
     // 3. Efeito Reativo para carregar transações quando a sessão muda
     useEffect(() => {
@@ -204,6 +212,7 @@ export const useCashier = () => {
         try {
             await CashierService.registerMovement(idTenant, idBranch, user.uid, {
                 type: data.type, // 'income' ou 'expense'
+                category: data.type === 'income' ? 'supply' : 'withdrawal',
                 amount: parseFloat(data.amount),
                 netAmount: parseFloat(data.amount), // Assumindo valor líquido igual
                 description: data.description,
@@ -275,7 +284,7 @@ export const useCashier = () => {
         currentSession,
         setCurrentSession,
         activeSessions,
-        isAdmin: userProfile?.role === 'admin' || userProfile?.role === 'owner',
+        isAdmin,
         displayUserName,
         modalOpen,
         setModalOpen,
