@@ -2,6 +2,7 @@ import { evaluationRepository } from '../../data/repositories/EvaluationReposito
 import { EvaluationSchema } from '../../data/schemas/Evaluations/EvaluationSchema'
 import { AuditService } from '../Core/AuditService'
 import { normalizeDate } from '../../utils/date'
+import { ServiceContextHelper } from '../Core/DataAggregationHelper'
 
 /**
  * Serviço para Gestão de Avaliações de Alunos
@@ -78,11 +79,10 @@ export const EvaluationService = {
         // AUTOMATION TRIGGER (Fire and forget)
         try {
             // Importação dinâmica para evitar ciclos e carregar apenas se necessário
-            const { clientRepository } = await import('../../data/repositories/ClientRepository');
             const { automationService } = await import('../Automation/AutomationService');
 
-            // Buscar dados do aluno para contato
-            const client = await clientRepository.findById(idTenant, idBranch, payload.idClient);
+            // Buscar dados do aluno para contato via Helper
+            const client = await ServiceContextHelper.getClientContext(idTenant, idBranch, payload.idClient);
 
             if (client) {
                 // Dispara o evento

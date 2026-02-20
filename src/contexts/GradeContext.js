@@ -13,7 +13,6 @@ export const GradeProvider = ({ children }) => {
     const [referenceDate, setReferenceDate] = useState(new Date());
     const [view, setView] = useState("week"); // week | day
     const [turn, setTurn] = useState("all"); // all | morning | afternoon | night
-    const [showOccupancy, setShowOccupancy] = useState(true);
 
     // 2. Dados Completos da Grade (Sessions enriquecidas)
     // O hook useGradeData cuida do cache por semana e join com dados estáticos
@@ -66,8 +65,6 @@ export const GradeProvider = ({ children }) => {
         setView,
         turn,
         setTurn,
-        showOccupancy,
-        setShowOccupancy,
 
         // Dados e Status
         sessions,

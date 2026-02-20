@@ -44,20 +44,22 @@ export const useClientTableColumns = () => {
             }
         },
         {
-            label: "E-mail",
+            label: "Contato",
             key: "email",
-            render: (client) => <span className="text-lowercase">{client.email || '-'}</span>
-        },
-        {
-            label: "Telefone",
-            key: "phone",
-            render: (client) => client.phone || '-'
+            render: (client) => (
+                <div>
+                    <div className="text-lowercase">{client.email || '-'}</div>
+                    <small className="text-muted">{client.phone || '-'}</small>
+                </div>
+            )
         },
         {
             label: "Status",
             key: "status",
             render: (client) => {
-                const status = client.lifecycleStatus || 'lead'
+                // USA O SERVIÇO PARA CALCULAR STATUS REAL (AGORA OTIMIZADO PELO COMPUTED)
+                const { ClientService } = require("../../../services/Clients/ClientService")
+                const status = ClientService.calculateLiveStatus(client)
 
                 const statusColors = {
                     lead: "warning",
@@ -82,9 +84,26 @@ export const useClientTableColumns = () => {
                 const color = statusColors[status] || "secondary"
 
                 return (
-                    <span className={`badge bg-${color} font-size-12`}>
+                    <span className={`badge bg-${color} font-size-12 px-2 py-1`}>
                         {labels[status] || status}
                     </span>
+                )
+            }
+        },
+        {
+            label: "Plano / Atividades",
+            key: "plan",
+            render: (client) => {
+                const computed = client.computed || {}
+                return (
+                    <div>
+                        <div className="font-size-13 text-dark fw-medium">
+                            {computed.activePlanName || "Sem Plano"}
+                        </div>
+                        <div className="font-size-11 text-muted text-truncate" style={{ maxWidth: '180px' }}>
+                            {computed.activeActivities?.join(', ') || '-'}
+                        </div>
+                    </div>
                 )
             }
         },

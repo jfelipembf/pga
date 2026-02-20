@@ -12,8 +12,6 @@ export default function ClassesGradeCard({
   onViewChange,
   referenceDate,
   onReferenceDateChange,
-  showOccupancy,
-  onShowOccupancyChange,
   schedules,
   onClassClick,
   selectedClassId,
@@ -32,8 +30,6 @@ export default function ClassesGradeCard({
             onViewChange={onViewChange}
             referenceDate={referenceDate}
             onReferenceDateChange={onReferenceDateChange}
-            showOccupancy={showOccupancy}
-            onShowOccupancyChange={onShowOccupancyChange}
           />
         </div>
 
@@ -43,7 +39,6 @@ export default function ClassesGradeCard({
           referenceDate={referenceDate}
           weekStart={getStartOfWeek(referenceDate)}
           schedules={schedules}
-          showOccupancy={showOccupancy}
           onSelectSchedule={onClassClick}
           selectedClassId={selectedClassId}
           loading={loading}

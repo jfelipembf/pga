@@ -1,12 +1,14 @@
 import { runTransaction, doc, arrayUnion } from 'firebase/firestore'
 import { getFirebaseBackend } from '../../helpers/firebase_helper'
 import { clientContractRepository } from '../../data/repositories/ClientContractRepository'
+import { ServiceContextHelper } from '../Core/DataAggregationHelper'
 import { ClientContractSchema } from '../../data/schemas/Clients/ClientContractSchema'
 import { AuditService } from '../Core/AuditService'
 import { DashboardSummaryService } from '../Dashboard/DashboardSummaryService'
 import { ContractCancellationService } from './ContractCancellationService'
 import { generateContractId } from '../../utils/sequence'
 import { normalizeDate } from '../../utils/date'
+import { ClientService } from './ClientService'
 import moment from 'moment'
 
 /**
@@ -77,8 +79,8 @@ export const ClientContractService = {
             // Diferença em dias: Data Início Novo - Data Fim Último
             const gapDays = moment(newStartDate).startOf('day').diff(moment(lastEndDate).startOf('day'), 'days')
 
-            // Regra de Negócio: Gap <= 30 dias é Renovação, > 30 é Retorno (Win-back)
-            if (gapDays <= 30) {
+            // Regra de Negócio: Gap <= 45 dias é Renovação, > 45 é Retorno (Win-back)
+            if (gapDays <= 45) {
                 salesClassification = 'renewal'
             } else {
                 salesClassification = 'winback'
@@ -101,7 +103,6 @@ export const ClientContractService = {
             // Atualiza status do Cliente
             const clientRef = doc(db, `tenants/${idTenant}/branches/${idBranch}/clients/${contractData.idClient}`)
             const clientUpdates = {
-                lifecycleStatus: 'active',
                 updatedAt: normalizeDate(new Date())
             }
 
@@ -141,6 +142,9 @@ export const ClientContractService = {
             description: `Contrato ${contractData.planName} criado [${salesClassification.toUpperCase()}].`
         })
 
+        // Sincroniza campos computados do cliente
+        ClientService.syncComputedFields(idTenant, idBranch, contractData.idClient)
+
         return contractId
     },
 
@@ -148,7 +152,7 @@ export const ClientContractService = {
      * Suspende um contrato temporariamente.
      */
     suspend: async (idTenant, idBranch, userId, idContract, data, reason) => {
-        const contract = await clientContractRepository.findById(idTenant, idBranch, idContract)
+        const contract = await ServiceContextHelper.getContractContext(idTenant, idBranch, idContract)
 
         if (contract.status !== 'active') {
             throw new Error('Apenas contratos ativos podem ser suspensos')
@@ -222,7 +226,6 @@ export const ClientContractService = {
 
                 const clientRef = doc(db, `tenants/${idTenant}/branches/${idBranch}/clients/${contract.idClient}`)
                 transaction.update(clientRef, {
-                    lifecycleStatus: 'suspended',
                     updatedAt: normalizeDate(new Date())
                 })
 
@@ -233,6 +236,23 @@ export const ClientContractService = {
             }
         })
 
+        // Atualizar também o status das matrículas associadas
+        if (!isFuture) {
+            try {
+                const { getDocs, query, collection, where, updateDoc } = await import('firebase/firestore')
+                const enrollmentsSnap = await getDocs(query(
+                    collection(db, `tenants/${idTenant}/branches/${idBranch}/enrollments`),
+                    where('idContract', '==', idContract),
+                    where('status', '==', 'active')
+                ))
+                for (const docSnap of enrollmentsSnap.docs) {
+                    await updateDoc(docSnap.ref, { status: 'suspended', updatedAt: normalizeDate(new Date()) })
+                }
+            } catch (err) {
+                console.error("[ClientContractService] Erro ao suspender matrículas:", err)
+            }
+        }
+
         await AuditService.log({
             idTenant, idBranch, userId,
             action: 'SUSPEND',
@@ -241,6 +261,9 @@ export const ClientContractService = {
             details: { suspensionDays, reason }
         })
 
+        // Sincroniza campos computados do cliente
+        ClientService.syncComputedFields(idTenant, idBranch, contract.idClient)
+
         return true
     },
 
@@ -248,7 +271,7 @@ export const ClientContractService = {
      * Ajusta a vigência do contrato.
      */
     adjustDays: async (idTenant, idBranch, userId, idContract, days, mode, reason) => {
-        const contract = await clientContractRepository.findById(idTenant, idBranch, idContract)
+        const contract = await ServiceContextHelper.getContractContext(idTenant, idBranch, idContract)
 
         if (!['active', 'suspended'].includes(contract.status)) {
             throw new Error('Apenas contratos ativos ou suspensos podem ter a vigência ajustada')
@@ -280,6 +303,9 @@ export const ClientContractService = {
             details: { days, mode, reason, oldEndDate: currentEndDate, newEndDate }
         })
 
+        // Sincroniza campos computados do cliente
+        ClientService.syncComputedFields(idTenant, idBranch, contract.idClient)
+
         return true
     },
 
@@ -287,7 +313,7 @@ export const ClientContractService = {
      * Reativa um contrato suspenso.
      */
     reactivate: async (idTenant, idBranch, userId, idContract) => {
-        const contract = await clientContractRepository.findById(idTenant, idBranch, idContract)
+        const contract = await ServiceContextHelper.getContractContext(idTenant, idBranch, idContract)
 
         if (contract.status !== 'suspended') {
             throw new Error('Apenas contratos suspensos podem ser reativados')
@@ -304,7 +330,6 @@ export const ClientContractService = {
 
             const clientRef = doc(db, `tenants/${idTenant}/branches/${idBranch}/clients/${contract.idClient}`)
             transaction.update(clientRef, {
-                lifecycleStatus: 'active',
                 updatedAt: normalizeDate(new Date())
             })
 
@@ -321,6 +346,24 @@ export const ClientContractService = {
             entityId: idContract,
             details: {}
         })
+
+        // Atualizar também o status das matrículas associadas
+        try {
+            const { getDocs, query, collection, where, updateDoc } = await import('firebase/firestore')
+            const enrollmentsSnap = await getDocs(query(
+                collection(db, `tenants/${idTenant}/branches/${idBranch}/enrollments`),
+                where('idContract', '==', idContract),
+                where('status', '==', 'suspended')
+            ))
+            for (const docSnap of enrollmentsSnap.docs) {
+                await updateDoc(docSnap.ref, { status: 'active', updatedAt: normalizeDate(new Date()) })
+            }
+        } catch (err) {
+            console.error("[ClientContractService] Erro ao reativar matrículas:", err)
+        }
+
+        // Sincroniza campos computados do cliente
+        ClientService.syncComputedFields(idTenant, idBranch, contract.idClient)
 
         return true
     },
@@ -349,6 +392,7 @@ export const ClientContractService = {
      * Lista contratos de um cliente.
      */
     listByClient: async (idTenant, idBranch, idClient) => {
+        const { clientContractRepository } = await import('../../data/repositories/ClientContractRepository');
         return await clientContractRepository.findByClient(idTenant, idBranch, idClient)
     },
 
@@ -356,6 +400,6 @@ export const ClientContractService = {
      * Busca contrato por ID.
      */
     getById: async (idTenant, idBranch, idContract) => {
-        return await clientContractRepository.findById(idTenant, idBranch, idContract)
+        return await ServiceContextHelper.getContractContext(idTenant, idBranch, idContract)
     }
-}
+};

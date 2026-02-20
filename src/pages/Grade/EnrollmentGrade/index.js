@@ -37,8 +37,6 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
         setView,
         turn,
         setTurn,
-        showOccupancy,
-        setShowOccupancy,
         weekStart
     } = useGrade()
 
@@ -214,8 +212,6 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
                             onViewChange={setView}
                             referenceDate={referenceDate}
                             onReferenceDateChange={setReferenceDate}
-                            showOccupancy={showOccupancy}
-                            onShowOccupancyChange={setShowOccupancy}
                         />
                     </div>
                     <div className="d-flex gap-2 ms-4">
@@ -254,7 +250,6 @@ const EnrollmentGrade = ({ setBreadcrumbItems }) => {
                         referenceDate={referenceDate}
                         weekStart={weekStart}
                         schedules={sessions}
-                        showOccupancy={showOccupancy}
                         loading={loadingData}
                         onSelectSchedule={handleSelectSchedule}
                         selectedScheduleId={null}

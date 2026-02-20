@@ -1,14 +1,12 @@
 import moment from 'moment'
 import { enrollmentRepository } from '../../data/repositories/EnrollmentRepository'
 import { sessionRepository } from '../../data/repositories/SessionRepository'
-import { classRepository } from '../../data/repositories/ClassRepository'
-import { activityRepository } from '../../data/repositories/ActivityRepository'
-import { staffRepository } from '../../data/repositories/StaffRepository'
 import { EnrollmentSchema, ENROLLMENT_TYPE } from '../../data/schemas/Clients/EnrollmentSchema'
 import { AuditService } from '../Core/AuditService'
 import { normalizeDate } from '../../utils/date'
 import { query, where, getDocs, orderBy, writeBatch, doc } from 'firebase/firestore'
 import { ClientService } from './ClientService'
+import { ServiceContextHelper } from '../Core/DataAggregationHelper'
 
 /**
  * Serviço para Gestão de Matrículas
@@ -51,12 +49,13 @@ export const EnrollmentService = {
                 sessionsCollectionRef,
                 where('idClass', '==', idClass),
                 where('sessionDate', '>=', todayStr),
-                where('deletedAt', '==', null), // Usar padrão do repositório
                 orderBy('sessionDate', 'asc')
             )
 
             const sessionsSnapshot = await getDocs(q)
-            const futureSessions = sessionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+            const futureSessions = sessionsSnapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data() }))
+                .filter(s => s.deleted !== true && s.deletedAt == null)
 
             if (futureSessions.length === 0) {
                 console.warn(`[EnrollmentService] Nenhuma sessão futura encontrada para a turma ${idClass} `)
@@ -65,13 +64,15 @@ export const EnrollmentService = {
 
             const firstSession = futureSessions[0]
 
-            // B. Enriquecer dados
-            const [clientData, classData, activityData, staffData] = await Promise.all([
-                ClientService.getClientById(idTenant, idBranch, idClient),
-                classRepository.findById(idTenant, idBranch, idClass),
-                firstSession.idActivity ? activityRepository.findById(idTenant, idBranch, firstSession.idActivity) : Promise.resolve(null),
-                firstSession.idStaff ? staffRepository.findById(idTenant, idBranch, firstSession.idStaff) : Promise.resolve(null)
+            // B. Enriquecer dados usando o Helper de Contexto
+            const [clientData, classContext] = await Promise.all([
+                ServiceContextHelper.getClientContext(idTenant, idBranch, idClient),
+                ServiceContextHelper.getClassContext(idTenant, idBranch, idClass)
             ])
+
+            const classData = classContext?.class
+            const activityData = classContext?.activity
+            const staffData = classContext?.instructor
 
             const enrollmentDoc = {
                 idClient,
@@ -156,6 +157,9 @@ export const EnrollmentService = {
             })
         }
 
+        // Sincroniza campos computados do cliente
+        ClientService.syncComputedFields(idTenant, idBranch, idClient)
+
         return results;
     },
 
@@ -183,12 +187,15 @@ export const EnrollmentService = {
             throw new Error('Cliente já possui uma aula experimental agendada para esta atividade')
         }
 
-        const [clientData, classData, activityData, staffData] = await Promise.all([
-            ClientService.getClientById(idTenant, idBranch, idClient),
-            classRepository.findById(idTenant, idBranch, session.idClass),
-            session.idActivity ? activityRepository.findById(idTenant, idBranch, session.idActivity) : Promise.resolve(null),
-            session.idStaff ? staffRepository.findById(idTenant, idBranch, session.idStaff) : Promise.resolve(null)
+        // B. Enriquecer dados usando o Helper de Contexto
+        const [clientData, classContext] = await Promise.all([
+            ServiceContextHelper.getClientContext(idTenant, idBranch, idClient),
+            ServiceContextHelper.getClassContext(idTenant, idBranch, session.idClass)
         ])
+
+        const classData = classContext?.class
+        const activityData = classContext?.activity
+        const staffData = classContext?.instructor
 
         const enrollmentDoc = {
             idClient,
@@ -246,13 +253,16 @@ export const EnrollmentService = {
             description: `Aula experimental agendada para ${clientName} na sessão ${sessionId} `
         })
 
+        // Sincroniza campos computados do cliente
+        ClientService.syncComputedFields(idTenant, idBranch, idClient)
+
         return newEnrollment
     },
 
     /**
      * Cancela uma matrícula e remove aluno de sessões futuras
      */
-    cancelEnrollment: async (idTenant, idBranch, user, enrollmentId, reason) => {
+    cancelEnrollment: async (idTenant, idBranch, user, enrollmentId, reason, effectiveDate = null) => {
         const userId = user.uid
         const userName = user.displayName || user.email || 'Sistema'
 
@@ -260,7 +270,7 @@ export const EnrollmentService = {
         const enrollment = await enrollmentRepository.findById(idTenant, idBranch, enrollmentId)
         if (!enrollment) throw new Error('Matrícula não encontrada')
 
-        const today = moment().format('YYYY-MM-DD')
+        const targetDate = effectiveDate ? moment(effectiveDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')
         const sessionsCollectionRef = sessionRepository.getCollectionRef(idTenant, idBranch)
 
         // 2. Buscar sessões
@@ -269,20 +279,20 @@ export const EnrollmentService = {
             q = query(
                 sessionsCollectionRef,
                 where('idClass', '==', enrollment.idClass),
-                where('sessionDate', '==', enrollment.startDate),
-                where('deletedAt', '==', null)
+                where('sessionDate', '==', enrollment.startDate)
             )
         } else {
             q = query(
                 sessionsCollectionRef,
                 where('idClass', '==', enrollment.idClass),
-                where('sessionDate', '>=', today),
-                where('deletedAt', '==', null)
+                where('sessionDate', '>=', targetDate)
             )
         }
 
         const sessionsSnapshot = await getDocs(q)
-        const allFutureSessions = sessionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        const allFutureSessions = sessionsSnapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter(s => s.deleted !== true && s.deletedAt == null)
 
         // 3. Processar em Batch
         // Operações: Remove Client, Decr Session, Decr Class
@@ -326,6 +336,9 @@ export const EnrollmentService = {
             entityId: enrollmentId,
             description: `Matrícula de ${enrollment.clientName} cancelada em ${allFutureSessions.length} sessões.`
         })
+
+        // Sincroniza campos computados do cliente
+        ClientService.syncComputedFields(idTenant, idBranch, enrollment.idClient)
 
         return { enrollmentId, affectedSessions: allFutureSessions.length }
     },

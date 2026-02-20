@@ -198,20 +198,20 @@
 
 .grade-event__attendance {
   position: absolute;
-  bottom: 8px;
+  bottom: 6px;
   right: 8px;
   z-index: 10;
-  width: 18px;
-  height: 18px;
-  background-color: $success;
-  color: #fff;
-  border-radius: 50%;
+  color: $success;
+  font-size: 1.15rem; // Tamanho maior para o ícone
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 5px rgba($success, 0.4);
-  border: 1.5px solid #fff;
-  font-size: 10px;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 1;
+  }
 }
 
 .grade-event__wave {

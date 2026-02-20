@@ -54,6 +54,29 @@ export const SalesService = {
             }
         }
 
+        // 2.6 Calcular isRenewal automaticamente (Renovação se gap <= 45 dias)
+        const { clientContractRepository } = await import('../../data/repositories/ClientContractRepository');
+        const existingContracts = await clientContractRepository.findByClient(idTenant, idBranch, saleData.idClient);
+        let autoIsRenewal = false;
+
+        if (existingContracts && existingContracts.length > 0) {
+            existingContracts.sort((a, b) => {
+                const dateA = a.endDate?.toDate ? a.endDate.toDate() : new Date(a.endDate);
+                const dateB = b.endDate?.toDate ? b.endDate.toDate() : new Date(b.endDate);
+                return dateB - dateA;
+            });
+            const lastContract = existingContracts[0];
+            const lastEndDate = lastContract.endDate?.toDate ? lastContract.endDate.toDate() : new Date(lastContract.endDate);
+            const newStartDate = normalizeDate(saleData.startDate) || new Date();
+
+            const gapDays = moment(newStartDate).startOf('day').diff(moment(lastEndDate).startOf('day'), 'days');
+
+            if (gapDays <= 45) {
+                autoIsRenewal = true;
+            }
+        }
+        saleData.isRenewal = autoIsRenewal;
+
         // 3. Gerar número de venda amigável sequencial (ex: V00001, V00002)
         const saleNumber = await generateSaleId(idTenant, idBranch);
 

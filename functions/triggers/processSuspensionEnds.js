@@ -92,9 +92,12 @@ module.exports = onSchedule({
                         if (idClient) {
                             const clientRef = db.doc(`tenants/${idTenant}/branches/${idBranch}/clients/${idClient}`);
                             tx.update(clientRef, {
-                                lifecycleStatus: 'active',
                                 updatedAt: FieldValue.serverTimestamp()
                             });
+
+                            // Sincronizar campos computados (Computed)
+                            const { syncClientComputedFields } = require("./clientComputedFields");
+                            await syncClientComputedFields(tx, idTenant, idBranch, idClient);
                         }
 
                         // 3. Sincroniza Dashboard (Centralizado)

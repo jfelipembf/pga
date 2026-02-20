@@ -21,7 +21,6 @@ const Grade = ({ setBreadcrumbItems }) => {
   // 1. Obtém estado centralizado do Contexto
   const {
     sessions,
-    setSessions,
     loading: loadingData,
     referenceDate,
     setReferenceDate,
@@ -29,8 +28,6 @@ const Grade = ({ setBreadcrumbItems }) => {
     setView,
     turn,
     setTurn,
-    showOccupancy,
-    setShowOccupancy,
     weekStart,
     updateAttendanceInSession,
     updateEnrollmentCount
@@ -87,8 +84,6 @@ const Grade = ({ setBreadcrumbItems }) => {
             onViewChange={setView}
             referenceDate={referenceDate}
             onReferenceDateChange={setReferenceDate}
-            showOccupancy={showOccupancy}
-            onShowOccupancyChange={setShowOccupancy}
           />
         </CardBody>
       </Card>
@@ -111,7 +106,6 @@ const Grade = ({ setBreadcrumbItems }) => {
             referenceDate={referenceDate}
             weekStart={weekStart}
             schedules={sessions}
-            showOccupancy={showOccupancy}
             loading={loadingData}
             onSelectSchedule={handleSelectSchedule}
             selectedScheduleId={selectedScheduleId}
@@ -123,7 +117,12 @@ const Grade = ({ setBreadcrumbItems }) => {
       <AttendanceModal
         key={selectedSchedule?.id || "attendance"}
         isOpen={showAttendanceModal}
-        onClose={() => setShowAttendanceModal(false)}
+        onClose={() => {
+          setShowAttendanceModal(false)
+          setSelectedScheduleId(null)
+          setSelectedScheduleKey(null)
+          setSelectedSchedule(null)
+        }}
         schedule={selectedSchedule}
         onAttendanceSaved={handleAttendanceSaved}
         onEnrollmentChange={handleEnrollmentChange}

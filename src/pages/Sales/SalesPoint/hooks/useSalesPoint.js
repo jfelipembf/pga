@@ -53,7 +53,6 @@ export const useSalesPoint = () => {
         return d.toISOString().split('T')[0];
     });
     const [discount, setDiscount] = useState('');
-    const [isRenewal, setIsRenewal] = useState(false);
 
     // Carregar Dados Iniciais
     useEffect(() => {
@@ -170,7 +169,6 @@ export const useSalesPoint = () => {
 
                 saleDate: normalizedSaleDate,
                 startDate: normalizedStartDate,
-                isRenewal: !!isRenewal,
 
                 // Items — startDate é passado por item para que o SalesService
                 // possa calcular a vigência do contrato corretamente.
@@ -246,7 +244,6 @@ export const useSalesPoint = () => {
         saleDate, setSaleDate,
         startDate, setStartDate,
         discount, setDiscount,
-        isRenewal, setIsRenewal,
         // Recibo
         saleSuccessData,
         showReceiptModal,

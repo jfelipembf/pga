@@ -5,7 +5,6 @@ export const useGradeControls = () => {
   const [referenceDate, setReferenceDate] = React.useState(new Date())
   const [turn, setTurn] = React.useState("all")
   const [view, setView] = React.useState("week")
-  const [showOccupancy, setShowOccupancy] = React.useState(true)
 
   const weekStart = React.useMemo(() => getStartOfWeek(referenceDate), [referenceDate])
 
@@ -16,8 +15,6 @@ export const useGradeControls = () => {
     setTurn,
     view,
     setView,
-    showOccupancy,
-    setShowOccupancy,
     weekStart,
   }
 }

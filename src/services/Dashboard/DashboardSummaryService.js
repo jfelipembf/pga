@@ -171,9 +171,14 @@ export const DashboardSummaryService = {
         const { clientRepository } = await import('../../data/repositories/ClientRepository')
         const { clientContractRepository } = await import('../../data/repositories/ClientContractRepository')
 
-        // Conta clientes reais
+        // Conta clientes reais (Leads são apenas aqueles sem NENHUM histórico de contrato)
         const allClients = await clientRepository.findAll(idTenant, idBranch)
-        const leads = allClients.filter(c => c.lifecycleStatus === 'lead').length
+
+        const leads = allClients.filter(c => {
+            const hasContractHistory = !!(c.computed?.activeContractId || c.computed?.contractEndDate)
+            return (c.lifecycleStatus === 'lead' || !c.lifecycleStatus) && !hasContractHistory
+        }).length
+
         const trialsScheduled = allClients.filter(c => c.lifecycle?.trial?.scheduled).length
         const trialsAttended = allClients.filter(c => c.lifecycle?.trial?.attended).length
 

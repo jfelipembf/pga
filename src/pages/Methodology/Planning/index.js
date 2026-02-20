@@ -21,8 +21,6 @@ const Planning = () => {
         setView,
         turn,
         setTurn,
-        showOccupancy,
-        setShowOccupancy,
         weekStart
     } = useGrade();
 
@@ -50,8 +48,6 @@ const Planning = () => {
                         onViewChange={setView}
                         referenceDate={referenceDate}
                         onReferenceDateChange={setReferenceDate}
-                        showOccupancy={showOccupancy}
-                        onShowOccupancyChange={setShowOccupancy}
                     />
                 </CardBody>
             </Card>
@@ -65,7 +61,6 @@ const Planning = () => {
                         referenceDate={referenceDate}
                         weekStart={weekStart}
                         schedules={sessions}
-                        showOccupancy={showOccupancy}
                         loading={loadingData}
                         onSelectSchedule={handleSelectSchedule}
                         selectedScheduleId={selectedSession?.id}
@@ -77,7 +72,11 @@ const Planning = () => {
             <PlanningSessionModal
                 key={selectedSession?.id || "planning-modal"}
                 isOpen={modalOpen}
-                toggle={() => setModalOpen(!modalOpen)}
+                toggle={() => {
+                    const nextState = !modalOpen;
+                    setModalOpen(nextState);
+                    if (!nextState) setSelectedSession(null);
+                }}
                 session={selectedSession}
                 clients={clients}
                 loading={loadingclients}

@@ -89,8 +89,6 @@ const ClassesPage = ({ setBreadcrumbItems }) => {
         onViewChange={grade.setView}
         referenceDate={grade.referenceDate}
         onReferenceDateChange={grade.setReferenceDate}
-        showOccupancy={grade.showOccupancy}
-        onShowOccupancyChange={grade.setShowOccupancy}
         schedules={schedulesForGrid}
         onClassClick={handleClassClick}
         selectedClassId={formState.id}

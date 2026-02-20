@@ -17,8 +17,6 @@ const SalesSelectionPanel = ({
     setSaleDate,
     startDate,
     setStartDate,
-    isRenewal,
-    setIsRenewal,
     discount,
     setDiscount
 }) => {
@@ -94,18 +92,6 @@ const SalesSelectionPanel = ({
                                 value={discount || ''}
                                 onChange={(e) => setDiscount(e.target.value)}
                             />
-                        </Col>
-                        <Col md={3}>
-                            <Label className="form-label fw-bold text-dark font-size-12 mb-1">Renovação?</Label>
-                            <Input
-                                type="select"
-                                className="form-select form-select-sm border-0"
-                                value={isRenewal ? "1" : "0"}
-                                onChange={(e) => setIsRenewal(e.target.value === "1")}
-                            >
-                                <option value="0">Não</option>
-                                <option value="1">Sim</option>
-                            </Input>
                         </Col>
                     </Row>
                 </div>

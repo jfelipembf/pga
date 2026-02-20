@@ -125,9 +125,9 @@ class EnrollmentRepository extends BaseRepository {
         }
 
         if (batch) {
-            batch.update(docRef, data);
+            batch.set(docRef, data, { merge: true });
         } else {
-            await updateDoc(docRef, data);
+            await setDoc(docRef, data, { merge: true });
         }
     }
 

@@ -17,7 +17,6 @@ const GradeGrid = ({
   referenceDate,
   weekStart: weekStartProp,
   schedules,
-  showOccupancy,
   loading,
   onSelectSchedule,
   selectedScheduleId,
@@ -83,7 +82,6 @@ const GradeGrid = ({
                     <div key={s.idSession || s.id || `${s.startTime}-${s.activityName || ""}`} className="mb-2">
                       <GradeEventCard
                         schedule={s}
-                        showOccupancyMask={Boolean(showOccupancy)}
                         onClick={
                           onToggleSelection
                             ? () => onToggleSelection(s, iso)

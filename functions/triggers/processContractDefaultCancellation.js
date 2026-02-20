@@ -111,9 +111,12 @@ module.exports = onSchedule({
                             // 1. Atualizar Cliente (Centralizado)
                             const clientRef = db.doc(`tenants/${idTenant}/branches/${idBranch}/clients/${idClient}`);
                             tx.update(clientRef, {
-                                lifecycleStatus: 'inactive',
                                 updatedAt: FieldValue.serverTimestamp()
                             });
+
+                            // 1.1. Sincronizar campos computados (Computed)
+                            const { syncClientComputedFields } = require("./clientComputedFields");
+                            await syncClientComputedFields(tx, idTenant, idBranch, idClient);
 
                             // 2. Sincronizar Dashboard (Centralizado)
                             const dashboardRef = db.doc(`tenants/${idTenant}/branches/${idBranch}/dashboardSummary/current`);

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Table, Progress, Badge, Button, UncontrolledTooltip, Row, Col, Card, CardBody } from 'reactstrap';
+import { Modal, ModalHeader, ModalBody, ModalFooter, Table, Progress, Badge, Button, Row, Col, Card, CardBody } from 'reactstrap';
 import { useEvaluationAnalysis } from '../hooks/useEvaluationAnalysis';
 import { useSessionPlanning } from '../hooks/useSessionPlanning';
 import ObjectivesSelectionModal from './ObjectivesSelectionModal';
@@ -15,6 +15,12 @@ const PlanningSessionModal = ({ isOpen, toggle, session, clients = [] }) => {
     const [selectedClient, setSelectedClient] = useState(null);
     const [editModalOpen, setEditModalOpen] = useState(false);
 
+    const handleRefreshAnalysis = React.useCallback(() => {
+        if (session?.idActivity && clients.length > 0) {
+            analyzeclients(clients, session.idActivity);
+        }
+    }, [session?.idActivity, clients, analyzeclients]);
+
     const { planning, loadingPlanning, weekStatus, updatePlanning } = useSessionPlanning({
         idTenant,
         idBranch,
@@ -24,11 +30,7 @@ const PlanningSessionModal = ({ isOpen, toggle, session, clients = [] }) => {
         objectivesData,
         loadingAnalysis: loading,
         analyzedAt,
-        refreshAnalysis: () => {
-            if (session?.idActivity && clients.length > 0) {
-                analyzeclients(clients, session.idActivity);
-            }
-        }
+        refreshAnalysis: handleRefreshAnalysis
     });
 
     useEffect(() => {
@@ -198,9 +200,6 @@ const PlanningSessionModal = ({ isOpen, toggle, session, clients = [] }) => {
                                                 <tbody>
                                                     {clients.map(client => {
                                                         const data = analysis[client.id] || { progress: 0, status: 'no_data' };
-                                                        const pendencies = data.fundamentalPendencies || [];
-                                                        const hasPendencies = pendencies.length > 0;
-                                                        const tooltipId = `tooltip-${client.id}`;
                                                         const isSelected = selectedClient?.id === client.id;
 
                                                         return (

@@ -1,9 +1,10 @@
 import { runTransaction, doc, query, where, collection, getDocs } from 'firebase/firestore'
 import { getFirebaseBackend } from '../../helpers/firebase_helper'
-import { clientContractRepository } from '../../data/repositories/ClientContractRepository'
+import { ServiceContextHelper } from '../Core/DataAggregationHelper'
 import { AuditService } from '../Core/AuditService'
 import { DashboardSummaryService } from '../Dashboard/DashboardSummaryService'
 import { LedgerService } from '../Ledger/LedgerService'
+import { ClientService } from './ClientService'
 import { normalizeDate, parseDateInput } from '../../utils/date'
 import moment from 'moment'
 
@@ -53,8 +54,8 @@ export const ContractCancellationService = {
             cancelFutureReceivables
         } = financialData || {}
 
-        // 1. Buscar contrato
-        const contract = await clientContractRepository.findById(idTenant, idBranch, idContract)
+        // 1. Buscar contrato via Helper
+        const contract = await ServiceContextHelper.getContractContext(idTenant, idBranch, idContract)
 
         // 2. Validações
         ContractCancellationService._validateCancellation(contract)
@@ -107,6 +108,22 @@ export const ContractCancellationService = {
             idTenant, idBranch, idContract, contract, cancellationFee, docsToCancel
         )
 
+        // 5.5 Cancelar Matrículas vinculadas ao contrato
+        try {
+            const { EnrollmentService } = await import('./EnrollmentService')
+            const enrollmentsSnap = await getDocs(query(
+                collection(db, `tenants/${idTenant}/branches/${idBranch}/enrollments`),
+                where('idContract', '==', idContract),
+                where('status', 'in', ['active', 'suspended'])
+            ))
+
+            for (const docSnap of enrollmentsSnap.docs) {
+                await EnrollmentService.cancelEnrollment(idTenant, idBranch, { uid: userId }, docSnap.id, financialData?.reason || 'Cancelamento de Contrato')
+            }
+        } catch (err) {
+            console.error("[ContractCancellation] Erro ao cancelar matrículas vinculadas:", err)
+        }
+
         // 6. Auditoria
         await AuditService.log({
             idTenant, idBranch, userId,
@@ -118,6 +135,9 @@ export const ContractCancellationService = {
                 actualCanceledReceivables: docsToCancel.length
             }
         })
+
+        // Sincroniza campos computados do cliente
+        ClientService.syncComputedFields(idTenant, idBranch, contract.idClient)
 
         return true
     },
@@ -159,6 +179,11 @@ export const ContractCancellationService = {
             entityId: idContract,
             details: scheduleData
         })
+
+        const contract = await ServiceContextHelper.getContractContext(idTenant, idBranch, idContract)
+        if (contract?.idClient) {
+            ClientService.syncComputedFields(idTenant, idBranch, contract.idClient)
+        }
 
         return true
     },
@@ -232,7 +257,6 @@ export const ContractCancellationService = {
         )
 
         transaction.update(clientRef, {
-            lifecycleStatus: 'inactive',
             updatedAt: normalizeDate(new Date())
         })
     },

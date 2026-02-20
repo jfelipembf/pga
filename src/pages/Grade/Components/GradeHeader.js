@@ -4,7 +4,7 @@ import { Col, Row, Button } from "reactstrap"
 import TurnSelector from "./TurnSelector"
 import ViewSelector from "./ViewSelector"
 import WeekNavigator from "./WeekNavigator"
-import { FormSwitch } from "../../../components/Common/FormSwitch"
+
 
 const GradeHeader = ({
   turn,
@@ -13,8 +13,6 @@ const GradeHeader = ({
   onViewChange,
   referenceDate,
   onReferenceDateChange,
-  showOccupancy,
-  onShowOccupancyChange,
 }) => {
   return (
     <Row className="g-3 align-items-center">
@@ -33,15 +31,6 @@ const GradeHeader = ({
             Hoje
           </Button>
           <ViewSelector value={view} onChange={onViewChange} />
-          <FormSwitch
-            id="showOccupancySwitch"
-            checked={showOccupancy}
-            onChange={onShowOccupancyChange}
-            label="Exibir lotação"
-            width={34}
-            height={18}
-            handleDiameter={12}
-          />
         </div>
       </Col>
     </Row>

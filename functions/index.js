@@ -38,3 +38,6 @@ exports.checkExperimentalClassAutomations = require("./triggers/checkExperimenta
 exports.checkBirthdayAutomations = require("./triggers/checkBirthdayAutomations");
 exports.autoSettleReceivables = require("./triggers/autoSettleReceivables");
 exports.sendTeacherDailyPlanning = require("./triggers/sendTeacherDailyPlanning");
+exports.processExpiredContracts = require("./triggers/processExpiredContracts");
+exports.processInactiveContracts = require("./triggers/processInactiveContracts");
+exports.processRecurringTasks = require("./triggers/processRecurringTasks");

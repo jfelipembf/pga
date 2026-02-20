@@ -1,8 +1,6 @@
 const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
-const { createScheduledTrigger } = require("./utils");
-const { toISODate } = require("../shared");
-const { saveAuditLog } = require("../shared/audit");
+const { createScheduledTrigger, toISODate } = require("./utils");
 
 /**
  * Rotina diária para finalizar contratos expirados.
@@ -52,14 +50,21 @@ module.exports = createScheduledTrigger("25 0 * * *", "processExpiredContracts",
                 updatedAt: FieldValue.serverTimestamp()
             }, { merge: true });
 
-            // Auditoria
-            await saveAuditLog({
+            // 1.5. Sincronizar campos computados (Computed)
+            const { syncClientComputedFields } = require("./clientComputedFields");
+            await syncClientComputedFields(tx, idTenant, idBranch, idClient);
+
+            // Auditoria (Manual como nos outros triggers)
+            const auditRef = db.collection(`tenants/${idTenant}/branches/${idBranch}/auditLogs`).doc();
+            tx.set(auditRef, {
                 idTenant, idBranch,
                 uid: "system",
                 action: "SYSTEM_CONTRACT_EXPIRED",
-                targetId: contractRef.id,
-                description: `Contrato ${contractRef.id} finalizado automaticamente por atingir a data de término (${endDate})`,
-                metadata: { endDate }
+                entityType: "clientContract",
+                entityId: contractRef.id,
+                description: `Contrato finalizado automaticamente por atingir a data de término (${endDate})`,
+                createdAt: FieldValue.serverTimestamp(),
+                metadata: { endDate, idClient }
             });
         });
 

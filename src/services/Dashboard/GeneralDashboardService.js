@@ -3,6 +3,7 @@
  * Versão ultra-resiliente que não depende de índices compostos manuais.
  */
 import { transactionRepository } from "../../data/repositories/TransactionRepository"
+import { ServiceContextHelper } from "../Core/DataAggregationHelper"
 import { query, where, getDocs } from "firebase/firestore"
 import moment from "moment"
 import { normalizeDate } from "../../utils/date"
@@ -342,7 +343,6 @@ export const GeneralDashboardService = {
         let recentContracts = [];
         try {
             const { clientContractRepository } = await import('../../data/repositories/ClientContractRepository');
-            const { clientRepository } = await import('../../data/repositories/ClientRepository');
 
             // Busca apenas os 5 últimos contratos de forma eficiente
             const recentContractsRaw = await clientContractRepository.findWhere(
@@ -353,14 +353,14 @@ export const GeneralDashboardService = {
                 5
             );
 
-            // Busca os dados dos clientes em paralelo para pegar a foto e nome correto
+            // Busca os dados dos clientes em paralelo para pegar a foto e nome correto através do Helper
             recentContracts = await Promise.all(recentContractsRaw.map(async (c) => {
                 let photoUrl = null;
                 let clientName = c.clientName || "Cliente";
 
                 try {
                     if (c.idClient) {
-                        const client = await clientRepository.findById(idTenant, idBranch, c.idClient);
+                        const client = await ServiceContextHelper.getClientContext(idTenant, idBranch, c.idClient);
                         if (client) {
                             photoUrl = client.photoUrl;
                             clientName = client.name || client.firstName + " " + (client.lastName || "");

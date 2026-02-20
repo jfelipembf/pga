@@ -33,7 +33,6 @@ const SalesPoint = () => {
         handleFinalizeSale,
         startDate, setStartDate,
         discount, setDiscount,
-        isRenewal, setIsRenewal,
         saleDate, setSaleDate,
         showReceiptModal,
         saleSuccessData,
@@ -90,8 +89,6 @@ const SalesPoint = () => {
                         suggestedValue={totals.balance > 0 ? totals.balance : 0}
                         startDate={startDate}
                         setStartDate={setStartDate}
-                        isRenewal={isRenewal}
-                        setIsRenewal={setIsRenewal}
                         discount={discount}
                         setDiscount={setDiscount}
                         saleDate={saleDate}

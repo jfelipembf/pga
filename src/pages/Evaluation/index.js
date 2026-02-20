@@ -14,7 +14,7 @@ import { useGrade } from "../../contexts/GradeContext"
 
 
 
-const occursOnDate = (schedule, isoDate, dayIndex) => {
+const occursOnDate = (schedule, isoDate) => {
   const sessionDate = schedule?.sessionDate || null
   if (sessionDate) {
     const d = normalizeDate(sessionDate)
@@ -36,10 +36,9 @@ const EvaluationPage = ({ setBreadcrumbItems }) => {
     referenceDate,
     setReferenceDate,
     sessions,
-    updateAttendanceInSession // Poderíamos usar para atualizar o card após avaliação
   } = useGrade()
 
-  const { activities, areas, staff } = useEvaluationData()
+  const { staff } = useEvaluationData()
 
   // 2. Estados Locais da Página de Avaliação
   const [selectedSchedule, setSelectedSchedule] = useState(null)
@@ -59,15 +58,12 @@ const EvaluationPage = ({ setBreadcrumbItems }) => {
     setBreadcrumbItems(title, breadcrumbItems)
   }, [setBreadcrumbItems, location.pathname])
 
-  // As sessões já vêm enriqueceadas do GradeContext (com activityName, employeeName, etc.)
-  const schedules = sessions || []
-
   // Filtro de sessões para o dia selecionado (referenceDate)
   const todaySchedules = useMemo(() => {
     const todayISO = toISODate(referenceDate)
     const todayDayIndex = referenceDate.getDay()
 
-    return (schedules || [])
+    return (sessions || [])
       .filter(schedule => {
         if (!schedule) return false
         return occursOnDate(schedule, todayISO, todayDayIndex)
@@ -76,7 +72,7 @@ const EvaluationPage = ({ setBreadcrumbItems }) => {
         return !selectedStaffId || String(schedule.idStaff) === String(selectedStaffId)
       })
       .sort((a, b) => (a.startTime || "00:00").localeCompare(b.startTime || "00:00"))
-  }, [schedules, referenceDate, selectedStaffId])
+  }, [sessions, referenceDate, selectedStaffId])
 
   const instructors = useMemo(() => {
     return [...staff].sort((a, b) => (a.name || "").localeCompare(b.name || ""))

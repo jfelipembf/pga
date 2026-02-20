@@ -80,6 +80,17 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
 
                             // Verificar se a matrícula de TURMA ainda está ativa
                             return activeEnrollmentsMap.has(client.enrollmentId)
+                        }).map(client => {
+                            // ATUALIZAR STATUS AO VIVO E FOTO COM BASE NA COLEÇÃO MÃE EM MEMÓRIA
+                            if (client.enrollmentId && activeEnrollmentsMap.has(client.enrollmentId)) {
+                                const freshEnrollment = activeEnrollmentsMap.get(client.enrollmentId);
+                                return {
+                                    ...client,
+                                    clientStatus: freshEnrollment.clientStatus,
+                                    photo: freshEnrollment.photo || client.photo
+                                }
+                            }
+                            return client;
                         })
 
                         // Verificar se há NOVOS alunos experimentais que não estavam no snapshot
@@ -93,8 +104,22 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
                     } else {
                         // NOVA CHAMADA
                         const enrolledMap = new Map()
+                        // 1. Adicionamos a Fonte de Verdade (Matrículas da Turma com Status atualizado)
                         classEnrollments.forEach(c => enrolledMap.set(String(c.idClient), c))
-                        mappedSessionEnrollments.forEach(c => enrolledMap.set(String(c.idClient), c))
+
+                        // 2. Mesclamos com as inscrições da sessão. 
+                        mappedSessionEnrollments.forEach(c => {
+                            const stringId = String(c.idClient)
+                            if (enrolledMap.has(stringId)) {
+                                // Se o aluno já veio da fonte mãe, NÃO sobrescrevemos o objeto inteiro, pois
+                                // o 'mappedSessionEnrollments' tem informações mais capadas da subcoleção e força 'active'
+                                const existing = enrolledMap.get(stringId)
+                                // Apenas atualizamos coisas que a sessão talvez tenha de específico, preservando o clientStatus
+                                enrolledMap.set(stringId, { ...existing, tag: c.tag || existing.tag })
+                            } else {
+                                enrolledMap.set(stringId, c)
+                            }
+                        })
 
                         setClients(Array.from(enrolledMap.values()))
                     }
@@ -141,14 +166,16 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
         if (!client?.id) return
         const idClient = client.idClient || String(client.id)
 
+        const liveStatus = ClientService.calculateLiveStatus(client)
+
         // Validação de status
-        if (client.lifecycleStatus === 'suspended') {
+        if (liveStatus === 'suspended') {
             toast.error("Este aluno está SUSPENSO e não pode realizar check-in.")
             return
         }
 
-        if (client.lifecycleStatus === 'inactive' || client.lifecycleStatus === 'lost') {
-            toast.warning(`Atenção: Aluno com status '${client.lifecycleStatus}'.`)
+        if (liveStatus === 'inactive' || liveStatus === 'lost') {
+            toast.warning(`Atenção: Aluno com status '${liveStatus}'.`)
         }
 
         setSearchText("")
@@ -170,7 +197,7 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
                 justification: "",
                 tag: "Extra", // Indica que não é matriculado
                 friendlyId: client.friendlyId,
-                clientStatus: client.lifecycleStatus
+                clientStatus: liveStatus
             }
 
             setJustAddedId(idClient)
@@ -251,6 +278,7 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
         searchText,
         setSearchText,
         searchResults,
+        isSearching,
         isLoading,
         isDirty,
         justAddedId,
