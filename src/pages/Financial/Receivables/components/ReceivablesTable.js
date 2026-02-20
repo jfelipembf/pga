@@ -96,7 +96,7 @@ export const ReceivablesTable = ({
             render: (receivable) => (
                 <div>
                     <div className="fw-bold">{receivable.clientName}</div>
-                    <small className="text-muted">ID: {receivable.clientGymId || receivable.idGym || receivable.friendlyId || receivable.idClient?.substring(0, 8)}</small>
+                    <small className="text-muted">ID: {receivable.friendlyId || receivable.idGym || receivable.clientGymId || receivable.idClient?.substring(0, 8)}</small>
                 </div>
             )
         },

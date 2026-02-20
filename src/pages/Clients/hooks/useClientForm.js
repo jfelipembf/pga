@@ -3,6 +3,7 @@ import { toast } from "react-toastify"
 import { getAuth } from "firebase/auth"
 
 import { useTenant } from "../../../hooks/useTenant"
+import { CLIENT_STATUS } from "../../../utils/constants"
 
 import { ClientService } from "../../../services/Clients"
 import { ClientSchema } from "../../../data/schemas/Clients/ClientSchema"
@@ -52,7 +53,7 @@ export const useClientForm = ({ onClientAdded, toggle }) => {
             // Saúde
             healthObservations: "",
 
-            status: "lead"
+            status: CLIENT_STATUS.LEAD
         },
         validationSchema: ClientSchema,
         onSubmit: async (values, { setSubmitting, resetForm }) => {

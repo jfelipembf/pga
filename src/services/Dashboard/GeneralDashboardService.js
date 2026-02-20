@@ -393,7 +393,7 @@ export const GeneralDashboardService = {
                 const config = statusMap[realStatus] || { label: 'Pendente', color: 'warning' };
 
                 return {
-                    id: c.friendlyId || (c.id ? c.id.substring(0, 8) : "N/A"),
+                    id: c.idClientContract || (c.id ? c.id.substring(0, 8) : "N/A"),
                     idClient: c.idClient,
                     name: clientName,
                     imgUrl: photoUrl || null,

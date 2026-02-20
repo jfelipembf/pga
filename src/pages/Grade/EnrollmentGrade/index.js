@@ -10,7 +10,7 @@ import { formatDate } from "../../../utils/date"
 import { setBreadcrumbItems } from "../../../store/actions"
 import { useGrade } from "../../../contexts/GradeContext"
 
-import { EnrollmentService } from "../../../services/Clients/EnrollmentService"
+import { EnrollmentService } from "../../../services/Clients/Enrollment/EnrollmentService"
 import { ClientService } from "../../../services/Clients/ClientService"
 import { automationService } from "../../../services/Automation/AutomationService"
 import { useTenant } from "../../../hooks/useTenant"

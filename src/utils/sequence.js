@@ -98,7 +98,7 @@ export const generateSaleId = (idTenant, idBranch) =>
 /**
  * Gera ID de contrato (ex: C00001, C00002)
  */
-export const generateContractId = (idTenant, idBranch) =>
+export const generateClientContractId = (idTenant, idBranch) =>
     generateFriendlyId(idTenant, idBranch, 'clientContracts', { prefix: 'C', padding: 5 })
 
 /**

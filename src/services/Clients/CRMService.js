@@ -1,8 +1,7 @@
 import { clientRepository } from '../../data/repositories/ClientRepository'
 import { clientContractRepository } from '../../data/repositories/ClientContractRepository'
 import { salesRepository } from '../../data/repositories/SalesRepository'
-import moment from 'moment'
-import { formatDate } from '../../utils/date'
+import { formatDate, getAge, isBeforeDate, isAfterDate, diffDaysFromNow } from '../../utils/date'
 
 /**
  * Serviço de CRM para busca avançada e filtragem cruzada de alunos.
@@ -69,90 +68,63 @@ export const CRMService = {
                     if (client.gender !== filters.gender) return false
                 }
 
-                // --- Filtro por Status (Regra: Contrato tem Precedência Total) ---
+                // --- Filtro por Status ---
                 if (filters.status && filters.status !== 'all') {
-                    // 1. Identifica se o cliente já teve qualquer contrato na vida (via computed ou histórico)
-                    const hasContractHistory = !!(computed.activeContractId || computed.contractEndDate || (contractsByClient[client.id]?.length > 0))
-
-                    // 2. Determina o Status Efetivo do Cliente
-                    let effectiveStatus = ''
-                    if (!hasContractHistory) {
-                        // Se nunca teve contrato, ele é OBRIGATORIAMENTE um Lead
-                        effectiveStatus = 'lead'
-                    } else {
-                        // Se já teve contrato, o status vem do contrato (computed.activeContractId define se está Ativo agora)
-                        if (computed.activeContractId) {
-                            effectiveStatus = 'active'
-                        } else {
-                            // Se não está ativo mas tem histórico, buscamos o status do último contrato conhecido
-                            const clientContracts = contractsByClient[client.id] || []
-                            if (clientContracts.length > 0) {
-                                // Ordena por data de atualização ou criação para pegar o mais recente
-                                const latest = clientContracts.sort((a, b) => {
-                                    const dateA = a.updatedAt?.toDate ? a.updatedAt.toDate() : new Date(a.updatedAt || 0)
-                                    const dateB = b.updatedAt?.toDate ? b.updatedAt.toDate() : new Date(b.updatedAt || 0)
-                                    return dateB - dateA
-                                })[0]
-                                effectiveStatus = latest.status // active, suspended, canceled, etc.
-                            } else {
-                                // Fallback: Se o computed diz que teve contrato mas não carregamos a lista, 
-                                // assumimos que não é lead.
-                                effectiveStatus = 'no_active_contract'
-                            }
-                        }
-                    }
-
-                    // 3. Aplicação do Filtro
+                    // Mapeia o filtro da UI para os status reais do Cliente
                     if (filters.status === 'active') {
-                        if (effectiveStatus !== 'active') return false
+                        if (client.status !== 'active') return false
                     }
                     else if (filters.status === 'lead') {
-                        if (effectiveStatus !== 'lead') return false
+                        if (client.lifecycleStatus !== 'lead') return false
                     }
                     else if (filters.status === 'suspended') {
-                        if (effectiveStatus !== 'suspended') return false
+                        if (client.status !== 'suspended') return false
                     }
                     else if (filters.status === 'canceled') {
-                        // No CRM, 'canceled' ou 'lost' são tratados como o fim da linha do contrato
-                        if (!['canceled', 'cancelled', 'expired'].includes(effectiveStatus)) return false
+                        if (client.lifecycleStatus !== 'lost' && client.status !== 'inactive') return false
                     }
                     else if (filters.status === 'inactive') {
-                        // Inativo é um estado explícito do lifecycle ou ausência de contrato atual
-                        if (client.lifecycleStatus !== 'inactive' && effectiveStatus !== 'inactive') return false
+                        if (client.status !== 'inactive') return false
                     }
                 }
 
                 // --- Filtro por Idade ---
                 if (filters.ageMin || filters.ageMax) {
-                    const birthDate = client.birthDate?.toDate ? client.birthDate.toDate() : (client.birthDate ? new Date(client.birthDate) : null)
-                    if (birthDate) {
-                        const age = moment().diff(moment(birthDate), 'years')
+                    const age = getAge(client.birthDate)
+                    if (age !== null) {
                         if (filters.ageMin && age < parseInt(filters.ageMin)) return false
                         if (filters.ageMax && age > parseInt(filters.ageMax)) return false
                     } else {
-                        return false
+                        return false // Se tem filtro de idade mas o cliente não tem Data Nasc, exclui
                     }
                 }
 
-                // --- Filtros Dependentes de Plano (Usa Computed) ---
+                // --- Filtros Dependentes de Plano (Usa Computed Array) ---
+                const activeContracts = computed.activeContracts || []
+
                 if (filters.planType && filters.planType !== 'all') {
-                    if (computed.planType !== filters.planType) return false
+                    if (!activeContracts.some(c => c.planType === filters.planType)) return false
                 }
 
                 if (filters.idPlan && filters.idPlan !== 'all') {
-                    if (computed.idPlan !== filters.idPlan) return false
+                    if (!activeContracts.some(c => c.idContract === filters.idPlan)) return false
                 }
 
-                if (filters.planName && (!computed.activePlanName?.toLowerCase().includes(filters.planName.toLowerCase()))) {
-                    return false
+                if (filters.planName) {
+                    const term = filters.planName.toLowerCase()
+                    if (!activeContracts.some(c => c.planName?.toLowerCase().includes(term))) return false
                 }
 
-                // Vencimento entre (Range) (Usa Computed)
+                // Vencimento entre (Range) (Usa Computed Array)
                 if (filters.contractEndStart || filters.contractEndEnd) {
-                    if (!computed.contractEndDate) return false
-                    const end = computed.contractEndDate.toDate ? computed.contractEndDate.toDate() : new Date(computed.contractEndDate)
-                    if (filters.contractEndStart && moment(end).isBefore(moment(filters.contractEndStart), 'day')) return false
-                    if (filters.contractEndEnd && moment(end).isAfter(moment(filters.contractEndEnd), 'day')) return false
+                    const hasContractEndingInRange = activeContracts.some(c => {
+                        if (!c.endDate) return false
+                        let ok = true
+                        if (filters.contractEndStart && isBeforeDate(c.endDate, filters.contractEndStart)) ok = false
+                        if (filters.contractEndEnd && isAfterDate(c.endDate, filters.contractEndEnd)) ok = false
+                        return ok
+                    })
+                    if (!hasContractEndingInRange) return false
                 }
 
                 // --- Filtros Dependentes de Matrícula (Atividade/Professor) (Usa Computed) ---
@@ -174,10 +146,9 @@ export const CRMService = {
                     }
                     if (filters.saleDateStart || filters.saleDateEnd) {
                         const hasSaleInRange = clientSales.some(s => {
-                            const sDate = s.saleDate?.toDate ? s.saleDate.toDate() : new Date(s.saleDate)
                             let ok = true
-                            if (filters.saleDateStart && moment(sDate).isBefore(moment(filters.saleDateStart), 'day')) ok = false
-                            if (filters.saleDateEnd && moment(sDate).isAfter(moment(filters.saleDateEnd), 'day')) ok = false
+                            if (filters.saleDateStart && isBeforeDate(s.saleDate, filters.saleDateStart)) ok = false
+                            if (filters.saleDateEnd && isAfterDate(s.saleDate, filters.saleDateEnd)) ok = false
                             return ok
                         })
                         if (!hasSaleInRange) return false
@@ -187,28 +158,22 @@ export const CRMService = {
                 return true
             })
 
-            // 4. Enriquecimento dos resultados (Usa Computed para fornecer status real do contrato)
+            // 4. Enriquecimento dos resultados
             return filteredResults.map(client => {
                 const computed = client.computed || {}
-                const endDate = computed.contractEndDate?.toDate ? computed.contractEndDate.toDate() : (computed.contractEndDate ? new Date(computed.contractEndDate) : null)
+                const activeContracts = computed.activeContracts || []
 
-                // Determina status descritivo para o Frontend
-                let contractStatus = 'no_contract'
-                if (computed.activeContractId) {
-                    contractStatus = 'active'
-                } else if (computed.contractEndDate) {
-                    // Se tem data de fim mas não tem ID ativo, está expirado/inativo
-                    contractStatus = 'inactive'
-                }
+                // Pega informações do contrato mais recente se houver
+                const mainContract = activeContracts[0] || {}
 
                 return {
                     ...client,
-                    planName: computed.activePlanName || 'Sem Plano',
-                    contractStatus,
-                    contractEndDate: endDate ? formatDate(endDate) : '-',
-                    daysToExpiration: endDate ? moment(endDate).diff(moment(), 'days') : 0,
+                    planName: mainContract.planName || 'Sem Plano',
+                    contractStatus: client.status || 'lead',
+                    contractEndDate: mainContract.endDate ? formatDate(mainContract.endDate) : '-',
+                    daysToExpiration: diffDaysFromNow(mainContract.endDate),
                     activities: computed.activeActivities || [],
-                    monthlyValue: computed.monthlyValue || 0
+                    monthlyValue: mainContract.value || 0
                 }
             })
 

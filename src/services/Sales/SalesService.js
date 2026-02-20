@@ -156,7 +156,7 @@ export const SalesService = {
         // 7. Gerar Contratos do Cliente e Atualizar Status (Nova Arquitetura)
         if (saleData.items && saleData.items.length > 0) {
             // Importa o serviço uma única vez
-            const { ClientContractService } = await import('../Clients/ClientContractService')
+            const { ClientContractService } = await import('../Clients/ClientContract/ClientContractService')
 
             for (const item of saleData.items) {
                 const itemType = String(item.type || '').toLowerCase();
@@ -201,9 +201,9 @@ export const SalesService = {
                             // Usa o novo ClientContractService (com transações)
                             await ClientContractService.create(idTenant, idBranch, userId, {
                                 idClient: saleData.idClient,
+                                clientName: saleData.clientName,
                                 idSale: newSale.id,
-                                idPlan: item.idItem,
-                                idContractTemplate: item.idItem, // Padronização com o Schema
+                                idContract: item.idItem, // ID Unificado
                                 planName: item.name || contractTemplate.title,
                                 planType,
                                 startDate,
@@ -213,7 +213,6 @@ export const SalesService = {
                                 value: netUnitPrice,
                                 totalValue: netUnitPrice * (parseInt(item.quantity) || 1),
                                 installments: 1,
-                                status: 'active',
                                 userName: saleData.sellerName || saleData.userName,
                                 // Snapshot de Regras
                                 rules: {

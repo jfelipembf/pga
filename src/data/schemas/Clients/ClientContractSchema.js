@@ -9,7 +9,7 @@ export const ClientContractSchema = Yup.object().shape({
     idSale: Yup.string().nullable(), // Pode ser null se criado manualmente
 
     // === PLANO ===
-    idPlan: Yup.string().required('ID do plano é obrigatório'),
+    idContract: Yup.string().required('ID do plano é obrigatório'),
     planName: Yup.string().required('Nome do plano é obrigatório'),
     planType: Yup.string()
         .oneOf(['monthly', 'quarterly', 'semiannual', 'annual', 'single'])

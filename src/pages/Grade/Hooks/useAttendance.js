@@ -31,7 +31,7 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
 
             try {
                 await withLoading('load', async () => {
-                    // 1. Carregar alunos que estavam ativos na data da sessão (Reduzindo leituras)
+                    // 1. Carregar alunos que estavam ativos na data da sessão
                     const [classEnrollments, sessionEnrollments] = await Promise.all([
                         schedule.idClass ? AttendanceService.getclientsForAttendance(idTenant, idBranch, schedule.idClass, schedule.sessionDate) : [],
                         import('../../../data/repositories/EnrollmentRepository').then(m =>
@@ -87,7 +87,8 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
                                 return {
                                     ...client,
                                     clientStatus: freshEnrollment.clientStatus,
-                                    photo: freshEnrollment.photo || client.photo
+                                    photo: freshEnrollment.photo || client.photo,
+                                    friendlyId: freshEnrollment.friendlyId || client.friendlyId
                                 }
                             }
                             return client;
@@ -115,7 +116,10 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
                                 // o 'mappedSessionEnrollments' tem informações mais capadas da subcoleção e força 'active'
                                 const existing = enrolledMap.get(stringId)
                                 // Apenas atualizamos coisas que a sessão talvez tenha de específico, preservando o clientStatus
-                                enrolledMap.set(stringId, { ...existing, tag: c.tag || existing.tag })
+                                enrolledMap.set(stringId, {
+                                    ...existing,
+                                    tag: c.tag || existing.tag
+                                })
                             } else {
                                 enrolledMap.set(stringId, c)
                             }

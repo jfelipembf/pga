@@ -21,6 +21,7 @@ export const AuditService = {
         idBranch,
         userId,
         userName,
+        userPhoto,
         action,
         entityType,
         entityId,
@@ -32,6 +33,7 @@ export const AuditService = {
             const logData = {
                 userId,
                 userName: userName || null,
+                userPhoto: userPhoto || null,
                 action,
                 entityType,
                 entityId,

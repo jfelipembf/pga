@@ -32,7 +32,8 @@ export const useClassClients = ({ classId, withLoading }) => {
                         enrollmentId: e.id,
                         name: clientInfo.name || e.clientName || "Aluno",
                         photo: clientInfo.photoUrl || e.clientPhoto || null,
-                        idGym: clientInfo.idGym || clientInfo.friendlyId || e.idGym || "",
+                        friendlyId: clientInfo.friendlyId || clientInfo.idGym || e.friendlyId || e.idGym || "",
+                        idGym: clientInfo.friendlyId || clientInfo.idGym || e.friendlyId || e.idGym || "",
                         lifecycleStatus: clientInfo.lifecycleStatus || "active",
                         tag: clientInfo.lifecycleStatus?.toUpperCase().substring(0, 2) || "CL",
                         // Map phone fields precisely for automation

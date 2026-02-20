@@ -10,9 +10,26 @@ export const CLIENT_STATUS = {
     LEAD: 'lead',
     ACTIVE: 'active',
     INACTIVE: 'inactive',
-    EXPIRED: 'expired',
     SUSPENDED: 'suspended'
-}
+};
+
+export const CLIENT_CONTRACT_STATUS = {
+    ACTIVE: 'active',
+    SUSPENDED: 'suspended',
+    CANCELLED: 'cancelled',
+    SCHEDULED_CANCELLATION: 'scheduled_cancellation'
+};
+
+export const LIFECYCLE_STATUS = {
+    LEAD: 'lead',
+    SCHEDULED: 'scheduled',
+    ATTENDED: 'attended',
+    WAITING: 'waiting',
+    NEGOTIATION: 'negotiation',
+    LOST: 'lost',
+    CONVERTED: 'converted'
+
+};
 
 export const PAYMENT_METHODS = {
     CREDIT_CARD: 'credit_card',

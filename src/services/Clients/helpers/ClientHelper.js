@@ -63,7 +63,7 @@ export const ClientHelper = {
             client.email,
             client.phone,
             client.mobile,
-            client.friendlyId ? String(client.friendlyId) : ''
+            client.idClient ? String(client.idClient) : ''
         ].filter(Boolean).map(s => String(s).toLowerCase().trim());
 
         return parts.join(' ');

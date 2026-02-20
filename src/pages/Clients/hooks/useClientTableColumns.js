@@ -57,9 +57,7 @@ export const useClientTableColumns = () => {
             label: "Status",
             key: "status",
             render: (client) => {
-                // USA O SERVIÇO PARA CALCULAR STATUS REAL (AGORA OTIMIZADO PELO COMPUTED)
-                const { ClientService } = require("../../../services/Clients/ClientService")
-                const status = ClientService.calculateLiveStatus(client)
+                const status = client.status || client.lifecycleStatus || 'lead'
 
                 const statusColors = {
                     lead: "warning",
@@ -68,7 +66,10 @@ export const useClientTableColumns = () => {
                     active: "success",
                     suspended: "secondary",
                     inactive: "danger",
-                    lost: "dark"
+                    lost: "dark",
+                    converted: "success",
+                    waiting: "warning",
+                    negotiation: "info"
                 }
 
                 const labels = {
@@ -78,7 +79,10 @@ export const useClientTableColumns = () => {
                     active: "Ativo",
                     suspended: "Suspenso",
                     inactive: "Inativo",
-                    lost: "Perdido"
+                    lost: "Perdido",
+                    converted: "Convertido",
+                    waiting: "Aguardando",
+                    negotiation: "Negociando"
                 }
 
                 const color = statusColors[status] || "secondary"
@@ -91,18 +95,13 @@ export const useClientTableColumns = () => {
             }
         },
         {
-            label: "Plano / Atividades",
-            key: "plan",
+            label: "Atividades",
+            key: "activities",
             render: (client) => {
                 const computed = client.computed || {}
                 return (
-                    <div>
-                        <div className="font-size-13 text-dark fw-medium">
-                            {computed.activePlanName || "Sem Plano"}
-                        </div>
-                        <div className="font-size-11 text-muted text-truncate" style={{ maxWidth: '180px' }}>
-                            {computed.activeActivities?.join(', ') || '-'}
-                        </div>
+                    <div className="font-size-13 text-dark fw-medium text-truncate" style={{ maxWidth: '200px' }}>
+                        {computed.activeActivities?.join(', ') || '-'}
                     </div>
                 )
             }

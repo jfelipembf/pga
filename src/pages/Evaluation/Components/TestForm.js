@@ -141,7 +141,7 @@ const TestForm = ({ testEvent, classId }) => {
                                 />
                                 <div className="flex-grow-1">
                                     <div className="fw-semibold">{client.name}</div>
-                                    <div className="text-muted small">ID: {client.idGym || "--"}</div>
+                                    <div className="text-muted small">ID: {client.friendlyId || client.idGym || "--"}</div>
                                 </div>
 
                                 <div className="d-flex gap-2 align-items-center">

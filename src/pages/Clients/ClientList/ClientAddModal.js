@@ -16,7 +16,7 @@ import {
 import { toast } from "react-toastify"
 
 // Components & Utils
-import ProfileImageSection from "../ClientProfile/components/ProfileImageSection"
+import ProfileImageSection from "../ClientProfile/ClientRegistrationTab/components/ProfileImageSection"
 import OverlayLoader from "../../../components/Common/OverlayLoader"
 import ButtonLoader from "../../../components/Common/ButtonLoader"
 import { GENDER_OPTIONS } from "../../../utils/constants"

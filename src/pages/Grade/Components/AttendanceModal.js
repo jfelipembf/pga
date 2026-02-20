@@ -156,7 +156,7 @@ const AttendanceModal = ({ isOpen, onClose, schedule, onAttendanceSaved, onEnrol
                         </div>
                         <div>
                           <div className="fw-bold text-dark">{c.name}</div>
-                          <div className="text-muted small">{c.idGym || "Sem ID"}</div>
+                          <div className="text-muted small">{c.friendlyId || c.idGym || "Sem ID"}</div>
                         </div>
                       </div>
                       <i className="mdi mdi-plus-circle-outline fs-4 text-primary opacity-50"></i>
@@ -212,10 +212,11 @@ const AttendanceModal = ({ isOpen, onClose, schedule, onAttendanceSaved, onEnrol
                           <div className="attendance-item__content">
                             <div className="d-flex align-items-center gap-2">
                               <div className="fw-bold text-dark fs-5">{client.name}</div>
-                              {(client.friendlyId || client.idGym) && <span className="text-muted small">#{client.friendlyId || client.idGym}</span>}
                             </div>
                             <div className="d-flex gap-2 align-items-center mt-1">
-
+                              {(client.friendlyId || client.idGym) && (
+                                <span className="text-muted small fw-bold me-1">#{client.friendlyId || client.idGym}</span>
+                              )}
 
                               {/* Status do Cliente */}
                               {client.clientStatus && (
@@ -301,12 +302,17 @@ const AttendanceModal = ({ isOpen, onClose, schedule, onAttendanceSaved, onEnrol
 
                         <div className="attendance-item__content">
                           <div className="fw-bold text-dark fs-5">{client.name}</div>
-                          {client.justification && (
-                            <div className="text-danger small mt-1">
-                              <i className="mdi mdi-comment-text-outline me-1"></i>
-                              {client.justification}
-                            </div>
-                          )}
+                          <div className="d-flex gap-2 align-items-center mt-1">
+                            {(client.friendlyId || client.idGym) && (
+                              <span className="text-muted small fw-bold">#{client.friendlyId || client.idGym}</span>
+                            )}
+                            {client.justification && (
+                              <div className="text-danger small">
+                                <i className="mdi mdi-comment-text-outline me-1"></i>
+                                {client.justification}
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         <div className="attendance-item__actions text-end">

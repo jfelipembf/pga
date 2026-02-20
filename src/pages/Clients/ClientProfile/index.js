@@ -4,8 +4,8 @@ import { useNavigate } from "react-router-dom"
 import { useTenant } from "../../../hooks/useTenant"
 
 // Hooks e Contextos
-import { useClientProfile } from "./hooks/useClientProfile"
-import { useClientFinancial } from "./hooks/useClientFinancial"
+import { useClientProfile } from "./ClientRegistrationTab/hooks/useClientProfile"
+import { useClientFinancial } from "./ClientFinancialTab/hooks/useClientFinancial"
 import { TAB_LIST, PROFILE_TABS } from "./constants/profileConstants"
 import { ClientService } from "../../../services/Clients/ClientService"
 
@@ -17,12 +17,12 @@ import ConfirmDialog from "../../../components/Common/ConfirmDialog"
 import { formatCurrency } from "../../../utils/format"
 
 // Sub-componentes do Perfil
-import ClientSummary from "./components/ClientSummary"
-import ClientProfileForm from "./components/ClientProfileForm"
-import ClientFinancial from "./components/ClientFinancial"
-import ClientContracts from "./components/ClientContracts"
-import ClientEnrollments from "./components/ClientEnrollments"
-import ClientEvaluations from "./components/ClientEvaluations"
+import ClientSummary from "./ClientSummaryTab/ClientSummary"
+import ClientProfileForm from "./ClientRegistrationTab/ClientProfileForm"
+import ClientFinancial from "./ClientFinancialTab/ClientFinancial"
+import ClientContracts from "./ClientContractTab/ClientContractsTab"
+import ClientEnrollments from "./ClientEnrollmentTab/ClientEnrollments"
+import ClientEvaluations from "./ClientEvaluationTab/ClientEvaluations"
 
 
 // Estilos
@@ -69,7 +69,7 @@ const ClientProfile = () => {
     const { summary, contracts } = useClientFinancial()
 
     // Fonte Única de Verdade para o Status do Aluno
-    const liveStatus = ClientService.calculateLiveStatus(client, contracts);
+    const liveStatus = client?.status;
 
     // Recalcula estados baseados no summary atualizado
     const hasDebt = summary && summary.totalPending > 0.01

@@ -19,7 +19,7 @@ const ClientSelectorModal = ({ isOpen, toggle, onSend, workout }) => {
         if (!query) return allClients.slice(0, 50); // Show first 50 by default
         return allClients.filter(c =>
             (c.name || "").toLowerCase().includes(query) ||
-            (c.idGym || "").toLowerCase().includes(query)
+            (c.friendlyId || c.idGym || "").toLowerCase().includes(query)
         ).slice(0, 50);
     }, [allClients, searchText]);
 
@@ -140,9 +140,9 @@ const ClientSelectorModal = ({ isOpen, toggle, onSend, workout }) => {
                                                 {client.name}
                                             </h6>
                                             <div className="d-flex align-items-center gap-2">
-                                                {client.idGym && (
+                                                {(client.friendlyId || client.idGym) && (
                                                     <span className="text-muted small fw-medium">
-                                                        #{client.idGym}
+                                                        #{client.friendlyId || client.idGym}
                                                     </span>
                                                 )}
                                                 <span className="text-muted small">

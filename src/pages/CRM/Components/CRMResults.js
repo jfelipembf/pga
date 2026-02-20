@@ -6,6 +6,7 @@ import { formatCurrency } from "../../../utils/format"
 import BasicTable from "../../../components/Common/BasicTable"
 import { exportToCSV } from "../../../utils/csvExport"
 import { toast } from "react-toastify"
+import { CLIENT_STATUS, LIFECYCLE_STATUS } from "../../../utils/constants"
 
 export const CRMResults = ({ clients, loading }) => {
     const { idTenant, idBranch } = useParams()
@@ -66,22 +67,28 @@ export const CRMResults = ({ clients, loading }) => {
             key: "status",
             render: (client) => {
                 const configs = {
-                    active: { label: "Ativo", color: "success" },
-                    inactive: { label: "Inativo", color: "danger" },
-                    suspended: { label: "Suspenso", color: "warning" },
-                    lead: { label: "Lead", color: "secondary" },
-                    canceled: { label: "Cancelado", color: "danger" }
+                    [CLIENT_STATUS.ACTIVE]: { label: "Ativo", color: "success" },
+                    [CLIENT_STATUS.INACTIVE]: { label: "Inativo", color: "danger" },
+                    [CLIENT_STATUS.SUSPENDED]: { label: "Suspenso", color: "warning" },
+
+                    [LIFECYCLE_STATUS.LEAD]: { label: "Novo Lead", color: "secondary" },
+                    [LIFECYCLE_STATUS.SCHEDULED]: { label: "Agendado", color: "info" },
+                    [LIFECYCLE_STATUS.ATTENDED]: { label: "Aula Feita", color: "primary" },
+                    [LIFECYCLE_STATUS.WAITING]: { label: "Aguardando", color: "warning" },
+                    [LIFECYCLE_STATUS.NEGOTIATION]: { label: "Negociação", color: "info" },
+                    [LIFECYCLE_STATUS.LOST]: { label: "Perdido/Cancelado", color: "danger" },
+                    [LIFECYCLE_STATUS.CONVERTED]: { label: "Convertido", color: "success" }
                 }
 
-                // Prioridade: Status do Contrato se for crítico, senão Lifecycle
-                let statusKey = client.lifecycleStatus
+                // Define The Badge Status
+                let statusKey = LIFECYCLE_STATUS.LEAD
 
-                // Mapeamento de normalização para os 5 estados
-                if (client.contractStatus === 'active') statusKey = 'active'
-                else if (client.contractStatus === 'suspended') statusKey = 'suspended'
-                else if (client.contractStatus === 'canceled' || client.lifecycleStatus === 'lost') statusKey = 'canceled'
-                else if (client.lifecycleStatus === 'inactive') statusKey = 'inactive'
-                else if (client.lifecycleStatus === 'lead' || !client.contractStatus || client.contractStatus === 'no_contract') statusKey = 'lead'
+                // 1. Status Operacional (Maior peso, se o aluno for cliente de fato)
+                if (client.status === CLIENT_STATUS.ACTIVE) statusKey = CLIENT_STATUS.ACTIVE
+                else if (client.status === CLIENT_STATUS.SUSPENDED) statusKey = CLIENT_STATUS.SUSPENDED
+                else if (client.status === CLIENT_STATUS.INACTIVE) statusKey = CLIENT_STATUS.INACTIVE
+                // 2. Se não for cliente ativo/suspenso/inativo, lemos o Funil de Vendas
+                else if (client.lifecycleStatus) statusKey = client.lifecycleStatus
 
                 const config = configs[statusKey] || { label: statusKey, color: "secondary" }
                 return (
@@ -136,7 +143,7 @@ export const CRMResults = ({ clients, loading }) => {
                 <div className="d-flex gap-2 font-size-16">
                     <Link to={`/${idTenant}/${idBranch}/clients/${client.id}`} className="text-primary" id={`view-crm-${client.id}`}>
                         <i className="mdi mdi-eye-outline"></i>
-                        <UncontrolledTooltip placement="top" target={`view-crm-${client.id}`} transition={{ timeout: 0 }} fade={false}>
+                        <UncontrolledTooltip placement="top" target={`view-crm-${client.id}`} delay={0}>
                             Ver Perfil
                         </UncontrolledTooltip>
                     </Link>
@@ -155,7 +162,7 @@ export const CRMResults = ({ clients, loading }) => {
                 id="export-csv-tooltip"
             >
                 <i className="mdi mdi-download font-size-16"></i>
-                <UncontrolledTooltip placement="top" target="export-csv-tooltip" transition={{ timeout: 0 }} fade={false}>
+                <UncontrolledTooltip placement="top" target="export-csv-tooltip" delay={0}>
                     Exportar Resultados
                 </UncontrolledTooltip>
             </Button>

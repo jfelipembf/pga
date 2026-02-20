@@ -37,7 +37,7 @@ export const ClientSchema = Yup.object().shape({
 
     // === CICLO DE VIDA (FUNIL) ===
     lifecycleStatus: Yup.string()
-        .oneOf(['lead', 'scheduled', 'attended', 'active', 'suspended', 'inactive', 'lost'])
+        .oneOf(['lead', 'scheduled', 'attended', 'active', 'suspended', 'inactive', 'lost', 'converted', 'waiting', 'negotiation'])
         .default('lead'),
 
     leadSource: Yup.string().nullable(), // instagram, google, indicacao, etc
@@ -54,7 +54,10 @@ export const LIFECYCLE_STATUS = {
     ACTIVE: 'active',
     SUSPENDED: 'suspended',
     INACTIVE: 'inactive',
-    LOST: 'lost'
+    LOST: 'lost',
+    CONVERTED: 'converted',
+    WAITING: 'waiting',
+    NEGOTIATION: 'negotiation'
 }
 
 /**

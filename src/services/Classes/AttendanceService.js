@@ -124,32 +124,48 @@ export const AttendanceService = {
             enrollmentsUpdated++
         })
 
-        // 5. Automação para Faltas Experimentais (Fora do Batch pois é evento externo)
-        const experimentalAbsences = attendanceData.clients.filter(
-            c => c.status === 'absent' && (
-                c.tag === "Extra" ||
-                c.enrollmentType === 'experimental' ||
-                c.type === 'experimental' ||
-                (c.tag && c.tag.includes('EX'))
-            )
+        // 5. Automação e CRM para Aulas Experimentais (Fora do Batch pois é evento externo)
+        const experimentalClients = attendanceData.clients.filter(
+            c => c.tag === "Extra" || c.enrollmentType === 'trial' || c.enrollmentType === 'experimental' || c.type === 'experimental' || (c.tag && c.tag.includes('EX'))
         )
 
-        if (experimentalAbsences.length > 0) {
+        if (experimentalClients.length > 0) {
             // Disparar em paralelo sem travar o batch
-            experimentalAbsences.forEach(async (client) => {
+            const { ClientLifecycleService } = await import('../Clients/ClientLifecycleService')
+            const { LIFECYCLE_STATUS } = await import('../../utils/constants')
+
+            experimentalClients.forEach(async (client) => {
                 try {
-                    const fullClient = await ClientService.getClientById(idTenant, idBranch, client.idClient || client.id)
-                    const phone = fullClient?.mobile || fullClient?.phone || fullClient?.cellPhone || fullClient?.responsavelPhone
-                    if (phone) {
-                        automationService.emit(idTenant, 'EXPERIMENTAL_ABSENCE', {
-                            client: fullClient.name,
-                            name: fullClient.name,
-                            phone: phone,
-                            date: formatDate(new Date())
-                        })
+                    const idClient = client.idClient || client.id
+                    const fullClient = await ClientService.getClientById(idTenant, idBranch, idClient)
+
+                    if (fullClient && fullClient.lifecycleStatus !== LIFECYCLE_STATUS.CONVERTED) {
+
+                        // Faltou na experimental
+                        if (client.status === 'absent') {
+                            await ClientLifecycleService.updateStatus(idTenant, idBranch, idClient, LIFECYCLE_STATUS.WAITING, {
+                                userId, reason: `Faltou na aula experimental da sessão ${idSession}`
+                            })
+
+                            const phone = fullClient?.mobile || fullClient?.phone || fullClient?.cellPhone || fullClient?.responsavelPhone
+                            if (phone) {
+                                automationService.emit(idTenant, 'EXPERIMENTAL_ABSENCE', {
+                                    client: fullClient.name,
+                                    name: fullClient.name,
+                                    phone: phone,
+                                    date: formatDate(new Date())
+                                })
+                            }
+
+                            // Veio na experimental
+                        } else if (client.status === 'present') {
+                            await ClientLifecycleService.updateStatus(idTenant, idBranch, idClient, LIFECYCLE_STATUS.ATTENDED, {
+                                userId, reason: `Concluiu a aula experimental da sessão ${idSession}`
+                            })
+                        }
                     }
                 } catch (autoErr) {
-                    console.error("[Automation] Erro ao disparar EXPERIMENTAL_ABSENCE:", autoErr)
+                    console.error("[CRM/Automation] Erro ao atualizar funil da aula experimental:", autoErr)
                 }
             })
         }
@@ -281,8 +297,8 @@ export const AttendanceService = {
             attendedSessions: enrollment.attendedSessions || 0,
             missedSessions: enrollment.missedSessions || 0,
             clientStatus: enrollment.status || 'active', // Status do contrato/matrícula
-            friendlyId: enrollment.friendlyId || enrollment.idGym || null,
-            idGym: enrollment.idGym || enrollment.friendlyId || null
+            friendlyId: enrollment.friendlyId || null,
+            idGym: enrollment.friendlyId || null
         }))
     },
 

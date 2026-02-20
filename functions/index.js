@@ -41,3 +41,4 @@ exports.sendTeacherDailyPlanning = require("./triggers/sendTeacherDailyPlanning"
 exports.processExpiredContracts = require("./triggers/processExpiredContracts");
 exports.processInactiveContracts = require("./triggers/processInactiveContracts");
 exports.processRecurringTasks = require("./triggers/processRecurringTasks");
+exports.processStaleLeads = require("./triggers/processStaleLeads");

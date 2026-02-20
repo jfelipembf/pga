@@ -259,6 +259,47 @@ export const getStartOfWeek = (date) => {
 // Deprecated alias for normalizeDate (from sharedUtils)
 export const parseFirestoreDate = normalizeDate;
 
+/**
+ * Funções de Cálculo Abstratas para Regras de Negócio e CRM
+ * Isolam a biblioteca (moment/etc) do restante do sistema
+ */
+
+export const getAge = (birthDate) => {
+    if (!birthDate) return null
+    const dateJS = normalizeDate(birthDate)
+    return moment().diff(moment(dateJS), 'years')
+}
+
+export const isBeforeDate = (date1, date2) => {
+    if (!date1 || !date2) return false
+    const d1 = normalizeDate(date1)
+    const d2 = normalizeDate(date2)
+    return moment(d1).isBefore(moment(d2), 'day')
+}
+
+export const isAfterDate = (date1, date2) => {
+    if (!date1 || !date2) return false
+    const d1 = normalizeDate(date1)
+    const d2 = normalizeDate(date2)
+    return moment(d1).isAfter(moment(d2), 'day')
+}
+
+export const getTodayStr = () => {
+    return moment().format('YYYY-MM-DD')
+}
+
+export const isPastDate = (date) => {
+    if (!date) return false
+    const d1 = normalizeDate(date)
+    return moment(d1).isBefore(moment(), 'day')
+}
+
+export const diffDaysFromNow = (date) => {
+    if (!date) return 0
+    const dJS = normalizeDate(date)
+    return moment(dJS).diff(moment(), 'days')
+}
+
 export const getStepForView = (view) => {
     switch (view) {
         case 'day': return 1

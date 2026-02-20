@@ -48,7 +48,7 @@ const ClientsList = ({ setBreadcrumbItems }) => {
                     <BasicTable
                         columns={columns}
                         data={clients}
-                        searchKeys={["firstName", "lastName", "email", "phone", "lifecycleStatus"]}
+                        searchKeys={["firstName", "lastName", "email", "phone", "status"]}
                         searchPlaceholder="Buscar por nome, email ou telefone..."
                         onNewClick={() => setModalOpen(true)}
                         onRowClick={(client) => handleRowClick(client, navigate)}
