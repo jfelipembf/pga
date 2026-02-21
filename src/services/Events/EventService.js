@@ -1,8 +1,8 @@
 import { eventRepository } from '../../data/repositories/EventRepository'
 import { EventSchema } from '../../data/schemas/Events/EventSchema'
-import { AuditService } from '../Core/AuditService'
-import moment from 'moment'
+import { EventAuditLogger } from './audit/EventAuditLogger'
 import { normalizeDate } from '../../utils/date'
+import moment from 'moment'
 
 /**
  * Serviço para Gestão de Eventos (Ciclos de Avaliação e Testes)
@@ -23,20 +23,15 @@ export const EventService = {
 
         const result = await eventRepository.create(idTenant, idBranch, payload)
 
-        await AuditService.log({
+        await EventAuditLogger.logCreation({
             idTenant, idBranch,
             userId: user.uid,
             userName: user.displayName || user.email,
-            action: 'EVENT_CREATED',
-            entityType: 'event',
             entityId: result.id,
-            description: `Novo ciclo de ${data.type} criado: ${data.name}`,
-            details: {
-                name: data.name,
-                type: data.type,
-                startDate: data.startDate,
-                endDate: data.endDate
-            }
+            eventName: data.name,
+            eventType: data.type,
+            startDate: data.startDate,
+            endDate: data.endDate
         })
 
         return result
@@ -46,7 +41,6 @@ export const EventService = {
      * Atualiza os dados de um evento (Ciclo)
      */
     updateEvent: async (idTenant, idBranch, user, idEvent, data) => {
-        // 1. Snapshot Anterior
         const oldData = await eventRepository.findById(idTenant, idBranch, idEvent)
 
         const payload = {
@@ -55,20 +49,15 @@ export const EventService = {
             updatedAt: normalizeDate(new Date())
         }
 
-        // 2. Persistir
         await eventRepository.update(idTenant, idBranch, idEvent, payload)
 
-        // 3. Auditoria com Diff
-        await AuditService.logUpdate({
-            idTenant,
-            idBranch,
+        await EventAuditLogger.logUpdate({
+            idTenant, idBranch,
             userId: user.uid,
             userName: user.displayName || user.email,
-            entityType: 'event',
             entityId: idEvent,
             oldData,
-            newData: data,
-            description: `Ciclo ${oldData?.name || idEvent} atualizado`
+            newData: data
         })
 
         return true
@@ -93,7 +82,6 @@ export const EventService = {
      * Finaliza um evento manualmente
      */
     finishEvent: async (idTenant, idBranch, user, idEvent) => {
-        // 1. Snapshot
         const oldData = await eventRepository.findById(idTenant, idBranch, idEvent)
 
         const payload = {
@@ -104,16 +92,13 @@ export const EventService = {
 
         const result = await eventRepository.update(idTenant, idBranch, idEvent, payload)
 
-        await AuditService.logUpdate({
-            idTenant,
-            idBranch,
+        await EventAuditLogger.logFinish({
+            idTenant, idBranch,
             userId: user.uid,
             userName: user.displayName || user.email,
-            entityType: 'event',
             entityId: idEvent,
             oldData,
-            newData: payload,
-            description: `Ciclo finalizado manualmente`
+            newData: payload
         })
 
         return result

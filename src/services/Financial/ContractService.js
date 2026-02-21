@@ -1,6 +1,6 @@
 import { contractRepository } from '../../data/repositories/ContractRepository'
 import { ContractSchema } from '../../data/schemas/Financial/ContractSchema'
-import { AuditService } from '../Core/AuditService'
+import { ContractAuditLogger } from './audit/ContractAuditLogger'
 import { normalizeDate } from '../../utils/date'
 
 /**
@@ -68,7 +68,6 @@ export const ContractService = {
      */
     async createContract(idTenant, idBranch, userId, contractData) {
         try {
-            // Validação com schema
             await ContractSchema.validate(contractData, { abortEarly: false })
 
             const newContract = await contractRepository.create(idTenant, idBranch, {
@@ -79,17 +78,12 @@ export const ContractService = {
                 deletedAt: null
             })
 
-            // Auditoria
-            await AuditService.log({
-                idTenant,
-                idBranch,
-                userId,
-                userName: contractData.userName || 'Sistema',
-                action: 'CONTRACT_CREATED',
-                entityType: 'contract',
+            await ContractAuditLogger.logCreation({
+                idTenant, idBranch, userId,
+                userName: contractData.userName,
                 entityId: newContract.id,
-                entityName: contractData.title,
-                changes: { created: contractData }
+                title: contractData.title,
+                contractData
             })
 
             return newContract
@@ -104,7 +98,6 @@ export const ContractService = {
      */
     async updateContract(idTenant, idBranch, userId, idContract, contractData) {
         try {
-            // Validação com schema
             await ContractSchema.validate(contractData, { abortEarly: false })
 
             const oldContract = await contractRepository.findById(idTenant, idBranch, idContract)
@@ -114,17 +107,13 @@ export const ContractService = {
                 updatedAt: normalizeDate(new Date())
             })
 
-            // Auditoria
-            await AuditService.logUpdate({
-                idTenant,
-                idBranch,
-                userId,
-                userName: contractData.userName || 'Sistema',
-                entityType: 'contract',
+            await ContractAuditLogger.logUpdate({
+                idTenant, idBranch, userId,
+                userName: contractData.userName,
                 entityId: idContract,
                 oldData: oldContract,
                 newData: contractData,
-                description: `Contrato atualizado: ${contractData.title || idContract}`
+                title: contractData.title
             })
 
             return updatedContract
@@ -143,18 +132,11 @@ export const ContractService = {
 
             await contractRepository.softDelete(idTenant, idBranch, idContract)
 
-            // Auditoria
-            await AuditService.log({
-                idTenant,
-                idBranch,
-                userId,
-                userName: 'Sistema',
-                action: 'CONTRACT_DELETED',
-                entityType: 'contract',
+            await ContractAuditLogger.logDeletion({
+                idTenant, idBranch, userId,
                 entityId: idContract,
-                entityName: contract.title,
-                description: `Contrato excluído: ${contract.title}`,
-                details: { snapshot: contract }
+                title: contract.title,
+                snapshot: contract
             })
 
             return true

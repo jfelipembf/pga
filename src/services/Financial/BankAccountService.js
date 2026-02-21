@@ -2,55 +2,48 @@ import { bankAccountRepository } from "../../data/repositories/BankAccountReposi
 import { transactionRepository } from "../../data/repositories/TransactionRepository"
 import { BankAccountSchema } from "../../data/schemas/FinancialSchemas"
 import { LedgerService } from "../Ledger/LedgerService"
-import { AuditService } from "../Core/AuditService"
+import { BankAccountAuditLogger } from "./audit/BankAccountAuditLogger"
+import { BankAccountRules } from "./domain/BankAccountRules"
 import { normalizeDate } from "../../utils/date"
 
 export const BankAccountService = {
 
     createAccount: async (idTenant, idBranch, userId, data) => {
-        try {
-            const validated = await BankAccountSchema.validate(data, { abortEarly: false })
-            const payload = {
-                ...validated,
-                createdAt: normalizeDate(new Date()),
-                updatedAt: normalizeDate(new Date()),
-                deletedAt: null
-            }
+        const validated = await BankAccountSchema.validate(data, { abortEarly: false })
+        const payload = {
+            ...validated,
+            createdAt: normalizeDate(new Date()),
+            updatedAt: normalizeDate(new Date()),
+            deletedAt: null
+        }
 
-            const newAccount = await bankAccountRepository.create(idTenant, idBranch, payload)
+        const newAccount = await bankAccountRepository.create(idTenant, idBranch, payload)
 
-            // Se tem saldo inicial, cria transação de Aporte
-            const initialBalance = parseFloat(data.currentBalance) || 0;
-            if (initialBalance > 0) {
-                await transactionRepository.create(idTenant, idBranch, {
-                    date: normalizeDate(new Date()),
-                    description: `Saldo Inicial - ${data.name}`,
-                    amount: initialBalance,
-                    type: 'income',
-                    category: 'Saldo Inicial',
-                    idBankAccount: newAccount.id,
-                    sourceType: 'opening_balance',
-                    createdAt: normalizeDate(new Date())
-                });
-
-                // Lançamento Contábil
-                await LedgerService.createOpeningBalanceEntry(idTenant, idBranch, newAccount.id, data.name, initialBalance, false);
-            }
-
-            await AuditService.log({
-                idTenant, idBranch, userId,
-                userName: data.userName,
-                action: 'BANK_ACCOUNT_CREATED',
-                entityType: 'bankAccount',
-                entityId: newAccount.id,
-                description: `Nova conta bancária criada: ${data.name} com saldo inicial de R$ ${initialBalance.toFixed(2)}`
+        const initialBalance = parseFloat(data.currentBalance) || 0;
+        if (initialBalance > 0) {
+            await transactionRepository.create(idTenant, idBranch, {
+                date: normalizeDate(new Date()),
+                description: `Saldo Inicial - ${data.name}`,
+                amount: initialBalance,
+                type: 'income',
+                category: 'Saldo Inicial',
+                idBankAccount: newAccount.id,
+                sourceType: 'opening_balance',
+                createdAt: normalizeDate(new Date())
             });
 
-            return newAccount
-        } catch (error) {
-            console.error("BankAccountService error:", error)
-            throw error
+            await LedgerService.createOpeningBalanceEntry(idTenant, idBranch, newAccount.id, data.name, initialBalance, false);
         }
+
+        await BankAccountAuditLogger.logCreation({
+            idTenant, idBranch, userId,
+            userName: data.userName,
+            entityId: newAccount.id,
+            accountName: data.name,
+            initialBalance
+        })
+
+        return newAccount
     },
 
     listActive: async (idTenant, idBranch) => {
@@ -62,19 +55,16 @@ export const BankAccountService = {
     },
 
     update: async (idTenant, idBranch, userId, id, data) => {
-        // Verificar se houve mudança de saldo manual
         const currentAccount = await bankAccountRepository.findById(idTenant, idBranch, id);
         const oldBalance = parseFloat(currentAccount?.currentBalance || 0);
-        const newBalance = parseFloat(data.currentBalance); // Pode ser undefined
+        const newBalance = parseFloat(data.currentBalance);
 
         const payload = { ...data, updatedAt: normalizeDate(new Date()) }
 
-        // Se usuário mandou um novo saldo diferente do atual
         if (!isNaN(newBalance) && Math.abs(newBalance - oldBalance) > 0.01) {
             const diff = newBalance - oldBalance;
             const isPositive = diff > 0;
 
-            // Criar Transação de Ajuste
             await transactionRepository.create(idTenant, idBranch, {
                 date: normalizeDate(new Date()),
                 description: `Ajuste Manual de Saldo`,
@@ -87,21 +77,18 @@ export const BankAccountService = {
                 createdAt: normalizeDate(new Date())
             });
 
-            // Lançamento Contábil
             await LedgerService.createOpeningBalanceEntry(idTenant, idBranch, id, currentAccount.name, diff, true);
         }
 
         const result = await bankAccountRepository.update(idTenant, idBranch, id, payload)
 
-        await AuditService.logUpdate({
+        await BankAccountAuditLogger.logUpdate({
             idTenant, idBranch, userId,
             userName: data.userName,
-            entityType: 'bankAccount',
             entityId: id,
             oldData: currentAccount,
-            newData: payload,
-            description: `Conta bancária atualizada: ${currentAccount.name}`
-        });
+            newData: payload
+        })
 
         return result
     },
@@ -112,44 +99,28 @@ export const BankAccountService = {
             updatedAt: normalizeDate(new Date())
         })
 
-        await AuditService.log({
+        await BankAccountAuditLogger.logDeactivation({
             idTenant, idBranch, userId,
-            action: 'BANK_ACCOUNT_DEACTIVATED',
-            entityType: 'bankAccount',
-            entityId: id,
-            description: `Conta bancária desativada.`
-        });
+            entityId: id
+        })
 
         return result
     },
 
     delete: async (idTenant, idBranch, userId, id) => {
-        // 1. CHECK: Tem transações vinculadas?
-        const transactions = await transactionRepository.findWhere(idTenant, idBranch, [
-            ['idBankAccount', '==', id],
-            ['deletedAt', '==', null]
-        ], null, 1);
+        await BankAccountRules.validateForDeletion(idTenant, idBranch, id)
 
-        if (transactions.length > 0) {
-            throw new Error("SEGURANÇA: Esta conta possui histórico de transações e não pode ser excluída para preservar a integridade financeira. Sugestão: Apenas desative a conta.");
-        }
-
-        // 2. CHECK: É uma conta principal?
         const account = await bankAccountRepository.findById(idTenant, idBranch, id);
-        if (account?.isPrimary) {
-            throw new Error("SEGURANÇA: Não é possível excluir a conta principal do sistema.");
-        }
+        BankAccountRules.validateNotPrimary(account)
 
         const result = await bankAccountRepository.softDelete(idTenant, idBranch, id, userId)
 
-        await AuditService.log({
+        await BankAccountAuditLogger.logDeletion({
             idTenant, idBranch, userId,
-            action: 'BANK_ACCOUNT_DELETED',
-            entityType: 'bankAccount',
             entityId: id,
-            description: `Conta bancária excluída (soft delete): ${account?.name}`,
-            details: { snapshot: account }
-        });
+            accountName: account?.name,
+            snapshot: account
+        })
 
         return result
     }

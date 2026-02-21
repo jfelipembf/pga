@@ -1,6 +1,7 @@
 import { cashierRepository } from '../../data/repositories/CashierRepository'
 import { transactionRepository } from '../../data/repositories/TransactionRepository'
-import { AuditService } from '../Core/AuditService'
+import { CashierAuditLogger } from './audit/CashierAuditLogger'
+import { CashierRules } from './domain/CashierRules'
 import { CashierSessionSchema, TransactionSchema } from '../../data/schemas/FinancialSchemas'
 import { LedgerService, safeLedgerCall } from '../Ledger/LedgerService'
 import { normalizeDate, isSameDay } from '../../utils/date'
@@ -14,9 +15,7 @@ export const CashierService = {
      */
     openCashier: async (idTenant, idBranch, userId, userName, openingBalance) => {
         const existingSession = await cashierRepository.findOpenSession(idTenant, idBranch, userId);
-        if (existingSession) {
-            throw new Error(`Usuário já possui um caixa aberto (ID: ${existingSession.id})`);
-        }
+        CashierRules.validateForOpen(existingSession);
 
         const safeOpeningBalance = parseFloat(openingBalance) || 0;
 
@@ -36,14 +35,10 @@ export const CashierService = {
 
         const newSession = await cashierRepository.create(idTenant, idBranch, sessionData);
 
-        await AuditService.log({
-            idTenant, idBranch, userId,
-            userName,
-            action: 'CASHIER_OPEN',
-            entityType: 'cashierSession',
+        await CashierAuditLogger.logOpen({
+            idTenant, idBranch, userId, userName,
             entityId: newSession.id,
-            description: `Caixa aberto com saldo inicial de R$ ${openingBalance}`,
-            details: { openingBalance }
+            openingBalance
         });
 
         return newSession;
@@ -54,35 +49,15 @@ export const CashierService = {
      */
     closeCashier: async (idTenant, idBranch, userId, sessionId, closingData) => {
         const session = await cashierRepository.findById(idTenant, idBranch, sessionId);
-        if (!session) throw new Error("Sessão de caixa não encontrada");
-        if (session.status !== 'open') throw new Error("Caixa já está fechado");
+        CashierRules.validateForClose(session);
 
-        // Recalcular saldo esperado (Auditabilidade)
         const transactions = await transactionRepository.findBySession(idTenant, idBranch, sessionId);
-        const activeTransactions = transactions.filter(t => !t.deletedAt);
-
-        // Dinheiro Entrou: Suprimento (prioridade por category) OU Income que não seja sangria
-        const moneyIn = activeTransactions
-            .filter(t => t.method === 'money' && (
-                t.category === 'supply' ||
-                (t.type === 'income' && t.category !== 'withdrawal')
-            ))
-            .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
-
-        // Dinheiro Saiu: Sangria (prioridade por category) OU Expense que não seja suprimento
-        const moneyOut = activeTransactions
-            .filter(t => t.method === 'money' && (
-                t.category === 'withdrawal' ||
-                (t.type === 'expense' && t.category !== 'supply')
-            ))
-            .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
-
-        const calculatedExpectedBalance = (parseFloat(session.openingBalance) || 0) + moneyIn - moneyOut;
+        const calculatedExpectedBalance = CashierRules.calculateExpectedBalance(session.openingBalance, transactions);
 
         const updateData = {
             status: 'closed',
             closedAt: normalizeDate(new Date()),
-            expectedBalance: calculatedExpectedBalance, // Garante consistência
+            expectedBalance: calculatedExpectedBalance,
             actualBalance: parseFloat(closingData.actualBalance) || 0,
             difference: (parseFloat(closingData.actualBalance) || 0) - calculatedExpectedBalance,
             closingNotes: closingData.notes
@@ -90,13 +65,10 @@ export const CashierService = {
 
         await cashierRepository.update(idTenant, idBranch, sessionId, updateData);
 
-        await AuditService.log({
+        await CashierAuditLogger.logClose({
             idTenant, idBranch, userId,
-            action: 'CASHIER_CLOSE',
-            entityType: 'cashierSession',
             entityId: sessionId,
-            description: `Caixa fechado. Diferença: R$ ${updateData.difference}`,
-            details: updateData
+            updateData
         });
 
         return { ...session, ...updateData };
@@ -115,7 +87,7 @@ export const CashierService = {
 
         const fullMovement = {
             ...movementData,
-            idCashierSession: cashierSession?.id || null, // Permite nulo se for histórico sem sessão
+            idCashierSession: cashierSession?.id || null,
             createdBy: userId,
             date: normalizeDate(movementData.date || new Date()),
             status: 'completed'
@@ -125,33 +97,13 @@ export const CashierService = {
 
         const newMovement = await transactionRepository.create(idTenant, idBranch, fullMovement);
 
-        let updates = {};
         if (cashierSession) {
-            if (fullMovement.type === 'income' || fullMovement.category === 'supply') { // Entrada ou Suprimento
-                updates.totalIncome = (cashierSession.totalIncome || 0) + (parseFloat(fullMovement.netAmount || fullMovement.amount) || 0);
-
-                // Apenas Dinheiro Físico soma na Gaveta
-                if (fullMovement.method === 'money') {
-                    updates.expectedBalance = (cashierSession.expectedBalance || 0) + (parseFloat(fullMovement.amount) || 0);
-                }
-            } else {
-                // Expenses/Withdrawals (Saída ou Sangria)
-                updates.totalExpenses = (cashierSession.totalExpenses || 0) + (parseFloat(fullMovement.amount) || 0);
-
-                // Apenas Dinheiro Físico sai da Gaveta
-                if (fullMovement.method === 'money') {
-                    updates.expectedBalance = (cashierSession.expectedBalance || 0) - (parseFloat(fullMovement.amount) || 0);
-                }
-            }
-
+            const updates = CashierRules.calculateSessionUpdates(cashierSession, fullMovement);
             await cashierRepository.update(idTenant, idBranch, cashierSession.id, updates);
         }
 
-        // ✅ LANÇAMENTO CONTÁBIL
-        // skipLedger: quando o chamador já faz seu próprio lançamento contábil
-        // (ex: PayableService.payBill, ReceivableService.settleReceivable)
+        // Lançamento Contábil
         if (!fullMovement.skipLedger) {
-            // 1. Se for sangria/suprimento com banco vinculado
             if ((fullMovement.category === 'withdrawal' || fullMovement.category === 'supply')
                 && fullMovement.idBankAccount) {
                 await safeLedgerCall(idTenant, idBranch,
@@ -167,8 +119,6 @@ export const CashierService = {
                     { sourceType: 'cashier_movement', sourceId: newMovement.id, operation: 'createCashierMovement' }
                 );
             }
-            // 2. Se for uma movimentação avulsa (não vinculada a Venda, Conta a Pagar ou Recebível já contabilizado)
-            // Isso garante que taxas, pequenas despesas ou receitas manuais apareçam na DRE.
             else if (!fullMovement.idSale && !fullMovement.idPayable && !fullMovement.idReceivable) {
                 await safeLedgerCall(idTenant, idBranch,
                     () => LedgerService.createGenericMovementEntry(idTenant, idBranch, {
@@ -180,14 +130,13 @@ export const CashierService = {
             }
         }
 
-        await AuditService.log({
+        await CashierAuditLogger.logMovement({
             idTenant, idBranch, userId,
             userName: movementData.userName,
-            action: fullMovement.type === 'income' ? 'CASHIER_INCOME' : 'CASHIER_EXPENSE',
-            entityType: 'financialTransaction',
             entityId: newMovement.id,
-            description: `[Caixa] ${fullMovement.type === 'income' ? 'Entrada' : 'Saída'}: R$ ${fullMovement.amount}`,
-            details: fullMovement
+            type: fullMovement.type,
+            amount: fullMovement.amount,
+            movement: fullMovement
         });
 
         return newMovement;
@@ -195,15 +144,11 @@ export const CashierService = {
 
     /**
      * Verifica o status do caixa sem lançar exceção.
-     * Retorna { isOpen, session }
      */
     checkStatus: async (idTenant, idBranch, userId) => {
         try {
             const session = await cashierRepository.findOpenSession(idTenant, idBranch, userId);
-            return {
-                isOpen: !!session,
-                session
-            };
+            return { isOpen: !!session, session };
         } catch (error) {
             console.error("Erro ao verificar status do caixa:", error);
             return { isOpen: false, session: null };
@@ -211,8 +156,7 @@ export const CashierService = {
     },
 
     /**
-     * Verifica se existe um caixa aberto para o usuário, lançando erro se não houver.
-     * Útil para transações que dependem do caixa.
+     * Verifica se existe um caixa aberto para o usuário.
      */
     ensureOpenSession: async (idTenant, idBranch, userId) => {
         const session = await cashierRepository.findOpenSession(idTenant, idBranch, userId);
@@ -223,7 +167,7 @@ export const CashierService = {
     },
 
     /**
-     * Lista as transações financeiras (Movimentações de Caixa)
+     * Lista as transações financeiras
      */
     listTransactions: async (idTenant, idBranch, filters = {}, limitCount = 50) => {
         const whereClauses = [];
@@ -241,14 +185,12 @@ export const CashierService = {
     },
 
     /**
-     * Lista transações por período (Filtro Real no Banco de Dados)
+     * Lista transações por período
      */
     listByPeriod: async (idTenant, idBranch, startDate, endDate) => {
-        // Garantir objetos Date
         const start = normalizeDate(startDate);
         const end = normalizeDate(endDate);
 
-        // Firestore exige que o campo de filtro de intervalo seja o primeiro na ordenação (ou requires index)
         const rawData = await transactionRepository.findWhere(idTenant, idBranch,
             [
                 ['date', '>=', start],
