@@ -78,8 +78,13 @@ export const PaymentProcessingRules = {
             ? 1  // Débito = D+1
             : (isAnticipated ? 1 : (settlementDays * installmentNumber));
 
-        const d = new Date(saleDate);
+        // CRÍTICO: Usa parseDateInput ('noon') em vez de new Date() 
+        // para evitar que fuso horário da máquina (UTC-3) jogue a data 1 dia pra trás
+        // quando saleDate for string YYYY-MM-DD
+        const { parseDateInput } = require('../../../utils/date');
+        const d = parseDateInput(saleDate, 'noon');
         d.setDate(d.getDate() + daysToAdd);
+
         return normalizeDate(d);
     }
 };
