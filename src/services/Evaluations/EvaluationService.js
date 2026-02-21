@@ -1,8 +1,7 @@
 import { evaluationRepository } from '../../data/repositories/EvaluationRepository'
-import { EvaluationSchema } from '../../data/schemas/Evaluations/EvaluationSchema'
-import { AuditService } from '../Core/AuditService'
-import { normalizeDate } from '../../utils/date'
 import { ServiceContextHelper } from '../Core/DataAggregationHelper'
+import { EvaluationRules } from './domain/EvaluationRules'
+import { EvaluationAuditLogger } from './audit/EvaluationAuditLogger'
 
 /**
  * Serviço para Gestão de Avaliações de Alunos
@@ -16,15 +15,10 @@ export const EvaluationService = {
      * @param {object} data - Dados da avaliação
      */
     registerEvaluation: async (idTenant, idBranch, user, data) => {
-        // 1. Validar se há um evento ativo para avaliação
-        if (!data.idEvent) {
-            throw new Error("Não é possível registrar avaliações fora de um período (ciclo) ativo.")
-        }
+        // 1. Validar e formatar regras (domain)
+        const validData = await EvaluationRules.validateForRegistration(data);
 
-        // 2. Validar entrada
-        const validData = await EvaluationSchema.validate(data, { abortEarly: false, stripUnknown: true })
-
-        // 3. Verificar se o aluno já foi avaliado nesta atividade dentro DESTE ciclo (idEvent)
+        // 2. Verificar se o aluno já foi avaliado nesta atividade dentro DESTE ciclo (idEvent)
         const existingEvaluation = await evaluationRepository.findByClientActivityEvent(
             idTenant, idBranch,
             validData.idClient,
@@ -34,47 +28,22 @@ export const EvaluationService = {
 
         if (existingEvaluation) {
             // Caso já exista, atualizamos o documento existente (Edição)
-            const updatePayload = {
-                ...validData,
-                updatedBy: user.uid,
-                updatedByName: user.displayName || user.email,
-                updatedAt: normalizeDate(new Date())
-            }
+            const updatePayload = EvaluationRules.buildUpdatePayload(validData, user);
             await evaluationRepository.update(idTenant, idBranch, existingEvaluation.id, updatePayload)
 
-            await AuditService.log({
-                idTenant, idBranch,
-                userId: user.uid,
-                userName: user.displayName || user.email,
-                action: 'EVALUATION_UPDATED',
-                entityType: 'evaluation',
-                entityId: existingEvaluation.id,
-                description: `Avaliação do aluno ID ${validData.idClient} atualizada dentro do ciclo ${validData.idEvent}`,
-                details: { clientId: validData.idClient, activityId: validData.idActivity }
-            })
+            // Log detalhado customizado de Edição no Ciclo
+            await EvaluationAuditLogger.logUpdate(idTenant, idBranch, user, existingEvaluation.id, validData);
 
             return { id: existingEvaluation.id, ...updatePayload, isUpdate: true }
         }
 
-        // 4. Caso contrário, criamos uma nova (Criação)
-        const payload = {
-            ...validData,
-            createdBy: user.uid,
-            createdByName: user.displayName || user.email,
-        }
+        // 3. Caso contrário, criamos uma nova (Criação)
+        const payload = EvaluationRules.buildCreationPayload(validData, user);
 
         const result = await evaluationRepository.create(idTenant, idBranch, payload)
 
-        await AuditService.log({
-            idTenant, idBranch,
-            userId: user.uid,
-            userName: user.displayName || user.email,
-            action: 'EVALUATION_CREATED',
-            entityType: 'evaluation',
-            entityId: result.id,
-            description: `Nova avaliação registrada para o aluno ID ${payload.idClient} no ciclo ${payload.idEvent}`,
-            details: { clientId: payload.idClient, activityId: payload.idActivity }
-        })
+        // Log de Criação
+        await EvaluationAuditLogger.logCreation(idTenant, idBranch, user, result.id, payload);
 
         // AUTOMATION TRIGGER (Fire and forget)
         try {
@@ -111,27 +80,13 @@ export const EvaluationService = {
         const oldData = await evaluationRepository.findById(idTenant, idBranch, idEvaluation)
         if (!oldData) throw new Error("Avaliação não encontrada para atualização")
 
-        const payload = {
-            ...data,
-            updatedBy: user.uid,
-            updatedByName: user.displayName || user.email,
-            updatedAt: new Date()
-        }
+        const payload = EvaluationRules.buildDirectUpdatePayload(data, user);
 
         // 2. Persistir
         await evaluationRepository.update(idTenant, idBranch, idEvaluation, payload)
 
         // 3. Auditoria Detalhada (Antes vs Depois)
-        await AuditService.logUpdate({
-            idTenant, idBranch,
-            userId: user.uid,
-            userName: user.displayName || user.email,
-            entityType: 'evaluation',
-            entityId: idEvaluation,
-            oldData,
-            newData: payload,
-            description: `Atualizou a avaliação do aluno ID ${oldData.idClient}`
-        })
+        await EvaluationAuditLogger.logDetailedUpdate(idTenant, idBranch, user, idEvaluation, oldData, payload);
 
         return true
     },
@@ -152,20 +107,8 @@ export const EvaluationService = {
 
         await evaluationRepository.delete(idTenant, idBranch, idEvaluation)
 
-        await AuditService.log({
-            idTenant, idBranch,
-            userId: user.uid,
-            userName: user.displayName || user.email,
-            action: 'EVALUATION_DELETED',
-            entityType: 'evaluation',
-            entityId: idEvaluation,
-            description: oldData
-                ? `Excluiu a avaliação do aluno ID ${oldData.idClient} na atividade ${oldData.idActivity}`
-                : `Avaliação ${idEvaluation} removida`,
-            details: {
-                snapshot: oldData || "Dados não encontrados antes da exclusão"
-            }
-        })
+        // 2. Log de exclusão
+        await EvaluationAuditLogger.logDeletion(idTenant, idBranch, user, idEvaluation, oldData);
 
         return true
     },

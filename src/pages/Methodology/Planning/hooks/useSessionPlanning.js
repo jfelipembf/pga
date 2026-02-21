@@ -143,7 +143,7 @@ export const useSessionPlanning = ({
 
                 if (newPlanPayload) {
                     const saved = await SessionService.savePlanning(
-                        idTenant, idBranch, user?.uid, sessionId, newPlanPayload
+                        idTenant, idBranch, user, sessionId, newPlanPayload
                     );
 
                     if (isMounted) {
@@ -153,7 +153,7 @@ export const useSessionPlanning = ({
 
                     if (status === 'new') {
                         SessionService.generateFuturePlannings(
-                            idTenant, idBranch, user?.uid, classId, sessionDate, objectivesData
+                            idTenant, idBranch, user, classId, sessionDate, objectivesData
                         ).catch(e => console.error("Erro background future planning:", e));
                     }
                 }
@@ -192,7 +192,7 @@ export const useSessionPlanning = ({
             };
 
             const saved = await SessionService.savePlanning(
-                idTenant, idBranch, user?.uid, sessionId, newPlanPayload
+                idTenant, idBranch, user, sessionId, newPlanPayload
             );
 
             if (saved) {
@@ -201,7 +201,7 @@ export const useSessionPlanning = ({
 
                 if (propagateToFuture) {
                     SessionService.generateFuturePlannings(
-                        idTenant, idBranch, user?.uid, classId, sessionDate, objectivesData
+                        idTenant, idBranch, user, classId, sessionDate, objectivesData
                     ).catch(e => console.error("Erro background future planning:", e));
                 }
             }

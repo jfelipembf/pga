@@ -39,23 +39,18 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
                         )
                     ])
 
-                    // Mapear experimentais para o formato de attendance
+                    // Mapear inscrições de sessão (experimental/extra) para o formato de attendance
                     const mappedSessionEnrollments = (sessionEnrollments || []).map(e => ({
-                        ...e,
                         id: e.idClient,
                         idClient: e.idClient,
                         enrollmentId: e.enrollmentId || e.id,
-                        name: e.clientName,
+                        name: e.clientName || 'Aluno',
                         photo: e.clientPhoto || null,
                         status: 'present',
                         justification: '',
                         tag: e.enrollmentType === 'trial' ? 'EX' : (e.tag || 'Sessão'),
                         enrollmentType: e.enrollmentType || 'single-session',
-                        attendedSessions: 0,
-                        missedSessions: 0,
-                        clientStatus: e.clientStatus || e.status || (e.enrollmentType === 'trial' ? 'active' : 'active'),
-                        friendlyId: e.friendlyId || e.idGym || null,
-                        idGym: e.idGym || e.friendlyId || null
+                        clientStatus: 'active'
                     }))
 
                     // Criar mapa de matrículas ativas da TURMA: enrollmentId -> client
@@ -73,24 +68,31 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
 
                     if (existingAttendance) {
                         // EDIÇÃO: Filtrar snapshot para remover matrículas canceladas de TURMA recorrente
-                        const validatedClients = existingAttendance.clients.filter(client => {
-                            // Alunos extras (sem enrollmentId) ou Experimentais (da sessão) são mantidos
-                            // Se for da sessão (experimental), não validar contra map de turma
-                            if (!client.enrollmentId || client.tag === 'EX' || client.enrollmentType === 'trial') return true
-
-                            // Verificar se a matrícula de TURMA ainda está ativa
-                            return activeEnrollmentsMap.has(client.enrollmentId)
-                        }).map(client => {
-                            // ATUALIZAR STATUS AO VIVO E FOTO COM BASE NA COLEÇÃO MÃE EM MEMÓRIA
+                        const validatedClients = existingAttendance.clients.map(client => {
+                            // PRIORIDADE 1: Se o aluno está no mapa de matrículas ATIVAS da turma, pegamos os dados vivos (Reidratação)
                             if (client.enrollmentId && activeEnrollmentsMap.has(client.enrollmentId)) {
                                 const freshEnrollment = activeEnrollmentsMap.get(client.enrollmentId);
                                 return {
                                     ...client,
+                                    name: freshEnrollment.name,
+                                    photo: freshEnrollment.photo,
                                     clientStatus: freshEnrollment.clientStatus,
-                                    photo: freshEnrollment.photo || client.photo,
-                                    friendlyId: freshEnrollment.friendlyId || client.friendlyId
+                                    tag: client.tag || 'Matriculado'
                                 }
                             }
+
+                            // PRIORIDADE 2: Se for um aluno experimental da sessão que NÃO está na turma
+                            const sessionEnrollment = mappedSessionEnrollments.find(se => se.idClient === client.idClient);
+                            if (sessionEnrollment) {
+                                return {
+                                    ...client,
+                                    name: sessionEnrollment.name,
+                                    photo: sessionEnrollment.photo,
+                                    clientStatus: 'active'
+                                }
+                            }
+
+                            // PRIORIDADE 3: Manter como está (caso seja um aluno extra buscado manualmente)
                             return client;
                         })
 
@@ -200,7 +202,6 @@ export const useAttendance = (isOpen, schedule, onAttendanceSaved, onEnrollmentC
                 status: "present",
                 justification: "",
                 tag: "Extra", // Indica que não é matriculado
-                friendlyId: client.friendlyId,
                 clientStatus: liveStatus
             }
 

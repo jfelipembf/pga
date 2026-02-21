@@ -1,5 +1,5 @@
 import { sessionRepository } from '../../data/repositories/SessionRepository'
-import { AuditService } from '../Core/AuditService'
+import { SessionAuditLogger } from './audit/SessionAuditLogger'
 import {
     serverTimestamp,
     collection,
@@ -16,17 +16,12 @@ import { SessionMapper } from './SessionMapper'
 import { enrollmentRepository } from '../../data/repositories/EnrollmentRepository'
 import { getFirebaseBackend } from '../../helpers/firebase_helper'
 import { PlanningLogic } from '../Methodology/PlanningLogic';
-import { startOfWeek, format, differenceInCalendarWeeks } from 'date-fns';
+import { SessionRules } from './domain/SessionRules';
 
 const getDb = () => getFirebaseBackend().db;
 
 /**
  * Serviço para Gestão de Sessões (Aulas Individuais)
- * 
- * Responsabilidades:
- * - CRUD de sessões individuais
- * - Consultas por período, turma, etc
- * - Atualização de status e cancelamentos eventuais
  */
 export const SessionService = {
     /**
@@ -74,49 +69,32 @@ export const SessionService = {
         const userId = user?.uid || 'system'
         const userName = user?.displayName || user?.email || 'Sistema'
 
-        const updateData = {
-            ...data,
-            updatedBy: userId,
-            updatedAt: serverTimestamp()
-        }
+        const updatePayload = SessionRules.buildUpdatePayload(userId, data)
+        const result = await sessionRepository.update(idTenant, idBranch, idSession, updatePayload)
 
-        const result = await sessionRepository.update(idTenant, idBranch, idSession, updateData)
-
-        await AuditService.log({
+        await SessionAuditLogger.logUpdate({
             idTenant, idBranch, userId, userName,
-            action: 'SESSION_UPDATED',
-            entityType: 'session',
-            entityId: idSession,
-            description: `Sessão ${idSession} alterada manualmente.`,
-            details: { changes: data }
+            idSession,
+            data
         })
 
         return result
     },
 
     /**
-     * Cancela uma sessão específica (Ex: Feriado ou falta do professor)
+     * Cancela uma sessão específica (Ex: Feriado)
      */
     cancelSession: async (idTenant, idBranch, user, idSession, reason = '') => {
         const userId = user?.uid || 'system'
         const userName = user?.displayName || user?.email || 'Sistema'
 
-        const result = await sessionRepository.update(idTenant, idBranch, idSession, {
-            status: 'canceled', // Padronizado com ClassService (um 'L')
-            canceledAt: serverTimestamp(),
-            canceledBy: userId,
-            cancellationReason: reason,
-            updatedBy: userId,
-            updatedAt: serverTimestamp()
-        })
+        const cancelPayload = SessionRules.buildCancelPayload(userId, reason)
+        const result = await sessionRepository.update(idTenant, idBranch, idSession, cancelPayload)
 
-        await AuditService.log({
+        await SessionAuditLogger.logCancel({
             idTenant, idBranch, userId, userName,
-            action: 'SESSION_CANCELED',
-            entityType: 'session',
-            entityId: idSession,
-            description: `Aula cancelada individualmente: ${reason || 'Sem motivo informado'}`,
-            details: { reason }
+            idSession,
+            reason
         })
 
         return result
@@ -137,20 +115,18 @@ export const SessionService = {
 
         const result = await sessionRepository.create(idTenant, idBranch, finalData)
 
-        await AuditService.log({
+        await SessionAuditLogger.logExtraSessionCreation({
             idTenant, idBranch, userId, userName,
-            action: 'SESSION_CREATED',
-            entityType: 'session',
-            entityId: result.id,
-            description: `Sessão avulsa/extra criada para o dia ${sessionData.sessionDate}`,
-            details: sessionData
+            idSession: result.id,
+            sessionDate: sessionData.sessionDate,
+            sessionData
         })
 
         return result
     },
 
     // =========================================================================
-    // PLANEJAMENTO (Subcoleção)
+    // PLANEJAMENTO (Subcoleção / Methodology)
     // =========================================================================
 
     /**
@@ -160,51 +136,52 @@ export const SessionService = {
         try {
             const db = getDb();
             const planningRef = collection(db, `tenants/${idTenant}/branches/${idBranch}/sessions/${idSession}/planning`);
-            // Busca o mais recente
             const q = query(planningRef, orderBy('createdAt', 'desc'), limit(1));
             const snapshot = await getDocs(q);
 
             if (snapshot.empty) return null;
             return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
         } catch (error) {
-            console.error("Erro ao buscar planejamento:", error);
+            console.error("[SessionService] Erro ao buscar planejamento:", error);
             return null;
         }
     },
 
     /**
-     * Salva um novo planejamento para a sessão (cria novo documento no histórico)
+     * Salva um novo planejamento para a sessão
      */
-    savePlanning: async (idTenant, idBranch, userId, idSession, planningData) => {
+    savePlanning: async (idTenant, idBranch, user, idSession, planningData) => {
         try {
-            const db = getDb();
-            const planningCollection = collection(db, `tenants/${idTenant}/branches/${idBranch}/sessions/${idSession}/planning`);
-            // Gera referência para novo documento
-            const newDocRef = doc(planningCollection);
+            const userId = user?.uid || user || 'system'
+            const userName = user?.displayName || user?.email || 'Sistema'
 
-            const payload = {
-                ...planningData,
-                status: 'active',
-                createdAt: serverTimestamp(),
-                createdBy: userId
-            };
+            const db = getDb();
+            const planningCol = collection(db, `tenants/${idTenant}/branches/${idBranch}/sessions/${idSession}/planning`);
+            const newDocRef = doc(planningCol);
+
+            const payload = SessionRules.buildPlanningPayload(userId, planningData)
 
             await setDoc(newDocRef, payload);
-            return { id: newDocRef.id, ...planningData }; // Retornando data sem serverTimestamp para UI imediata
+
+            await SessionAuditLogger.logPlanningSave({
+                idTenant, idBranch, userId, userName,
+                idSession,
+                planningData
+            })
+
+            return { id: newDocRef.id, ...planningData };
         } catch (error) {
-            console.error("Erro ao salvar planejamento:", error);
+            console.error("[SessionService] Erro ao salvar planejamento:", error);
             throw error;
         }
     },
 
     /**
-     * Busca se existe ALGUM planejamento já definido para a turma nesta semana.
-     * Retorna o primeiro que encontrar com 'isWeeklyFocus: true'.
+     * Busca planejamento ativo para a turma na semana.
      */
     findPlanningForWeek: async (idTenant, idBranch, classId, weekStart, weekEnd) => {
         try {
             const db = getDb();
-            // 1. Encontrar sessões da turma na semana
             const sessionsRef = collection(db, `tenants/${idTenant}/branches/${idBranch}/sessions`);
             const qSession = query(
                 sessionsRef,
@@ -216,42 +193,36 @@ export const SessionService = {
             const sessionSnap = await getDocs(qSession);
             if (sessionSnap.empty) return null;
 
-            // 2. Para cada sessão, verificar se tem planejamento focado na semana
-            // (Idealmente verificaríamos em ordem cronológica)
             const sortedSessions = sessionSnap.docs
                 .map(d => ({ id: d.id, ...d.data() }))
                 .sort((a, b) => a.sessionDate.localeCompare(b.sessionDate));
 
             for (const session of sortedSessions) {
                 const planningRef = collection(db, `tenants/${idTenant}/branches/${idBranch}/sessions/${session.id}/planning`);
-                // Precisamos de um planejamento que seja 'isWeeklyFocus'
                 const qPlan = query(planningRef, where('isWeeklyFocus', '==', true), limit(1));
                 const planSnap = await getDocs(qPlan);
 
                 if (!planSnap.empty) {
-                    const planData = planSnap.docs[0].data();
-                    return {
-                        sessionId: session.id,
-                        sessionDate: session.sessionDate,
-                        ...planData
-                    };
+                    return { sessionId: session.id, sessionDate: session.sessionDate, ...planSnap.docs[0].data() };
                 }
             }
 
             return null;
         } catch (error) {
-            console.error("Erro ao buscar planejamento semanal existente:", error);
-            return null; // Falhar silenciosamente permitindo gerar novo
+            console.error("[SessionService] Erro ao buscar planejamento semanal:", error);
+            return null;
         }
     },
+
     /**
-     * Gera planejamentos futuros em lote para todas as sessões seguintes da turma.
-     * Implementa rotação inteligente de objetivos (Sequence Planning).
+     * Gera planejamentos futuros em lote com rotação inteligente (Sequence Planning).
      */
-    generateFuturePlannings: async (idTenant, idBranch, userId, classId, startDateString, objectivesData) => {
+    generateFuturePlannings: async (idTenant, idBranch, user, classId, startDateString, objectivesData) => {
         try {
+            const userId = user?.uid || user || 'system'
+            const userName = user?.displayName || user?.email || 'Sistema'
+
             const db = getDb();
-            // 1. Buscar sessões futuras
             const sessionsRef = collection(db, `tenants/${idTenant}/branches/${idBranch}/sessions`);
             const qFuture = query(
                 sessionsRef,
@@ -263,81 +234,40 @@ export const SessionService = {
             const futureSnap = await getDocs(qFuture);
             if (futureSnap.empty) return;
 
-            // 2. Gerar Sequência de Planejamento (Planejamento Progressivo)
             const sessions = futureSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-            // Determinar range de semanas
             const firstSessionDate = new Date(startDateString);
-            const lastSessionDate = new Date(sessions[sessions.length - 1].sessionDate);
 
-            // Adicionar margem de segurança no cálculo de semanas
-            const weeksCount = Math.abs(differenceInCalendarWeeks(lastSessionDate, firstSessionDate)) + 4;
-
-            // Gerar a sequência lógica de objetivos (rotacionando fundamentais e secundários)
+            // 1. Gerar Sequência de Metodologia
+            const weeksCount = SessionRules.calculatePlanningWeeksCount(startDateString, sessions[sessions.length - 1].sessionDate);
             const planSequence = PlanningLogic.generateFutureSequence(objectivesData, weeksCount);
 
             if (!planSequence || planSequence.length === 0) return;
 
-            // 3. Iterar e salvar
+            // 2. Iterar e Salvar (Batch-like)
             const batchPromises = [];
-            let currentWeekStart = null;
-            let weeklyFocusId = null;
+            let currentWeekState = { weekStart: null, focusSessionId: null };
 
             for (const session of sessions) {
-                const dateObj = new Date(session.sessionDate + 'T12:00:00');
+                const planData = SessionRules.calculateAutoPlanning(userId, session, firstSessionDate, planSequence, currentWeekState);
 
-                // Identificar semana da sessão para pegar o conjunto correto da sequência
-                // Usamos a diferença em semanas para saber o índice
-                // Se o índice estourar o tamanho da sequência, usamos operador módulo (%) para rotacionar
-                const weekIndex = Math.abs(differenceInCalendarWeeks(dateObj, firstSessionDate));
-                const safeSequenceIndex = weekIndex % planSequence.length;
-                const weekObjectives = planSequence[safeSequenceIndex] || [];
-
-                // --- Lógica de Foco Semanal vs Herança ---
-                const weekStart = format(startOfWeek(dateObj, { weekStartsOn: 1 }), 'yyyy-MM-dd');
-                let isFocus = false;
-                let inheritedFrom = null;
-
-                if (weekStart !== currentWeekStart) {
-                    // Nova semana -> Define novo foco (com base na sequência)
-                    currentWeekStart = weekStart;
-                    isFocus = true;
-                    weeklyFocusId = session.id;
-                } else {
-                    // Mesma semana -> Herda (replica objetivo da semana para consistência diária)
-                    isFocus = false;
-                    inheritedFrom = weeklyFocusId;
+                if (planData) {
+                    const planningCol = collection(db, `tenants/${idTenant}/branches/${idBranch}/sessions/${session.id}/planning`);
+                    batchPromises.push(setDoc(doc(planningCol), planData));
                 }
-
-                if (weekObjectives.length === 0) continue;
-
-                // Preparar dados
-                const planData = {
-                    objectives: weekObjectives,
-                    weekId: `${format(dateObj, 'yyyy')}-W${format(dateObj, 'w')}`,
-                    isWeeklyFocus: isFocus,
-                    inheritedFromSessionId: inheritedFrom,
-                    status: 'active',
-                    autoGenerated: true,
-                    createdAt: serverTimestamp(),
-                    createdBy: userId || 'system',
-                    weekSequenceIndex: weekIndex // Metadado útil para debug
-                };
-
-                // Adicionar promise de salvamento
-                const planningCol = collection(db, `tenants/${idTenant}/branches/${idBranch}/sessions/${session.id}/planning`);
-                const newDocRef = doc(planningCol);
-
-                batchPromises.push(setDoc(newDocRef, planData));
             }
 
-            // Otimização: Executar em blocos se for muito grande
-            // (Promise.all aguenta bem ~100 requests, mas batch seria melhor se implementado aqui também)
             await Promise.all(batchPromises);
-            console.log(`Planejamento progressivo futuro gerado para ${batchPromises.length} sessões.`);
+
+            await SessionAuditLogger.logFuturePlanningGeneration({
+                idTenant, idBranch, userId, userName,
+                classId,
+                sessionCount: batchPromises.length
+            })
+
+            console.log(`[Methodology] Planejamento progressivo gerado para ${batchPromises.length} sessões.`);
 
         } catch (error) {
-            console.error("Erro ao gerar planejamentos futuros:", error);
+            console.error("[SessionService] Erro ao gerar planejamentos futuros:", error);
         }
     }
 }
