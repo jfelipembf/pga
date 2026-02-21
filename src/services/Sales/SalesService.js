@@ -1,17 +1,33 @@
 import { salesRepository } from '../../data/repositories/SalesRepository'
 import { contractRepository } from '../../data/repositories/ContractRepository'
-import { AuditService } from '../Core/AuditService'
+import { normalizeDate, isSameDay } from '../../utils/date'
+import { SalesAuditLogger } from './audit/SalesAuditLogger'
 import { LedgerService, STANDARD_ACCOUNTS, safeLedgerCall } from '../Ledger/LedgerService'
 import { SalesPaymentProcessor } from './SalesPaymentProcessor'
 import { SaleSchema } from '../../data/schemas/Financial/SaleSchema'
 import { generateSaleId } from '../../utils/sequence'
-import { normalizeDate } from '../../utils/date'
-import moment from 'moment'
+import { FinancialCalculator } from '../Financial/Core/FinancialCalculator'
+import { SalesRules } from './domain/SalesRules'
+
 
 /**
  * Serviço de Vendas - Decoupled & Organized
  */
 export const SalesService = {
+
+    /**
+     * Determina a data de vencimento do saldo remanescente de uma venda.
+     * Regra de Negócio: Se não houver data explícita, vence em 30 dias.
+     */
+    calculateBalanceDueDate: (saleData) => {
+        if (saleData.dueDateBalance) return normalizeDate(saleData.dueDateBalance);
+        if (saleData.firstPaymentDate) return normalizeDate(saleData.firstPaymentDate);
+
+        const d = new Date();
+        d.setDate(d.getDate() + 30);
+        return d;
+    },
+
     /**
      * Processa uma venda completa seguindo os princípios de Imutabilidade e Partidas Dobradas.
      */
@@ -26,7 +42,7 @@ export const SalesService = {
         );
 
         if (hasImmediatePayment) {
-            const isToday = moment(rawSaleData.saleDate).isSame(moment(), 'day');
+            const isToday = isSameDay(normalizeDate(rawSaleData.saleDate), new Date());
             if (isToday) {
                 const { CashierService } = await import('../Financial/CashierService');
                 await CashierService.ensureOpenSession(idTenant, idBranch, userId);
@@ -46,7 +62,6 @@ export const SalesService = {
 
         // 2.5. VALIDAÇÃO CRÍTICA (Delegada para FinancialCalculator)
         if (saleData.items && saleData.items.length > 0) {
-            const { FinancialCalculator } = await import('../Financial/Core/FinancialCalculator');
             const validation = FinancialCalculator.validateSaleIntegrity(saleData);
 
             if (!validation.isValid) {
@@ -56,26 +71,22 @@ export const SalesService = {
 
         // 2.6 Calcular isRenewal automaticamente (Renovação se gap <= 45 dias)
         const { clientContractRepository } = await import('../../data/repositories/ClientContractRepository');
+        const { ClientContractSalesClassificationRules } = await import('../Clients/ClientContract/domain/ClientContractSalesClassificationRules');
+
         const existingContracts = await clientContractRepository.findByClient(idTenant, idBranch, saleData.idClient);
-        let autoIsRenewal = false;
 
-        if (existingContracts && existingContracts.length > 0) {
-            existingContracts.sort((a, b) => {
-                const dateA = a.endDate?.toDate ? a.endDate.toDate() : new Date(a.endDate);
-                const dateB = b.endDate?.toDate ? b.endDate.toDate() : new Date(b.endDate);
-                return dateB - dateA;
-            });
-            const lastContract = existingContracts[0];
-            const lastEndDate = lastContract.endDate?.toDate ? lastContract.endDate.toDate() : new Date(lastContract.endDate);
-            const newStartDate = normalizeDate(saleData.startDate) || new Date();
+        // Encontrar o último contrato para classificar
+        const sorted = [...existingContracts].sort((a, b) => {
+            const dateA = normalizeDate(a.endDate);
+            const dateB = normalizeDate(b.endDate);
+            return (dateB?.getTime() || 0) - (dateA?.getTime() || 0);
+        });
+        const lastContract = sorted[0];
 
-            const gapDays = moment(newStartDate).startOf('day').diff(moment(lastEndDate).startOf('day'), 'days');
-
-            if (gapDays <= 45) {
-                autoIsRenewal = true;
-            }
-        }
-        saleData.isRenewal = autoIsRenewal;
+        saleData.isRenewal = ClientContractSalesClassificationRules.classify(
+            lastContract?.endDate,
+            saleData.startDate
+        ) === 'renewal';
 
         // 3. Gerar número de venda amigável sequencial (ex: V00001, V00002)
         const saleNumber = await generateSaleId(idTenant, idBranch);
@@ -121,22 +132,8 @@ export const SalesService = {
         }
 
         // 6. Saldo Remanescente (Contas a Receber direto do cliente)
-        // 6. Saldo Remanescente (Contas a Receber direto do cliente)
         if (saleData.balance > 0) {
-
-            // Robust Date Handling
-            let balanceDate;
-            if (saleData.dueDateBalance) {
-                balanceDate = saleData.dueDateBalance;
-            } else if (saleData.firstPaymentDate) {
-                balanceDate = saleData.firstPaymentDate;
-            } else {
-                balanceDate = moment().add(30, 'days').toDate();
-            }
-
-            // Garantir que é Date
-            balanceDate = normalizeDate(balanceDate);
-
+            const balanceDate = SalesService.calculateBalanceDueDate(saleData);
 
             await SalesPaymentProcessor.processRemainingBalance(
                 idTenant,
@@ -167,36 +164,18 @@ export const SalesService = {
                         const contractTemplate = await contractRepository.findById(idTenant, idBranch, String(item.idItem))
 
                         if (contractTemplate) {
-                            // Calcular datas com base no template
-                            const startDate = normalizeDate(item.startDate) || normalizeDate(new Date())
-                            const duration = parseInt(contractTemplate.duration) || 12
-                            const durationType = contractTemplate.durationType || 'months'
+                            // Calcular datas com base no template (Delegado para VigencyRules)
+                            const { ClientContractVigencyRules } = await import('../Clients/ClientContract/domain/ClientContractVigencyRules');
 
-                            let endDate
-                            let planType = 'monthly' // Default
-
-                            if (durationType === 'days' || durationType === 'Dias') {
-                                endDate = moment(startDate).add(duration, 'days').toDate()
-                                planType = 'single'
-                            } else if (durationType === 'weeks' || durationType === 'Semanas') {
-                                endDate = moment(startDate).add(duration, 'weeks').toDate()
-                            } else if (durationType === 'years' || durationType === 'Anos') {
-                                endDate = moment(startDate).add(duration, 'years').toDate()
-                                planType = 'annual'
-                            } else {
-                                endDate = moment(startDate).add(duration, 'months').toDate()
-                                // Determina tipo baseado na duração
-                                if (duration === 1) planType = 'monthly'
-                                else if (duration === 3) planType = 'quarterly'
-                                else if (duration === 6) planType = 'semiannual'
-                                else if (duration === 12) planType = 'annual'
-                            }
+                            const { endDate, planType } = ClientContractVigencyRules.calculatePeriod(
+                                item.startDate,
+                                contractTemplate.duration,
+                                contractTemplate.durationType
+                            );
 
                             // Cálculo de valor com desconto proporcional (se houver desconto na venda)
-                            const originalUnitPrice = parseFloat(item.unitPrice) || 0;
-                            const discountFactor = saleData.subtotal > 0 ? (saleData.total / saleData.subtotal) : 1;
-                            const netUnitPrice = originalUnitPrice * discountFactor;
-                            const itemDiscount = originalUnitPrice - netUnitPrice;
+                            const { netPrice: netUnitPrice, discountValue: itemDiscount } =
+                                FinancialCalculator.calculateProportionalDiscount(item.unitPrice, saleData.subtotal, saleData.total);
 
                             // Usa o novo ClientContractService (com transações)
                             await ClientContractService.create(idTenant, idBranch, userId, {
@@ -206,9 +185,9 @@ export const SalesService = {
                                 idContract: item.idItem, // ID Unificado
                                 planName: item.name || contractTemplate.title,
                                 planType,
-                                startDate,
+                                startDate: normalizeDate(item.startDate) || new Date(),
                                 endDate,
-                                originalValue: originalUnitPrice,
+                                originalValue: parseFloat(item.unitPrice) || 0,
                                 discount: itemDiscount,
                                 value: netUnitPrice,
                                 totalValue: netUnitPrice * (parseInt(item.quantity) || 1),
@@ -240,27 +219,9 @@ export const SalesService = {
         }
 
         // 8. ✅ LANÇAMENTO CONTÁBIL (Partidas Dobradas)
-        // Classificar receita baseada nos itens usando o padrão do LedgerService
-        let revenueId = STANDARD_ACCOUNTS.SERVICE_REVENUE
-        let revenueName = 'Prestação de Serviços'
-
-        const hasProduct = saleData.items?.some(i => i.type === 'product' || i.type === 'produto')
-        const hasService = saleData.items?.some(i => i.type === 'service' || i.type === 'servico' || i.type === 'contract' || i.type === 'contrato')
-
-        if (hasProduct && !hasService) {
-            revenueId = STANDARD_ACCOUNTS.PRODUCT_REVENUE
-            revenueName = 'Venda de Produtos'
-        } else if (hasService) {
-            // Se for contrato recorrente é Mensalidade
-            if (saleData.items?.some(i => i.type === 'contract' || i.type === 'contrato')) {
-                revenueId = STANDARD_ACCOUNTS.SUBSCRIPTION_REVENUE
-                revenueName = 'Mensalidades/Assinaturas'
-            } else {
-                revenueId = STANDARD_ACCOUNTS.SERVICE_REVENUE
-                revenueName = 'Prestação de Serviços'
-            }
-        }
-        // Se for misto, mantém o default (Serviços) ou poderíamos criar rateio (futuro)
+        const revenueInfo = SalesRules.classifyRevenue(saleData.items);
+        const revenueId = STANDARD_ACCOUNTS[revenueInfo.id];
+        const revenueName = revenueInfo.name;
 
         await safeLedgerCall(idTenant, idBranch,
             () => LedgerService.createSaleEntry(idTenant, idBranch, {
@@ -273,18 +234,11 @@ export const SalesService = {
         );
 
         // 6. Auditoria (Rastreabilidade total)
-        await AuditService.log({
+        await SalesAuditLogger.logSaleProcessed({
             idTenant, idBranch, userId,
             userName: saleData.sellerName,
-            action: 'SALE_PROCESSED',
-            entityType: 'sale',
-            entityId: newSale.id,
-            description: `Venda #${newSale.saleNumber} concluída para ${saleData.clientName}. Pago: R$${saleData.totalPaid}`,
-            details: {
-                total: saleData.total,
-                balance: saleData.balance,
-                itemsCount: saleData.items.length
-            }
+            sale: newSale,
+            clientName: saleData.clientName
         })
 
         return newSale
@@ -357,27 +311,16 @@ export const SalesService = {
         )
 
         // 5. Auditoria
-        await AuditService.log({
+        await SalesAuditLogger.logSaleDeleted({
             idTenant, idBranch, userId,
-            action: 'SALE_DELETED',
-            entityType: 'sale',
-            entityId: idSale,
-            description: `Venda #${sale.saleNumber} excluída (soft delete). Todos os títulos em aberto foram removidos.`,
-            details: {
-                snapshot: sale
-            }
+            sale
         })
 
         return { success: true }
     },
 
-    /**
-     * Define o status real de uma venda cruzando com seus recebíveis.
-     * Esta é a "Fonte Única de Verdade" para o status da venda.
-     */
     calculateSaleStatus: (sale, receivables = []) => {
-        // Delega a lógica de negócio para o Core Calculator (SSOT)
-        const { FinancialCalculator } = require('../Financial/Core/FinancialCalculator');
-        return FinancialCalculator.calculateSaleStatus(sale, receivables);
+        // Delega a lógica de negócio para o SalesRules (SSOT de Vendas)
+        return SalesRules.calculateSaleStatus(sale, receivables);
     }
 }

@@ -1,4 +1,3 @@
-import moment from 'moment'
 import { normalizeDate } from '../../../../utils/date'
 import { CLIENT_CONTRACT_STATUS } from '../../../../utils/constants'
 
@@ -17,17 +16,21 @@ export const ClientContractAdjustmentRules = {
         }
 
         // 2. Cálculo da nova data
-        const currentEndDate = contract.endDate?.toDate ? contract.endDate.toDate() : new Date(contract.endDate)
+        const currentEndDate = normalizeDate(contract.endDate);
+        if (!currentEndDate) throw new Error("Data final do contrato inválida");
 
-        const newEndDate = normalizeDate(
-            mode === 'add'
-                ? moment(currentEndDate).add(days, 'days')
-                : moment(currentEndDate).subtract(days, 'days')
-        )
+        const newEndDate = new Date(currentEndDate);
+        const dayDiff = parseInt(days) || 0;
+
+        if (mode === 'add') {
+            newEndDate.setDate(newEndDate.getDate() + dayDiff);
+        } else {
+            newEndDate.setDate(newEndDate.getDate() - dayDiff);
+        }
 
         return {
             oldEndDate: currentEndDate,
-            newEndDate
+            newEndDate: normalizeDate(newEndDate)
         }
     }
 }

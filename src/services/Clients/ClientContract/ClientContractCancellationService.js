@@ -111,7 +111,7 @@ export const ClientContractCancellationService = {
 
         // 5.5 Cancelar Matrículas vinculadas ao contrato
         try {
-            const { EnrollmentService } = await import('../EnrollmentService')
+            const { EnrollmentService } = await import('../Enrollment/EnrollmentService')
             const enrollmentsSnap = await getDocs(query(
                 collection(db, `tenants/${idTenant}/branches/${idBranch}/enrollments`),
                 where('idClientContract', '==', idClientContract),

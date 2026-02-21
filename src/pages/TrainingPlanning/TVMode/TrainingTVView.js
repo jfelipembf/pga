@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, forwardRef } from "react";
 import { Badge, Button } from "reactstrap";
 import ReactDatePicker, { registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { TrainingPlanService } from "../../../services/TrainingPlanning/trainingPlanning.service";
+import { TrainingPlanService } from "../../../services/TrainingPlanning/trainingPlanning";
 import { toISODate, formatDateDisplay } from "../../../utils/date";
 import PageLoader from "../../../components/Common/PageLoader";
 import { useTenant } from "../../../hooks/useTenant";

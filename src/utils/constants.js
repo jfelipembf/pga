@@ -171,6 +171,9 @@ export const MONTHS = [
     { value: 11, label: "Dezembro" }
 ];
 
+export const MONTH_LABELS = MONTHS.map(m => m.label);
+export const MONTH_SHORT_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
 export const BANK_OPTIONS = [
     { value: '341', label: '341 - Itaú Unibanco' },
     { value: '001', label: '001 - Banco do Brasil' },

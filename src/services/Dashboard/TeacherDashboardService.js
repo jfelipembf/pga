@@ -4,8 +4,9 @@ import { enrollmentRepository } from "../../data/repositories/EnrollmentReposito
 import { taskRepository } from "../../data/repositories/Admin/TaskRepository"
 import { clientContractRepository } from "../../data/repositories/ClientContractRepository"
 import { query, where, getDocs } from "firebase/firestore"
-import moment from "moment"
 import { normalizeDate, formatDate, toISODate } from "../../utils/date"
+import { WEEKDAY_SHORT_LABELS } from "../../utils/constants"
+import { DashboardRules } from "./domain/DashboardRules"
 
 export const TeacherDashboardService = {
 
@@ -43,7 +44,7 @@ export const TeacherDashboardService = {
             console.warn("Erro ao buscar KPIs de turmas:", err);
         }
 
-        const occupancyRate = totalCapacity > 0 ? (totalEnrolled / totalCapacity) * 100 : 0;
+        const occupancyRate = DashboardRules.calculateRate(totalEnrolled, totalCapacity);
 
         // 2. Taxa de Conversão (Experimental -> Matrícula)
         let conversionRate = 0;
@@ -52,9 +53,10 @@ export const TeacherDashboardService = {
 
         try {
             // Janela de análise: últimos 30 dias
-            const startCheck = normalizeDate(moment().subtract(30, 'days').startOf('day'));
+            const now = new Date();
+            const startCheck = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30, 0, 0, 0, 0);
 
-            // Buscar sessões do professor (Filtro simples por idStaff para evitar índices compostos com datas)
+            // Buscar sessões do professor
             const sessionsDocs = await sessionRepository.findWhere(idTenant, idBranch, [
                 ['idStaff', '==', userId],
                 ['attendanceRecorded', '==', true]
@@ -91,7 +93,7 @@ export const TeacherDashboardService = {
                 });
 
                 conversionTotal = convertedCount;
-                conversionRate = (convertedCount / experimentalTotal) * 100;
+                conversionRate = DashboardRules.calculateRate(convertedCount, experimentalTotal);
             }
 
         } catch (err) {
@@ -146,8 +148,8 @@ export const TeacherDashboardService = {
 
             // Ordenar por data
             upcomingExperimentals.sort((a, b) => {
-                const dateA = moment(`${a.sessionDate} ${a.startTime}`);
-                const dateB = moment(`${b.sessionDate} ${b.startTime}`);
+                const dateA = new Date(`${a.sessionDate}T${a.startTime || '00:00'}:00`);
+                const dateB = new Date(`${b.sessionDate}T${b.startTime || '00:00'}:00`);
                 return dateA - dateB;
             });
 
@@ -173,8 +175,10 @@ export const TeacherDashboardService = {
 
             // Ordenar por data de vencimento (mais urgente primeiro)
             myTasks.sort((a, b) => {
-                const dateA = a.dueDate ? moment(a.dueDate.toDate ? a.dueDate.toDate() : a.dueDate) : moment().add(10, 'years');
-                const dateB = b.dueDate ? moment(b.dueDate.toDate ? b.dueDate.toDate() : b.dueDate) : moment().add(10, 'years');
+                const now = new Date();
+                const farFuture = new Date(now.getFullYear() + 10, now.getMonth(), now.getDate());
+                const dateA = a.dueDate ? normalizeDate(a.dueDate) : farFuture;
+                const dateB = b.dueDate ? normalizeDate(b.dueDate) : farFuture;
                 return dateA - dateB;
             });
 
@@ -186,7 +190,7 @@ export const TeacherDashboardService = {
 
         // 5. Gráfico de Lotação (Ocupação por Dia da Semana)
         const weeklyOccupancy = {
-            labels: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+            labels: WEEKDAY_SHORT_LABELS,
             series: [0, 0, 0, 0, 0, 0, 0]
         };
 
@@ -215,9 +219,9 @@ export const TeacherDashboardService = {
                 }
             }));
 
-            // Calcular %
+            // Calcular % via Domínio
             weeklyOccupancy.series = occupancyByDay.map(d => {
-                return d.capacity > 0 ? Math.round((d.enrolled / d.capacity) * 100) : 0;
+                return Math.round(DashboardRules.calculateRate(d.enrolled, d.capacity));
             });
 
         } catch (err) {
@@ -241,25 +245,33 @@ export const TeacherDashboardService = {
             if (myActiveclientIds.length > 0) {
                 const allActiveContracts = await clientContractRepository.findStrictlyActive(idTenant, idBranch);
 
-                const today = moment();
-                const next30Days = moment().add(30, 'days');
+                const now = new Date();
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+                const next30Days = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 30, 23, 59, 59, 999);
 
                 const myExpiringContracts = allActiveContracts.filter(c => {
-                    const endDate = c.endDate?.toDate ? moment(c.endDate.toDate()) : moment(c.endDate);
+                    const endDate = normalizeDate(c.endDate);
                     const isMyclient = myActiveclientIds.includes(c.idClient);
-                    const isExpiringSoon = endDate.isSameOrAfter(today, 'day') && endDate.isSameOrBefore(next30Days, 'day');
+                    const isExpiringSoon = endDate >= today && endDate <= next30Days;
 
                     return isMyclient && isExpiringSoon;
                 });
 
                 renewalsCount = myExpiringContracts.length;
-                renewalsList = myExpiringContracts.map(c => ({
-                    id: c.id,
-                    clientName: c.clientName || 'Aluno',
-                    planName: c.planName || 'Plano',
-                    endDate: formatDate(c.endDate),
-                    daysRemaining: c.endDate?.toDate ? moment(c.endDate.toDate()).diff(today, 'days') : moment(c.endDate).diff(today, 'days')
-                })).sort((a, b) => a.daysRemaining - b.daysRemaining).slice(0, 5);
+                renewalsList = myExpiringContracts.map(c => {
+                    const now = new Date();
+                    const endDate = normalizeDate(c.endDate);
+                    const diffTime = endDate.getTime() - now.getTime();
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    return {
+                        id: c.id,
+                        clientName: c.clientName || 'Aluno',
+                        planName: c.planName || 'Plano',
+                        endDate: formatDate(c.endDate),
+                        daysRemaining: diffDays
+                    };
+                }).sort((a, b) => a.daysRemaining - b.daysRemaining).slice(0, 5);
             }
 
             // ----- PARTE 7: Histórico de Renovações -----
@@ -272,27 +284,29 @@ export const TeacherDashboardService = {
             const historicalclientIds = [...new Set(historicalclients.map(s => s.idClient))];
 
             if (historicalclientIds.length > 0) {
-                const sixMonthsAgo = moment().subtract(5, 'months').startOf('month'); // 5 meses atrás + atual = 6
-                const endOfCurrentMonth = moment().endOf('month');
+                const now = new Date();
+                const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1, 0, 0, 0, 0);
+                const endOfCurrentMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
                 // Buscar contratos que VENCERAM nessa janela
                 // Precisamos acessar a collection diretamente para query de data
                 const contractsRef = clientContractRepository.getCollectionRef(idTenant, idBranch);
                 const qExpired = query(
                     contractsRef,
-                    where('endDate', '>=', sixMonthsAgo.toDate()),
-                    where('endDate', '<=', endOfCurrentMonth.toDate())
+                    where('endDate', '>=', sixMonthsAgo),
+                    where('endDate', '<=', endOfCurrentMonth)
                 );
                 const expiredSnap = await getDocs(qExpired);
                 const expiredContracts = [];
                 expiredSnap.forEach(d => expiredContracts.push({ id: d.id, ...d.data() }));
 
-                // Agrupar por mês
                 const monthBuckets = {};
-                // Inicializar buckets
+                // Inicializar buckets (6 meses)
+
                 for (let i = 0; i < 6; i++) {
-                    const m = moment().subtract(i, 'months');
-                    monthBuckets[formatDate(m, 'MM/YYYY')] = { expired: 0, renewed: 0 };
+                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    const monthKey = `${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+                    monthBuckets[monthKey] = { expired: 0, renewed: 0 };
                 }
 
                 // Para verificar renovação, precisamos saber se o aluno tem OUTRO contrato começando DEPOIS
@@ -313,18 +327,18 @@ export const TeacherDashboardService = {
                 expiredContracts.forEach(contract => {
                     if (!historicalclientIds.includes(contract.idClient)) return;
 
-                    const endD = contract.endDate?.toDate ? moment(contract.endDate.toDate()) : moment(contract.endDate);
-                    const monthKey = formatDate(endD, 'MM/YYYY');
+                    const endD = normalizeDate(contract.endDate);
+                    const monthKey = `${String(endD.getMonth() + 1).padStart(2, '0')}/${endD.getFullYear()}`;
 
                     if (monthBuckets[monthKey]) {
                         monthBuckets[monthKey].expired++;
 
-                        // Check de renovação: Existe contrato (diferente deste) para o mesmo aluno começando >= data fim?
                         const hasRenewal = allclientContracts.some(other => {
                             if (other.id === contract.id) return false;
-                            const startD = other.startDate?.toDate ? moment(other.startDate.toDate()) : moment(other.startDate);
-                            // Tolerância de -30 dias (renovou antes de acabar) até +30 dias (renovou depois)
-                            const diffDays = startD.diff(endD, 'days');
+                            const startD = normalizeDate(other.startDate);
+                            // Tolerância de -60 dias (renovou antes de acabar) até +60 dias (renovou depois)
+                            const diffTime = startD.getTime() - endD.getTime();
+                            const diffDays = diffTime / (1000 * 60 * 60 * 24);
                             return other.idClient === contract.idClient && diffDays >= -60 && diffDays <= 60; // Janela flexível de renovação
                         });
 
@@ -335,7 +349,11 @@ export const TeacherDashboardService = {
                 });
 
                 // Formatar para Chart
-                const sortedMonths = Object.keys(monthBuckets).sort((a, b) => moment(a, 'MM/YYYY') - moment(b, 'MM/YYYY'));
+                const sortedMonths = Object.keys(monthBuckets).sort((a, b) => {
+                    const [monthA, yearA] = a.split('/').map(Number);
+                    const [monthB, yearB] = b.split('/').map(Number);
+                    return new Date(yearA, monthA - 1) - new Date(yearB, monthB - 1);
+                });
 
                 renewalHistory.labels = sortedMonths;
                 renewalHistory.series = [

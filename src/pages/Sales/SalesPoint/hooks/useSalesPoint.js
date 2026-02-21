@@ -6,7 +6,7 @@ import { AcquirerService } from '../../../../services/Financial/AcquirerService'
 import { ContractService } from '../../../../services/Financial/ContractService';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../../../hooks/useAuth';
-import { normalizeDate, parseDateInput } from '../../../../utils/date';
+import { parseDateInput } from '../../../../utils/date';
 
 /**
  * Hook customizado para gerenciar a lógica da página de Ponto de Venda.

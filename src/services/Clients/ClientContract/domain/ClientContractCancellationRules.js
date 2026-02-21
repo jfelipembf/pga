@@ -1,5 +1,5 @@
-import moment from 'moment'
 import { CLIENT_CONTRACT_STATUS } from '../../../../utils/constants'
+import { normalizeDate } from '../../../../utils/date'
 
 /**
  * Regras de Negócio para Cancelamento de Contratos
@@ -19,13 +19,18 @@ export const ClientContractCancellationRules = {
      * Define se o cancelamento é imediato ou agendado baseado na data efetiva
      */
     getExecutionType: (effectiveDate) => {
-        const todayIso = moment().format('YYYY-MM-DD')
-        const finalEffectiveDate = effectiveDate || todayIso
-        const isFuture = moment(finalEffectiveDate).isAfter(todayIso, 'day')
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+
+        const effDate = normalizeDate(effectiveDate) || new Date();
+        const effDateClean = new Date(effDate);
+        effDateClean.setHours(0, 0, 0, 0);
+
+        const isFuture = effDateClean > now;
 
         return {
             isFuture,
-            effectiveDate: finalEffectiveDate
+            effectiveDate: effDate
         }
     },
 
@@ -35,15 +40,47 @@ export const ClientContractCancellationRules = {
     filterReceivablesToCancel: (receivableDocs, effectiveDate, cancelFutureReceivables) => {
         if (!cancelFutureReceivables) return []
 
-        const effectiveMoment = moment(effectiveDate)
+        const effDate = normalizeDate(effectiveDate);
+        if (!effDate) return [];
+
+        const effTime = new Date(effDate);
+        effTime.setHours(0, 0, 0, 0);
 
         return receivableDocs.filter(d => {
             const data = d.data()
-            const dueDate = data.dueDate?.seconds
-                ? moment(data.dueDate.seconds * 1000)
-                : moment(data.dueDate)
+            const dueDate = normalizeDate(data.dueDate);
+            if (!dueDate) return false;
 
-            return dueDate.isSameOrAfter(effectiveMoment, 'day')
+            const dueTime = new Date(dueDate);
+            dueTime.setHours(0, 0, 0, 0);
+
+            return dueTime >= effTime;
         })
+    },
+
+    /**
+     * Calcula o reembolso proporcional de um contrato com multa
+     */
+    calculateRefund: (totalPaid, totalDuration, usedDuration, cancelFeePercent) => {
+        if (usedDuration >= totalDuration) return { refundAmount: 0, feeAmount: 0 }
+
+        // Valor por Unidade de Tempo
+        const valuePerUnit = totalPaid / totalDuration
+        // Valor Consumido
+        const consumedValue = valuePerUnit * usedDuration
+        // Saldo Restante (Base de Cálculo)
+        const remainingBalance = totalPaid - consumedValue
+        // Multa
+        const feeAmount = remainingBalance * (cancelFeePercent / 100)
+        // Valor a Devolver
+        const refundAmount = remainingBalance - feeAmount
+
+        return {
+            totalPaid,
+            consumedValue,
+            remainingBalance,
+            feeAmount,
+            refundAmount: refundAmount > 0 ? refundAmount : 0
+        }
     }
 }

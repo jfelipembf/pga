@@ -140,7 +140,7 @@ export const ClassService = {
                 const targetSessions = allSessions.filter(s =>
                     s.sessionDate >= todayStr &&
                     !s.attendanceRecorded &&
-                    (!s.deletedAt && s.status !== 'canceled' || weekdayChanged)
+                    ((!s.deletedAt && s.status !== 'canceled') || weekdayChanged)
                 )
 
                 if (weekdayChanged) {

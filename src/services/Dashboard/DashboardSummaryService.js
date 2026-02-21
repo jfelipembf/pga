@@ -1,7 +1,8 @@
 import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore'
 import { getFirebaseBackend } from '../../helpers/firebase_helper'
-import moment from 'moment'
 import { normalizeDate } from '../../utils/date'
+import { DashboardAuditLogger } from './audit/DashboardAuditLogger'
+import { DashboardRules } from './domain/DashboardRules'
 
 /**
  * Serviço para gerenciar o documento agregado de Dashboard.
@@ -84,7 +85,8 @@ export const DashboardSummaryService = {
      */
     async initialize(idTenant, idBranch) {
         const summaryRef = this.getSummaryRef(idTenant, idBranch)
-        const currentMonth = moment().format('YYYY-MM')
+        const now = new Date();
+        const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
         const initialData = {
             // Funil de Conversão
@@ -115,6 +117,10 @@ export const DashboardSummaryService = {
         }
 
         await setDoc(summaryRef, initialData)
+
+        // Log básico de inicialização (pode ser userId nulo se for via sistema)
+        await DashboardAuditLogger.logSummaryUpdated(idTenant, idBranch, null, currentMonth, { action: 'initialized' });
+
         return initialData
     },
 
@@ -122,7 +128,7 @@ export const DashboardSummaryService = {
      * Incrementa/Decrementa campos do summary.
      * Uso: increment({ activeclients: 1, suspendedclients: -1 })
      */
-    async update(idTenant, idBranch, updates) {
+    async update(idTenant, idBranch, updates, userId = null) {
         const summaryRef = this.getSummaryRef(idTenant, idBranch)
 
         // Converte valores para increment()
@@ -144,6 +150,11 @@ export const DashboardSummaryService = {
                 throw error
             }
         }
+
+        // Auditoria
+        const now = new Date();
+        const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        await DashboardAuditLogger.logSummaryUpdated(idTenant, idBranch, userId, monthKey, updates);
     },
 
     /**
@@ -167,7 +178,7 @@ export const DashboardSummaryService = {
      * Recalcula o summary do zero (para reconciliação semanal).
      * Esta função é cara, deve rodar apenas via Cloud Function agendada.
      */
-    async recalculate(idTenant, idBranch) {
+    async recalculate(idTenant, idBranch, userId = null) {
         const { clientRepository } = await import('../../data/repositories/ClientRepository')
         const { clientContractRepository } = await import('../../data/repositories/ClientContractRepository')
 
@@ -187,16 +198,17 @@ export const DashboardSummaryService = {
         const suspendedContracts = await clientContractRepository.findByStatus(idTenant, idBranch, 'suspended')
 
         // Novos do mês
-        const startMonth = normalizeDate(moment().startOf('month'));
+        const now = new Date();
+        const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const newLeads = allClients.filter(c => normalizeDate(c.createdAt) >= startMonth).length
         const newclients = allClients.filter(c =>
             c.lifecycle?.convertedAt && normalizeDate(c.lifecycle.convertedAt) >= startMonth
         ).length
 
-        // Calcula taxas
-        const conversionRate = leads > 0 ? (activeContracts.length / leads) : 0
-        const trialShowUpRate = trialsScheduled > 0 ? (trialsAttended / trialsScheduled) : 0
-        const trialConversionRate = trialsAttended > 0 ? (activeContracts.length / trialsAttended) : 0
+        // Calcula taxas via Domínio
+        const conversionRate = DashboardRules.calculateRate(activeContracts.length, leads)
+        const trialShowUpRate = DashboardRules.calculateRate(trialsAttended, trialsScheduled)
+        const trialConversionRate = DashboardRules.calculateRate(activeContracts.length, trialsAttended)
 
         const recalculatedData = {
             leads,
@@ -213,11 +225,14 @@ export const DashboardSummaryService = {
             trialShowUpRate,
             trialConversionRate,
             lastUpdated: normalizeDate(new Date()),
-            month: moment().format('YYYY-MM')
+            month: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
         }
 
         const summaryRef = this.getSummaryRef(idTenant, idBranch)
         await setDoc(summaryRef, recalculatedData)
+
+        // Auditoria
+        await DashboardAuditLogger.logSummaryRecalculated(idTenant, idBranch, userId, recalculatedData.month);
 
         return recalculatedData
     }

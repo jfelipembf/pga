@@ -172,8 +172,8 @@ export const useSessionPlanning = ({
         sessionId, classId, sessionDate,
         loadingAnalysis, objectivesData, analyzedAt,
         idTenant, idBranch, user,
-        generateSuggestions, refreshAnalysis
-        // lastRefreshEvalDate NÃO deve estar aqui para evitar loop
+        generateSuggestions, refreshAnalysis,
+        lastRefreshEvalDate, planning, weekStatus
     ]);
 
     const updatePlanning = useCallback(async (newObjectives, propagateToFuture = true) => {

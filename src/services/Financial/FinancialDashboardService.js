@@ -5,7 +5,6 @@ import { bankAccountRepository } from "../../data/repositories/BankAccountReposi
 import { cashierRepository } from "../../data/repositories/CashierRepository"
 import { LedgerService } from "../Ledger/LedgerService"
 import { query, where, getDocs } from "firebase/firestore"
-import moment from "moment"
 import { normalizeDate } from "../../utils/date"
 
 export const FinancialDashboardService = {
@@ -55,8 +54,12 @@ export const FinancialDashboardService = {
      */
     getMonthData: async (idTenant, idBranch, date) => {
         try {
-            const startDate = moment(date).startOf('month').format('YYYY-MM-DD');
-            const endDate = moment(date).endOf('month').format('YYYY-MM-DD');
+            const dateObj = date ? new Date(date) : new Date();
+            const startOfMonth = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1);
+            const endOfMonth = new Date(dateObj.getFullYear(), dateObj.getMonth() + 1, 0, 23, 59, 59, 999);
+
+            const startDate = startOfMonth.toISOString().split('T')[0];
+            const endDate = endOfMonth.toISOString().split('T')[0];
 
             // 1. Totais contábeis do Ledger (mesma fonte da DRE)
             let income = 0;
@@ -83,8 +86,11 @@ export const FinancialDashboardService = {
             }
 
             // 2. Transações do caixa (para gráfico diário e como fallback)
-            const start = normalizeDate(moment(date).startOf('month'));
-            const end = normalizeDate(moment(date).endOf('month'));
+            const start = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1);
+            start.setHours(0, 0, 0, 0);
+
+            const end = new Date(dateObj.getFullYear(), dateObj.getMonth() + 1, 0);
+            end.setHours(23, 59, 59, 999);
             const collectionRef = transactionRepository.getCollectionRef(idTenant, idBranch);
 
             const q = query(
@@ -118,7 +124,7 @@ export const FinancialDashboardService = {
                 income,
                 expense,
                 balance: income - expense,
-                monthName: moment(date).format('MMMM'),
+                monthName: dateObj.toLocaleString('pt-BR', { month: 'long' }),
                 transactions
             };
         } catch (error) {
@@ -127,7 +133,7 @@ export const FinancialDashboardService = {
                 income: 0,
                 expense: 0,
                 balance: 0,
-                monthName: moment(date).format('MMMM'),
+                monthName: new Date(date).toLocaleString('pt-BR', { month: 'long' }),
                 transactions: []
             };
         }
@@ -137,7 +143,8 @@ export const FinancialDashboardService = {
      * Inadimplência (A Receber Vencido)
      */
     getOverdueReceivables: async (idTenant, idBranch) => {
-        const today = normalizeDate(moment().startOf('day'));
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
         try {
             // Buscamos apenas pelo status (índice simples, geralmente já existente)
@@ -147,8 +154,8 @@ export const FinancialDashboardService = {
             ]);
 
             const overdue = openReceivables.filter(r => {
-                const dueDate = moment(r.dueDate?.toDate ? r.dueDate.toDate() : r.dueDate);
-                return dueDate.isBefore(today);
+                const dueDate = r.dueDate?.toDate ? r.dueDate.toDate() : new Date(r.dueDate);
+                return dueDate < today;
             });
 
             return {
@@ -165,7 +172,8 @@ export const FinancialDashboardService = {
      * Contas a Pagar VENCIDAS (Inadimplência da Empresa)
      */
     getOverduePayables: async (idTenant, idBranch) => {
-        const today = normalizeDate(moment().startOf('day'));
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
         try {
             // Buscamos apenas pelo status e filtramos em memória.
@@ -174,8 +182,8 @@ export const FinancialDashboardService = {
             ]);
 
             const overdue = allOpen.filter(p => {
-                const dueDate = moment(p.dueDate?.toDate ? p.dueDate.toDate() : p.dueDate);
-                return dueDate.isBefore(today);
+                const dueDate = p.dueDate?.toDate ? p.dueDate.toDate() : new Date(p.dueDate);
+                return dueDate < today;
             });
 
             return {

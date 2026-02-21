@@ -4,7 +4,6 @@
  * Responsável por centralizar regras de cálculo financeiro, status e totalização.
  * NÃO deve conter lógica de persistência (DB calls), apenas transformações de dados.
  */
-import moment from 'moment';
 
 export const FinancialCalculator = {
     /**
@@ -75,52 +74,6 @@ export const FinancialCalculator = {
     },
 
     /**
-     * Define o status real de uma venda cruzando com seus recebíveis específicos.
-     * Fonte Única de Verdade para o status 'Live'.
-     */
-    calculateSaleStatus: (sale, receivables = []) => {
-        if (!sale) return 'unknown';
-
-        // Se a venda já foi cancelada explicitamente, permanece cancelada
-        if (sale.status === 'cancelled') return 'cancelled';
-
-        // Filtra recebíveis que pertencem a esta venda e são responsabilidade do cliente
-        const clientReceivables = receivables.filter(r =>
-            r.idSale === sale.id &&
-            !r.deletedAt &&
-            r.status !== 'cancelled' &&
-            (r.type === 'client' || r.paymentMethod === 'pending_payment')
-        );
-
-        // Se não houver recebíveis de cliente pendentes, assumimos pago (pois o resto foi à vista ou cartão)
-        if (clientReceivables.length === 0) return 'paid';
-
-        // Verifica se ainda existe algum valor pendente nos títulos do cliente
-        const totalPending = clientReceivables.reduce((sum, r) =>
-            sum + (r.status === 'open' ? (parseFloat(r.pending) || 0) : 0),
-            0);
-
-        // Se deve mais de 1 centavo, está parcial. Senão, pago.
-        return totalPending > 0.01 ? 'partial' : 'paid';
-    },
-
-    /**
-     * Calcula o status de vencimento de um contrato.
-     */
-    calculateContractStatus: (contract) => {
-        if (!contract) return 'unknown';
-        if (contract.status === 'cancelled') return 'cancelled';
-        if (contract.status === 'suspended') return 'suspended';
-
-        const now = moment().startOf('day');
-        const endDate = contract.endDate?.toDate ? moment(contract.endDate.toDate()) : moment(contract.endDate);
-
-        if (endDate.isBefore(now)) return 'expired';
-
-        return 'active';
-    },
-
-    /**
     * Valida a integridade financeira de uma venda (Totais vs Itens vs Pagamentos).
     * Retorna objeto com { isValid, errors: [] }
     */
@@ -148,14 +101,33 @@ export const FinancialCalculator = {
         };
     },
 
+    /**
+     * Calcula o desconto proporcional para um item baseado no total da venda.
+     */
+    calculateProportionalDiscount: (unitPrice, subtotal, total) => {
+        const originalPrice = parseFloat(unitPrice) || 0;
+        const sub = parseFloat(subtotal) || 0;
+        const tot = parseFloat(total) || 0;
+
+        const discountFactor = sub > 0 ? (tot / sub) : 1;
+        const netPrice = originalPrice * discountFactor;
+        const discountValue = originalPrice - netPrice;
+
+        return {
+            netPrice,
+            discountValue
+        };
+    },
+
     // =========================================================================
-    // MÓDULO DE MATEMÁTICA FINANCEIRA (Ex-FinancialMath)
+    // MÓDULO DE MATEMÁTICA FINANCEIRA (Puro e Agnóstico)
     // =========================================================================
 
     /**
-     * Calcula as parcelas de uma venda com juros simples/compostos e taxas.
+     * Calcula as parcelas de uma venda com juros e taxas.
+     * Focada apenas na matemática da divisão e arredondamento.
      */
-    calculateInstallments: (amount, installments, fees, paymentMethod) => {
+    calculateInstallments: (amount, installments, feePercent = 0) => {
         if (!amount || amount <= 0) return []
 
         const result = {
@@ -164,28 +136,11 @@ export const FinancialCalculator = {
             installments: []
         }
 
-        let appliedFeePercent = 0
-
-        // 1. Determinar Taxa Aplicável
-        if (paymentMethod === 'debit_card') {
-            appliedFeePercent = fees?.debit || 0
-        } else if (paymentMethod === 'credit_card') {
-            if (installments === 1) {
-                appliedFeePercent = fees?.credit1x || 0
-            } else if (installments >= 2 && installments <= 6) {
-                appliedFeePercent = fees?.credit2to6 || 0
-            } else if (installments >= 7 && installments <= 12) {
-                appliedFeePercent = fees?.credit7to12 || 0
-            } else {
-                appliedFeePercent = fees?.credit13plus || 0
-            }
-        }
-
-        // 2. Calcular Valor Líquido Total
-        const totalFeeValue = amount * (appliedFeePercent / 100)
+        // 1. Calcular Valor Líquido Total
+        const totalFeeValue = amount * (feePercent / 100)
         result.netTotal = amount - totalFeeValue
 
-        // 3. Dividir em Parcelas (com tratamento de dízima)
+        // 2. Dividir em Parcelas (com tratamento de dízima)
         const installmentGrossValue = Math.floor((amount / installments) * 100) / 100
         const installmentNetValue = Math.floor((result.netTotal / installments) * 100) / 100
 
@@ -200,38 +155,12 @@ export const FinancialCalculator = {
                 grossAmount: isLast ? installmentGrossValue + grossDifference : installmentGrossValue,
                 netAmount: isLast ? installmentNetValue + netDifference : installmentNetValue,
                 feeAmount: isLast
-                    ? (installmentGrossValue + grossDifference) * (appliedFeePercent / 100)
-                    : installmentGrossValue * (appliedFeePercent / 100),
-                feePercent: appliedFeePercent
+                    ? (installmentGrossValue + grossDifference) * (feePercent / 100)
+                    : installmentGrossValue * (feePercent / 100),
+                feePercent: feePercent
             })
         }
 
         return result
-    },
-
-    /**
-     * Calcula o reembolso proporcional de um contrato com multa
-     */
-    calculateRefund: (totalPaid, totalDuration, usedDuration, cancelFeePercent) => {
-        if (usedDuration >= totalDuration) return { refundAmount: 0, feeAmount: 0 }
-
-        // Valor por Unidade de Tempo
-        const valuePerUnit = totalPaid / totalDuration
-        // Valor Consumido
-        const consumedValue = valuePerUnit * usedDuration
-        // Saldo Restante (Base de Cálculo)
-        const remainingBalance = totalPaid - consumedValue
-        // Multa
-        const feeAmount = remainingBalance * (cancelFeePercent / 100)
-        // Valor a Devolver
-        const refundAmount = remainingBalance - feeAmount
-
-        return {
-            totalPaid,
-            consumedValue,
-            remainingBalance,
-            feeAmount,
-            refundAmount: refundAmount > 0 ? refundAmount : 0
-        }
     }
 };

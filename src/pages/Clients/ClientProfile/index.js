@@ -7,7 +7,6 @@ import { useTenant } from "../../../hooks/useTenant"
 import { useClientProfile } from "./ClientRegistrationTab/hooks/useClientProfile"
 import { useClientFinancial } from "./ClientFinancialTab/hooks/useClientFinancial"
 import { TAB_LIST, PROFILE_TABS } from "./constants/profileConstants"
-import { ClientService } from "../../../services/Clients/ClientService"
 
 // PageLoader removed
 import ButtonLoader from "../../../components/Common/ButtonLoader"
@@ -66,7 +65,7 @@ const ClientProfile = () => {
     } = useClientProfile()
 
     // Resumo financeiro e contratos para a Header
-    const { summary, contracts } = useClientFinancial()
+    const { summary } = useClientFinancial()
 
     // Fonte Única de Verdade para o Status do Aluno
     const liveStatus = client?.status;

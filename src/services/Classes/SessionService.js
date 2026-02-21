@@ -1,7 +1,6 @@
 import { sessionRepository } from '../../data/repositories/SessionRepository'
 import { SessionAuditLogger } from './audit/SessionAuditLogger'
 import {
-    serverTimestamp,
     collection,
     doc,
     getDocs,

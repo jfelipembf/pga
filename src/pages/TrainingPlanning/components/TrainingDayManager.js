@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardBody } from "reactstrap";
 import WorkoutList from "./WorkoutList";
 import TrainingForm from "./TrainingForm";
-import { TrainingPlanService } from "../../../services/TrainingPlanning/trainingPlanning.service";
+import { TrainingPlanService } from "../../../services/TrainingPlanning/trainingPlanning";
 import PageLoader from "../../../components/Common/PageLoader";
 import { toast } from "react-toastify";
 import ConfirmDialog from "../../../components/Common/ConfirmDialog";

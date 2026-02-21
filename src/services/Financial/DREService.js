@@ -1,5 +1,5 @@
 import { LedgerService } from '../Ledger/LedgerService'
-import moment from 'moment'
+import { parseDateRange } from '../../utils/date'
 
 /**
  * Serviço de Inteligência para DRE (Demonstração do Resultado do Exercício)
@@ -13,19 +13,33 @@ export const DREService = {
         let startDate, endDate;
 
         if (filters.startDate && filters.endDate) {
-            startDate = moment(filters.startDate).startOf('day').toDate();
-            endDate = moment(filters.endDate).endOf('day').toDate();
+            const range = parseDateRange(filters.startDate, filters.endDate);
+            startDate = range.startDate;
+            endDate = range.endDate;
         } else {
             const period = typeof filters === 'string' ? filters : (filters.period || 'month');
+            const now = new Date();
+
             if (period === 'day') {
-                startDate = moment().startOf('day').toDate();
-                endDate = moment().endOf('day').toDate();
+                startDate = new Date(now);
+                startDate.setHours(0, 0, 0, 0);
+                endDate = new Date(now);
+                endDate.setHours(23, 59, 59, 999);
             } else if (period === 'week') {
-                startDate = moment().startOf('week').toDate();
-                endDate = moment().endOf('week').toDate();
+                const day = now.getDay(); // 0 = Sunday
+                startDate = new Date(now);
+                startDate.setDate(now.getDate() - day);
+                startDate.setHours(0, 0, 0, 0);
+
+                endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + 6);
+                endDate.setHours(23, 59, 59, 999);
             } else {
-                startDate = moment().startOf('month').toDate();
-                endDate = moment().endOf('month').toDate();
+                startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                startDate.setHours(0, 0, 0, 0);
+
+                endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                endDate.setHours(23, 59, 59, 999);
             }
         }
 

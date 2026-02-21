@@ -3,7 +3,7 @@ import { Card, CardBody, Button, Badge } from "reactstrap";
 import { formatDateDisplay } from "../../../utils/date";
 import ClientSelectorModal from "./ClientSelectorModal";
 import { toast } from "react-toastify";
-import { TrainingPlanService } from "../../../services/TrainingPlanning/trainingPlanning.service";
+import { TrainingPlanService } from "../../../services/TrainingPlanning/trainingPlanning";
 import { useTenant } from "../../../hooks/useTenant";
 import { useAuth } from "../../../hooks/useAuth";
 import { MODALITIES, TRAINING_OBJECTIVES, TRAINING_PHASES } from "../constants/trainingConstants";

@@ -5,27 +5,22 @@
 import { transactionRepository } from "../../data/repositories/TransactionRepository"
 import { ServiceContextHelper } from "../Core/DataAggregationHelper"
 import { query, where, getDocs } from "firebase/firestore"
-import moment from "moment"
-import { normalizeDate } from "../../utils/date"
+import { normalizeDate, isSameDay } from "../../utils/date"
+import { DashboardRules } from "./domain/DashboardRules"
+import { MONTH_SHORT_LABELS } from "../../utils/constants"
 
 export const GeneralDashboardService = {
 
-    /**
-     * Helper para calcular crescimento (%)
-     */
-    calculateGrowth: (current, previous) => {
-        if (!previous || previous === 0) return current > 0 ? 100 : 0
-        return ((current - previous) / previous) * 100
-    },
 
     /**
      * Dados para o Dashboard Operacional (Consultor)
      */
     getOperationalData: async (idTenant, idBranch, userId) => {
-        const startMonth = normalizeDate(moment().startOf('month'));
-        const endMonth = normalizeDate(moment().endOf('month'));
-        const todayStart = normalizeDate(moment().startOf('day'));
-        const todayEnd = normalizeDate(moment().endOf('day'));
+        const now = new Date();
+        const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+        const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
 
         const collectionRef = transactionRepository.getCollectionRef(idTenant, idBranch);
         let salesToday = 0;
@@ -47,10 +42,10 @@ export const GeneralDashboardService = {
                 // Filtros em memória: Tipo 'income' e apenas as vendas DO USUÁRIO logado
                 if (item.type === 'income' && item.createdBy === userId) {
                     const amount = parseFloat(item.amount) || 0;
-                    const date = moment(item.date?.toDate ? item.date.toDate() : item.date);
+                    const date = normalizeDate(item.date);
 
                     salesMonth += amount;
-                    if (date.isSame(moment(), 'day')) {
+                    if (isSameDay(date, new Date())) {
                         salesToday += amount;
                     }
                 }
@@ -75,18 +70,18 @@ export const GeneralDashboardService = {
                 if (!isAssigned) return false;
 
                 // 2. Verifica Data (Hoje) ou Pendente Atrasada
-                const taskDate = moment(task.dueDate?.toDate ? task.dueDate.toDate() : task.dueDate);
-                const isToday = taskDate.isSame(todayStart, 'day');
-                const isPendingLate = task.status === 'pending' && taskDate.isBefore(todayStart);
+                const taskDate = normalizeDate(task.dueDate);
+                const isToday = isSameDay(taskDate, new Date());
+                const isPendingLate = task.status === 'pending' && taskDate < todayStart;
 
                 // 3. Verifica Recorrência
                 if (task.isRecurring) {
                     if (task.recurrence?.frequency === 'daily') return true;
                     if (task.recurrence?.frequency === 'weekly') {
-                        return task.recurrence?.daysOfWeek?.includes(moment().day());
+                        return task.recurrence?.daysOfWeek?.includes(new Date().getDay());
                     }
                     if (task.recurrence?.frequency === 'monthly') {
-                        return task.recurrence?.dayOfMonth === moment().date();
+                        return task.recurrence?.dayOfMonth === new Date().getDate();
                     }
                 }
 
@@ -131,7 +126,7 @@ export const GeneralDashboardService = {
                         id: doc.id,
                         client: item.clientName || 'Cliente',
                         value: `R$ ${parseFloat(item.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-                        time: moment(item.date?.toDate ? item.date.toDate() : item.date).fromNow(),
+                        time: normalizeDate(item.date).toLocaleString('pt-BR'), // Usando locale para exibir tempo/data de forma simples
                         type: item.category || 'Venda',
                         date: item.date?.toDate ? item.date.toDate() : item.date
                     });
@@ -145,7 +140,7 @@ export const GeneralDashboardService = {
         // --- Gráfico de Histórico (12 Meses) ---
         let salesHistorySeries = [];
         try {
-            const twelveMonthsAgo = normalizeDate(moment().subtract(11, 'months').startOf('month'));
+            const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
             const qChart = query(
                 collectionRef,
                 where('date', '>=', twelveMonthsAgo),
@@ -157,9 +152,8 @@ export const GeneralDashboardService = {
             snapChart.forEach(doc => {
                 const item = doc.data();
                 if (item.createdBy === userId) {
-                    const date = moment(item.date?.toDate ? item.date.toDate() : item.date);
-                    const diff = moment().startOf('month').diff(date.clone().startOf('month'), 'months');
-                    const index = 11 - diff;
+                    const date = normalizeDate(item.date);
+                    const index = DashboardRules.getMonthIndex(date, now);
                     if (index >= 0 && index < 12) {
                         dataMap[index] += parseFloat(item.amount || 0);
                     }
@@ -190,9 +184,10 @@ export const GeneralDashboardService = {
      * Dados para o Dashboard Gerencial (Gestor)
      */
     getManagerData: async (idTenant, idBranch) => {
-        const startMonth = normalizeDate(moment().startOf('month'));
-        const endMonth = normalizeDate(moment().endOf('month'));
-        const today = moment().startOf('day');
+        const now = new Date();
+        const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
 
         const collectionRef = transactionRepository.getCollectionRef(idTenant, idBranch);
 
@@ -215,17 +210,17 @@ export const GeneralDashboardService = {
             snapshot.forEach(doc => {
                 const item = doc.data();
                 const amount = parseFloat(item.amount) || 0;
-                const date = moment(item.date?.toDate ? item.date.toDate() : item.date);
+                const date = normalizeDate(item.date);
 
                 if (item.type === 'income') {
                     salesMonth += amount;
                     salesCount++;
-                    if (date.isSame(today, 'day')) {
+                    if (isSameDay(date, today)) {
                         salesToday += amount;
                     }
                 } else if (item.type === 'expense') {
                     expensesMonth += amount;
-                    if (date.isSame(today, 'day')) {
+                    if (isSameDay(date, today)) {
                         expensesToday += amount;
                     }
                 }
@@ -238,8 +233,8 @@ export const GeneralDashboardService = {
         // --- Comparativo: Vendas do Mês Anterior ---
         let salesLastMonth = 0;
         try {
-            const startLastMonth = normalizeDate(moment().subtract(1, 'months').startOf('month'));
-            const endLastMonth = normalizeDate(moment().subtract(1, 'months').endOf('month'));
+            const startLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const endLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
             const qLast = query(
                 collectionRef,
@@ -256,7 +251,7 @@ export const GeneralDashboardService = {
             console.warn("Erro no dashboard gerencial (Passado):", err);
         }
 
-        const salesGrowth = GeneralDashboardService.calculateGrowth(salesMonth, salesLastMonth);
+        const salesGrowth = DashboardRules.calculateGrowth(salesMonth, salesLastMonth);
         const ticketAverage = salesCount > 0 ? (salesMonth / salesCount) : 0;
 
         // ✅ NOVO: Contas a Pagar (Payables) - Pendentes
@@ -301,17 +296,18 @@ export const GeneralDashboardService = {
         let clientsGrowth = { active: 0, new: 0, renewals: 0, winbacks: 0, canceled: 0, suspended: 0 }
 
         try {
-            const lastMonthKey = moment().subtract(1, 'month').format('YYYY-MM');
+            const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const lastMonthKey = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`;
             const lastSummaryDoc = await DashboardSummaryService.getMonthSummary(idTenant, idBranch, lastMonthKey);
 
             if (lastSummaryDoc) {
                 clientsGrowth = {
-                    active: GeneralDashboardService.calculateGrowth(clientsData.active, lastSummaryDoc.activeclients),
-                    new: GeneralDashboardService.calculateGrowth(clientsData.new, lastSummaryDoc.newclients),
-                    renewals: GeneralDashboardService.calculateGrowth(clientsData.renewals, lastSummaryDoc.renewals),
-                    winbacks: GeneralDashboardService.calculateGrowth(clientsData.winbacks, lastSummaryDoc.winbacks),
-                    canceled: GeneralDashboardService.calculateGrowth(clientsData.canceled, lastSummaryDoc.canceledclients),
-                    suspended: GeneralDashboardService.calculateGrowth(clientsData.suspended, lastSummaryDoc.suspendedclients)
+                    active: DashboardRules.calculateGrowth(clientsData.active, lastSummaryDoc.activeclients),
+                    new: DashboardRules.calculateGrowth(clientsData.new, lastSummaryDoc.newclients),
+                    renewals: DashboardRules.calculateGrowth(clientsData.renewals, lastSummaryDoc.renewals),
+                    winbacks: DashboardRules.calculateGrowth(clientsData.winbacks, lastSummaryDoc.winbacks),
+                    canceled: DashboardRules.calculateGrowth(clientsData.canceled, lastSummaryDoc.canceledclients),
+                    suspended: DashboardRules.calculateGrowth(clientsData.suspended, lastSummaryDoc.suspendedclients)
                 }
             }
         } catch (err) {
@@ -370,27 +366,8 @@ export const GeneralDashboardService = {
                     console.warn(`Erro ao buscar dados do cliente ${c.idClient}:`, err);
                 }
 
-                // Resolução do Status Real (Cálculo de Expiração + Mapeamento)
-                const now = moment();
-                let realStatus = c.status || 'pending';
-                const endDate = c.endDate?.toDate ? moment(c.endDate.toDate()) : (c.endDate ? moment(c.endDate) : null);
-
-                // Se está como ativo mas o prazo venceu, o status real é expirado
-                if (realStatus === 'active' && endDate && endDate.isBefore(now, 'day')) {
-                    realStatus = 'expired';
-                }
-
-                const statusMap = {
-                    active: { label: 'Ativo', color: 'success' },
-                    canceled: { label: 'Cancelado', color: 'danger' },
-                    cancelled: { label: 'Cancelado', color: 'danger' },
-                    suspended: { label: 'Suspenso', color: 'secondary' },
-                    expired: { label: 'Expirado', color: 'dark' },
-                    pending: { label: 'Pendente', color: 'warning' },
-                    scheduled_cancellation: { label: 'Cancel. Agendado', color: 'info' }
-                };
-
-                const config = statusMap[realStatus] || { label: 'Pendente', color: 'warning' };
+                // Resolução do Status Real (Cálculo de Expiração + Mapeamento) no Domínio
+                const config = DashboardRules.getContractStatusConfig(c.status, normalizeDate(c.endDate));
 
                 return {
                     id: c.idClientContract || (c.id ? c.id.substring(0, 8) : "N/A"),
@@ -399,7 +376,7 @@ export const GeneralDashboardService = {
                     imgUrl: photoUrl || null,
                     status: config.label,
                     amount: `R$ ${parseFloat(c.totalValue || c.value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-                    date: moment(c.createdAt?.toDate ? c.createdAt.toDate() : c.createdAt).format('DD/MM/YYYY'),
+                    date: normalizeDate(c.createdAt).toLocaleDateString('pt-BR'),
                     color: config.color
                 };
             }));
@@ -442,8 +419,9 @@ export const GeneralDashboardService = {
      * Busca dados de Receita, Despesa e Lucro dos últimos 12 meses.
      */
     getFinancialGrowthData: async (idTenant, idBranch) => {
-        const start = normalizeDate(moment().subtract(11, 'months').startOf('month'));
-        const end = normalizeDate(moment().endOf('month'));
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
         const collectionRef = transactionRepository.getCollectionRef(idTenant, idBranch);
 
         const q = query(
@@ -457,7 +435,8 @@ export const GeneralDashboardService = {
         const months = [];
 
         for (let i = 11; i >= 0; i--) {
-            const m = moment().subtract(i, 'months').format('MMM');
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const m = MONTH_SHORT_LABELS[d.getMonth()];
             months.push(m);
             incomeMap[m] = 0;
             expenseMap[m] = 0;
@@ -467,7 +446,8 @@ export const GeneralDashboardService = {
             const snapshot = await getDocs(q);
             snapshot.forEach(doc => {
                 const item = doc.data();
-                const m = moment(item.date?.toDate ? item.date.toDate() : item.date).format('MMM');
+                const date = normalizeDate(item.date);
+                const m = MONTH_SHORT_LABELS[date.getMonth()];
                 const amount = parseFloat(item.amount) || 0;
 
                 if (item.type === 'income') {
@@ -503,7 +483,8 @@ export const GeneralDashboardService = {
      * Busca dados de itens mais vendidos (Contratos/Planos) no mês atual.
      */
     getMostSoldData: async (idTenant, idBranch) => {
-        const start = normalizeDate(moment().startOf('month'));
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
         const { clientContractRepository } = await import('../../data/repositories/ClientContractRepository');
 
         try {
@@ -538,12 +519,14 @@ export const GeneralDashboardService = {
     getLast12Monthsclients: async (idTenant, idBranch, cachedSummary = null) => {
         const { DashboardSummaryService } = await import('./DashboardSummaryService');
 
+        const now = new Date();
         const promises = [];
         for (let i = 0; i < 12; i++) {
             promises.push((async () => {
-                const targetMonth = moment().subtract(i, 'months');
-                const monthKey = targetMonth.format('YYYY-MM');
-                const monthLabel = targetMonth.format('MMM/YY').toUpperCase(); // JUL/24
+                const targetMonthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const monthKey = `${targetMonthDate.getFullYear()}-${String(targetMonthDate.getMonth() + 1).padStart(2, '0')}`;
+
+                const monthLabel = `${MONTH_SHORT_LABELS[targetMonthDate.getMonth()].toUpperCase()}/${String(targetMonthDate.getFullYear()).substring(2)}`;
 
                 let active = 0;
                 try {
@@ -570,7 +553,8 @@ export const GeneralDashboardService = {
      * Retorna séries formatadas para ApexCharts.
      */
     getLast3YearsMonthlyData: async (idTenant, idBranch, cachedSummary = null) => {
-        const currentYear = moment().year();
+        const now = new Date();
+        const currentYear = now.getFullYear();
         const years = [currentYear - 2, currentYear - 1, currentYear]; // [2024, 2025, 2026]
 
         // Estrutura para Vendas: { '2024': [Jan, Feb...], '2025': ... }
@@ -578,8 +562,8 @@ export const GeneralDashboardService = {
         years.forEach(y => salesMap[y] = new Array(12).fill(0));
 
         // 1. Buscar TODAS as vendas dos 3 anos de uma vez
-        const start = normalizeDate(moment(`${years[0]}-01-01`));
-        const end = normalizeDate(moment(`${years[2]}-12-31`));
+        const start = new Date(years[0], 0, 1);
+        const end = new Date(years[2], 11, 31, 23, 59, 59, 999);
         const collectionRef = transactionRepository.getCollectionRef(idTenant, idBranch);
 
         const qSales = query(
@@ -594,9 +578,9 @@ export const GeneralDashboardService = {
             snapshot.forEach(doc => {
                 const item = doc.data();
                 if (item.type === 'income') {
-                    const date = moment(item.date?.toDate ? item.date.toDate() : item.date);
-                    const year = date.year();
-                    const month = date.month(); // 0-11
+                    const date = normalizeDate(item.date);
+                    const year = date.getFullYear();
+                    const month = date.getMonth(); // 0-11
                     if (salesMap[year]) {
                         salesMap[year][month] += parseFloat(item.amount) || 0;
                     }
@@ -620,7 +604,7 @@ export const GeneralDashboardService = {
                     let val = 0;
                     try {
                         // Se for o mês ATUAL, usa o cachedSummary se fornecido
-                        if (moment().year() === year && moment().month() === month) {
+                        if (now.getFullYear() === year && now.getMonth() === month) {
                             if (cachedSummary) {
                                 val = cachedSummary.activeclients || 0;
                             } else {

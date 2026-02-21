@@ -262,7 +262,7 @@ export const LedgerService = {
             date: provision.date || normalizeDate(new Date()), // Permite data retroativa
             description: `Provisão de Taxas: Venda #${provision.saleNumber}`,
             sourceType: 'card_fee_provision',
-            sourceId: provision.saleId,
+            sourceId: provision.idSale,
             entries
         })
     },
@@ -508,7 +508,7 @@ export const LedgerService = {
      * D - Caixa/Banco
      * C - Contas a Receber (baixa o direito criado na Venda)
      */
-    registerSalePayment: async (idTenant, idBranch, { saleId, saleNumber, paymentMethod, amount, bankAccountId, bankAccountName, paymentDate }) => {
+    registerSalePayment: async (idTenant, idBranch, { idSale, saleNumber, paymentMethod, amount, bankAccountId, bankAccountName, paymentDate }) => {
         let debitAccount = STANDARD_ACCOUNTS.CASH;
         let debitAccountName = 'Caixa';
 
@@ -527,7 +527,7 @@ export const LedgerService = {
             date: normalizeDate(paymentDate) || normalizeDate(new Date()),
             description: `Recebimento à Vista (${paymentMethod}): Venda #${saleNumber}`,
             sourceType: 'sale_payment_instant',
-            sourceId: saleId,
+            sourceId: idSale,
             entries: [
                 {
                     // DÉBITO: Entrada no Caixa/Banco

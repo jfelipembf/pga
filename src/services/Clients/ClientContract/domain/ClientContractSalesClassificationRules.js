@@ -1,17 +1,22 @@
-import moment from 'moment'
+import { normalizeDate } from '../../../../utils/date'
 
 export const ClientContractSalesClassificationRules = {
     /**
      * Retorna 'new', 'renewal' ou 'winback'
      */
     classify: (lastContractEndDate, newContractStartDate) => {
-        if (!lastContractEndDate) return 'new'
+        const lastEndDate = normalizeDate(lastContractEndDate);
+        const newStartDate = normalizeDate(newContractStartDate) || new Date();
 
-        const lastEndDate = lastContractEndDate?.toDate ? lastContractEndDate.toDate() : new Date(lastContractEndDate)
-        const newStartDate = newContractStartDate || new Date()
+        if (!lastEndDate) return 'new';
 
         // Diferença em dias: Data Início Novo - Data Fim Último
-        const gapDays = moment(newStartDate).startOf('day').diff(moment(lastEndDate).startOf('day'), 'days')
+        // Reseta horas para comparação pura de dias
+        const d1 = new Date(newStartDate); d1.setHours(12, 0, 0, 0);
+        const d2 = new Date(lastEndDate); d2.setHours(12, 0, 0, 0);
+
+        const diffTime = d1.getTime() - d2.getTime();
+        const gapDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
         // Regra de Negócio: Gap <= 45 dias é Renovação, > 45 é Retorno (Win-back)
         return gapDays <= 45 ? 'renewal' : 'winback'

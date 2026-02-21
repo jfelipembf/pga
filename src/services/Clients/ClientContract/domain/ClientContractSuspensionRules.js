@@ -1,4 +1,3 @@
-import moment from 'moment'
 import { normalizeDate } from '../../../../utils/date'
 
 export const ClientContractSuspensionRules = {
@@ -12,15 +11,20 @@ export const ClientContractSuspensionRules = {
 
         const { startDate, endDate, suspensionDays: daysInput } = typeof data === 'object' ? data : { suspensionDays: data }
 
-        let finalStartDate = startDate ? normalizeDate(startDate) : normalizeDate(new Date())
+        let finalStartDate = normalizeDate(startDate) || normalizeDate(new Date())
         let finalEndDate = endDate ? normalizeDate(endDate) : null
-        let suspensionDays = daysInput
+        let suspensionDays = parseInt(daysInput) || 0
 
         if (startDate && endDate) {
-            suspensionDays = moment(endDate).diff(moment(startDate), 'days')
-            finalEndDate = normalizeDate(endDate)
-        } else if (suspensionDays) {
-            finalEndDate = normalizeDate(moment(finalStartDate).add(suspensionDays, 'days'))
+            const d1 = normalizeDate(startDate);
+            const d2 = normalizeDate(endDate);
+            const diffTime = d2.getTime() - d1.getTime();
+            suspensionDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            finalEndDate = d2;
+        } else if (suspensionDays > 0) {
+            const dEnd = new Date(finalStartDate);
+            dEnd.setDate(dEnd.getDate() + suspensionDays);
+            finalEndDate = normalizeDate(dEnd);
         }
 
         if (!suspensionDays || suspensionDays <= 0) {
@@ -39,8 +43,12 @@ export const ClientContractSuspensionRules = {
             throw new Error(`Limite de ${available} dias de suspensão (Usado: ${totalUsed}/${rules.maxFreezeDays})`)
         }
 
-        const todayIso = moment().format('YYYY-MM-DD')
-        const isFuture = moment(finalStartDate).isAfter(todayIso, 'day')
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const start = new Date(finalStartDate);
+        start.setHours(0, 0, 0, 0);
+
+        const isFuture = start > now;
 
         return {
             finalStartDate,

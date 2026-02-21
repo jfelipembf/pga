@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Row, Col, Card, CardBody, Table, Badge, Button, Spinner } from 'reactstrap'
+import { Row, Col, Card, CardBody, Table, Button, Spinner } from 'reactstrap'
 import { useClientFinancial } from './hooks/useClientFinancial'
 import { formatCurrency } from '../../../../utils/format'
 import { formatDate } from '../../../../utils/date'
