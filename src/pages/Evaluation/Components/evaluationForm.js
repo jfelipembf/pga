@@ -260,12 +260,12 @@ const EvaluationForm = ({
                         {(client.friendlyId || client.idGym) && <span className="text-muted small">#{client.friendlyId || client.idGym}</span>}
                       </div>
                       <div className="d-flex gap-2 align-items-center mt-1">
-                        {(client.lifecycleStatus || client.clientStatus) && (
+                        {client.status && (
                           <Badge color={
-                            (client.lifecycleStatus || client.clientStatus) === 'active' ? 'success' :
-                              (client.lifecycleStatus || client.clientStatus) === 'suspended' ? 'warning' : 'secondary'
+                            client.status === 'active' ? 'success' :
+                              client.status === 'suspended' ? 'warning' : 'secondary'
                           } className="border px-2 text-capitalize">
-                            {client.lifecycleStatus === 'active' ? 'Ativo' : client.lifecycleStatus}
+                            {client.status === 'active' ? 'Ativo' : client.status}
                           </Badge>
                         )}
                         {client.tag && <Badge color="light" className="text-muted border d-none d-md-inline-block">{client.tag}</Badge>}
