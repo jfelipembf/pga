@@ -1,5 +1,6 @@
 import { staffRepository } from '../../data/repositories/StaffRepository'
-import { AuditService } from '../Core/AuditService'
+import { StaffAuditLogger } from './audit/StaffAuditLogger'
+import { StaffRules } from './domain/StaffRules'
 import { StaffSchema } from '../../data/schemas/Admin/StaffSchema'
 import { initializeApp, deleteApp } from "firebase/app"
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth"
@@ -14,17 +15,14 @@ export const StaffService = {
      * Cria um novo colaborador (Auth + Firestore)
      */
     createStaff: async (idTenant, idBranch, userId, staffData) => {
-        // 1. Validação do Schema
         await StaffSchema.validate(staffData, { abortEarly: false })
 
         let secondaryApp = null
         try {
-            // 2. Inicialização Duplicada para criar usuário sem deslogar o Admin
             const appName = `SecondaryApp_${Date.now()}`
             secondaryApp = initializeApp(firebaseConfig, appName)
             const secondaryAuth = getAuth(secondaryApp)
 
-            // 3. Criar Usuário no Firebase Auth
             const userCredential = await createUserWithEmailAndPassword(
                 secondaryAuth,
                 staffData.email,
@@ -32,30 +30,18 @@ export const StaffService = {
             )
             const staffUid = userCredential.user.uid
 
-            // 4. Preparar dados para Firestore (Removendo campos sensíveis do payload do banco)
-            const { password, confirmPassword, ...dbData } = staffData
+            const payload = StaffRules.buildCreationPayload(staffData, userId)
 
-            const newStaff = await staffRepository.set(idTenant, idBranch, staffUid, {
-                ...dbData,
-                isActive: dbData.isActive !== false,
-                status: dbData.status || 'active',
-                createdBy: userId,
-                deletedAt: null
-            })
+            const newStaff = await staffRepository.set(idTenant, idBranch, staffUid, payload)
 
-            // 5. Auditoria
-            await AuditService.log({
+            await StaffAuditLogger.logCreation({
                 idTenant, idBranch, userId,
                 userName: staffData.createdByUserName || 'Sistema',
-                action: 'STAFF_CREATED',
-                entityType: 'staff',
                 entityId: staffUid,
-                description: `Novo colaborador criado: ${staffData.name} (${staffData.roleName || 'Sem cargo'})`,
-                details: {
-                    email: staffData.email,
-                    role: staffData.roleName,
-                    roleId: staffData.roleId
-                }
+                staffName: staffData.name,
+                email: staffData.email,
+                roleName: staffData.roleName,
+                roleId: staffData.roleId
             })
 
             return newStaff
@@ -63,7 +49,6 @@ export const StaffService = {
             console.error("Erro ao criar colaborador:", error)
             throw error
         } finally {
-            // Limpeza: Deletar a instância secundária
             if (secondaryApp) {
                 await deleteApp(secondaryApp)
             }
@@ -121,27 +106,20 @@ export const StaffService = {
      * Atualiza um colaborador
      */
     updateStaff: async (idTenant, idBranch, userId, id, data) => {
-        // 1. Snapshot Anterior
         const oldData = await staffRepository.findById(idTenant, idBranch, id)
 
-        // 2. Persistir
         const result = await staffRepository.update(idTenant, idBranch, id, {
             ...data,
             updatedBy: userId,
             updatedAt: normalizeDate(new Date())
         })
 
-        // 3. Auditoria com Diff Automático
-        await AuditService.logUpdate({
-            idTenant,
-            idBranch,
-            userId,
+        await StaffAuditLogger.logUpdate({
+            idTenant, idBranch, userId,
             userName: data.userName,
-            entityType: 'staff',
             entityId: id,
             oldData,
-            newData: data,
-            description: `Atualizou o colaborador ${oldData?.name || id}`
+            newData: data
         })
 
         return result
@@ -152,17 +130,15 @@ export const StaffService = {
      */
     deleteStaff: async (idTenant, idBranch, userId, id) => {
         const staff = await staffRepository.findById(idTenant, idBranch, id)
-        if (!staff) throw new Error("Colaborador não encontrado")
+        StaffRules.validateForDeletion(staff)
 
         const result = await staffRepository.softDelete(idTenant, idBranch, id, userId)
 
-        await AuditService.log({
+        await StaffAuditLogger.logDeletion({
             idTenant, idBranch, userId,
-            action: 'STAFF_DELETED',
-            entityType: 'staff',
             entityId: id,
-            description: `Colaborador excluído: ${staff.name || id}`,
-            details: { snapshot: staff }
+            staffName: staff.name,
+            snapshot: staff
         })
 
         return result

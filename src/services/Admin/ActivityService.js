@@ -1,7 +1,8 @@
 import { activityRepository } from '../../data/repositories/ActivityRepository'
 import { objectiveRepository } from '../../data/repositories/ObjectiveRepository'
 import { topicRepository } from '../../data/repositories/TopicRepository'
-import { AuditService } from '../Core/AuditService'
+import { ActivityAuditLogger } from './audit/ActivityAuditLogger'
+import { ActivityRules } from './domain/ActivityRules'
 import { ActivitySchema } from '../../data/schemas/Admin/ActivitySchema'
 import { normalizeDate } from '../../utils/date'
 import { collection, getDocs, doc } from 'firebase/firestore'
@@ -16,7 +17,7 @@ export const ActivityService = {
     createActivity: async (idTenant, idBranch, userId, activityData) => {
         await ActivitySchema.validate(activityData, { abortEarly: false })
 
-        // Se há photoFile, fazer upload primeiro (será atualizado com ID correto depois)
+        // Se há photoFile, fazer upload primeiro
         let photoUrl = null
         if (activityData.photoFile) {
             const { getStorage, ref, uploadBytes, getDownloadURL } = await import('firebase/storage')
@@ -27,28 +28,19 @@ export const ActivityService = {
             photoUrl = await getDownloadURL(snapshot.ref)
         }
 
-        // Remove photoFile dos dados antes de salvar
-        const { photoFile, ...dataToSave } = activityData
+        const payload = ActivityRules.buildCreationPayload(activityData, userId, photoUrl)
 
         const newActivity = await activityRepository.create(idTenant, idBranch, {
-            ...dataToSave,
-            photo: photoUrl,
-            photoUrl: photoUrl,
-            isActive: activityData.isActive !== false,
-            status: activityData.status || 'active',
-            createdBy: userId,
+            ...payload,
             createdAt: normalizeDate(new Date()),
-            updatedAt: normalizeDate(new Date()),
-            deletedAt: null
+            updatedAt: normalizeDate(new Date())
         })
 
-        await AuditService.log({
+        await ActivityAuditLogger.logCreation({
             idTenant, idBranch, userId,
             userName: activityData.userName,
-            action: 'ACTIVITY_CREATED',
-            entityType: 'activity',
             entityId: newActivity.id,
-            description: `Nova atividade criada: ${activityData.name}`
+            activityName: activityData.name
         })
 
         return newActivity
@@ -66,10 +58,8 @@ export const ActivityService = {
      * Lista atividades com filtros (incluindo objectives e topics)
      */
     listWithFilters: async (idTenant, idBranch, filters = {}, limitCount = 100) => {
-        // Busca todas as atividades e filtra em memória
         const allActivities = await activityRepository.findAll(idTenant, idBranch)
 
-        // Filtra deletados em memória
         const activities = allActivities
             .filter(a => !a.deletedAt)
             .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
@@ -144,10 +134,8 @@ export const ActivityService = {
      * Atualiza uma atividade (com suporte a upload de foto)
      */
     updateActivity: async (idTenant, idBranch, userId, id, data) => {
-        // 1. Snapshot Anterior
         const oldData = await activityRepository.findById(idTenant, idBranch, id)
 
-        // Se há photoFile, fazer upload primeiro
         let photoUrl = data.photo || data.photoUrl
 
         if (data.photoFile) {
@@ -159,29 +147,19 @@ export const ActivityService = {
             photoUrl = await getDownloadURL(snapshot.ref)
         }
 
-        // Remove photoFile dos dados antes de salvar
-        // Remove photoFile dos dados antes de salvar
-        const { photoFile, ...dataToSave } = data
-
         const newData = {
-            ...dataToSave,
-            photo: photoUrl,
-            photoUrl: photoUrl,
+            ...ActivityRules.buildUpdatePayload(data, photoUrl),
             updatedAt: normalizeDate(new Date())
         }
 
         const result = await activityRepository.update(idTenant, idBranch, id, newData)
 
-        await AuditService.logUpdate({
-            idTenant,
-            idBranch,
-            userId,
+        await ActivityAuditLogger.logUpdate({
+            idTenant, idBranch, userId,
             userName: data.userName,
-            entityType: 'activity',
             entityId: id,
             oldData,
-            newData,
-            description: `Atualizou a atividade ${oldData?.name || id}`
+            newData
         })
 
         return result
@@ -204,18 +182,15 @@ export const ActivityService = {
      */
     deleteActivity: async (idTenant, idBranch, userId, id, userName) => {
         const activity = await activityRepository.findById(idTenant, idBranch, id)
-        if (!activity) throw new Error("Atividade não encontrada")
-        if (activity.deletedAt) throw new Error("Atividade já foi excluída")
+        ActivityRules.validateForDeletion(activity)
 
         const result = await activityRepository.softDelete(idTenant, idBranch, id, userId)
 
-        await AuditService.log({
+        await ActivityAuditLogger.logDeletion({
             idTenant, idBranch, userId,
-            userName: userName,
-            action: 'ACTIVITY_DELETED',
-            entityType: 'activity',
+            userName,
             entityId: id,
-            description: `Atividade excluída: ${activity.name || id}`
+            activityName: activity.name
         })
 
         return result
@@ -223,9 +198,6 @@ export const ActivityService = {
 
     // ==================== OBJECTIVES CRUD ====================
 
-    /**
-     * Cria um novo objetivo (sem audit log individual)
-     */
     createObjective: async (idTenant, idBranch, userId, activityId, objectiveData) => {
         const objectiveId = objectiveData.id || `obj-${Date.now()}`
 
@@ -237,17 +209,11 @@ export const ActivityService = {
         return { id: objectiveId, ...objectiveData }
     },
 
-    /**
-     * Atualiza um objetivo (sem audit log individual)
-     */
     updateObjective: async (idTenant, idBranch, userId, activityId, objectiveId, objectiveData) => {
         await objectiveRepository.update(idTenant, idBranch, activityId, objectiveId, objectiveData)
         return { id: objectiveId, ...objectiveData }
     },
 
-    /**
-     * Exclui um objetivo - soft delete (sem audit log individual)
-     */
     deleteObjective: async (idTenant, idBranch, userId, activityId, objectiveId) => {
         await objectiveRepository.softDelete(idTenant, idBranch, activityId, objectiveId)
         return true
@@ -255,9 +221,6 @@ export const ActivityService = {
 
     // ==================== TOPICS CRUD ====================
 
-    /**
-     * Cria um novo tópico (sem audit log individual)
-     */
     createTopic: async (idTenant, idBranch, userId, activityId, objectiveId, topicData) => {
         const topicId = topicData.id || `topic-${Date.now()}`
 
@@ -269,17 +232,11 @@ export const ActivityService = {
         return { id: topicId, ...topicData }
     },
 
-    /**
-     * Atualiza um tópico (sem audit log individual)
-     */
     updateTopic: async (idTenant, idBranch, userId, activityId, objectiveId, topicId, topicData) => {
         await topicRepository.update(idTenant, idBranch, activityId, objectiveId, topicId, topicData)
         return { id: topicId, ...topicData }
     },
 
-    /**
-     * Exclui um tópico - soft delete (sem audit log individual)
-     */
     deleteTopic: async (idTenant, idBranch, userId, activityId, objectiveId, topicId) => {
         await topicRepository.softDelete(idTenant, idBranch, activityId, objectiveId, topicId)
         return true

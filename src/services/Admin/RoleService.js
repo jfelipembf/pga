@@ -1,5 +1,6 @@
 import { roleRepository } from '../../data/repositories/RoleRepository'
-import { AuditService } from '../Core/AuditService'
+import { RoleAuditLogger } from './audit/RoleAuditLogger'
+import { RoleRules } from './domain/RoleRules'
 import { RoleSchema } from '../../data/schemas/Admin/RoleSchema'
 import { normalizeDate } from '../../utils/date'
 
@@ -13,23 +14,19 @@ export const RoleService = {
     createRole: async (idTenant, idBranch, userId, roleData) => {
         await RoleSchema.validate(roleData, { abortEarly: false })
 
+        const payload = RoleRules.buildCreationPayload(roleData, userId)
+
         const newRole = await roleRepository.create(idTenant, idBranch, {
-            ...roleData,
-            status: roleData.status || 'active',
-            permissions: roleData.permissions || {},
-            createdBy: userId,
+            ...payload,
             createdAt: normalizeDate(new Date()),
-            updatedAt: normalizeDate(new Date()),
-            deletedAt: null
+            updatedAt: normalizeDate(new Date())
         })
 
-        await AuditService.log({
+        await RoleAuditLogger.logCreation({
             idTenant, idBranch, userId,
             userName: roleData.userName,
-            action: 'ROLE_CREATED',
-            entityType: 'role',
             entityId: newRole.id,
-            description: `Nova função criada: ${roleData.name || roleData.label || 'Sem nome'}`
+            roleName: roleData.name || roleData.label
         })
 
         return newRole
@@ -68,26 +65,19 @@ export const RoleService = {
      * Atualiza uma função
      */
     updateRole: async (idTenant, idBranch, userId, id, data) => {
-        // 1. Snapshot Anterior
         const oldData = await roleRepository.findById(idTenant, idBranch, id)
 
-        // 2. Persistir
         const result = await roleRepository.update(idTenant, idBranch, id, {
             ...data,
             updatedAt: normalizeDate(new Date())
         })
 
-        // 3. Auditoria com Diff
-        await AuditService.logUpdate({
-            idTenant,
-            idBranch,
-            userId,
+        await RoleAuditLogger.logUpdate({
+            idTenant, idBranch, userId,
             userName: data.userName,
-            entityType: 'role',
             entityId: id,
             oldData,
-            newData: data,
-            description: `Atualizou a função ${oldData?.name || id}`
+            newData: data
         })
 
         return result
@@ -98,18 +88,14 @@ export const RoleService = {
      */
     deleteRole: async (idTenant, idBranch, userId, id, userName) => {
         const role = await roleRepository.findById(idTenant, idBranch, id)
-        if (!role) throw new Error("Função não encontrada")
-        if (role.deletedAt) throw new Error("Função já foi excluída")
+        RoleRules.validateForDeletion(role)
 
         const result = await roleRepository.softDelete(idTenant, idBranch, id, userId)
 
-        await AuditService.log({
-            idTenant, idBranch, userId,
-            userName: userName,
-            action: 'ROLE_DELETED',
-            entityType: 'role',
+        await RoleAuditLogger.logDeletion({
+            idTenant, idBranch, userId, userName,
             entityId: id,
-            description: `Função excluída: ${role.name || role.label || id}`
+            roleName: role.name || role.label
         })
 
         return result

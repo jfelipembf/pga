@@ -1,7 +1,8 @@
 import { catalogRepository } from '../../data/repositories/CatalogRepository'
-import { AuditService } from '../Core/AuditService'
-import { normalizeDate } from "../../utils/date";
+import { CatalogAuditLogger } from './audit/CatalogAuditLogger'
+import { CatalogRules } from './domain/CatalogRules'
 import { CatalogSchema } from '../../data/schemas/Admin/CatalogSchema'
+import { normalizeDate } from "../../utils/date"
 
 /**
  * Serviço para Gestão de Catálogo de Produtos/Serviços (Catalog)
@@ -13,24 +14,18 @@ export const CatalogService = {
     createCatalogItem: async (idTenant, idBranch, userId, catalogData) => {
         await CatalogSchema.validate(catalogData, { abortEarly: false })
 
+        const payload = CatalogRules.buildCreationPayload(catalogData, userId)
+
         const newItem = await catalogRepository.create(idTenant, idBranch, {
-            ...catalogData,
-            isActive: catalogData.isActive !== false,
-            status: catalogData.status || 'active',
-            stock: catalogData.stock || 0,
-            minStock: catalogData.minStock || 0,
-            createdBy: userId,
+            ...payload,
             createdAt: normalizeDate(new Date()),
-            deletedAt: null
         })
 
-        await AuditService.log({
+        await CatalogAuditLogger.logCreation({
             idTenant, idBranch, userId,
             userName: catalogData.userName,
-            action: 'CATALOG_ITEM_CREATED',
-            entityType: 'catalog',
             entityId: newItem.id,
-            description: `Novo item criado: ${catalogData.name}`
+            itemName: catalogData.name
         })
 
         return newItem
@@ -87,7 +82,6 @@ export const CatalogService = {
      * Atualiza um item do catálogo
      */
     updateCatalogItem: async (idTenant, idBranch, userId, id, data) => {
-        // 1. Snapshot
         const oldData = await catalogRepository.findById(idTenant, idBranch, id)
 
         const result = await catalogRepository.update(idTenant, idBranch, id, {
@@ -95,14 +89,12 @@ export const CatalogService = {
             updatedAt: normalizeDate(new Date())
         })
 
-        await AuditService.logUpdate({
+        await CatalogAuditLogger.logUpdate({
             idTenant, idBranch, userId,
             userName: data.userName,
-            entityType: 'catalog',
             entityId: id,
             oldData,
-            newData: data,
-            description: `Item atualizado: ${data.name || id}`
+            newData: data
         })
 
         return result
@@ -113,33 +105,22 @@ export const CatalogService = {
      */
     updateStock: async (idTenant, idBranch, userId, id, quantity, operation = 'set') => {
         const item = await catalogRepository.findById(idTenant, idBranch, id)
-        if (!item) throw new Error("Item não encontrado")
+        CatalogRules.validateForDeletion(item) // reutiliza validação de existência
 
-        let newStock = item.stock || 0
-
-        if (operation === 'add') {
-            newStock += quantity
-        } else if (operation === 'subtract') {
-            newStock -= quantity
-        } else {
-            newStock = quantity
-        }
-
-        if (newStock < 0) {
-            throw new Error("Estoque não pode ser negativo")
-        }
+        const newStock = CatalogRules.calculateNewStock(item.stock, quantity, operation)
 
         const result = await catalogRepository.update(idTenant, idBranch, id, {
             stock: newStock,
             updatedAt: normalizeDate(new Date())
         })
 
-        await AuditService.log({
+        await CatalogAuditLogger.logStockUpdate({
             idTenant, idBranch, userId,
-            action: 'CATALOG_STOCK_UPDATED',
-            entityType: 'catalog',
             entityId: id,
-            description: `Estoque atualizado: ${item.name} - ${operation} ${quantity} (novo: ${newStock})`
+            itemName: item.name,
+            operation,
+            quantity,
+            newStock
         })
 
         return result
@@ -150,17 +131,15 @@ export const CatalogService = {
      */
     deleteCatalogItem: async (idTenant, idBranch, userId, id) => {
         const item = await catalogRepository.findById(idTenant, idBranch, id)
-        if (!item) throw new Error("Item não encontrado")
+        CatalogRules.validateForDeletion(item)
 
         const result = await catalogRepository.softDelete(idTenant, idBranch, id, userId)
 
-        await AuditService.log({
+        await CatalogAuditLogger.logDeletion({
             idTenant, idBranch, userId,
-            action: 'CATALOG_ITEM_DELETED',
-            entityType: 'catalog',
             entityId: id,
-            description: `Item excluído: ${item.name || id}`,
-            details: { snapshot: item }
+            itemName: item.name,
+            snapshot: item
         })
 
         return result

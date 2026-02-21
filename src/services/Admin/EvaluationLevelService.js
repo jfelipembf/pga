@@ -1,5 +1,6 @@
 import { evaluationLevelRepository } from '../../data/repositories/EvaluationLevelRepository'
-import { AuditService } from '../Core/AuditService'
+import { EvaluationLevelAuditLogger } from './audit/EvaluationLevelAuditLogger'
+import { EvaluationLevelRules } from './domain/EvaluationLevelRules'
 import { EvaluationLevelSchema } from '../../data/schemas/Admin/EvaluationLevelSchema'
 import { normalizeDate } from '../../utils/date'
 
@@ -13,23 +14,20 @@ export const EvaluationLevelService = {
     createLevel: async (idTenant, idBranch, userId, levelData) => {
         await EvaluationLevelSchema.validate(levelData, { abortEarly: false })
 
+        const payload = EvaluationLevelRules.buildCreationPayload(levelData, userId)
+
         const newLevel = await evaluationLevelRepository.create(idTenant, idBranch, {
-            ...levelData,
-            isActive: levelData.isActive !== false,
-            status: levelData.status || 'active',
-            createdBy: userId,
+            ...payload,
             createdAt: normalizeDate(new Date()),
-            updatedAt: normalizeDate(new Date()),
-            deletedAt: null
+            updatedAt: normalizeDate(new Date())
         })
 
-        await AuditService.log({
+        await EvaluationLevelAuditLogger.logCreation({
             idTenant, idBranch, userId,
             userName: levelData.userName,
-            action: 'EVALUATION_LEVEL_CREATED',
-            entityType: 'evaluationLevel',
             entityId: newLevel.id,
-            description: `Novo nível de avaliação criado: ${levelData.title} (valor: ${levelData.value})`
+            title: levelData.title,
+            value: levelData.value
         })
 
         return newLevel
@@ -50,7 +48,6 @@ export const EvaluationLevelService = {
 
         let levels = allLevels.filter(level => !level.deletedAt)
 
-        // Filtro por ativo/inativo
         if (filters.isActive !== undefined) {
             levels = levels.filter(level => level.isActive === filters.isActive)
         }
@@ -69,7 +66,6 @@ export const EvaluationLevelService = {
      * Atualiza um nível de avaliação
      */
     updateLevel: async (idTenant, idBranch, userId, id, data) => {
-        // 1. Snapshot
         const oldData = await evaluationLevelRepository.findById(idTenant, idBranch, id)
 
         const result = await evaluationLevelRepository.update(idTenant, idBranch, id, {
@@ -77,14 +73,12 @@ export const EvaluationLevelService = {
             updatedAt: normalizeDate(new Date())
         })
 
-        await AuditService.logUpdate({
+        await EvaluationLevelAuditLogger.logUpdate({
             idTenant, idBranch, userId,
             userName: data.userName,
-            entityType: 'evaluationLevel',
             entityId: id,
             oldData,
-            newData: data,
-            description: `Nível de avaliação atualizado: ${data.title || id}`
+            newData: data
         })
 
         return result
@@ -96,13 +90,8 @@ export const EvaluationLevelService = {
     reorderLevels: async (idTenant, idBranch, userId, orderedIds, userName) => {
         await evaluationLevelRepository.updateOrder(idTenant, idBranch, orderedIds)
 
-        await AuditService.log({
-            idTenant, idBranch, userId,
-            userName: userName,
-            action: 'EVALUATION_LEVELS_REORDERED',
-            entityType: 'evaluationLevel',
-            entityId: 'bulk',
-            description: `Ordem dos níveis de avaliação atualizada`
+        await EvaluationLevelAuditLogger.logReorder({
+            idTenant, idBranch, userId, userName
         })
 
         return { success: true }
@@ -113,19 +102,15 @@ export const EvaluationLevelService = {
      */
     deleteLevel: async (idTenant, idBranch, userId, id, userName) => {
         const level = await evaluationLevelRepository.findById(idTenant, idBranch, id)
-        if (!level) throw new Error("Nível de avaliação não encontrado")
-        if (level.deletedAt) throw new Error("Nível de avaliação já foi excluído")
+        EvaluationLevelRules.validateForDeletion(level)
 
         const result = await evaluationLevelRepository.softDelete(idTenant, idBranch, id, userId)
 
-        await AuditService.log({
-            idTenant, idBranch, userId,
-            userName: userName,
-            action: 'EVALUATION_LEVEL_DELETED',
-            entityType: 'evaluationLevel',
+        await EvaluationLevelAuditLogger.logDeletion({
+            idTenant, idBranch, userId, userName,
             entityId: id,
-            description: `Nível de avaliação excluído: ${level.title || id}`,
-            details: { snapshot: level }
+            title: level.title,
+            snapshot: level
         })
 
         return result
